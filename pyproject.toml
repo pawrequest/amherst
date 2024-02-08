@@ -1,0 +1,33 @@
+[project]
+name = "amherst"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Paul-Sees-Solutions", email = "79617825+Paul-Sees-Solutions@users.noreply.github.com" }
+]
+dependencies = [
+#    "pycommence @ git+https://github.com/pawrequest/pycommence",
+#    "shipr @ git+https://github.com/pawrequest/shipr",
+#    "pawsupport @ git+https://github.com/pawrequest/pawsupport",
+#    'pydantic',
+#    'PySimpleGui',
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest",
+    "sphinx",
+    "sphinx-rtd-theme",
+    "myst-parser",
+
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true

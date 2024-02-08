@@ -1,0 +1,3 @@
+-e file:///C:/Users/Giles/prdev/pycommence
+-e file:///C:/Users/Giles/prdev/shipr
+git+https://github.com/pawrequest/pawsupport
