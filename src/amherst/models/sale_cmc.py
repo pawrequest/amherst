@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Optional, ClassVar
 
 from pydantic import BaseModel, Field
 
-from amherst.commence_am.shared import DateAm, ListComma, ListNewline, DateMaybe
+from amherst.models.shared import DateAm, ListComma, ListNewline, DateMaybe
 
 
 class SaleCmc(BaseModel):
     """ Direct representation of Commence Sale Category"""
 
-    class Config:
-        extra = 'ignore'
+    table_name: ClassVar[str] = 'Sale'
 
     # order details    
     name: str = Field(alias='Name')
@@ -25,22 +24,22 @@ class SaleCmc(BaseModel):
 
     # payment details
     invoice_terms: str = Field(alias='Invoice Terms')
-    invoice: Path = Field(alias='Invoice')
-    purchase_order_print: str = Field(alias='Purchase Order Print')
+    invoice: Optional[Path] = Field(alias='Invoice')
+    purchase_order_print: Optional[str] = Field(alias='Purchase Order Print')
     purchase_order: Optional[str] = Field(alias='Purchase Order')
 
     # items
     items_ordered: ListComma = Field(alias='Items Ordered')
     serial_numbers: ListNewline = Field(alias='Serial Numbers')
-    special_radio_prog: str = Field(alias='Special Radio Prog')
+    special_radio_prog: Optional[str] = Field(alias='Special Radio Prog')
 
     # staff
-    order_packed_by: str = Field(alias='Order Packed By')
-    order_taken_by: str = Field(alias='Order Taken By')
+    order_packed_by: Optional[str] = Field(alias='Order Packed By')
+    order_taken_by: Optional[str] = Field(alias='Order Taken By')
 
     # shipping
     delivery_method: str = Field(alias='Delivery Method')
-    outbound_id: str = Field(alias='Outbound ID')
+    outbound_id: Optional[str] = Field(alias='Outbound ID')
     parcel_tracking_nums: ListComma = Field(alias='Parcel Tracking Nums')
 
     # notes

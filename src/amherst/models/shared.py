@@ -64,14 +64,14 @@ DecimalAm = Annotated[Decimal, BeforeValidator(decimal_from_string)]
 T = TypeVar('T', bound=BaseModel)
 
 
-def submodel_from_cmc[T](cls: type[T], cmc_obj: BaseModel, *, prepend: str = '') -> T:
+def submodel_from_cmc[T](cls: type[T], cmc_obj: CmcTable, *, prepend: str = '') -> T:
     ob_dict = {
         attr: getattr(cmc_obj, f'{prepend}{attr}') for attr in cls.model_fields
     }
     return cls.model_validate(ob_dict)
 
 
-def submodel_from_cmc_prepend[T](cls: type[T], cmc_obj: HireCmc, prepend: str = '') -> T:
+def submodel_from_cmc_prepend[T](cls: type[T], cmc_obj: CmcTable, prepend: str = '') -> T:
     ob_dict = {
         attr: getattr(cmc_obj, f'{prepend}{attr}') for attr in cls.model_fields
     }
@@ -90,11 +90,11 @@ class CmcConverted(BaseModel, ABC):
 
     @classmethod
     @abstractmethod
-    def from_cmc(cls, cmc_obj: BaseModel) -> BaseModel:
+    def from_cmc(cls, cmc_obj: BaseModel) -> CmcConverted:
         raise NotImplementedError
 
     @classmethod
-    def from_name(cls, name: str) -> cls:
+    def from_name(cls, name: str) -> CmcConverted:
         db = CmcDB()
         cursor = db.get_cursor(cls.converted_class.table_name)
         record = cursor.get_record(name)

@@ -1,5 +1,6 @@
 from amherst.models.hire import Hire
 from amherst.models.hire_cmc import HireCmc
+from amherst.models.sale import Sale
 from pycommence import CmcDB
 import pytest
 test_hire_name = 'Test - 10/11/2023 ref 42744'
@@ -29,3 +30,8 @@ def test_hire_from_name():
     hire2 = Hire.from_name(test_hire_name)
     assert isinstance(hire2, Hire)
     ...
+
+
+def test_sale_from_name():
+    sale = Sale.from_name(test_sale_name)
+    assert isinstance(sale, Sale)

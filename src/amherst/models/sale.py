@@ -2,20 +2,22 @@ from __future__ import annotations
 
 from datetime import date
 from pathlib import Path
-from typing import Optional
+from typing import Optional, ClassVar, Type
 
 from pydantic import BaseModel
 
-from amherst.commence_am.sale_cmc import SaleCmc
-from amherst.commence_am.shared import (
+from .sale_cmc import SaleCmc
+from .shared import (
     CmcConverted,
     submodel_from_cmc,
     submodel_from_cmc_prepend,
-    AmAddress,
+    AmAddress, CmcTable,
 )
 
 
 class Sale(CmcConverted):
+    converted_class: ClassVar[Type[CmcTable]] = SaleCmc
+
     name: str
     lost_equipment: bool
     status: str

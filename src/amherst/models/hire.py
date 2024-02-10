@@ -42,13 +42,13 @@ class Hire(CmcConverted):
             )
         )
 
-    @classmethod
-    def from_name(cls, name: str) -> Hire:
-        db = CmcDB()
-        cursor = db.get_cursor(cls.converted_class.table_name)
-        record = cursor.get_record(name)
-        cmc = cls.converted_class(**record)
-        return cls.from_cmc(cmc)
+    # @classmethod
+    # def from_name(cls, name: str) -> Hire:
+    #     db = CmcDB()
+    #     cursor = db.get_cursor(cls.converted_class.table_name)
+    #     record = cursor.get_record(name)
+    #     cmc = cls.converted_class(**record)
+    #     return cls.from_cmc(cmc)
 
 
 class HireDates(BaseModel):
