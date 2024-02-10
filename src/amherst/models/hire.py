@@ -13,9 +13,8 @@ from .hire_cmc import HireCmc
 
 class Hire(CmcConverted):
     """ Primary Hire Type """
-    converted_class: ClassVar[Type[CmcTable]] = HireCmc
+    cmc_class: ClassVar[Type[CmcTable]] = HireCmc
 
-    table_name: str = 'Hire'
     name: str
     customer: str
     dates: HireDates
@@ -41,6 +40,11 @@ class Hire(CmcConverted):
                 staff=submodel_from_cmc(HireStaff, cmc_obj),
             )
         )
+
+    @classmethod
+    def rout_prefix(cls) -> str:
+        return '/hires/'
+
 
     # @classmethod
     # def from_name(cls, name: str) -> Hire:

@@ -16,7 +16,7 @@ from .shared import (
 
 
 class Sale(CmcConverted):
-    converted_class: ClassVar[Type[CmcTable]] = SaleCmc
+    cmc_class: ClassVar[Type[CmcTable]] = SaleCmc
 
     customer: str
     name: str

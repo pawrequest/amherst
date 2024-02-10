@@ -34,8 +34,11 @@ def amherst_time_val(v):
     if not v:
         return None
     if isinstance(v, str):
+        # v = v.split(' ')[0].strip()
         try:
-            return datetime.strptime(v, '%H:%M').time()
+            time_object = datetime.strptime(v, "%I:%M %p").time()
+            return time_object
+            # return datetime.strptime(v, '%H:%M').time()
         except ValueError:
             raise ValueError(f'Invalid time string: "{v}" - expecting amherst format HH:MM')
     return v
@@ -95,7 +98,7 @@ class CmcTable(BaseModel, ABC):
 
 
 class CmcConverted(BaseModel, ABC):
-    converted_class: ClassVar[Type[CmcTable]]
+    cmc_class: ClassVar[Type[CmcTable]]
 
     @classmethod
     @abstractmethod
@@ -105,15 +108,15 @@ class CmcConverted(BaseModel, ABC):
     @classmethod
     def from_name(cls, name: str) -> CmcConverted:
         db = CmcDB()
-        cursor = db.get_cursor(cls.converted_class.table_name)
+        cursor = db.get_cursor(cls.cmc_class.table_name)
         record = cursor.get_record_one(name)
-        cmc = cls.converted_class(**record)
+        cmc = cls.cmc_class(**record)
         return cls.from_cmc(cmc)
 
     @classmethod
     def from_record(cls, record: dict[str, str]) -> CmcConverted:
         try:
-            cmc = cls.converted_class(**record)
+            cmc = cls.cmc_class(**record)
             return cls.from_cmc(cmc)
         except ValidationError as e:
             raise ValueError(f'Failed to convert record to {cls.__name__}') from e

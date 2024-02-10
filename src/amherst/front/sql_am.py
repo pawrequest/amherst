@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel
 
-from amherst.commence_am.hire import Hire
+from amherst.models.hire import Hire
 
 
 class HireSql(Hire, SQLModel):
