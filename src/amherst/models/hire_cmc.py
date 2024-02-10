@@ -5,7 +5,15 @@ from _decimal import Decimal
 from typing import Optional, ClassVar
 
 from pydantic import Field
-from amherst.models.shared import (CmcTable, DateAm, DateMaybe, DecimalAm, ListComma, TimeMaybe)
+from amherst.models.shared import (
+    CmcTable,
+    DateAm,
+    DateMaybe,
+    DecimalAm,
+    ListComma,
+    TimeMaybe,
+    HireStatusEnum,
+)
 
 
 class HireCmc(CmcTable):
@@ -28,10 +36,11 @@ class HireCmc(CmcTable):
     unpacked_date: DateMaybe = Field(alias='Unpacked Date')
     unpacked_time: TimeMaybe = Field(alias='Unpacked Time')
     recurring_hire: bool = Field(alias='Recurring Hire')
-    weeks: int = Field(alias='Weeks')
+    # weeks: int = Field(alias='Weeks')
 
     # status and notes
-    status: str = Field(alias='Status')
+    status: HireStatusEnum = Field(alias='Status')
+    # status: str = Field(alias='Status')
     closed: bool = Field(alias='Closed')
     sending_status: str = Field(alias='Sending Status')
     return_notes: str = Field(alias='Return Notes')
@@ -43,7 +52,7 @@ class HireCmc(CmcTable):
     invoice: Path = Field(alias='Invoice')
     purchase_order: Optional[str] = Field(alias='Purchase Order')
     payment_terms: str = Field(alias='Payment Terms')
-    delivery_cost: Decimal = Field(alias='Delivery Cost')
+    delivery_cost: DecimalAm = Field(alias='Delivery Cost')
     discount_percentage: DecimalAm = Field(alias='Discount Percentage', default=0.0)
     discount_description: str = Field(alias='Discount Description')
 

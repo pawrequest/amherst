@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from datetime import date, datetime, time
 from decimal import Decimal
+from enum import StrEnum
 from pathlib import Path
 from typing import ClassVar, Optional, Type
 
-from pycommence import CmcDB
 from pydantic import BaseModel, Field
-from .shared import (AmAddress, CmcConverted, CmcTable, submodel_from_cmc)
+from .shared import (AmAddress, CmcConverted, CmcTable, submodel_from_cmc, HireStatusEnum)
 from .hire_cmc import HireCmc
 
 
@@ -62,7 +62,7 @@ class HireDates(BaseModel):
     packed_time: Optional[time]
     unpacked_time: Optional[time]
 
-    weeks: int
+    # weeks: int
     recurring_hire: bool
 
     @property
@@ -75,7 +75,7 @@ class HireDates(BaseModel):
 
 
 class HireStatus(BaseModel):
-    status: str
+    status: HireStatusEnum
     closed: bool
     return_notes: str
     sending_status: str

@@ -3,10 +3,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import date, datetime, time
 from decimal import Decimal
+from enum import StrEnum
 from typing import Annotated, ClassVar, Optional, TYPE_CHECKING, Type, TypeVar
 
 from pycommence import CmcDB
-from pydantic import BaseModel, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, ValidationError
 from pycommence.entities import Connection
 
 if TYPE_CHECKING:
@@ -51,8 +52,16 @@ def list_from_string_newline(v):
 def decimal_from_string(v):
     if not v:
         return Decimal(0)
-    return Decimal(v)
-
+    try:
+        v = v.strip()
+        v = v.replace(',', '')
+        v = v.replace('%', '')
+        v = v.replace('£', '')
+        return Decimal(v)
+    except ValueError:
+        raise ValueError(f'Invalid decimal string: "{v}"')
+    except ValidationError as e:
+        raise ValueError(f'Failed to parse decimal: "{v}"') from e
 
 DateAm = Annotated[date, BeforeValidator(amherst_date_val)]
 DateMaybe = Annotated[Optional[date], BeforeValidator(amherst_date_val)]
@@ -97,9 +106,17 @@ class CmcConverted(BaseModel, ABC):
     def from_name(cls, name: str) -> CmcConverted:
         db = CmcDB()
         cursor = db.get_cursor(cls.converted_class.table_name)
-        record = cursor.get_record(name)
+        record = cursor.get_record_one(name)
         cmc = cls.converted_class(**record)
         return cls.from_cmc(cmc)
+
+    @classmethod
+    def from_record(cls, record: dict[str, str]) -> CmcConverted:
+        try:
+            cmc = cls.converted_class(**record)
+            return cls.from_cmc(cmc)
+        except ValidationError as e:
+            raise ValueError(f'Failed to convert record to {cls.__name__}') from e
 
 
 sale_customers = Connection(
@@ -122,3 +139,16 @@ class AmAddress(BaseModel):
     name: str
     postcode: str
     telephone: str
+
+
+class HireStatusEnum(StrEnum):
+    BOOKED_IN = 'Booked in'
+    PACKED = 'Booked in and packed'
+    PARTIALLY_PACKED = 'Partially packed'
+    OUT = 'Out'
+    RTN_OK = 'Returned all OK'
+    RTN_PROBLEMS = 'Returned with problems'
+    QUOTE_GIVEN = 'Quote given'
+    CANCELLED = 'Cancelled'
+    EXTENDED = 'Extended'
+    SOLD = 'Sold To Customer'
