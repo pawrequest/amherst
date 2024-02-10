@@ -1,12 +1,12 @@
 import pytest
 
 from pycommence import api
-from pycommence.wrapper.cmc_db_24 import CmcConnection
+from pycommence.wrapper.cmc_db import CmcDB
 
 
 @pytest.fixture
 def cmc_db():
-    yield CmcConnection()
+    yield CmcDB()
 
 
 def new_curs(cmc_db, table_name: str):

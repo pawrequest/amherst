@@ -2,28 +2,20 @@ from __future__ import annotations
 
 from pathlib import Path
 from _decimal import Decimal
-from typing import Optional
+from typing import Optional, ClassVar
 
-from loguru import logger
-from pydantic import BaseModel, Field, model_validator
-
-from amherst.commence_am.shared import (
-    DateAm,
-    DecimalAm,
-    ListComma,
-    TimeAm,
-    CmcTable,
-    DateMaybe,
-    TimeMaybe,
-)
+from pydantic import Field
+from amherst.models.shared import (CmcTable, DateAm, DateMaybe, DecimalAm, ListComma, TimeMaybe)
 
 
 class HireCmc(CmcTable):
     """ Direct representation of Commence Hire Category"""
+    table_name: ClassVar[str] = 'Hire'
+
     # hire details
     name: str = Field(alias='Name')
     reference_number: str = Field(alias='Reference Number')
-    customer_name: str = Field(alias='Customer Name')
+    # customer_name: str = Field(alias='Customer Name')
     to_customer: str = Field(alias='To Customer')
 
     # dates and times
@@ -55,7 +47,6 @@ class HireCmc(CmcTable):
     discount_percentage: DecimalAm = Field(alias='Discount Percentage', default=0.0)
     discount_description: str = Field(alias='Discount Description')
 
-
     # address
     delivery_address: str = Field(alias='Delivery Address')
     delivery_contact: str = Field(alias='Delivery Contact')
@@ -63,7 +54,6 @@ class HireCmc(CmcTable):
     delivery_name: str = Field(alias='Delivery Name')
     delivery_postcode: str = Field(alias='Delivery Postcode')
     delivery_telephone: str = Field(alias='Delivery Tel')
-
 
     # shipping
     send_collect: str = Field(alias='Send / Collect')
@@ -106,8 +96,6 @@ class HireCmc(CmcTable):
     wand_bat: int = Field(alias='Number Wand Battery')
     wand_charger: int = Field(alias='Number Wand Charger')
     aerial_adapt: int = Field(alias='Number Aerial Adapt')
-
-
 
 # class HireCmc(BaseModel):
 #     """ Direct representation of Commence Hire Category"""

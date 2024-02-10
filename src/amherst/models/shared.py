@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from abc import ABC
-from datetime import datetime, date, time
+from abc import ABC, abstractmethod
+from datetime import date, datetime, time
 from decimal import Decimal
-from typing import Annotated, Optional, TypeVar, TYPE_CHECKING
+from typing import Annotated, ClassVar, Optional, TYPE_CHECKING, TypeVar, Type
 
-from pydantic import BeforeValidator, BaseModel
-
+from pycommence import CmcDB
+from pydantic import BaseModel, BeforeValidator
 from pycommence.entities import Connection
 
 if TYPE_CHECKING:
-    from amherst.commence_am.hire_cmc import HireCmc
+    from amherst.models.hire_cmc import HireCmc
 
 
 def amherst_date_val(v):
@@ -20,7 +20,12 @@ def amherst_date_val(v):
         try:
             return datetime.strptime(v, '%d/%m/%Y').date()
         except ValueError:
-            raise ValueError(f'Invalid date string: "{v}" - expecting amherst format dd/mm/yyyy')
+            try:
+                return datetime.strptime(v, '%m/%d/%Y').date()
+            except ValueError:
+                raise ValueError(
+                    f'Invalid date string: "{v}" - expecting amherst format dd/mm/yyyy or mm/dd/yyyy'
+                )
     return v
 
 
@@ -34,16 +39,20 @@ def amherst_time_val(v):
             raise ValueError(f'Invalid time string: "{v}" - expecting amherst format HH:MM')
     return v
 
+
 def list_from_string_comma(v):
     return v.split(',')
 
 
 def list_from_string_newline(v):
     return v.split('\n')
+
+
 def decimal_from_string(v):
     if not v:
         return Decimal(0)
     return Decimal(v)
+
 
 DateAm = Annotated[date, BeforeValidator(amherst_date_val)]
 DateMaybe = Annotated[Optional[date], BeforeValidator(amherst_date_val)]
@@ -55,14 +64,14 @@ DecimalAm = Annotated[Decimal, BeforeValidator(decimal_from_string)]
 T = TypeVar('T', bound=BaseModel)
 
 
-def submodel_from_cmc[T](cls: type[T], cmc_obj: BaseModel) -> T:
+def submodel_from_cmc[T](cls: type[T], cmc_obj: BaseModel, *, prepend: str = '') -> T:
     ob_dict = {
-        attr: getattr(cmc_obj, attr) for attr in cls.model_fields
+        attr: getattr(cmc_obj, f'{prepend}{attr}') for attr in cls.model_fields
     }
     return cls.model_validate(ob_dict)
 
 
-def submodel_from_cmc_prepend[T](cls: type[T], cmc_obj: HireCmc, prepend:str) -> T:
+def submodel_from_cmc_prepend[T](cls: type[T], cmc_obj: HireCmc, prepend: str = '') -> T:
     ob_dict = {
         attr: getattr(cmc_obj, f'{prepend}{attr}') for attr in cls.model_fields
     }
@@ -70,16 +79,27 @@ def submodel_from_cmc_prepend[T](cls: type[T], cmc_obj: HireCmc, prepend:str) ->
 
 
 class CmcTable(BaseModel, ABC):
+    table_name: ClassVar[str]
+
     class Config:
         extra = 'ignore'
 
 
 class CmcConverted(BaseModel, ABC):
-    class Config:
-        extra = 'ignore'
+    converted_class: ClassVar[Type[CmcTable]]
 
-    def from_cmc(self, cmc_obj: BaseModel) -> BaseModel:
+    @classmethod
+    @abstractmethod
+    def from_cmc(cls, cmc_obj: BaseModel) -> BaseModel:
         raise NotImplementedError
+
+    @classmethod
+    def from_name(cls, name: str) -> cls:
+        db = CmcDB()
+        cursor = db.get_cursor(cls.converted_class.table_name)
+        record = cursor.get_record(name)
+        cmc = cls.converted_class(**record)
+        return cls.from_cmc(cmc)
 
 
 sale_customers = Connection(

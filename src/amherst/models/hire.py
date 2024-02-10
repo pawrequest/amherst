@@ -3,21 +3,19 @@ from __future__ import annotations
 from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar, Optional, Type
 
+from pycommence import CmcDB
 from pydantic import BaseModel, Field
-
-from amherst.commence_am.shared import (
-    submodel_from_cmc,
-    CmcConverted,
-    AmAddress,
-    submodel_from_cmc_prepend,
-)
-from amherst.commence_am.hire_cmc import HireCmc
+from .shared import (AmAddress, CmcConverted, CmcTable, submodel_from_cmc)
+from .hire_cmc import HireCmc
 
 
 class Hire(CmcConverted):
     """ Primary Hire Type """
+    converted_class: ClassVar[Type[CmcTable]] = HireCmc
+
+    table_name: str = 'Hire'
     name: str
     to_customer: str
     dates: HireDates
@@ -30,17 +28,27 @@ class Hire(CmcConverted):
 
     @classmethod
     def from_cmc(cls, cmc_obj: HireCmc) -> Hire:
-        return cls(
-            name=cmc_obj.name,
-            to_customer=cmc_obj.to_customer,
-            dates=submodel_from_cmc(HireDates, cmc_obj),
-            status=submodel_from_cmc(HireStatus, cmc_obj),
-            shipping=submodel_from_cmc(HireShipping, cmc_obj),
-            delivery_address=submodel_from_cmc_prepend(AmAddress, cmc_obj, 'delivery_'),
-            payment=submodel_from_cmc(HirePayment, cmc_obj),
-            items=submodel_from_cmc(HireItems, cmc_obj),
-            staff=submodel_from_cmc(HireStaff, cmc_obj),
+        return cls.model_validate(
+            dict(
+                name=cmc_obj.name,
+                to_customer=cmc_obj.to_customer,
+                dates=submodel_from_cmc(HireDates, cmc_obj),
+                status=submodel_from_cmc(HireStatus, cmc_obj),
+                shipping=submodel_from_cmc(HireShipping, cmc_obj),
+                delivery_address=submodel_from_cmc(AmAddress, cmc_obj, prepend='delivery_'),
+                payment=submodel_from_cmc(HirePayment, cmc_obj),
+                items=submodel_from_cmc(HireItems, cmc_obj),
+                staff=submodel_from_cmc(HireStaff, cmc_obj),
+            )
         )
+
+    @classmethod
+    def from_name(cls, name: str) -> Hire:
+        db = CmcDB()
+        cursor = db.get_cursor(cls.converted_class.table_name)
+        record = cursor.get_record(name)
+        cmc = cls.converted_class(**record)
+        return cls.from_cmc(cmc)
 
 
 class HireDates(BaseModel):
