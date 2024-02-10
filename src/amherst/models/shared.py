@@ -3,14 +3,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from datetime import date, datetime, time
 from decimal import Decimal
-from typing import Annotated, ClassVar, Optional, TYPE_CHECKING, TypeVar, Type
+from typing import Annotated, ClassVar, Optional, TYPE_CHECKING, Type, TypeVar
 
 from pycommence import CmcDB
 from pydantic import BaseModel, BeforeValidator
 from pycommence.entities import Connection
 
 if TYPE_CHECKING:
-    from amherst.models.hire_cmc import HireCmc
+    pass
 
 
 def amherst_date_val(v):
@@ -64,7 +64,7 @@ DecimalAm = Annotated[Decimal, BeforeValidator(decimal_from_string)]
 T = TypeVar('T', bound=BaseModel)
 
 
-def submodel_from_cmc[T](cls: type[T], cmc_obj: CmcTable, *, prepend: str = '') -> T:
+def submodel_from_cmc[T](cls: type[T], cmc_obj: CmcTable | CmcConverted, *, prepend: str = '') -> T:
     ob_dict = {
         attr: getattr(cmc_obj, f'{prepend}{attr}') for attr in cls.model_fields
     }

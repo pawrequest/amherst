@@ -4,7 +4,7 @@ from amherst.models.sale import Sale
 from pycommence import CmcDB
 import pytest
 test_hire_name = 'Test - 10/11/2023 ref 42744'
-test_sale_name = 'Test - 05/10/2023 ref 461'
+test_sale_name = 'Test - 2/10/2024 ref 784'
 
 @pytest.fixture()
 def cmcdb():

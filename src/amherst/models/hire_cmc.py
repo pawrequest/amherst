@@ -16,7 +16,7 @@ class HireCmc(CmcTable):
     name: str = Field(alias='Name')
     reference_number: str = Field(alias='Reference Number')
     # customer_name: str = Field(alias='Customer Name')
-    to_customer: str = Field(alias='To Customer')
+    customer: str = Field(alias='To Customer')
 
     # dates and times
     booked_date: DateAm = Field(alias='Booked Date')

@@ -18,6 +18,7 @@ from .shared import (
 class Sale(CmcConverted):
     converted_class: ClassVar[Type[CmcTable]] = SaleCmc
 
+    customer: str
     name: str
     lost_equipment: bool
     status: str
@@ -33,6 +34,7 @@ class Sale(CmcConverted):
     @classmethod
     def from_cmc(cls, cmc_obj: SaleCmc) -> Sale:
         res = cls(
+            customer=cmc_obj.customer,
             name=cmc_obj.name,
             lost_equipment=cmc_obj.lost_equipment,
             status=cmc_obj.status,
@@ -64,18 +66,18 @@ class SalePayment(BaseModel):
 class SaleItems(BaseModel):
     items_ordered: list
     serial_numbers: list
-    special_radio_prog: str
 
 
 class SaleStaff(BaseModel):
-    order_packed_by: str
     order_taken_by: str
+    # order_packed_by: str
+    # order_taken_by: str
 
 
 class SaleShipping(BaseModel):
     delivery_method: str
     outbound_id: str
-    parcel_tracking_nums: list
+    # parcel_tracking_nums: list
 
 
 class SaleNotes(BaseModel):

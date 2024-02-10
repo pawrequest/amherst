@@ -17,7 +17,7 @@ class Hire(CmcConverted):
 
     table_name: str = 'Hire'
     name: str
-    to_customer: str
+    customer: str
     dates: HireDates
     status: HireStatus
     shipping: HireShipping
@@ -31,7 +31,7 @@ class Hire(CmcConverted):
         return cls.model_validate(
             dict(
                 name=cmc_obj.name,
-                to_customer=cmc_obj.to_customer,
+                customer=cmc_obj.customer,
                 dates=submodel_from_cmc(HireDates, cmc_obj),
                 status=submodel_from_cmc(HireStatus, cmc_obj),
                 shipping=submodel_from_cmc(HireShipping, cmc_obj),
