@@ -1,3 +1,4 @@
+from pycommence import Cmc
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
 
@@ -26,3 +27,7 @@ def create_db(engine=None):
     if engine is None:
         engine = engine_()
     SQLModel.metadata.create_all(engine)
+
+
+def get_cmc() -> Cmc:
+    return Cmc()

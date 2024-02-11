@@ -1,6 +1,6 @@
 import pytest
 
-from pycommence.wrapper.cmc_cursor import CmcCursor
+from pycommence.wrapper.cmc_cursor import CsrCmc
 from pycommence.wrapper.cmc_db_24 import CmcConnection
 from pycommence import api
 
@@ -19,6 +19,6 @@ def new_cursor(cmc_db):
 
 
 def test_csr(new_cursor):
-    assert isinstance(new_cursor, CmcCursor)
+    assert isinstance(new_cursor, CsrCmc)
 
 

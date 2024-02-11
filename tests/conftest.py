@@ -1,12 +1,11 @@
 import pytest
 
-from pycommence import api
-from pycommence.wrapper.cmc_db import CmcDB
+from pycommence import Cmc
 
 
 @pytest.fixture
 def cmc_db():
-    yield CmcDB()
+    yield Cmc()
 
 
 def new_curs(cmc_db, table_name: str):
@@ -24,12 +23,10 @@ def sale_csr(cmc_db):
 @pytest.fixture
 def hire_rec(hire_csr):
     hire_name = 'Test - 16/08/2023 ref 31619'
-    hire_rec = api.get_record(hire_csr, hire_name)
-    return hire_rec
+    return hire_csr.get_record(hire_name)
 
 
 @pytest.fixture
 def sale_rec(sale_csr):
     sale_name = 'Test - 18/08/2023 ref 450'
-    sale_rec = api.get_record(sale_csr, sale_name)
-    return sale_rec
+    return sale_csr.get_record(sale_name)

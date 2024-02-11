@@ -6,12 +6,21 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import Annotated, ClassVar, Optional, TYPE_CHECKING, Type, TypeVar
 
-from pycommence import CmcDB
 from pydantic import BaseModel, BeforeValidator, ValidationError
+
 from pycommence.entities import Connection
+from pycommence.wrapper.cmc_db import get_csr
 
 if TYPE_CHECKING:
     pass
+
+
+class FilterEnumAm(StrEnum):
+    """
+
+    """
+    INITIAL_HIRE = '' # not closed. status in [Booked in, Booked in and packed, Partially packed] send method is parcelforce
+    INITIAL_SALE = ''
 
 
 def amherst_date_val(v):
@@ -63,8 +72,7 @@ def decimal_from_string(v):
         return Decimal(v)
     except ValueError:
         raise ValueError(f'Invalid decimal string: "{v}"')
-    except ValidationError as e:
-        raise ValueError(f'Failed to parse decimal: "{v}"') from e
+
 
 DateAm = Annotated[date, BeforeValidator(amherst_date_val)]
 DateMaybe = Annotated[Optional[date], BeforeValidator(amherst_date_val)]
@@ -107,9 +115,8 @@ class CmcConverted(BaseModel, ABC):
 
     @classmethod
     def from_name(cls, name: str) -> CmcConverted:
-        db = CmcDB()
-        cursor = db.get_cursor(cls.cmc_class.table_name)
-        record = cursor.get_record_one(name)
+        csr = get_csr(cls.cmc_class.table_name)
+        record = csr.get_record(name)
         cmc = cls.cmc_class(**record)
         return cls.from_cmc(cmc)
 

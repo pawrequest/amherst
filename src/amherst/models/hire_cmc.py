@@ -24,12 +24,12 @@ class HireCmc(CmcTable):
     name: str = Field(alias='Name')
     reference_number: str = Field(alias='Reference Number')
     # customer_name: str = Field(alias='Customer Name')
-    customer: str = Field(alias='To Customer')
+    customer: str = Field(alias='To Customer', default='')
 
     # dates and times
-    booked_date: DateAm = Field(alias='Booked Date')
-    send_out_date: DateAm = Field(alias='Send Out Date')
-    due_back_date: DateAm = Field(alias='Due Back Date')
+    booked_date: DateMaybe = Field(alias='Booked Date')
+    send_out_date: DateMaybe = Field(alias='Send Out Date')
+    due_back_date: DateMaybe = Field(alias='Due Back Date')
     actual_return_date: DateMaybe = Field(alias='Actual Return Date')
     packed_date: DateMaybe = Field(alias='Packed Date')
     packed_time: TimeMaybe = Field(alias='Packed Time')
