@@ -1,11 +1,11 @@
 import pytest
 
-from amherst.models.hire import Hire
+from amherst.models.hire import Hire, INITIAL_FILTER_ARRAY
 from amherst.models.hire_cmc import HireCmc
 from amherst.models.sale import Sale
 from amherst.models.shared import HireStatusEnum
 from pycommence import Cmc
-from pycommence.filters import CmcFilter, FilterCondition
+from pycommence.filters import FilterArray
 from pycommence.wrapper.cmc_db import get_csr
 
 TEST_HIRE_NAME = 'test - 10/11/2023 ref 42744'
@@ -63,34 +63,13 @@ def test_current_hire(cmc):
 
 def test_filter(cmc):
     csr = get_csr('Hire')
+    fil = INITIAL_FILTER_ARRAY
+    csr.filter_by_array(fil)
 
-    cmc_filter = CmcFilter(
-        field_name='Status',
-        condition=FilterCondition.EQUAL_TO,
-        value=HireStatusEnum.BOOKED_IN,
-        slot=1
-    )
-    csr.filter(cmc_filter)
+    # # csr._cursor.set_filter_logic('OR, AND, AND')
 
-    # cmc_filter2 = CmcFilter(
-    #     field_name='Status',
-    #     condition=FilterCondition.EQUAL_TO,
-    #     value=HireStatusEnum.PACKED,
-    #     slot=2
-    # )
-    # csr.filter(cmc_filter2)
-
-    cmc_filter3 = CmcFilter(
-        field_name='Send Out Date',
-        condition=FilterCondition.AFTER,
-        value='Last Week',
-        slot=3
-    )
-    csr.filter(cmc_filter3)
-    # csr._cursor.set_filter_logic('OR, AND, AND')
     recs = csr.get_all_records()
     for rec in recs:
         hire = Hire.from_record(rec)
         assert hire.status.status == HireStatusEnum.BOOKED_IN
     print(len(recs))
-

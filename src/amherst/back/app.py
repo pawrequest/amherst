@@ -1,22 +1,41 @@
-import asyncio
 import sys
 from contextlib import asynccontextmanager
 
-from .database import create_db
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastui import prebuilt_html
 from fastui.dev import dev_fastapi_app
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from loguru import logger
+from sqlmodel import SQLModel, Session
+
+from pycommence import get_csr
+from .database import create_db, engine_
 from .routers.hire_rout import router as hire_router
+from ..models.hire import Hire, HireBase, INITIAL_FILTER_ARRAY
+
 load_dotenv()
+
+
+def populate_db_from_cmc(session: Session, model: type[SQLModel]):
+    csr = get_csr(model.cmc_class.table_name)
+    filters = INITIAL_FILTER_ARRAY
+    # filters = model.initial_filter_array
+    data = csr.set_filters(filters, get_all=True)
+    cmc_raws = [model.cmc_class(**_) for _ in data]
+    model_data = [model.from_cmc(_) for _ in cmc_raws]
+    db_model_data = [Hire.model_validate(_) for _ in model_data]
+    session.add_all(db_model_data)
+    session.commit()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
         create_db()
+        with Session(engine_()) as session:
+            populate_db_from_cmc(session, HireBase)
+
         logger.info("tables created")
         # main_task = asyncio.create_task()
         yield
@@ -34,6 +53,7 @@ else:
     app = FastAPI(lifespan=lifespan)
 
 app.include_router(hire_router, prefix="/api/hires")
+
 
 @app.get("/robots.txt", response_class=PlainTextResponse)
 async def robots_txt() -> str:

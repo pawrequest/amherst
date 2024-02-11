@@ -6,7 +6,6 @@ from typing import Optional, ClassVar
 
 from pydantic import Field
 from amherst.models.shared import (
-    CmcTable,
     DateAm,
     DateMaybe,
     DecimalAm,
@@ -14,9 +13,10 @@ from amherst.models.shared import (
     TimeMaybe,
     HireStatusEnum,
 )
+from pycommence.models.cmc_models import CmcTableRaw
 
 
-class HireCmc(CmcTable):
+class HireCmc(CmcTableRaw):
     """ Direct representation of Commence Hire Category"""
     table_name: ClassVar[str] = 'Hire'
 

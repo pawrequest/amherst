@@ -1,15 +1,13 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from datetime import date, datetime, time
 from decimal import Decimal
 from enum import StrEnum
-from typing import Annotated, ClassVar, Optional, TYPE_CHECKING, Type, TypeVar
+from typing import Annotated, Optional, TYPE_CHECKING, TypeVar
 
-from pydantic import BaseModel, BeforeValidator, ValidationError
+from pydantic import BaseModel, BeforeValidator, AfterValidator
 
 from pycommence.entities import Connection
-from pycommence.wrapper.cmc_db import get_csr
 
 if TYPE_CHECKING:
     pass
@@ -82,52 +80,8 @@ ListComma = Annotated[list, BeforeValidator(list_from_string_comma)]
 ListNewline = Annotated[list, BeforeValidator(list_from_string_newline)]
 DecimalAm = Annotated[Decimal, BeforeValidator(decimal_from_string)]
 T = TypeVar('T', bound=BaseModel)
-
-
-def submodel_from_cmc[T](cls: type[T], cmc_obj: CmcTable | CmcConverted, *, prepend: str = '') -> T:
-    ob_dict = {
-        attr: getattr(cmc_obj, f'{prepend}{attr}') for attr in cls.model_fields
-    }
-    return cls.model_validate(ob_dict)
-
-
-def submodel_from_cmc_prepend[T](cls: type[T], cmc_obj: CmcTable, prepend: str = '') -> T:
-    ob_dict = {
-        attr: getattr(cmc_obj, f'{prepend}{attr}') for attr in cls.model_fields
-    }
-    return cls.model_validate(ob_dict)
-
-
-class CmcTable(BaseModel, ABC):
-    table_name: ClassVar[str]
-
-    class Config:
-        extra = 'ignore'
-
-
-class CmcConverted(BaseModel, ABC):
-    cmc_class: ClassVar[Type[CmcTable]]
-
-    @classmethod
-    @abstractmethod
-    def from_cmc(cls, cmc_obj: BaseModel) -> CmcConverted:
-        raise NotImplementedError
-
-    @classmethod
-    def from_name(cls, name: str) -> CmcConverted:
-        csr = get_csr(cls.cmc_class.table_name)
-        record = csr.get_record(name)
-        cmc = cls.cmc_class(**record)
-        return cls.from_cmc(cmc)
-
-    @classmethod
-    def from_record(cls, record: dict[str, str]) -> CmcConverted:
-        try:
-            cmc = cls.cmc_class(**record)
-            return cls.from_cmc(cmc)
-        except ValidationError as e:
-            raise ValueError(f'Failed to convert record to {cls.__name__}') from e
-
+# MODEL_JSON = Annotated[BaseModel, BeforeValidator(lambda v: v)]
+MODEL_JSON = Annotated[BaseModel, AfterValidator(lambda v: v.model_dump_json())]
 
 sale_customers = Connection(
     name='SaleCustomers',

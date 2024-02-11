@@ -8,15 +8,17 @@ from pydantic import BaseModel
 
 from .sale_cmc import SaleCmc
 from .shared import (
-    CmcConverted,
-    submodel_from_cmc,
-    submodel_from_cmc_prepend,
-    AmAddress, CmcTable,
+    AmAddress,
+)
+from pycommence.models.cmc_models import (
+    sub_model_from_cmc,
+    CmcTableRaw,
+    CmcModel,
 )
 
 
-class Sale(CmcConverted):
-    cmc_class: ClassVar[Type[CmcTable]] = SaleCmc
+class Sale(CmcModel):
+    cmc_class: ClassVar[Type[CmcTableRaw]] = SaleCmc
 
     customer: str
     name: str
@@ -38,14 +40,14 @@ class Sale(CmcConverted):
             name=cmc_obj.name,
             lost_equipment=cmc_obj.lost_equipment,
             status=cmc_obj.status,
-            dates=submodel_from_cmc(SaleDates, cmc_obj),
-            payment=submodel_from_cmc(SalePayment, cmc_obj),
-            items=submodel_from_cmc(SaleItems, cmc_obj),
-            staff=submodel_from_cmc(SaleStaff, cmc_obj),
-            shipping=submodel_from_cmc(SaleShipping, cmc_obj),
-            notes=submodel_from_cmc(SaleNotes, cmc_obj),
-            delivery_address=submodel_from_cmc_prepend(AmAddress, cmc_obj, 'delivery_'),
-            invoice_address=submodel_from_cmc_prepend(AmAddress, cmc_obj, 'invoice_'),
+            dates=sub_model_from_cmc(SaleDates, cmc_obj),
+            payment=sub_model_from_cmc(SalePayment, cmc_obj),
+            items=sub_model_from_cmc(SaleItems, cmc_obj),
+            staff=sub_model_from_cmc(SaleStaff, cmc_obj),
+            shipping=sub_model_from_cmc(SaleShipping, cmc_obj),
+            notes=sub_model_from_cmc(SaleNotes, cmc_obj),
+            delivery_address=sub_model_from_cmc(AmAddress, cmc_obj, prepend='delivery_'),
+            invoice_address=sub_model_from_cmc(AmAddress, cmc_obj, prepend='invoice_'),
         )
 
         return res

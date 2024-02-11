@@ -1,6 +1,7 @@
-from pycommence import Cmc
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
+
+from pycommence import Cmc
 
 
 def engine_(config=None):
@@ -13,6 +14,8 @@ def engine_(config=None):
 
 def engine_config():
     return {"db_url": "sqlite:///amherst.db", "connect_args": {"check_same_thread": False}}
+# def engine_config():
+#     return {"db_url": "sqlite:///:memory:", "connect_args": {"check_same_thread": False}}
 
 
 def get_session(engine=None) -> Session:

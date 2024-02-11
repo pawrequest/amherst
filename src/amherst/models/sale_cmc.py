@@ -5,10 +5,11 @@ from typing import Optional, ClassVar
 
 from pydantic import BaseModel, Field
 
-from amherst.models.shared import DateAm, ListComma, ListNewline, DateMaybe, CmcTable
+from amherst.models.shared import DateAm, ListComma, ListNewline, DateMaybe
+from pycommence.models.cmc_models import CmcTableRaw
 
 
-class SaleCmc(CmcTable):
+class SaleCmc(CmcTableRaw):
     """ Direct representation of Commence Sale Category"""
 
     table_name: ClassVar[str] = 'Sale'

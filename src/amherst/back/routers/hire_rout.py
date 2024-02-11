@@ -1,12 +1,13 @@
 # from __future__ import annotations
 from fastui import AnyComponent, FastUI, components as c
+
+from amherst.back.database import get_cmc
 from amherst.front.amui import am_default_page, hire_row
-from amherst.front.database import get_cmc
 from amherst.models.hire import Hire
 from fastapi import APIRouter, Depends
 from pawsupport import fastui_ps as fuis
 from pawsupport.convert import base64_decode
-from pycommence.wrapper.cmc_db import CmcConnection
+from pycommence import get_csr, Cmc
 from pydantic import BaseModel, Field
 
 router = APIRouter()
@@ -48,7 +49,7 @@ async def hire_view2(hire_name: str) -> list[AnyComponent]:
 
 @router.get("/", response_model=FastUI, response_model_exclude_none=True)
 def hire_list_view(
-        page: int = 1, customer: str | None = None, cmc: CmcConnection = Depends(get_cmc)
+        page: int = 1, customer: str | None = None, cmc: Cmc = Depends(get_cmc)
 ) -> list[AnyComponent]:
     data, filter_form_initial = hire_filter_init(customer, cmc)
     # data.sort(key=lambda x: x.date, reverse=True)
@@ -68,9 +69,9 @@ def hire_list_view(
 
 #
 
-def hire_filter_init(customer: str, cmc: CmcConnection):
+def hire_filter_init(customer: str, cmc: Cmc):
     filter_form_initial = {}
-    cursor = cmc.get_cursor('Hire')
+    cursor = get_csr('Hire')
     if customer:
         cursor.filter_by_field("Customer", 'Equal To', customer)
         data = cursor.get_all_records()
