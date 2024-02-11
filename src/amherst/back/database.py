@@ -4,23 +4,21 @@ from sqlmodel import SQLModel, Session
 from pycommence import Cmc
 
 
-def engine_(config=None):
-    config = config or engine_config()
-    db_url = config["db_url"]
-    connect_args = config["connect_args"]
-
-    return create_engine(db_url, echo=False, connect_args=connect_args)
+db_url = "sqlite:///:memory:"
+# db_url = "sqlite:///amherst.db"
+connect_args = {"check_same_thread": False}
+ENGINE = create_engine(db_url, echo=False, connect_args=connect_args)
 
 
-def engine_config():
-    return {"db_url": "sqlite:///amherst.db", "connect_args": {"check_same_thread": False}}
 # def engine_config():
-#     return {"db_url": "sqlite:///:memory:", "connect_args": {"check_same_thread": False}}
+#     return {"db_url": "sqlite:///amherst.db", "connect_args": {"check_same_thread": False}}
+def engine_config():
+    return {"db_url": "sqlite:///:memory:", "connect_args": {"check_same_thread": False}}
 
 
 def get_session(engine=None) -> Session:
     if engine is None:
-        engine = engine_()
+        engine = ENGINE
     with Session(engine) as session:
         yield session
     session.close()
@@ -28,7 +26,7 @@ def get_session(engine=None) -> Session:
 
 def create_db(engine=None):
     if engine is None:
-        engine = engine_()
+        engine = ENGINE
     SQLModel.metadata.create_all(engine)
 
 

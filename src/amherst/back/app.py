@@ -10,21 +10,21 @@ from loguru import logger
 from sqlmodel import SQLModel, Session
 
 from pycommence import get_csr
-from .database import create_db, engine_
+from .database import create_db, ENGINE
 from .routers.hire_rout import router as hire_router
 from ..models.hire import Hire, HireBase, INITIAL_FILTER_ARRAY
 
 load_dotenv()
 
 
-def populate_db_from_cmc(session: Session, model: type[SQLModel]):
+def populate_db_from_cmc(session: Session, model: type[SQLModel], db_model: type[SQLModel]):
     csr = get_csr(model.cmc_class.table_name)
     filters = INITIAL_FILTER_ARRAY
     # filters = model.initial_filter_array
     data = csr.set_filters(filters, get_all=True)
     cmc_raws = [model.cmc_class(**_) for _ in data]
     model_data = [model.from_cmc(_) for _ in cmc_raws]
-    db_model_data = [Hire.model_validate(_) for _ in model_data]
+    db_model_data = [db_model.model_validate(_) for _ in model_data]
     session.add_all(db_model_data)
     session.commit()
 
@@ -33,8 +33,8 @@ def populate_db_from_cmc(session: Session, model: type[SQLModel]):
 async def lifespan(app: FastAPI):
     try:
         create_db()
-        with Session(engine_()) as session:
-            populate_db_from_cmc(session, HireBase)
+        with Session(ENGINE) as session:
+            populate_db_from_cmc(session, HireBase, Hire)
 
         logger.info("tables created")
         # main_task = asyncio.create_task()
