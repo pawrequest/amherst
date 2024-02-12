@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time
-from decimal import Decimal
-from pathlib import Path
 from typing import Optional
 
 from sqlmodel import Column, Field, JSON, SQLModel
 
 from pycommence.filters import CmcFilterPy, FilterCondition
+from .hire_parts import HireDates, HireItems, HirePayment, HireShipping, HireStaff, HireStatus
 from .shared import (AmAddress, HireStatusEnum, MODEL_JSON)
 from pycommence.models.cmc_models import CmcModel, sub_model_from_cmc
 from .hire_cmc import HireCmc
@@ -21,120 +19,10 @@ INITIAL_FILTER_ARRAY = [
 ]
 
 
-def get_array():
-    return INITIAL_FILTER_ARRAY
-
-
-class HireDates(SQLModel):
-    booked_date: Optional[date]
-    send_out_date: Optional[date] = Field(default_factory=date.today)
-    due_back_date: Optional[date]
-    actual_return_date: Optional[date]
-    packed_date: Optional[date]
-    unpacked_date: Optional[date]
-
-    packed_time: Optional[time]
-    unpacked_time: Optional[time]
-
-    # weeks: int
-    recurring_hire: bool
-
-    @property
-    def unpacked_dt(self):
-        return datetime.combine(self.unpacked_date, self.unpacked_time)
-
-    @property
-    def packed_dt(self):
-        return datetime.combine(self.packed_date, self.packed_time)
-
-
-class HireStatus(SQLModel):
-    status: HireStatusEnum
-    closed: bool
-    return_notes: str
-    sending_status: str
-    pickup_arranged: bool
-    db_label_printed: bool
-    missing_kit: str
-
-
-class HireShipping(SQLModel):
-    send_collect: str
-    send_method: str
-    all_address: str
-    tracking_numbers: list
-    boxes: int
-
-
-class HirePayment(SQLModel):
-    invoice: Path
-    purchase_order: Optional[str]
-    payment_terms: str
-    discount_percentage: Decimal
-    discount_description: str
-    delivery_cost: Decimal
-
-
-class HireItems(SQLModel):
-    sgl_charger: int
-    vhf: int
-    em: int
-    vhf_6way: int
-    icom_psu: int
-    megaphone: int
-    uhf: int
-    uhf_6way: int
-    parrot: int
-    headset: int
-    batteries: int
-    cases: int
-    megaphone_bat: int
-    icom: int
-    emc: int
-    headset_big: int
-    icom_car_lead: int
-    magmount: int
-    clipon_aerial: int
-    wand: int
-    repeater: int
-    wand_bat: int
-    wand_charger: int
-    aerial_adapt: int
-
-
-class HireOrder(SQLModel):
-    special_kit: str
-    reprogrammed: bool
-    items: HireItems
-    radio_type: str
-
-
-class HireStaff(SQLModel):
-    packed_by: Optional[str] = None
-    unpacked_by: Optional[str] = None
-
-
-# # class Hire(CmcModel):
-# class Hireold(CmcModel, SQLModel, table=True):
-#     """ Primary Hire Type """
-#     cmc_class = HireCmc
-#
-#     class Config:
-#         arbitrary_types_allowed = True
-#
-#     name: str
-#     customer: str
-#     dates: HireDates
-#     status: HireStatus
-#     shipping: HireShipping
-#     delivery_address: AmAddress
-#     payment: HirePayment
-#     items: HireItems
-#     staff: HireStaff
-
-
 class HireBase(CmcModel, SQLModel):
     cmc_class = HireCmc
+    initial_filter_array = INITIAL_FILTER_ARRAY
+
     name: str
     customer: str
     dates: HireDates
@@ -145,13 +33,6 @@ class HireBase(CmcModel, SQLModel):
     items: HireItems
     staff: HireStaff
 
-    # dates: str = Field(default=None, sa_column=Column(JSON))
-    # status: str = Field(default=None, sa_column=Column(JSON))
-    # shipping: str = Field(default=None, sa_column=Column(JSON))
-    # delivery_address: str = Field(default=None, sa_column=Column(JSON))
-    # payment: str = Field(default=None, sa_column=Column(JSON))
-    # items: str = Field(default=None, sa_column=Column(JSON))
-    # staff: str = Field(default=None, sa_column=Column(JSON))
     @classmethod
     def from_cmc(cls, cmc_obj: HireCmc) -> HireBase:
         return cls.model_validate(
@@ -168,28 +49,7 @@ class HireBase(CmcModel, SQLModel):
             )
         )
 
-    @classmethod
-    def from_cmc_json(cls, cmc_obj: HireCmc) -> HireBase:
-        return cls.model_validate(
-            dict(
-                name=cmc_obj.name,
-                customer=cmc_obj.customer,
-                dates=cmc_obj.dates.model_dump_json(),
-                status=sub_model_from_cmc(HireStatus, cmc_obj).model_dump_json(),
-                shipping=sub_model_from_cmc(HireShipping, cmc_obj).model_dump_json(),
-                delivery_address=sub_model_from_cmc(
-                    AmAddress,
-                    cmc_obj,
-                    prepend='delivery_'
-                ).model_dump_json(),
-                payment=sub_model_from_cmc(HirePayment, cmc_obj).model_dump_json(),
-                items=sub_model_from_cmc(HireItems, cmc_obj).model_dump_json(),
-                staff=sub_model_from_cmc(HireStaff, cmc_obj).model_dump_json(),
-            )
-        )
 
-
-# class Hire(CmcModel):
 class Hire(HireBase, table=True):
     """ Primary Hire Type """
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -200,8 +60,6 @@ class Hire(HireBase, table=True):
     payment: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     items: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     staff: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
-
-    # initial_filter_array: ClassVar[list[CmcFilterPy]] = INITIAL_FILTER_ARRAY
 
     @classmethod
     def rout_prefix(cls) -> str:

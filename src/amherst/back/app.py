@@ -19,8 +19,7 @@ load_dotenv()
 
 def populate_db_from_cmc(session: Session, model: type[SQLModel], db_model: type[SQLModel]):
     csr = get_csr(model.cmc_class.table_name)
-    filters = INITIAL_FILTER_ARRAY
-    # filters = model.initial_filter_array
+    filters = model.initial_filter_array
     data = csr.set_filters(filters, get_all=True)
     cmc_raws = [model.cmc_class(**_) for _ in data]
     model_data = [model.from_cmc(_) for _ in cmc_raws]

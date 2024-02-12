@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import json
 from datetime import date, datetime, time
 from decimal import Decimal
 from enum import StrEnum
-from typing import Annotated, Optional, TYPE_CHECKING, TypeVar
+from typing import Optional, TYPE_CHECKING, TypeVar, Any
 
-from pydantic import BaseModel, BeforeValidator, AfterValidator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, PlainSerializer, WithJsonSchema
+from typing_extensions import Annotated
+from fastapi.encoders import jsonable_encoder
 
 from pycommence.entities import Connection
 
@@ -17,7 +20,7 @@ class FilterEnumAm(StrEnum):
     """
 
     """
-    INITIAL_HIRE = '' # not closed. status in [Booked in, Booked in and packed, Partially packed] send method is parcelforce
+    INITIAL_HIRE = ''  # not closed. status in [Booked in, Booked in and packed, Partially packed] send method is parcelforce
     INITIAL_SALE = ''
 
 
@@ -72,6 +75,26 @@ def decimal_from_string(v):
         raise ValueError(f'Invalid decimal string: "{v}"')
 
 
+def model_with_sub(model) -> dict:
+    out = {}
+    for attr, value in model.dict().items():
+        if isinstance(value, BaseModel):
+            out[attr] = model_with_sub(value)
+        else:
+            out[attr] = value
+    return out
+
+
+def model_with_sub_json(model) -> Any:
+    json_compatible_item_data = jsonable_encoder(model)
+    return json.dumps(json_compatible_item_data)
+
+    # return model.model_dump_json()
+    # return json.dumps(model_with_sub(model))
+
+
+HireDatesAm = Annotated[BaseModel, BeforeValidator(amherst_date_val)]
+
 DateAm = Annotated[date, BeforeValidator(amherst_date_val)]
 DateMaybe = Annotated[Optional[date], BeforeValidator(amherst_date_val)]
 TimeMaybe = Annotated[Optional[time], BeforeValidator(amherst_time_val)]
@@ -80,9 +103,6 @@ ListComma = Annotated[list, BeforeValidator(list_from_string_comma)]
 ListNewline = Annotated[list, BeforeValidator(list_from_string_newline)]
 DecimalAm = Annotated[Decimal, BeforeValidator(decimal_from_string)]
 T = TypeVar('T', bound=BaseModel)
-# MODEL_JSON = Annotated[BaseModel, BeforeValidator(lambda v: v)]
-MODEL_JSON = Annotated[BaseModel, AfterValidator(lambda v: v.model_dump_json())]
-
 sale_customers = Connection(
     name='SaleCustomers',
     to_table='Customers',
@@ -116,3 +136,22 @@ class HireStatusEnum(StrEnum):
     CANCELLED = 'Cancelled'
     EXTENDED = 'Extended'
     SOLD = 'Sold To Customer'
+
+
+TruncatedFloat = Annotated[
+    float,
+    AfterValidator(lambda x: round(x, 1)),
+    PlainSerializer(lambda x: f'{x:.1e}', return_type=str),
+    WithJsonSchema({'type': 'string'}, mode='serialization'),
+]
+
+MODEL_JSON = Annotated[
+    BaseModel,
+    # BeforeValidator(lambda x: json.loads(x)),
+    PlainSerializer(model_with_sub_json, return_type=str),
+]
+
+# MODEL_JSON = Annotated[BaseModel, BeforeValidator(lambda v: v)]
+
+
+# MODEL_JSON = Annotated[BaseModel, AfterValidator(model_with_sub_json)]

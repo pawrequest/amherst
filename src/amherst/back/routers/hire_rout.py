@@ -1,14 +1,13 @@
 # from __future__ import annotations
 from fastui import AnyComponent, FastUI, components as c
-
-from amherst.back.database import get_cmc
-from amherst.front.amui import am_default_page, hire_row
-from amherst.models.hire import Hire
 from fastapi import APIRouter, Depends
-from pawsupport import fastui_ps as fuis
-from pawsupport.convert import base64_decode
-from pycommence import get_csr, Cmc
 from pydantic import BaseModel, Field
+
+from amherst.back.database import get_cmc, get_session
+from amherst.front.amui import am_default_page, hire_row
+from amherst.models.hire import Hire, HireBase
+from pawsupport import fastui_ps as fuis
+from pycommence import Cmc, get_csr
 
 router = APIRouter()
 
@@ -32,12 +31,25 @@ PAGE_SIZE = 20
 
 #
 # FastUI
-@router.get("/{hire_name_b64}", response_model=FastUI, response_model_exclude_none=True)
-async def hire_view2(hire_name: str) -> list[AnyComponent]:
-    # cursor = Depends....
-    # hire = Hire.from_name(hire_name)
-    hire_name = base64_decode(hire_name)
-    hire = Hire.from_name(hire_name)
+# @router.get("/{hire_name_b64}", response_model=FastUI, response_model_exclude_none=True)
+# async def hire_view2(hire_name: str) -> list[AnyComponent]:
+#     # cursor = Depends....
+#     # hire = Hire.from_name(hire_name)
+#     hire_name = base64_decode(hire_name)
+#     hire = Hire.from_name(hire_name)
+#
+#     bl = fuis.back_link()
+#     hire_ro = hire_row(hire)
+#     title = hire.name
+#
+#     page = am_default_page([bl, hire_ro], title)
+#     return page
+
+
+@router.get("/{hire_id}", response_model=FastUI, response_model_exclude_none=True)
+async def hire_view2(hire_id: int, session=Depends(get_session)) -> list[AnyComponent]:
+    hire = session.get(Hire, hire_id)
+    hb = HireBase.model_validate(hire)
 
     bl = fuis.back_link()
     hire_ro = hire_row(hire)
