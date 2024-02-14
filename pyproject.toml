@@ -9,12 +9,15 @@ dependencies = [
 #    "pycommence @ git+https://github.com/pawrequest/pycommence",
 #    "shipr @ git+https://github.com/pawrequest/shipr",
 #    "pawsupport @ git+https://github.com/pawrequest/pawsupport",
-#    'pydantic',
-#    'PySimpleGui',
+#    'pawsuppport',
+    'pydantic',
+    'fastui[fastapi]',
     'pyinstaller',
+    'pypdf',
+    'context-menu',
 ]
 readme = "README.md"
-requires-python = ">= 3.8"
+requires-python = ">= 3.12"
 
 [build-system]
 requires = ["hatchling"]
@@ -27,7 +30,6 @@ dev-dependencies = [
     "sphinx",
     "sphinx-rtd-theme",
     "myst-parser",
-
 ]
 
 [tool.hatch.metadata]
