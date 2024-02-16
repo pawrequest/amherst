@@ -1,3 +1,5 @@
+# Expresslink
+
 ## quick info
 
 charset = ISO 8859-1
@@ -6,89 +8,96 @@ charset = ISO 8859-1
 - Disallowed characters with diacritic marks should be replaced with standard Latin equivalent.     
   For example, Å becomes A, ñ becomes n.
 
-## The following web service calls are supported in WSDL V14
+## Available Services
 
-### Create shipment
+### `Create shipment`
 
 - Use to ship domestic items and request a shipment number
 - Use to ship international export items and request a shipment number
 - Request an ad-hoc domestic or international collection
 
-### (Re)print label
+### `(Re)print label`
 
 - Use to print labels for domestic and international shipments, including routing labels
   for third parties e.g. GLS and FedEx, and to print undated returns labels.
 
-### Print document
+### `Print document`
 
 - Use to print customs documentation for international non-document shipments
 
-### Create manifest
+### `Create manifest`
 
 - Allocate shipment to either an international or domestic manifest
 - Print manifest
 - Print manifest once it has been created
 
-### Return Shipment
+### `Return Shipment`
 
 - Activates a previously created undated domestic collection request by shipment
   number.
 
-### Find
+### `Find`
 
 - Use to search for and retrieve information to be included in Delivery Options requests
 
-### Cancellation
+### `Cancellation`
 
 - Use to cancel a Domestic or International delivery prior to the Create Manifest request
 
-### CreatePrint
+### `CreatePrint`
 
 - Use for delivery only to ship domestic items to request a shipment number and
 
-### generate XML data stream label response
+### `generate XML data stream label response`
 
 - Use for delivery only to ship international items to request a shipment number and
   generate XML data stream label response
 
-### CCReserve
+### `CCReserve`
 
 - Used to create Convenient Collect PostOfficeID - NOTE : This is not currently required
   when creating a Convenient Collect shipment
+
+------------------------------------
+
 
 ## XML Request Field Descriptions
 
 The following descriptions may be used in describing the contents of a field:
 
-## Max Length
+### `Max Length`
 
 Maximum number of characters, including spaces. Minimum length
 is assumed to be 1 for mandatory fields and 0 for optional fields
 
-## Mandatory
+### `Mandatory`
 
 Field always required
 
-## Mandatory*
+### `Mandatory*`
 
 Field required dependent on another field being populated with a
 specific value
 
-## Optional
+### `Optional`
 
 A non-mandatory field
 
-## Numeric
+### `Numeric`
 
 Numbers only
 
-## Alphanumeric
+### `Alphanumeric`
 
 Numbers and letters
 
-## Date
+### `Date`
 
 Date format required
+
+------------------------------------
+
+## Escaping
 
 Unless specifically advised otherwise, the field contents are case sensitive.
 In XML requests, there are 5 characters which much be escaped before the request is sent.
@@ -173,7 +182,7 @@ The following fields will be included in the response:
 | Postcode            | 8          | Alphanumeric | The post code from the PAF data returned This information used in Create Shipment Specified Neighbour Request           |
 | Country             | 2          | Alphanumeric | The country code from the PAF data returned This information used in Create Shipment Specified Neighbour Request        |
 
-### Specified Post Office Request Detail
+### `Specified Post Office Request Detail`
 
 The lookup function will return a list of Post Offices options.
 
@@ -185,7 +194,7 @@ The lookup function will return a list of Post Offices options.
 | Specified Post Office Postcode | -          | -              | Mandatory            | -                                                    |
 | Count                          | -          | -              | Optional             | -                                                    |
 
-### Specified Post Office Response Detail
+### `Specified Post Office Response Detail`
 
 The following fields will be included in the response:
 
@@ -207,7 +216,7 @@ The following fields will be included in the response:
 | AfterLunchOpening              | 5          | Time         | Reopening time after lunch                                   |
 | Count                          | 2          | Numeric      | Count of Post Offices in the response                        |
 
-### Postcode Exclusion Request Detail
+### `Postcode Exclusion Request Detail`
 
 The lookup function will return a list of available services per department for the Postcode
 entered for the delivery and/or the collection of a parcel.
@@ -220,7 +229,7 @@ entered for the delivery and/or the collection of a parcel.
 | Postcode           | 8          | Alphanumeric   | Optional             | The Postcode from the request                        |
 | CollectionPostcode | 8          | Alphanumeric   | Optional             | The Postcode from the request                        |
 
-### Postcode Exclusion Response Detail
+### `Postcode Exclusion Response Detail`
 
 The following fields will be included in the response:
 
