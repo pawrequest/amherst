@@ -3,7 +3,7 @@ import sys
 
 from dotenv import load_dotenv
 
-import shipr.expresslink as pf
+from shipr import expresslink as pf
 
 ENV_FILE = r'C:\Users\giles\prdev\am_dev\amherst\.env'
 
