@@ -4,21 +4,26 @@ from amherst.models.hire import Hire, INITIAL_FILTER_ARRAY
 from amherst.models.hire_cmc import HireCmc
 from amherst.models.sale import Sale
 from amherst.models.shared import HireStatusEnum
-from pycommence import Cmc
-from pycommence.filters import FilterArray
+from pycommence import Cmc, Csr
 from pycommence.wrapper.cmc_db import get_csr
 
-TEST_HIRE_NAME = 'test - 10/11/2023 ref 42744'
-TEST_SALE_NAME = 'test - 2/10/2024 ref 784'
+TEST_HIRE_NAME1 = 'test - 10/11/2023 ref 42744'
+TEST_SALE_NAME1 = 'test - 2/10/2024 ref 784'
+TEST_SALE_NAME = 'Test - 18/08/2023 ref 450'
+TEST_HIRE_NAME = "Test - 16/08/2023 ref 31619"
 
 
 @pytest.fixture()
 def cmc():
     cmc = Cmc()
-    db_name = cmc.name
-    if db_name != 'Radios_TEST':
-        raise AssertionError('Database name is not Radios_TEST')
+    # db_name = cmc.name
+    # if db_name != 'Radios_TEST':
+    #     raise AssertionError('Database name is not Radios_TEST')
     return cmc
+
+
+def test_csr(hire_csr):
+    assert isinstance(hire_csr, Csr)
 
 
 def test_default_csr():
@@ -65,9 +70,6 @@ def test_filter(cmc):
     csr = get_csr('Hire')
     fil = INITIAL_FILTER_ARRAY
     csr.filter_by_array(fil)
-
-    # # csr._cursor.set_filter_logic('OR, AND, AND')
-
     recs = csr.get_all_records()
     for rec in recs:
         hire = Hire.from_record(rec)

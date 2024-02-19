@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Sequence, Union
 
-from amherst.models.hire import Hire
+from amherst.models.hire import HireTable
 from amherst.models.shared import HireStatusEnum
 from fastui import components as c
 from fastui.events import GoToEvent
@@ -69,7 +69,7 @@ def ui_link(title, url, on_click=None, class_name="") -> c.Link:
 
 
 def am_navbar():
-    return fuis.nav_bar_from_routable([Hire])
+    return fuis.nav_bar_from_routable([HireTable])
 
 
 def am_default_page(components, title=None):
@@ -87,7 +87,7 @@ def am_default_page(components, title=None):
         raise
 
 
-def hire_row(hire: Hire):
+def hire_row(hire: HireTable):
     try:
         components = [
             date_col(hire.dates.send_out_date),

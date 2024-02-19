@@ -37,9 +37,8 @@ class SaleCmc(CmcTableRaw):
     # special_radio_prog: Optional[str] = Field(alias='Special Radio Prog')
 
     # staff
-    # order_packed_by: Optional[str] = Field(alias='Order Packed By')
-    # order_taken_by: Optional[str] = Field(alias='Order Taken By')
-    order_taken_by: Optional[str] = Field(alias='Handled By Staff')
+    order_packed_by: Optional[str] = Field(alias='Order Packed By')
+    order_taken_by: Optional[str] = Field(alias='Order Taken By')
 
     # shipping
     delivery_method: str = Field(alias='Delivery Method')

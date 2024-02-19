@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel
 
-from amherst.models.hire import Hire
+from amherst.models.hire import HireTable
 
 
-class HireSql(Hire, SQLModel):
+class HireSql(HireTable, SQLModel):
     pass

@@ -17,7 +17,7 @@ def main(args):
     ot = OfficeTools.auto_select()
     db = CmcDB()
     csr = db.get_cursor('Hire')
-    hire = csr.get_record(args.hire_name)
+    hire = csr.get_record(args.HIRE_NAME_OFFICE)
 
     if args.box:
         box_labels_aio_tmplt(hire)
