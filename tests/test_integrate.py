@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from fuzzywuzzy import fuzz, process
+from thefuzz import fuzz, process
 
 from amherst.converters import amherst_hire_to_pfc_shipment
 from amherst.models import Hire
@@ -72,15 +72,13 @@ def choose_address(address_str: str, candidates: list):
     return res
 
 
-def check_address(address: AmAddress, candidates: list):
-    res = process.extractOne(address.address, candidates, scorer=fuzz.token_sort_ratio)
-    return res
 
 
 def test_check_address(pf_com2, zconfig, hire_fxt):
     candidates = get_postocde_addresses(hire_fxt.delivery_address.postcode, pf_com2, zconfig)
     address = hire_fxt.delivery_address
     res = choose_address(address.address, candidates)
+    ...
 
 
 def shipment_from_address_contact(address, contact):
