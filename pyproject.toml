@@ -3,7 +3,7 @@ name = "amherst"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-    { name = "Paul-Sees-Solutions", email = "79617825+Paul-Sees-Solutions@users.noreply.github.com" }
+    { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
 dependencies = [
 #    "pycommence @ git+https://github.com/pawrequest/pycommence",
@@ -15,6 +15,7 @@ dependencies = [
     'pyinstaller',
     'pypdf',
     'context-menu',
+    'sqlmodel',
 ]
 readme = "README.md"
 requires-python = ">= 3.12"

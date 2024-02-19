@@ -12,7 +12,7 @@ from sqlmodel import SQLModel, Session
 from pycommence import get_csr
 from .database import create_db, ENGINE
 from .routers.hire_rout import router as hire_router
-from ..models.hire import Hire, HireBase, INITIAL_FILTER_ARRAY
+from ..models.hire import HireTable, INITIAL_FILTER_ARRAY, Hire
 
 load_dotenv()
 
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     try:
         create_db()
         with Session(ENGINE) as session:
-            populate_db_from_cmc(session, HireBase, Hire)
+            populate_db_from_cmc(session, Hire, HireTable)
 
         logger.info("tables created")
         # main_task = asyncio.create_task()

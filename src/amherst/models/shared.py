@@ -4,7 +4,7 @@ import json
 from datetime import date, datetime, time
 from decimal import Decimal
 from enum import StrEnum
-from typing import Optional, TYPE_CHECKING, TypeVar, Any
+from typing import Any, Optional, TYPE_CHECKING, TypeVar
 
 from pydantic import AfterValidator, BaseModel, BeforeValidator, PlainSerializer, WithJsonSchema
 from typing_extensions import Annotated
@@ -44,9 +44,11 @@ def amherst_time_val(v):
     if not v:
         return None
     if isinstance(v, str):
-        # v = v.split(' ')[0].strip()
         try:
-            time_object = datetime.strptime(v, "%I:%M %p").time()
+            if 'AM' in v or 'PM' in v:
+                time_object = datetime.strptime(v, "%I:%M %p").time()
+            else:
+                time_object = datetime.strptime(v, '%H:%M').time()
             return time_object
             # return datetime.strptime(v, '%H:%M').time()
         except ValueError:
@@ -116,6 +118,12 @@ HIRE_CUSTOMERS = Connection(
 )
 
 
+class AmContact(BaseModel):
+    email: str
+    name: str
+    telephone: str
+
+
 class AmAddress(BaseModel):
     address: str
     contact: str
@@ -147,7 +155,7 @@ TruncatedFloat = Annotated[
 
 MODEL_JSON = Annotated[
     BaseModel,
-    # BeforeValidator(lambda x: json.loads(x)),
+        # BeforeValidator(lambda x: json.loads(x)),
     PlainSerializer(model_with_sub_json, return_type=str),
 ]
 

@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 from amherst.back.database import get_cmc, get_session
 from amherst.front.amui import am_default_page, hire_row
-from amherst.models.hire import Hire, HireBase
+from amherst.models.hire import HireTable,  Hire
 from pawsupport import fastui_ps as fuis
 from pycommence import Cmc, get_csr
 
@@ -48,8 +48,8 @@ PAGE_SIZE = 20
 
 @router.get("/{hire_id}", response_model=FastUI, response_model_exclude_none=True)
 async def hire_view2(hire_id: int, session=Depends(get_session)) -> list[AnyComponent]:
-    hire = session.get(Hire, hire_id)
-    hb = HireBase.model_validate(hire)
+    hire = session.get(HireTable, hire_id)
+    hb = Hire.model_validate(hire)
 
     bl = fuis.back_link()
     hire_ro = hire_row(hire)
@@ -87,7 +87,7 @@ def hire_filter_init(customer: str, cmc: Cmc):
     if customer:
         cursor.filter_by_field("Customer", 'Equal To', customer)
         data = cursor.get_all_records()
-        data = [Hire.from_record(_) for _ in data]
+        data = [HireTable.from_record(_) for _ in data]
         filter_form_initial["customer"] = {"value": customer, "label": customer}
     else:
         data = cursor.get_all_records()
