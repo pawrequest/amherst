@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+from loguru import logger
 from sqlmodel import Column, Field, JSON, SQLModel
 
 from pycommence.filters import CmcFilter, FilterArray, FilterCondition
@@ -24,10 +25,16 @@ INITIAL_FILTER_ARRAY = FilterArray(
         condition=FilterCondition.EQUAL_TO,
         value=HireStatusEnum.BOOKED_IN,
     ),
+    CmcFilter(
+        field_name='Send Out Date',
+        condition=FilterCondition.AFTER,
+        value='2023-01-01',
+    ),
 )
 
 
-class Hire(CmcModel, SQLModel):
+class Hire(CmcModel):
+
     cmc_class = HireCmc
     initial_filter_array = INITIAL_FILTER_ARRAY
 
@@ -45,7 +52,6 @@ class Hire(CmcModel, SQLModel):
     def rout_prefix(cls) -> str:
         return '/hires/'
 
-
     @property
     def contact_dict(self) -> dict[str, str]:
         return dict(
@@ -56,21 +62,27 @@ class Hire(CmcModel, SQLModel):
 
     @property
     def address_dict(self) -> dict[str, str]:
-        add_lines = self.delivery_address.address.splitlines()
+        try:
+            add_lines = self.delivery_address.address.splitlines()
 
-        if len(add_lines) > 3:
-            add_lines[2] = ','.join(add_lines[2:])
+            if len(add_lines) < 3:
+                add_lines.extend([''] * (3 - len(add_lines)))
+            elif len(add_lines) > 3:
+                add_lines[2] = ','.join(add_lines[2:])  # zero index
 
-        lines_dict = {
-            f'address_line{num}': line
-            for num, line in enumerate(add_lines, start=1)
-        }
+            lines_dict = {
+                f'address_line{num}': line
+                for num, line in enumerate(add_lines, start=1)
+            }
 
-        return dict(
-            **lines_dict,
-            town=add_lines[-1],
-            postcode=self.delivery_address.postcode,
-        )
+            return dict(
+                **lines_dict,
+                town=add_lines[-1],
+                postcode=self.delivery_address.postcode,
+            )
+        except AttributeError:
+            logger.warning(f'Could not build address dict for hire "{self.name}"')
+            return dict()
 
     @classmethod
     def from_cmc(cls, cmc_obj: HireCmc) -> Hire:
@@ -89,13 +101,12 @@ class Hire(CmcModel, SQLModel):
         )
 
 
-
-
-class HireTable(Hire, table=True):
+class HireTable(SQLModel, table=True):
     """ Primary Hire Type """
+
     id: Optional[int] = Field(default=None, primary_key=True)
-    status: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     dates: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
+    status: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     shipping: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     delivery_address: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     payment: MODEL_JSON = Field(default=None, sa_column=Column(JSON))

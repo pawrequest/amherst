@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-from datetime import date, time, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 
-from sqlmodel import SQLModel, Field
+from pydantic import BaseModel, ConfigDict
 
 from amherst.models.shared import HireStatusEnum
 
 
-class HireDates(SQLModel):
+class AmBase(BaseModel):
+    model_config = ConfigDict(
+        use_enum_values=True,
+    )
+
+
+class HireDates(AmBase):
     booked_date: Optional[date]
     send_out_date: Optional[date]
     due_back_date: Optional[date]
@@ -26,14 +32,22 @@ class HireDates(SQLModel):
 
     @property
     def unpacked_dt(self):
-        return datetime.combine(self.unpacked_date, self.unpacked_time)
+        if all([self.unpacked_date, self.unpacked_time]):
+            return datetime.combine(self.unpacked_date, self.unpacked_time)
+        return None
 
     @property
     def packed_dt(self):
-        return datetime.combine(self.packed_date, self.packed_time)
+        if all([self.packed_date, self.packed_time]):
+            return datetime.combine(self.packed_date, self.packed_time)
+        return None
 
 
-class HireStatus(SQLModel):
+class HireStatus(AmBase):
+    model_config = ConfigDict(
+        use_enum_values=True,
+    )
+
     status: HireStatusEnum
     closed: bool
     return_notes: str
@@ -43,7 +57,7 @@ class HireStatus(SQLModel):
     missing_kit: str
 
 
-class HireShipping(SQLModel):
+class HireShipping(AmBase):
     send_collect: str
     send_method: str
     all_address: str
@@ -51,7 +65,7 @@ class HireShipping(SQLModel):
     boxes: int
 
 
-class HirePayment(SQLModel):
+class HirePayment(AmBase):
     invoice: Path
     purchase_order: Optional[str]
     payment_terms: str
@@ -60,7 +74,7 @@ class HirePayment(SQLModel):
     delivery_cost: Decimal
 
 
-class HireItems(SQLModel):
+class HireItems(AmBase):
     sgl_charger: int
     vhf: int
     em: int
@@ -87,13 +101,13 @@ class HireItems(SQLModel):
     aerial_adapt: int
 
 
-class HireOrder(SQLModel):
+class HireOrder(AmBase):
     special_kit: str
     reprogrammed: bool
     items: HireItems
     radio_type: str
 
 
-class HireStaff(SQLModel):
+class HireStaff(AmBase):
     packed_by: Optional[str] = None
     unpacked_by: Optional[str] = None

@@ -6,6 +6,7 @@ from decimal import Decimal
 from enum import StrEnum
 from typing import Any, Optional, TYPE_CHECKING, TypeVar
 
+from loguru import logger
 from pydantic import AfterValidator, BaseModel, BeforeValidator, PlainSerializer, WithJsonSchema
 from typing_extensions import Annotated
 from fastapi.encoders import jsonable_encoder
@@ -77,14 +78,29 @@ def decimal_from_string(v):
         raise ValueError(f'Invalid decimal string: "{v}"')
 
 
-def model_with_sub(model) -> dict:
+def model_with_sub(model, jsonify=False) -> dict | str:
     out = {}
     for attr, value in model.dict().items():
         if isinstance(value, BaseModel):
             out[attr] = model_with_sub(value)
         else:
             out[attr] = value
+    if jsonify:
+        return json.dumps(out)
     return out
+
+
+def model_with_sub_json2(model) -> dict | str:
+    try:
+        out = {}
+        for attr, value in model.dict().items():
+            if isinstance(value, BaseModel):
+                out[attr] = model_with_sub(value)
+            else:
+                out[attr] = value
+        return json.dumps(out)
+    except Exception as e:
+        logger.error(f'Error in model_with_sub_json: {e}')
 
 
 def model_with_sub_json(model) -> Any:
@@ -155,11 +171,8 @@ TruncatedFloat = Annotated[
 
 MODEL_JSON = Annotated[
     BaseModel,
-        # BeforeValidator(lambda x: json.loads(x)),
-    PlainSerializer(model_with_sub_json, return_type=str),
+    PlainSerializer(
+        model_with_sub_json2,
+        return_type=str
+    ),
 ]
-
-# MODEL_JSON = Annotated[BaseModel, BeforeValidator(lambda v: v)]
-
-
-# MODEL_JSON = Annotated[BaseModel, AfterValidator(model_with_sub_json)]

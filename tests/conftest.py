@@ -3,8 +3,9 @@ import os
 
 from dotenv import load_dotenv
 import pytest
+from sqlmodel import SQLModel, Session, create_engine
 
-from amherst.models import HireTable, HireCmc, Sale, SaleCmc, Hire
+from amherst.models import Hire, HireCmc, Sale, SaleCmc
 from shipr.el_combadge import PFCom, PFCom2, ZeepConfig
 from shipr.models.express.address import Address, Contact
 from shipr.models.express.expresslink_pydantic import Authentication
@@ -19,6 +20,14 @@ CONTRACT_NO = os.environ.get('PF_CONT_NUM_1')
 
 SALE_NAME_OFFICE = 'Test - 18/08/2023 ref 450'
 HIRE_NAME_OFFICE = 'Test - 16/08/2023 ref 31619'
+
+
+@pytest.fixture(scope="session")
+def test_session():
+    engine = create_engine("sqlite:///:memory:")
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
 
 
 @pytest.fixture
@@ -144,4 +153,3 @@ def min_shipment_r(address_r, contact_r) -> RequestedShipmentMinimum:
         recipient_address=address_r,
         total_number_of_parcels=1,
     )
-
