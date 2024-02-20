@@ -8,13 +8,13 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from sqlmodel import SQLModel
 
-from pycommence.filters import CmcFilterPy, FilterCondition
+from pycommence.filters import CmcFilter, FilterCondition
 from .shared import (AmAddress, HireStatusEnum)
 from pycommence.models.cmc_models import CmcModel, sub_model_from_cmc
 from .hire_cmc import HireCmc
 
 INITIAL_FILTER_ARRAY = [
-    CmcFilterPy(
+    CmcFilter(
         field_name='Status',
         condition=FilterCondition.EQUAL_TO,
         value=HireStatusEnum.BOOKED_IN,

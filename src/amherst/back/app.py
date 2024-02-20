@@ -12,7 +12,7 @@ from sqlmodel import SQLModel, Session
 from pycommence import get_csr
 from .database import create_db, ENGINE
 from .routers.hire_rout import router as hire_router
-from ..models.hire import HireTable, INITIAL_FILTER_ARRAY, Hire
+from ..models.hire import HireTable, Hire
 
 load_dotenv()
 
@@ -20,12 +20,13 @@ load_dotenv()
 def populate_db_from_cmc(session: Session, model: type[SQLModel], db_model: type[SQLModel]):
     csr = get_csr(model.cmc_class.table_name)
     filters = model.initial_filter_array
-    data = csr.set_filters(filters, get_all=True)
+    data = csr.filter_by_array(filters, get_all=True)
     cmc_raws = [model.cmc_class(**_) for _ in data]
     model_data = [model.from_cmc(_) for _ in cmc_raws]
     db_model_data = [db_model.model_validate(_) for _ in model_data]
     session.add_all(db_model_data)
     session.commit()
+    ...
 
 
 @asynccontextmanager

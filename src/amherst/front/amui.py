@@ -1,124 +1,107 @@
 from __future__ import annotations
 
-from typing import Sequence, Union
-
-from amherst.models.hire import HireTable
-from amherst.models.shared import HireStatusEnum
-from fastui import components as c
-from fastui.events import GoToEvent
-from loguru import logger
-from amherst.front.css import HEAD, PLAY_COL, TITLE, TITLE_COL
 from datetime import date
 
-def get_headers(header_names: list) -> c.Div:
-    headers = [c.Div(components=[c.Text(text=_)], class_name=HEAD) for _ in header_names]
-    head_row = fuis.Row(components=headers, row_class_name=HEAD)
-    return head_row
+from fastui import components as c
+from loguru import logger
+
+from amherst.models.hire import Hire
+from amherst.models.shared import HireStatusEnum
+from pawsupport import fastui_ps as fuis
+from amherst.front.css import TITLE
+from pawsupport.convert import get_ordinal_suffix
+from pawsupport.fastui_ps import CSSEnum
+from pawsupport.get_set import slug_or_none, title_or_name_val
 
 
-def objects_col(objects: Sequence, class_name_int="", class_name_ext="") -> c.Div:
-    try:
-        if not objects:
-            return fuis.empty_div(col=True)
-        rows = [object_col_one(_, class_name_int) for _ in objects]
-        col = fuis.Col(components=rows)
-        return col
-    except Exception as e:
-        logger.error(e)
+# def get_headers1(header_names: list) -> c.Div:
+#     headers = [c.Div(components=[c.Text(text=_)], class_name=HEAD) for _ in header_names]
+#     head_row = fuis.Row(components=headers, row_class_name=HEAD)
+#     return head_row
+
+class CSSEnumAm(fuis.CSSEnum):
+    STATUS_COL = "col-2"
+    DATE_COL = "col-3"
 
 
-def object_col_one(obj, class_name="") -> Union[c.Div, c.Link]:
-    if not obj:
-        return fuis.empty_div(col=True)
-    clink = ui_link(title_or_name_val(obj), slug_or_none(obj))
-    return fuis.Col(components=[clink], col_class=class_name)
+class Row(fuis.Row):
+    @classmethod
+    def hire(cls, hire: Hire):
+        try:
+            components = [
+                Col.date_col(hire.dates.send_out_date),
+                Col.status_col(hire.status.status),
+                Col.customer_col(hire.customer),
+                Col.boxes_col(hire.shipping.boxes)
+            ]
+            row = cls(components=components, class_name=CSSEnum.ROW)
+            return row
+        except Exception as e:
+            logger.error(e)
+            raise
+
+    @classmethod
+    def headers(cls, header_names: list[str], class_name: str = CSSEnum.HEAD_ROW) -> 'Row':
+        return super().headers(header_names, class_name)
 
 
-def title_column(obj) -> fuis.Col:
-    url = slug_or_none(obj)
-    title = title_or_name_val(obj)
-    return fuis.Col(
-        col_class=TITLE_COL,
-        components=[
-            ui_link(title, url),
-        ],
-    )
+class Col(fuis.Col):
+    @classmethod
+    def date(cls, col_date: date, class_name=CSSEnumAm.DATE_COL, text=None):
+        if not text:
+            fstr = f'%A %d{get_ordinal_suffix(col_date.day)} %B'
+            text = f'{col_date:{fstr}}'
+        comp = [c.Text(text=text)]
+        return cls(components=comp, class_name=class_name)
 
+    @classmethod
+    def status(cls, status: HireStatusEnum, class_name=CSSEnumAm.STATUS_COL):
+        text = status
+        comp = [c.Text(text=text)]
+        return fuis.Col(components=comp, class_name=class_name)
 
-def play_column(url) -> fuis.Col:
-    res = fuis.Col(
-        col_class=PLAY_COL,
-        components=[
-            c.Link(
-                components=[c.Text(text="Play")],
-                on_click=GoToEvent(url=url),
-            ),
-        ],
-    )
-    return res
+    @classmethod
+    def customer(cls, customer: str, class_name=""):
+        text = customer
+        comp = [c.Text(text=text)]
+        return fuis.Col(components=comp, class_name=class_name)
 
+    @classmethod
+    def boxes(cls, boxes: int, class_name="col-1"):
+        text = f"{boxes} {'box' if boxes == 1 else 'boxes'}"
+        comp = [c.Text(text=text)]
+        return fuis.Col(components=comp, class_name=class_name)
 
-def ui_link(title, url, on_click=None, class_name="") -> c.Link:
-    on_click = on_click or GoToEvent(url=url)
-    link = c.Link(components=[c.Text(text=title)], on_click=on_click, class_name=class_name)
-    return link
-
-
-def am_navbar():
-    return fuis.nav_bar_from_routable([HireTable])
-
-
-def am_default_page(components, title=None):
-    try:
-        page = default_page(
-            title=title or "Amherst",
-            navbar=am_navbar(),
-            components=components,
-            header_class=TITLE,
-            # page_classname=PAGE,
+    @classmethod
+    def title(cls, obj) -> fuis.Col:
+        url = slug_or_none(obj)
+        title = title_or_name_val(obj)
+        return cls(
+            class_name=CSSEnum.TITLE_COL,
+            components=[
+                fuis.LinkPR(),
+            ],
         )
-        return page
-    except Exception as e:
-        logger.error(e)
-        raise
 
 
-def hire_row(hire: HireTable):
-    try:
-        components = [
-            date_col(hire.dates.send_out_date),
-            status_col(hire.status.status),
-            customer_col(hire.customer),
-            boxes_col(hire.shipping.boxes)
-        ]
-        row = fuis.Row(components=components, sub_cols=False)
-        return row
-    except Exception as e:
-        logger.error(e)
-        raise
+class Navbar(fuis.NavbarPR):
+    @classmethod
+    def hire(cls):
+        return cls.from_routable(Hire)
 
 
-def date_col(col_date: date, class_name="col-3", text=None):
-    if not text:
-        fstr = f'%A %d{get_ordinal_suffix(col_date.day)} %B'
-        text = f'{col_date:{fstr}}'
-    comp = [c.Text(text=text)]
-    return fuis.Col(components=comp, col_class=class_name)
-
-
-def status_col(status: HireStatusEnum, class_name="col-2"):
-    text = status
-    comp = [c.Text(text=text)]
-    return fuis.Col(components=comp, col_class=class_name)
-
-
-def customer_col(customer: str, class_name=""):
-    text = customer
-    comp = [c.Text(text=text)]
-    return fuis.Col(components=comp, col_class=class_name)
-
-
-def boxes_col(boxes: int, class_name="col-1"):
-    text = f"{boxes} {'box' if boxes == 1 else 'boxes'}"
-    comp = [c.Text(text=text)]
-    return fuis.Col(components=comp, col_class=class_name)
+class Page(fuis.PagePR):
+    @classmethod
+    def amherst(cls, components, title=None):
+        try:
+            page = super().default_page(
+                title=title or "Amherst",
+                navbar=Navbar.hire(),
+                components=components,
+                header_class=TITLE,
+                # page_classname=PAGE,
+            )
+            return page
+        except Exception as e:
+            logger.error(e)
+            raise

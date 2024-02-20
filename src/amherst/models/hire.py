@@ -4,14 +4,14 @@ from typing import Optional
 
 from sqlmodel import Column, Field, JSON, SQLModel
 
-from pycommence.filters import CmcFilterPy, FilterArray, FilterCondition
+from pycommence.filters import CmcFilter, FilterArray, FilterCondition
 from .hire_parts import HireDates, HireItems, HirePayment, HireShipping, HireStaff, HireStatus
 from .shared import (AmAddress, HireStatusEnum, MODEL_JSON)
 from pycommence.models.cmc_models import CmcModel, sub_model_from_cmc
 from .hire_cmc import HireCmc
 
 INITIAL_FILTER_ARRAY1 = [
-    CmcFilterPy(
+    CmcFilter(
         field_name='Status',
         condition=FilterCondition.EQUAL_TO,
         value=HireStatusEnum.BOOKED_IN,
@@ -19,7 +19,7 @@ INITIAL_FILTER_ARRAY1 = [
 ]
 
 INITIAL_FILTER_ARRAY = FilterArray(
-    CmcFilterPy(
+    CmcFilter(
         field_name='Status',
         condition=FilterCondition.EQUAL_TO,
         value=HireStatusEnum.BOOKED_IN,
@@ -40,6 +40,11 @@ class Hire(CmcModel, SQLModel):
     payment: HirePayment
     items: HireItems
     staff: HireStaff
+
+    @classmethod
+    def rout_prefix(cls) -> str:
+        return '/hires/'
+
 
     @property
     def contact_dict(self) -> dict[str, str]:

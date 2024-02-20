@@ -2,7 +2,8 @@ from __future__ import annotations
 
 stand = "text-center py-1 my-1"
 
-HEAD = f"my-1 col border {stand}"
+HEAD_ROW = f"my-1 col border {stand}"
+HEAD_DIV = f"{stand}"
 PLAY_COL = f"col-1 {stand}"
 TITLE_COL = f"col-4 {stand}"
 SUB_LIST = f"{stand}"

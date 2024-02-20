@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from amherst.back.database import get_cmc, get_session
-from amherst.front.amui import am_default_page, hire_row
+from amherst.front.amui import Row, Page
 from amherst.models.hire import HireTable,  Hire
 from pawsupport import fastui_ps as fuis
 from pycommence import Cmc, get_csr
@@ -52,10 +52,10 @@ async def hire_view2(hire_id: int, session=Depends(get_session)) -> list[AnyComp
     hb = Hire.model_validate(hire)
 
     bl = fuis.back_link()
-    hire_ro = hire_row(hire)
+    hire_ro = Row.hire(hb)
     title = hire.name
 
-    page = am_default_page([bl, hire_ro], title)
+    page = Page([bl, hire_ro], title)
     return page
 
 

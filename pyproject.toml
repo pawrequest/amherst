@@ -6,19 +6,17 @@ authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
 dependencies = [
-#    "pycommence @ git+https://github.com/pawrequest/pycommence",
-#    "shipr @ git+https://github.com/pawrequest/shipr",
-#    "pawsupport @ git+https://github.com/pawrequest/pawsupport",
-#    'pawsuppport',
+    'pawsupport[fast] @ git+https://github.com/pawrequest/pawsupport',
     'pydantic',
     'fastui[fastapi]',
     'pyinstaller',
     'pypdf',
     'context-menu',
     'sqlmodel',
+    'uvicorn',
 ]
 readme = "README.md"
-requires-python = ">= 3.12"
+requires-python = ">= 3.10"
 
 [build-system]
 requires = ["hatchling"]
@@ -35,3 +33,9 @@ dev-dependencies = [
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+
+#    "pycommence @ git+https://github.com/pawrequest/pycommence",
+#    "shipr @ git+https://github.com/pawrequest/shipr",
+#    "pawsupport @ git+https://github.com/pawrequest/pawsupport",
+#    'pawsuppport',
