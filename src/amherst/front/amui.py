@@ -7,10 +7,6 @@ from amherst.models.shared import HireStatusEnum
 from fastui import components as c
 from fastui.events import GoToEvent
 from loguru import logger
-from pawsupport.convert import get_ordinal_suffix
-from pawsupport.fastui_ps import fastui_support as fuis
-from pawsupport.fastui_ps.fastui_support import default_page
-from pawsupport.get_set import slug_or_none, title_or_name_val
 from amherst.front.css import HEAD, PLAY_COL, TITLE, TITLE_COL
 from datetime import date
 
