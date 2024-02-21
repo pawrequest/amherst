@@ -124,7 +124,7 @@ class Hire(CmcModel):
 
 class HireTable(Hire, table=True):
     """ Primary Hire Type """
-    #
+    # model json simple dict now
     id: Optional[int] = Field(default=None, primary_key=True)
     dates: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     status: MODEL_JSON = Field(default=None, sa_column=Column(JSON))

@@ -29,10 +29,10 @@ class Row(fuis.Row):
     def hire(cls, hire: Hire):
         try:
             components = [
-                Col.date_col(hire.dates.send_out_date),
-                Col.status_col(hire.status.status),
-                Col.customer_col(hire.customer),
-                Col.boxes_col(hire.shipping.boxes)
+                Col.date(hire.dates.send_out_date),
+                Col.status(hire.status.status),
+                Col.customer(hire.customer),
+                Col.boxes(hire.shipping.boxes)
             ]
             row = cls(components=components, class_name=CSSEnum.ROW)
             return row
