@@ -4,6 +4,7 @@ from typing import Optional
 
 from loguru import logger
 from sqlmodel import Column, Field, JSON, SQLModel
+from pydantic import SerializeAsAny
 
 from pycommence.filters import CmcFilter, FilterArray, FilterCondition
 from .hire_parts import HireDates, HireItems, HirePayment, HireShipping, HireStaff, HireStatus
@@ -33,19 +34,19 @@ INITIAL_FILTER_ARRAY = FilterArray(
 )
 
 
-class Hire(CmcModel, SQLModel):
+class Hire(CmcModel):
     cmc_class = HireCmc
     initial_filter_array = INITIAL_FILTER_ARRAY
 
     name: str
     customer: str
-    shipping: HireShipping
-    dates: HireDates
-    status: HireStatus
-    delivery_address: AmAddress
-    payment: HirePayment
-    items: HireItems
-    staff: HireStaff
+    # shipping: HireShipping
+    # dates: HireDates
+    # status: HireStatus
+    # delivery_address: AmAddress
+    # payment: HirePayment
+    # items: HireItems
+    # staff: HireStaff
     #
     # shipping: HireShipping = Field(default=None, sa_column=Column(JSON))
     # dates: HireDates = Field(default=None, sa_column=Column(JSON))
@@ -54,6 +55,17 @@ class Hire(CmcModel, SQLModel):
     # payment: HirePayment = Field(default=None, sa_column=Column(JSON))
     # items: HireItems = Field(default=None, sa_column=Column(JSON))
     # staff: HireStaff = Field(default=None, sa_column=Column(JSON))
+    #
+    shipping: SerializeAsAny[HireShipping] = Field(default=None, sa_column=Column(JSON))
+    dates: SerializeAsAny[HireDates] = Field(default=None, sa_column=Column(JSON))
+    status: SerializeAsAny[HireStatus] = Field(default=None, sa_column=Column(JSON))
+    delivery_address: SerializeAsAny[AmAddress] = Field(default=None, sa_column=Column(JSON))
+    payment: SerializeAsAny[HirePayment] = Field(default=None, sa_column=Column(JSON))
+    items: SerializeAsAny[HireItems] = Field(default=None, sa_column=Column(JSON))
+    staff: SerializeAsAny[HireStaff] = Field(default=None, sa_column=Column(JSON))
+
+
+
 
 
 

@@ -79,7 +79,7 @@ def decimal_from_string(v):
 
 def model_with_sub(model, jsonify=False) -> dict | str:
     out = {}
-    for attr, value in model.dict().items():
+    for attr, value in model.model_dump().items():
         if isinstance(value, BaseModel):
             out[attr] = model_with_sub(value)
         else:
@@ -92,7 +92,7 @@ def model_with_sub(model, jsonify=False) -> dict | str:
 def model_with_sub_json2(model) -> dict | str:
     try:
         out = {}
-        for attr, value in model.dict().items():
+        for attr, value in model.model_dump().items():
             if isinstance(value, BaseModel):
                 out[attr] = model_with_sub(value)
             else:
@@ -103,11 +103,11 @@ def model_with_sub_json2(model) -> dict | str:
 
 
 def model_with_sub_json(model) -> Any:
-    json_compatible_item_data = jsonable_encoder(model)
-    return json.dumps(json_compatible_item_data)
+    # json_compatible_item_data = jsonable_encoder(model)
+    # return json.dumps(json_compatible_item_data)
 
     # return model.model_dump_json()
-    # return json.dumps(model_with_sub(model))
+    return json.dumps(model_with_sub(model))
 
 
 HireDatesAm = Annotated[BaseModel, BeforeValidator(amherst_date_val)]
@@ -161,10 +161,9 @@ class HireStatusEnum(StrEnum):
     SOLD = 'Sold To Customer'
 
 
-MODEL_JSON = SQLModel
-MODEL_JSON2 = Annotated[
-    BaseModel, PlainSerializer(model_with_sub_json, return_type=str), AfterValidator(
-        lambda v: v.model_dump_json()
-    )]
+MODEL_JSON = dict
+MODEL_JSON3 = Annotated[
+    dict, PlainSerializer(model_with_sub_json)
+    ]
 
-MODEL_JSON1 = Annotated[BaseModel, PlainSerializer(lambda v: v.model_dump_json())]
+MODEL_JSON2 = Annotated[BaseModel, PlainSerializer(lambda v: v.model_dump_json())]

@@ -5,32 +5,41 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 
-from sqlmodel import Field, SQLModel
 from pydantic import ConfigDict
 
 from amherst.models.shared import HireStatusEnum
+from pydantic import BaseModel, Field
 
 
-class AmBase(SQLModel):
+class AmBase(BaseModel):
     model_config = ConfigDict(
     )
     pass
 
 
 class HireDates(AmBase):
-
-    booked_date: Optional[date]
+    # booked_date: Optional[datetime] = Field(default=None)
+    # send_out_date: Optional[datetime] = Field(default_factory=date.today)
+    # due_back_date: Optional[datetime] = Field(default=None)
+    # actual_return_date: Optional[datetime] = Field(default=None)
+    # packed_date: Optional[datetime] = Field(default=None)
+    # unpacked_date: Optional[datetime] = Field(default=None)
+    #
+    # packed_time: Optional[datetime] = Field(default=None)
+    # unpacked_time: Optional[datetime] = Field(default=None)
+    #
+    booked_date: Optional[date] = Field(default=None)
     send_out_date: Optional[date] = Field(default_factory=date.today)
-    due_back_date: Optional[date]
-    actual_return_date: Optional[date]
-    packed_date: Optional[date]
-    unpacked_date: Optional[date]
+    due_back_date: Optional[date] = Field(default=None)
+    actual_return_date: Optional[date] = Field(default=None)
+    packed_date: Optional[date] = Field(default=None)
+    unpacked_date: Optional[date] = Field(default=None)
 
-    packed_time: Optional[time]
-    unpacked_time: Optional[time]
+    packed_time: Optional[time] = Field(default=None)
+    unpacked_time: Optional[time] = Field(default=None)
 
     # weeks: int
-    recurring_hire: bool
+    recurring_hire: bool = Field(default=False)
 
     @property
     def unpacked_dt(self):
