@@ -18,11 +18,12 @@ build-backend = "hatchling.build"
 managed = true
 dev-dependencies = []
 virtual = true
+
 [tool.rye.workspace]
 members = [
     "pycommence",
     "amherst",
-    "pawsupport[all]",
+    "pawsupport[fast]",
     "shipr"
 ]
 

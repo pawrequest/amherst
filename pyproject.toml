@@ -6,9 +6,10 @@ authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
 dependencies = [
-    'pawsupport[fast] @ git+https://github.com/pawrequest/pawsupport',
+    'pawsupport[fast, office]',
     'pydantic',
-    'fastui[fastapi]',
+    'fastui',
+    'fastapi',
     'pyinstaller',
     'pypdf',
     'context-menu',
@@ -34,8 +35,7 @@ dev-dependencies = [
 [tool.hatch.metadata]
 allow-direct-references = true
 
-
-#    "pycommence @ git+https://github.com/pawrequest/pycommence",
-#    "shipr @ git+https://github.com/pawrequest/shipr",
-#    "pawsupport @ git+https://github.com/pawrequest/pawsupport",
-#    'pawsuppport',
+[tool.hatch.build.targets.wheel]
+packages = [
+    "amherst",
+]

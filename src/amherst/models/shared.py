@@ -7,12 +7,11 @@ from enum import StrEnum
 from typing import Any, Optional, TYPE_CHECKING, TypeVar
 
 from loguru import logger
-from pydantic import AfterValidator, BaseModel, BeforeValidator, PlainSerializer, WithJsonSchema
+from pydantic import AfterValidator, BaseModel, BeforeValidator, PlainSerializer, SerializeAsAny
 from typing_extensions import Annotated
 from fastapi.encoders import jsonable_encoder
-
 from pycommence.entities import Connection
-
+from pydantic import Json
 if TYPE_CHECKING:
     pass
 
@@ -162,17 +161,10 @@ class HireStatusEnum(StrEnum):
     SOLD = 'Sold To Customer'
 
 
-TruncatedFloat = Annotated[
-    float,
-    AfterValidator(lambda x: round(x, 1)),
-    PlainSerializer(lambda x: f'{x:.1e}', return_type=str),
-    WithJsonSchema({'type': 'string'}, mode='serialization'),
-]
+MODEL_JSON = SQLModel
+MODEL_JSON2 = Annotated[
+    BaseModel, PlainSerializer(model_with_sub_json, return_type=str), AfterValidator(
+        lambda v: v.model_dump_json()
+    )]
 
-MODEL_JSON = Annotated[
-    BaseModel,
-    PlainSerializer(
-        model_with_sub_json2,
-        return_type=str
-    ),
-]
+MODEL_JSON1 = Annotated[BaseModel, PlainSerializer(lambda v: v.model_dump_json())]

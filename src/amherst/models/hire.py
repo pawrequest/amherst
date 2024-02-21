@@ -33,20 +33,29 @@ INITIAL_FILTER_ARRAY = FilterArray(
 )
 
 
-class Hire(CmcModel):
-
+class Hire(CmcModel, SQLModel):
     cmc_class = HireCmc
     initial_filter_array = INITIAL_FILTER_ARRAY
 
     name: str
     customer: str
+    shipping: HireShipping
     dates: HireDates
     status: HireStatus
-    shipping: HireShipping
     delivery_address: AmAddress
     payment: HirePayment
     items: HireItems
     staff: HireStaff
+    #
+    # shipping: HireShipping = Field(default=None, sa_column=Column(JSON))
+    # dates: HireDates = Field(default=None, sa_column=Column(JSON))
+    # status: HireStatus = Field(default=None, sa_column=Column(JSON))
+    # delivery_address: AmAddress = Field(default=None, sa_column=Column(JSON))
+    # payment: HirePayment = Field(default=None, sa_column=Column(JSON))
+    # items: HireItems = Field(default=None, sa_column=Column(JSON))
+    # staff: HireStaff = Field(default=None, sa_column=Column(JSON))
+
+
 
     @classmethod
     def rout_prefix(cls) -> str:
@@ -101,9 +110,9 @@ class Hire(CmcModel):
         )
 
 
-class HireTable(SQLModel, table=True):
+class HireTable(Hire, table=True):
     """ Primary Hire Type """
-
+    #
     id: Optional[int] = Field(default=None, primary_key=True)
     dates: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
     status: MODEL_JSON = Field(default=None, sa_column=Column(JSON))
@@ -124,3 +133,6 @@ class HireTable(SQLModel, table=True):
     #     record = cursor.get_record(name)
     #     cmc = cls.converted_class(**record)
     #     return cls.from_cmc(cmc)
+
+
+

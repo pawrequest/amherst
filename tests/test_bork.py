@@ -2,10 +2,12 @@ import json
 from typing import Optional
 
 import pytest
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session, Field
 
 from amherst.models import Hire, HireCmc, HireTable
+from amherst.models.shared import model_with_sub_json
 
 
 @pytest.fixture
@@ -70,8 +72,11 @@ def hire_record():
 def test_hire_record(hire_record, test_session):
     cmc_raw = HireCmc(**hire_record)
     model_data = Hire.from_cmc(cmc_raw)
-    model_data_db = HireTable.model_validate(model_data)
-    model_data_db.dates = json.dumps(model_data_db.dates.dict())
+    model_data_js = jsonable_encoder(model_data)
+    model_data_db = HireTable.model_validate(model_data_js)
+
+
+    # smth = model_with_sub_json(model_data_db)
 
 
     test_session.add(model_data_db)

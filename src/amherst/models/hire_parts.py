@@ -5,20 +5,22 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from sqlmodel import Field, SQLModel
+from pydantic import ConfigDict
 
 from amherst.models.shared import HireStatusEnum
 
 
-class AmBase(BaseModel):
+class AmBase(SQLModel):
     model_config = ConfigDict(
-        use_enum_values=True,
     )
+    pass
 
 
 class HireDates(AmBase):
+
     booked_date: Optional[date]
-    send_out_date: Optional[date]
+    send_out_date: Optional[date] = Field(default_factory=date.today)
     due_back_date: Optional[date]
     actual_return_date: Optional[date]
     packed_date: Optional[date]
@@ -45,7 +47,7 @@ class HireDates(AmBase):
 
 class HireStatus(AmBase):
     model_config = ConfigDict(
-        use_enum_values=True,
+        # use_enum_values=True,
     )
 
     status: HireStatusEnum
