@@ -133,13 +133,13 @@ HIRE_CUSTOMERS = Connection(
 )
 
 
-class AmContact(BaseModel):
+class ContactAm(BaseModel):
     email: str
     name: str
     telephone: str
 
 
-class AmAddress(BaseModel):
+class AddressAm(BaseModel):
     address: str
     contact: str
     email: str

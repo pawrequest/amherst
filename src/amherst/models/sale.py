@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from .sale_cmc import SaleCmc
 from .shared import (
-    AmAddress,
+    AddressAm,
 )
 from pycommence.models.cmc_models import (
     sub_model_from_cmc,
@@ -30,8 +30,8 @@ class Sale(CmcModel):
     staff: SaleStaff
     shipping: SaleShipping
     notes: SaleNotes
-    delivery_address: AmAddress
-    invoice_address: AmAddress
+    delivery_address: AddressAm
+    invoice_address: AddressAm
 
     @classmethod
     def from_cmc(cls, cmc_obj: SaleCmc) -> Sale:
@@ -46,8 +46,8 @@ class Sale(CmcModel):
             staff=sub_model_from_cmc(SaleStaff, cmc_obj),
             shipping=sub_model_from_cmc(SaleShipping, cmc_obj),
             notes=sub_model_from_cmc(SaleNotes, cmc_obj),
-            delivery_address=sub_model_from_cmc(AmAddress, cmc_obj, prepend='delivery_'),
-            invoice_address=sub_model_from_cmc(AmAddress, cmc_obj, prepend='invoice_'),
+            delivery_address=sub_model_from_cmc(AddressAm, cmc_obj, prepend='delivery_'),
+            invoice_address=sub_model_from_cmc(AddressAm, cmc_obj, prepend='invoice_'),
         )
 
         return res

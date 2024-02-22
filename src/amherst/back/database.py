@@ -1,9 +1,9 @@
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
 
-from pycommence import Cmc
-
-
+from shipr.el_combadge import PFCom
+load_dotenv()
 DB_URL = "sqlite:///:memory:"
 # db_url = "sqlite:///amherst.db"
 CONNECT_ARGS = {"check_same_thread": False}
@@ -22,11 +22,11 @@ def get_session(engine=None) -> Session:
     session.close()
 
 
+def get_pfc():
+    return PFCom.from_env()
+
+
 def create_db(engine=None):
     if engine is None:
         engine = ENGINE
     SQLModel.metadata.create_all(engine)
-
-
-def get_cmc() -> Cmc:
-    return Cmc()

@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from amherst.front.amui import Col
 
 
-class AddressContainer()
+class AddressAmCol(Col):
+    pass
+

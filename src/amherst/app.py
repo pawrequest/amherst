@@ -8,29 +8,29 @@ from fastui import prebuilt_html
 from fastui.dev import dev_fastapi_app
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from loguru import logger
-from pydantic import BaseModel
 from sqlmodel import SQLModel, Session
 
+from amherst import ENGINE, Hire, HireTable, create_db, hire_router
+from amherst.script import main
 from pycommence import get_csr
-from .database import create_db, ENGINE
-from .routers.hire_rout import router as hire_router
-from ..models.hire import HireTable, Hire
-from .sample_data import hire_records
+
 load_dotenv()
 
 
 def populate_db_from_cmc(session: Session, model: type[SQLModel], db_model: type[SQLModel]):
-    # csr = get_csr(model.cmc_class.table_name)
-    # filters = model.initial_filter_array
-    # data = csr.filter_by_array(filters, get=True)
+    # todo remove sample data
+    # data = hire_records
 
-    data = hire_records
+    csr = get_csr(model.cmc_class.table_name)
+    filters = model.initial_filter_array
+    data = csr.filter_by_array(filters, get=True)
+
     cmc_raws = [model.cmc_class(**_) for _ in data]
     model_data = [model.from_cmc(_) for _ in cmc_raws]
-    model_data_db = [db_model.model_validate(_.model_dump()) for _ in model_data]
-    model_data_dbjs = [db_model.model_validate(jsonable_encoder(_)) for _ in model_data]
+    # model_data_db = [db_model.model_validate(_.model_dump()) for _ in model_data]
+    model_data_db = [db_model.model_validate(jsonable_encoder(_)) for _ in model_data]
 
-    session.add_all(model_data_dbjs)
+    session.add_all(model_data_db)
     session.commit()
     ...
 
@@ -74,3 +74,4 @@ async def favicon_ico() -> str:
 @app.get("/{path:path}")
 async def html_landing() -> HTMLResponse:
     return HTMLResponse(prebuilt_html(title="Amherst"))
+

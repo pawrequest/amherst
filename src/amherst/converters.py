@@ -1,34 +1,33 @@
 import os
-from datetime import date
 
+import shipr.models.express.expresslink_types
 from amherst.models.hire import Hire
-from shipr.models.express.address import Address, Contact
-from shipr.models.express.enums import DeliveryTypeEnum, DepartmentEnum, ServiceCode
-from shipr.models.express.shipment import RequestedShipmentMinimum
+from shipr import RequestedShipmentMinimum, expresslink_types as el
 
 
-def amherst_hire_to_contact(hire: Hire) -> Contact:
+def amherst_hire_to_contact(hire: Hire) -> shipr.models.express.expresslink_types.ContactPF:
     """Convert a Hire to a Contact for the PFCom service."""
-    return Contact(**hire.contact_dict)
+    ret = shipr.models.express.expresslink_types.ContactPF(**hire.contact_dict)
+    return ret
 
 
-def amherst_hire_to_address(hire: Hire) -> Address:
+def amherst_hire_to_address(hire: Hire) -> shipr.models.express.expresslink_types.AddressPF:
     """Convert a Hire to an Address for the PFCom service."""
-    return Address(**hire.address_dict)
+    ret = shipr.models.express.expresslink_types.AddressPF(
+        **hire.address_dict
+    )
+    return ret
 
 
 def amherst_hire_to_pfc_shipment(hire: Hire) -> RequestedShipmentMinimum:
     """Convert a Hire to a CreateShipmentRequest for the PFCom service."""
     # ...
-    ship_date = hire.dates.send_out_date
-    if not ship_date or ship_date < date.today():
-        ship_date = date.today()
-    req = RequestedShipmentMinimum(
-        department_id=DepartmentEnum.MAIN,
-        shipment_type=DeliveryTypeEnum.DELIVERY,
+    req = el.RequestedShipmentMinimum(
+        department_id=el.DepartmentEnum.MAIN,
+        shipment_type=el.DeliveryTypeEnum.DELIVERY,
         contract_number=os.environ['PF_CONT_NUM_1'],
-        service_code=ServiceCode.EXPRESS24,
-        shipping_date=ship_date,
+        service_code=el.ServiceCode.EXPRESS24,
+        shipping_date=hire.dates.send_out_date,
         recipient_contact=amherst_hire_to_contact(hire),
         recipient_address=amherst_hire_to_address(hire),
         total_number_of_parcels=hire.shipping.boxes,

@@ -3,12 +3,11 @@ from __future__ import annotations
 from typing import Optional
 
 from loguru import logger
-from sqlmodel import Column, Field, JSON, SQLModel
-from pydantic import SerializeAsAny
+from sqlmodel import Column, Field, JSON
 
 from pycommence.filters import CmcFilter, FilterArray, FilterCondition
 from .hire_parts import HireDates, HireItems, HirePayment, HireShipping, HireStaff, HireStatus
-from .shared import (AmAddress, HireStatusEnum, MODEL_JSON)
+from .shared import (AddressAm, HireStatusEnum, MODEL_JSON)
 from pycommence.models.cmc_models import CmcModel, sub_model_from_cmc
 from .hire_cmc import HireCmc
 
@@ -40,13 +39,15 @@ class Hire(CmcModel):
 
     name: str
     customer: str
-    # shipping: HireShipping
-    # dates: HireDates
-    # status: HireStatus
-    # delivery_address: AmAddress
-    # payment: HirePayment
-    # items: HireItems
-    # staff: HireStaff
+
+    shipping: HireShipping
+    dates: HireDates
+    status: HireStatus
+    delivery_address: AddressAm
+    payment: HirePayment
+    items: HireItems
+    staff: HireStaff
+
     #
     # shipping: HireShipping = Field(default=None, sa_column=Column(JSON))
     # dates: HireDates = Field(default=None, sa_column=Column(JSON))
@@ -56,18 +57,13 @@ class Hire(CmcModel):
     # items: HireItems = Field(default=None, sa_column=Column(JSON))
     # staff: HireStaff = Field(default=None, sa_column=Column(JSON))
     #
-    shipping: SerializeAsAny[HireShipping] = Field(default=None, sa_column=Column(JSON))
-    dates: SerializeAsAny[HireDates] = Field(default=None, sa_column=Column(JSON))
-    status: SerializeAsAny[HireStatus] = Field(default=None, sa_column=Column(JSON))
-    delivery_address: SerializeAsAny[AmAddress] = Field(default=None, sa_column=Column(JSON))
-    payment: SerializeAsAny[HirePayment] = Field(default=None, sa_column=Column(JSON))
-    items: SerializeAsAny[HireItems] = Field(default=None, sa_column=Column(JSON))
-    staff: SerializeAsAny[HireStaff] = Field(default=None, sa_column=Column(JSON))
-
-
-
-
-
+    # shipping: SerializeAsAny[HireShipping] = Field(default=None, sa_column=Column(JSON))
+    # dates: SerializeAsAny[HireDates] = Field(default=None, sa_column=Column(JSON))
+    # status: SerializeAsAny[HireStatus] = Field(default=None, sa_column=Column(JSON))
+    # delivery_address: SerializeAsAny[AmAddress] = Field(default=None, sa_column=Column(JSON))
+    # payment: SerializeAsAny[HirePayment] = Field(default=None, sa_column=Column(JSON))
+    # items: SerializeAsAny[HireItems] = Field(default=None, sa_column=Column(JSON))
+    # staff: SerializeAsAny[HireStaff] = Field(default=None, sa_column=Column(JSON))
 
     @classmethod
     def rout_prefix(cls) -> str:
@@ -75,21 +71,25 @@ class Hire(CmcModel):
 
     @property
     def contact_dict(self) -> dict[str, str]:
-        return dict(
+        ret = dict(
             business_name=self.customer,
             email_address=self.delivery_address.email,
             mobile_phone=self.delivery_address.telephone
         )
+        return ret
+
 
     @property
     def address_dict(self) -> dict[str, str]:
         try:
-            add_lines = self.delivery_address.address.splitlines()
+            # add = self.delivery_address.address.strip()
+            add_lines = self.delivery_address.address.strip().splitlines()
+            town = add_lines[-1]
 
-            if len(add_lines) < 3:
-                add_lines.extend([''] * (3 - len(add_lines)))
-            elif len(add_lines) > 3:
-                add_lines[2] = ','.join(add_lines[2:])  # zero index
+            # if len(add_lines) < 3:
+            #     add_lines.extend([''] * (3 - len(add_lines)))
+            if len(add_lines) > 3:
+                add_lines[2] = ','.join(add_lines[2:])
 
             lines_dict = {
                 f'address_line{num}': line
@@ -98,7 +98,7 @@ class Hire(CmcModel):
 
             return dict(
                 **lines_dict,
-                town=add_lines[-1],
+                town=town,
                 postcode=self.delivery_address.postcode,
             )
         except AttributeError:
@@ -114,7 +114,7 @@ class Hire(CmcModel):
                 dates=sub_model_from_cmc(HireDates, cmc_obj),
                 status=sub_model_from_cmc(HireStatus, cmc_obj),
                 shipping=sub_model_from_cmc(HireShipping, cmc_obj),
-                delivery_address=sub_model_from_cmc(AmAddress, cmc_obj, prepend='delivery_'),
+                delivery_address=sub_model_from_cmc(AddressAm, cmc_obj, prepend='delivery_'),
                 payment=sub_model_from_cmc(HirePayment, cmc_obj),
                 items=sub_model_from_cmc(HireItems, cmc_obj),
                 staff=sub_model_from_cmc(HireStaff, cmc_obj),
@@ -145,6 +145,3 @@ class HireTable(Hire, table=True):
     #     record = cursor.get_record(name)
     #     cmc = cls.converted_class(**record)
     #     return cls.from_cmc(cmc)
-
-
-

@@ -39,3 +39,6 @@ allow-direct-references = true
 packages = [
     "amherst",
 ]
+
+[project.scripts]
+am_address = "amherst.app:main"
