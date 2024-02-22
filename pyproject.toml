@@ -41,4 +41,4 @@ packages = [
 ]
 
 [project.scripts]
-am_address = "amherst.app:main"
+am_address = "script:main"

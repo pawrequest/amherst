@@ -10,8 +10,8 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from loguru import logger
 from sqlmodel import SQLModel, Session
 
-from amherst import ENGINE, Hire, HireTable, create_db, hire_router
-from amherst.script import main
+from .models import Hire, HireTable
+from .back import create_db, hire_router
 from pycommence import get_csr
 
 load_dotenv()
