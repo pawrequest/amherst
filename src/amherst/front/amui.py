@@ -107,7 +107,15 @@ class Page(fuis.PagePR):
         chosen_add, score = choose_hire_address(hire, pf_com)
         am_address_col = Col.all_text(hire.delivery_address)
         chosen_add_col = Col.all_text(chosen_add)
-        cont = Container.wrap(am_address_col, chosen_add_col, wrap_mode=WrapMode.NESTED, wrap_inner=Col, wrap_outer=Row)
+        buttons_col = Col.wrap(
+            c.Text(text=f'Address score: {score}'),
+            c.Button(text="Choose this address", ),
+            c.Button(text="Enter address manually", on_click=None),
+            wrap_mode=WrapMode.NESTED,
+            wrap_inner=Row,
+            wrap_outer=Col
+        )
+        cont = Container.wrap(am_address_col,buttons_col, chosen_add_col, wrap_mode=WrapMode.NESTED, wrap_inner=Col, wrap_outer=Row)
         page = Page.default_page(cont)
         return page
 
