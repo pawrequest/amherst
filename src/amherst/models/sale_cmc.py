@@ -5,7 +5,7 @@ from typing import Optional, ClassVar
 
 from pydantic import BaseModel, Field
 
-from amherst.models.shared import DateAm, ListComma, ListNewline, DateMaybe
+from .shared import DateAm, ListComma, ListNewline, DateMaybe
 from pycommence.models.cmc_models import CmcTableRaw
 
 

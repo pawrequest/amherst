@@ -5,7 +5,7 @@ from _decimal import Decimal
 from typing import Optional, ClassVar
 
 from pydantic import Field
-from amherst.models.shared import (
+from .shared import (
     DateAm,
     DateMaybe,
     DecimalAm,

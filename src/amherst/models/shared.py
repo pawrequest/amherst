@@ -143,7 +143,7 @@ class AddressAm(BaseModel):
     address: str
     contact: str
     email: str
-    name: str
+    # name: str
     postcode: str
     telephone: str
 

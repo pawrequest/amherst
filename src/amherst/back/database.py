@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
 
-from shipr.el_combadge import PFCom
+from shipr import PFCom
 load_dotenv()
 DB_URL = "sqlite:///:memory:"
 # db_url = "sqlite:///amherst.db"

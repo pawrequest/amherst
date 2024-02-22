@@ -6,9 +6,9 @@ from loguru import logger
 from sqlmodel import Column, Field, JSON
 
 from pycommence.filters import CmcFilter, FilterArray, FilterCondition
-from .hire_parts import HireDates, HireItems, HirePayment, HireShipping, HireStaff, HireStatus
-from .shared import (AddressAm, HireStatusEnum, MODEL_JSON)
 from pycommence.models.cmc_models import CmcModel, sub_model_from_cmc
+from .hire_parts import HireDates, HireItems, HirePayment, HireShipping, HireStaff, HireStatus
+from .shared import AddressAm, HireStatusEnum, MODEL_JSON
 from .hire_cmc import HireCmc
 
 INITIAL_FILTER_ARRAY1 = [
@@ -77,7 +77,6 @@ class Hire(CmcModel):
             mobile_phone=self.delivery_address.telephone
         )
         return ret
-
 
     @property
     def address_dict(self) -> dict[str, str]:

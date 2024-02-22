@@ -1,3 +1,3 @@
-from .amui import Col, Row, Page, Container, STYLES, STYLESAm, Navbar
+from .amui import Col, Navbar, Page, Row, STYLES, STYLESAm
 
-__all__ = ['Col', 'Row', 'Page', 'Container', 'STYLES', 'STYLESAm', 'Navbar']
+__all__ = ['Col', 'Row', 'Page', 'STYLES', 'STYLESAm', 'Navbar']

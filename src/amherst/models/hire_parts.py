@@ -7,7 +7,7 @@ from typing import Optional
 
 from pydantic import ConfigDict, model_validator, field_validator
 
-from amherst.models.shared import HireStatusEnum
+from .shared import HireStatusEnum
 from pydantic import BaseModel, Field
 
 

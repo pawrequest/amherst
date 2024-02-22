@@ -1,9 +1,11 @@
 import argparse
 import base64
 import webbrowser
-from pathlib import Path
-
+from loguru import logger
 import uvicorn
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def main():
@@ -11,9 +13,17 @@ def main():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("hire_name", type=str)
     args = arg_parser.parse_args()
+
+    adr = get_addr(args)
+
+    webbrowser.open(adr)
+
+
+def get_addr(args):
     hire_name_encoded = base64.urlsafe_b64encode(args.hire_name.encode()).decode()
     adr = f"http://127.0.0.1:8000/hires/{hire_name_encoded}"
-    webbrowser.open_new(adr)
+    logger.info(f"Opening {adr}")
+    return adr
 
 
 if __name__ == "__main__":

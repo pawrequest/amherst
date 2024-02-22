@@ -7,6 +7,8 @@ authors = [
 ]
 dependencies = [
     'pawsupport[fast, office]',
+    'pycommence',
+    'shipr',
     'pydantic',
     'fastui',
     'fastapi',
@@ -15,6 +17,7 @@ dependencies = [
     'context-menu',
     'sqlmodel',
     'uvicorn',
+    'python-dotenv',
 ]
 readme = "README.md"
 requires-python = ">= 3.10"
@@ -24,7 +27,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.rye]
-managed = true
+managed = false
 dev-dependencies = [
     "pytest",
     "sphinx",
@@ -41,4 +44,4 @@ packages = [
 ]
 
 [project.scripts]
-am_address = "script:main"
+am_address = "amherst.script:main"
