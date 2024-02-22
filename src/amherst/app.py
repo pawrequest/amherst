@@ -18,21 +18,15 @@ load_dotenv()
 
 
 def populate_db_from_cmc(session: Session, model: type[SQLModel], db_model: type[SQLModel]):
-    # todo remove sample data
     # data = hire_records
-
     csr = get_csr(model.cmc_class.table_name)
     filters = model.initial_filter_array
     data = csr.filter_by_array(filters, get=True)
-
     cmc_raws = [model.cmc_class(**_) for _ in data]
     model_data = [model.from_cmc(_) for _ in cmc_raws]
-    # model_data_db = [db_model.model_validate(_.model_dump()) for _ in model_data]
     model_data_db = [db_model.model_validate(jsonable_encoder(_)) for _ in model_data]
-
     session.add_all(model_data_db)
     session.commit()
-    ...
 
 
 @asynccontextmanager
