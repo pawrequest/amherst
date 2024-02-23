@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from amherst.back.database import get_session
 from amherst.front import pages
-from amherst.front.hire_api import Page
+from amherst.front.hire_api import Page, HireUI
 from amherst.models import Hire, HireTable
 from amherst.back import get_pfc
 from amherst.shipping.pfcom import AmShipper
@@ -48,7 +48,8 @@ async def hire_view_id(
     logger.info(f"hire_id: {hire_id}")
     hire_tb = session.get(HireTable, hire_id)
     hire = Hire.model_validate(hire_tb.model_dump())
-    return await Page.hire_address(hire, pf_com)
+    hire_ui = HireUI(hire=hire, pfcom=pf_com)
+    return await Page.hire_address(hire_ui)
 
 
 @router.get("/{hire_name_b64}", response_model=FastUI, response_model_exclude_none=True)
@@ -57,5 +58,6 @@ async def hire_view_name_b64(hire_name_b64: str, pf_com: AmShipper = Depends(get
     logger.info(f"hire_name_b64: {hire_name_b64}")
     hire_name = base64.urlsafe_b64decode(hire_name_b64).decode()
     hire = Hire.from_name(hire_name)
-    pg = await Page.hire_address(hire, pf_com)
+    hire_ui = HireUI(hire=hire, pfcom=pf_com)
+    pg = await Page.hire_address(hire_ui)
     return pg

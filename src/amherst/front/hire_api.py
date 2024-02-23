@@ -1,7 +1,7 @@
 from __future__ import annotations, annotations
 
-from datetime import date
-from typing import Optional, TYPE_CHECKING
+from datetime import date, datetime
+from typing import Optional
 
 from fastui import components as c
 from fastui.events import PageEvent
@@ -13,27 +13,33 @@ from amherst.shipping.pfcom import AmShipper
 from amherst.front.amui import Containable, STYLESAm
 from amherst.models import Hire
 from pawsupport.fastui_ps import Container, STYLES
-from shipr.express.types import AddressPF
+from shipr import types as elt
 from amherst.front import amui
 from pawsupport import fastui_ps as fui
 from pawsupport.convert import get_ordinal_suffix
 
 
 class UIState(BaseModel):
+    pfcom: AmShipper
     hire: Hire
     boxes: int = Field(1)
     ship_date: Optional[date] = Field(None)
 
-    # candidates: Optional[AddressCandidates] = None
-    # chosen_address: Optional[AddressPF] = None
+    candidates: Optional[elt.AddressCandidates] = None
+    chosen_address: Optional[elt.AddressChoice] = None
 
-    # @model_validator(mode='after')
-    # def validate_ship_date(self):
-    #     tod = datetime.today().date()
-    #     sd = self.ship_date or self.hire.dates.send_out_date
-    #     self.ship_date = sd if sd >= tod else tod
-    #     self.boxes = self.boxes or self.hire.shipping.boxes
-    #     return self
+    def get_addresses(self):
+        self.candidates = self.pfcom.get_candidates(self.hire.delivery_address.postcode)
+        self.chosen_address = self.pfcom.choose_hire_address(self.hire)
+
+    @model_validator(mode='after')
+    def validate_mod(self):
+        tod = datetime.today().date()
+        sd = self.ship_date or self.hire.dates.send_out_date
+        self.ship_date = sd if sd >= tod else tod
+        self.boxes = self.boxes or self.hire.shipping.boxes
+        self.get_addresses()
+        return self
 
 
 class HireUI(BaseModel):
@@ -44,10 +50,16 @@ class HireUI(BaseModel):
     pfcom: AmShipper
     state: Optional[UIState] = None
 
+    async def hire_page(self):
+        container = self.hire_container()
+        page = Page.default_page(container, title="Address selection")
+        return page
+
+
     @model_validator(mode='after')
     def validate_state(self) -> Self:
         if self.state is None:
-            self.state = UIState(hire=self.hire)
+            self.state = UIState(pfcom=self.pfcom, hire=self.hire)
         self.state.candidates = self.pfcom.get_candidates(self.hire.delivery_address.postcode)
         return self
 
@@ -77,7 +89,7 @@ class HireUI(BaseModel):
 
     def chosen_address(
             self,
-            chosen: AddressPF,
+            chosen: elt.AddressPF,
             outer_wrap: Containable = amui.Col,
             inner_wrap=amui.Row
     ):
@@ -124,7 +136,7 @@ class HireUI(BaseModel):
     def others_ui(
             self,
             outer_wrap: Containable,
-            candidates: list[AddressPF],
+            candidates: list[elt.AddressPF],
             inner_wrap=amui.Col
     ) -> Containable:
         res = outer_wrap.wrap(
@@ -135,7 +147,7 @@ class HireUI(BaseModel):
 
     def address_first_lines(
             self,
-            candidate: AddressPF,
+            candidate: elt.AddressPF,
             outer_wrap: Containable = amui.Row
     ) -> Containable:
         contained = outer_wrap.wrap(
@@ -193,7 +205,7 @@ class Page(fui.PagePR):
     class_name: str = STYLES.PAGE
 
     @classmethod
-    async def hire_address(cls, hire: Hire, pf_com: AmShipper):
+    async def hire_address(cls, hire_ui: HireUI):
         # candidates = pf_com.get_postcode_addresses(hire.delivery_address.postcode)
         # chosen, score = process.extractOne(hire.delivery_address.address, candidates, scorer=fuzz.token_sort_ratio)
         # row1 = hire_ui.hire_address_compare(amui.Row, hire, chosen, score)
@@ -203,8 +215,6 @@ class Page(fui.PagePR):
         # rows = [row1, others]
         #
         # con = Container(components=rows)
-
-        hire_ui = HireUI(hire=hire, pfcom=pf_com)
 
         con = hire_ui.hire_container()
         page = Page.default_page(con, title="Address selection")

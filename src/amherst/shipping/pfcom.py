@@ -1,16 +1,17 @@
 import os
 
 from amherst.models import Hire
-from shipr import PFCom
+from shipr import PFCom, types as elt
 from shipr.models import combadge_protocols as cp
 from shipr import express as el
 
 
 class AmShipper(PFCom):
-    def choose_hire_address(self, hire) -> tuple[el.types.AddressPF, int]:
+    def choose_hire_address(self, hire) -> elt.AddressChoice:
         candidates = self.get_candidates(hire.delivery_address.postcode)
         address_str = hire.delivery_address.address
-        return super().choose_one_str(address_str, candidates)
+        add, score = super().choose_one_str(address_str, candidates)
+        return elt.AddressChoice(address=add, score=score)
 
     def hire_to_shipment_request(self, hire: Hire):
         """Convert a Hire to a CreateShipmentRequest for the PFCom service.
