@@ -5,7 +5,7 @@ from typing import Optional
 from loguru import logger
 from sqlmodel import Column, Field, JSON
 
-from pycommence.filters import CmcFilter, FilterArray, FilterCondition
+from pycommence.api.filters import CmcFilter, FilterArray, FilterCondition
 from pycommence.models.cmc_models import CmcModel, sub_model_from_cmc
 from .hire_parts import HireDates, HireItems, HirePayment, HireShipping, HireStaff, HireStatus
 from .shared import AddressAm, HireStatusEnum, MODEL_JSON
@@ -67,7 +67,7 @@ class Hire(CmcModel):
 
     @classmethod
     def rout_prefix(cls) -> str:
-        return '/hires/'
+        return '/hire/'
 
     @property
     def contact_dict(self) -> dict[str, str]:
@@ -135,7 +135,7 @@ class HireTable(Hire, table=True):
 
     @classmethod
     def rout_prefix(cls) -> str:
-        return '/hires/'
+        return '/hire/'
 
     # @classmethod
     # def from_name(cls, name: str) -> Hire:

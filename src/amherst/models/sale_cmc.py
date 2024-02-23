@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, ClassVar
+from typing import ClassVar, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from .shared import DateAm, ListComma, ListNewline, DateMaybe
+from .shared import DateMaybe, ListComma, ListNewline
 from pycommence.models.cmc_models import CmcTableRaw
 
 
@@ -18,11 +18,11 @@ class SaleCmc(CmcTableRaw):
 
     # order details    
     name: str = Field(alias='Name')
-    lost_equipment: bool = Field(alias='Lost Equipment')
+    lost_equipment: bool = Field(False, alias='Lost Equipment')
     status: str = Field(alias='Status')
 
     # dates
-    date_ordered: DateAm = Field(alias='Date Ordered')
+    date_ordered: DateMaybe = Field(alias='Date Ordered')
     date_sent: DateMaybe = Field(alias='Date Sent', default=None)
 
     # payment details
@@ -32,13 +32,13 @@ class SaleCmc(CmcTableRaw):
     purchase_order: Optional[str] = Field(alias='Purchase Order')
 
     # items
-    items_ordered: ListComma = Field(alias='Items Ordered')
-    serial_numbers: ListNewline = Field(alias='Serial Numbers')
+    items_ordered: ListComma = Field(default_factory=list, alias='Items Ordered')
+    serial_numbers: ListNewline = Field(default_factory=list, alias='Serial Numbers')
     # special_radio_prog: Optional[str] = Field(alias='Special Radio Prog')
 
     # staff
-    order_packed_by: Optional[str] = Field(alias='Order Packed By')
-    order_taken_by: Optional[str] = Field(alias='Order Taken By')
+    order_packed_by: Optional[str] = Field('', alias='Order Packed By')
+    order_taken_by: Optional[str] = Field('', alias='Order Taken By')
 
     # shipping
     delivery_method: str = Field(alias='Delivery Method')

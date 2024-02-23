@@ -9,10 +9,9 @@ from fastui.dev import dev_fastapi_app
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from loguru import logger
 from sqlmodel import SQLModel, Session
-
-from pycommence.wrapper import csr_cm
-from .models import Hire, HireTable
-from .back import create_db, hire_router, ENGINE
+from pycommence import csr_cm
+from amherst.models import Hire, HireTable
+from amherst.back import create_db, hire_router, ENGINE
 from pycommence import get_csr
 
 load_dotenv()
@@ -54,7 +53,7 @@ if frontend_reload:
 else:
     app = FastAPI(lifespan=lifespan)
 
-app.include_router(hire_router, prefix="/api/hires")
+app.include_router(hire_router, prefix="/api/hire")
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse)

@@ -1,3 +1,7 @@
-from .amui import Col, Navbar, Page, Row, STYLES, STYLESAm
+from __future__ import annotations
 
-__all__ = ['Col', 'Row', 'Page', 'STYLES', 'STYLESAm', 'Navbar']
+from . import amui, pages
+
+# ContainableType = TypeVar('ContainableType', bound=Containable)
+
+__all__ = ['amui', 'pages']

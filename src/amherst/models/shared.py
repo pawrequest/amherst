@@ -7,11 +7,11 @@ from enum import StrEnum
 from typing import Any, Optional, TYPE_CHECKING, TypeVar
 
 from loguru import logger
-from pydantic import AfterValidator, BaseModel, BeforeValidator, PlainSerializer, SerializeAsAny
+from pydantic import BaseModel, BeforeValidator, PlainSerializer
 from typing_extensions import Annotated
-from fastapi.encoders import jsonable_encoder
-from pycommence.entities import Connection
-from pydantic import Json
+
+from pycommence.api import entities as ent
+
 if TYPE_CHECKING:
     pass
 
@@ -120,13 +120,13 @@ ListComma = Annotated[list, BeforeValidator(list_from_string_comma)]
 ListNewline = Annotated[list, BeforeValidator(list_from_string_newline)]
 DecimalAm = Annotated[Decimal, BeforeValidator(decimal_from_string)]
 T = TypeVar('T', bound=BaseModel)
-sale_customers = Connection(
+sale_customers = ent.Connection(
     name='SaleCustomers',
     to_table='Customers',
     from_table='Sale',
 )
 
-HIRE_CUSTOMERS = Connection(
+HIRE_CUSTOMERS = ent.Connection(
     name='HireCustomers',
     to_table='Customers',
     from_table='Hire',
@@ -164,6 +164,6 @@ class HireStatusEnum(StrEnum):
 MODEL_JSON = dict
 MODEL_JSON3 = Annotated[
     dict, PlainSerializer(model_with_sub_json)
-    ]
+]
 
 MODEL_JSON2 = Annotated[BaseModel, PlainSerializer(lambda v: v.model_dump_json())]

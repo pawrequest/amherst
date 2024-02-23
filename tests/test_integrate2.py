@@ -1,44 +1,36 @@
 from pathlib import Path
 
-from amherst.shipping.parcelforce import (
-    hire_to_shipment_request,
-    get_label,
-    get_postocde_addresses,
-    choose_one,
-)
-from shipr.models.combadge_protocols import FindService
-from shipr import AddressPF
-from shipr.models.express.expresslink_pydantic import PAF, Authentication
-from shipr.models.express.msg import (
+from shipr.express.msg import (
     FindRequest,
     FindResponse,
 )
+from shipr.models import combadge_protocols as cp
+from shipr.express import types as elt
 
 
-def test_pfc2(pf_com):
-    back = pf_com.backend(FindService)
-    auth = pf_com.config.auth
-    req = FindRequest(authentication=auth, paf=PAF(postcode='NW6 4TE'))
+def test_pfc2(pfcom):
+    back = pfcom.backend(cp.FindService)
+    auth = pfcom.config.auth
+    req = FindRequest(authentication=auth, paf=elt.PAF(postcode='NW6 4TE'))
     response = back.find(request=req)
     assert isinstance(response, FindResponse)
-    assert isinstance(response.paf, PAF)
-    assert isinstance(response.paf.specified_neighbour[0].address[0], AddressPF)
+    assert isinstance(response.paf, elt.PAF)
+    assert isinstance(response.paf.specified_neighbour[0].address[0], elt.AddressPF)
 
 
-def test_hire_to_shipment(pf_auth, pf_com, hire_fxt):
-    resp = hire_to_shipment_request(hire_fxt, pf_com)
+def test_hire_to_shipment(pfcom, hire_fxt):
+    req = pfcom.hire_to_shipment_request(hire_fxt)
+    resp = pfcom.get_shipment_resp(req)
     shipment_ = resp.completed_shipment_info.completed_shipments.completed_shipment[0]
     ship_num = shipment_.shipment_number
     assert isinstance(ship_num, str)
-    res = get_label(pf_com, pf_auth, ship_num)
+    res = pfcom.get_label(ship_num)
     assert isinstance(res, Path)
 
 
-def test_choose_address(pf_com, zconfig, hire_fxt):
-    candidates = get_postocde_addresses(hire_fxt.delivery_address.postcode, pf_com)
-    address = hire_fxt.delivery_address
-    add, score = choose_one(address.address, candidates)
-    assert isinstance(add, AddressPF)
+def test_choose_address(pfcom, hire_fxt):
+    add, score = pfcom.choose_hire_address(hire_fxt)
+    assert isinstance(add, elt.AddressPF)
 
 
 

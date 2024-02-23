@@ -6,10 +6,11 @@ import pytest
 from sqlmodel import SQLModel, Session, create_engine
 
 from amherst.models import Hire, Sale
-from shipr.el_combadge import PFCom, ZeepConfig
-from shipr import expresslink_types as el
-from shipr.models.express.enums import DeliveryTypeEnum, DepartmentEnum, ServiceCode
-from shipr.models.express.shipment import RequestedShipmentMinimum
+from amherst.shipping.pfcom import AmShipper
+from shipr import ZeepConfig
+from shipr.express import types as el
+from shipr.express.enums import DeliveryTypeEnum, DepartmentEnum, ServiceCode
+from shipr.express.shipment import RequestedShipmentMinimum
 from pycommence import get_csr
 
 ENV_FILE = r'../../amherst/.env'
@@ -18,6 +19,7 @@ CONTRACT_NO = os.environ.get('PF_CONT_NUM_1')
 ...
 
 SALE_NAME_OFFICE = 'Test - 18/08/2023 ref 450'
+SALE_NAME_HM = 'Sexy Fish Restaurant - 23/11/2023 ref 420'
 HIRE_NAME_OFFICE = 'Test - 16/08/2023 ref 31619'
 HIRE_NAME_HOME = 'Test Customer - 2/21/2024 ref 43383'
 
@@ -41,7 +43,7 @@ def sale_csr():
 
 @pytest.fixture
 def sale_fxt():
-    return Sale.from_name(SALE_NAME_OFFICE)
+    return Sale.from_name(SALE_NAME_HM)
 
 
 @pytest.fixture
@@ -64,13 +66,13 @@ def zconfig():
 
 
 @pytest.fixture
-def pf_com(zconfig):
-    return PFCom.from_config(zconfig)
+def pfcom(zconfig):
+    return AmShipper.from_config(zconfig)
 
 
 @pytest.fixture
-def service(pf_com):
-    return pf_com.new_service()
+def service(pfcom):
+    return pfcom.new_service()
 
 
 @pytest.fixture

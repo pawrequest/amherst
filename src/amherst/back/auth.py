@@ -1,5 +1,5 @@
 import os
 
-from shipr.models.express.expresslink_pydantic import Authentication
+from shipr.express.expresslink_pydantic import Authentication
 
 
