@@ -1,10 +1,11 @@
 from typing import Self
 
 from loguru import logger
+from sqlmodel import Field, Column, JSON
 
 from pycommence.api.filters import CmcFilter, FilterArray, FilterCondition
 from pycommence.models.cmc_models import CmcModelIn, sub_model_from_cmc
-from .hire_in_parts import (HireDates, HireOrder, HirePayment, HireShipping, HireStaff, HireStatus)
+from . import hire_db_parts as parts
 from amherst.models.shared import AddressAm, HireStatusEnum
 from amherst.models.hire_raw import HireRaw
 
@@ -37,24 +38,24 @@ class HireIn(CmcModelIn):
     name: str
     customer: str
 
-    hire_shipping: HireShipping
-    hire_dates: HireDates
-    hire_status: HireStatus
-    hire_address_am: AddressAm
-    hire_payment: HirePayment
-    hire_order: HireOrder
-    staff: HireStaff
+    hire_shipping: parts.HireShipping = Field(default=None, sa_column=Column(JSON))
+    hire_dates: parts.HireDates = Field(default=None, sa_column=Column(JSON))
+    hire_status: parts.HireStatus = Field(default=None, sa_column=Column(JSON))
+    hire_address_am: AddressAm = Field(default=None, sa_column=Column(JSON))
+    hire_payment: parts.HirePayment = Field(default=None, sa_column=Column(JSON))
+    hire_order: parts.HireOrder = Field(default=None, sa_column=Column(JSON))
+    staff: parts.HireStaff = Field(default=None, sa_column=Column(JSON))
 
     @classmethod
     def from_raw_cmc(cls, cmc_raw: HireRaw) -> Self:
         submodels = {
-            'hire_dates': HireDates,
-            'hire_status': HireStatus,
-            'hire_shipping': HireShipping,
+            'hire_dates': parts.HireDates,
+            'hire_status': parts.HireStatus,
+            'hire_shipping': parts.HireShipping,
             'hire_address_am': AddressAm,
-            'hire_payment': HirePayment,
-            'hire_order': HireOrder,
-            'staff': HireStaff,
+            'hire_payment': parts.HirePayment,
+            'hire_order': parts.HireOrder,
+            'staff': parts.HireStaff,
         }
         out_dict = {}
         for model_name, model_class in submodels.items():
@@ -104,18 +105,18 @@ class HireIn(CmcModelIn):
             return dict()
 
     #
-    # shipping: HireShipping = Field(default=None, sa_column=Column(JSON))
-    # dates: HireDates = Field(default=None, sa_column=Column(JSON))
-    # status: HireStatus = Field(default=None, sa_column=Column(JSON))
+    # shipping: parts.HireShipping = Field(default=None, sa_column=Column(JSON))
+    # dates: parts.HireDates = Field(default=None, sa_column=Column(JSON))
+    # status: parts.HireStatus = Field(default=None, sa_column=Column(JSON))
     # delivery_address: AmAddress = Field(default=None, sa_column=Column(JSON))
-    # payment: HirePayment = Field(default=None, sa_column=Column(JSON))
+    # payment: parts.HirePayment = Field(default=None, sa_column=Column(JSON))
     # items: HireItems = Field(default=None, sa_column=Column(JSON))
-    # staff: HireStaff = Field(default=None, sa_column=Column(JSON))
+    # staff: parts.HireStaff = Field(default=None, sa_column=Column(JSON))
     #
-    # shipping: SerializeAsAny[HireShipping] = Field(default=None, sa_column=Column(JSON))
-    # dates: SerializeAsAny[HireDates] = Field(default=None, sa_column=Column(JSON))
-    # status: SerializeAsAny[HireStatus] = Field(default=None, sa_column=Column(JSON))
+    # shipping: SerializeAsAny[parts.HireShipping] = Field(default=None, sa_column=Column(JSON))
+    # dates: SerializeAsAny[parts.HireDates] = Field(default=None, sa_column=Column(JSON))
+    # status: SerializeAsAny[parts.HireStatus] = Field(default=None, sa_column=Column(JSON))
     # delivery_address: SerializeAsAny[AmAddress] = Field(default=None, sa_column=Column(JSON))
-    # payment: SerializeAsAny[HirePayment] = Field(default=None, sa_column=Column(JSON))
+    # payment: SerializeAsAny[parts.HirePayment] = Field(default=None, sa_column=Column(JSON))
     # items: SerializeAsAny[HireItems] = Field(default=None, sa_column=Column(JSON))
-    # staff: SerializeAsAny[HireStaff] = Field(default=None, sa_column=Column(JSON))
+    # staff: SerializeAsAny[parts.HireStaff] = Field(default=None, sa_column=Column(JSON))

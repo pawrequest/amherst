@@ -14,7 +14,6 @@ class AmBaseDB(SQLModel, ABC):
     model_config = ConfigDict(
         use_enum_values=True,
     )
-    pass
 
 
 class ContactAm(AmBaseDB, table=True):

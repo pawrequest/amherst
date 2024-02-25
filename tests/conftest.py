@@ -59,6 +59,11 @@ def random_hire_db(random_hire_in) -> HireDB:
     return HireDB(cmc_in_model=random_hire_in)
 
 
+@pytest.fixture
+def random_hire_db2(random_hire_in) -> HireDB:
+    return HireDB(cmc_in_model=random_hire_in)
+
+
 
 
 @pytest.fixture

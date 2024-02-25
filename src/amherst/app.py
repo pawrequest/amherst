@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse, PlainTextResponse
 from loguru import logger
 from sqlmodel import SQLModel, Session
 from pycommence import csr_cm
-from amherst.models import HireWSubModels, HireDB
+from amherst.models import HireIn, HireDB
 from amherst import back as ab
 
 
@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     try:
         ab.create_db()
         with Session(ab.ENGINE) as session:
-            populate_db_from_cmc(session, HireWSubModels, HireDB)
+            populate_db_from_cmc(session, HireIn, HireDB)
 
         logger.info("tables created")
         # main_task = asyncio.create_task()

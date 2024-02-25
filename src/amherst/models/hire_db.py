@@ -1,10 +1,12 @@
 from typing import Optional
 
+from pydantic import model_validator, field_validator
 from sqlmodel import Column, Field, JSON, Relationship, SQLModel
 
 from amherst.models.hire_in import HireIn
 from amherst.models import hire_db_parts as parts
 from amherst.front.hire_ui import HireState
+from pydantic._internal._model_construction import ModelMetaclass
 
 
 class HireStateDB(HireState, table=True):
@@ -17,6 +19,36 @@ class HireStateDB(HireState, table=True):
 class HireDB(SQLModel, table=True):
     """ Primary Hire Type """
     __tablename__ = "hire"
+
+    @classmethod
+    def make_and_add(cls, cmc_obj: HireIn, session):
+        hire = cls(cmc_in_model=cmc_obj)
+        session.add(hire)
+        session.commit()
+        session.refresh(hire)
+        hire_id = hire.id
+
+
+        for attr_name in cmc_obj.model_fields:
+            attr = getattr(cmc_obj, attr_name)
+            attr_type = cmc_obj.model_fields[attr_name].annotation
+            if isinstance(attr_type, ModelMetaclass):
+                ...
+
+        session.add(hire)
+        session.commit()
+        session.refresh(hire)
+
+        return hire
+
+    # @model_validator(mode='after')
+    # def unpack_cmc_in_model(self):
+    #     for k, v in self.cmc_in_model.model_dump().items():
+    #         setattr(self, k, v)
+
+    # @field_validator('cmc_in_model', mode='after')
+    # def jsonify_cmc_in_model(cls, v):
+    #     return v.model_dump()
 
     id: Optional[int] = Field(default=None, primary_key=True)
     cmc_in_model: HireIn = Field(sa_column=Column(JSON))
