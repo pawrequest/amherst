@@ -6,28 +6,16 @@ from pathlib import Path
 from typing import Optional
 
 from pydantic import ConfigDict, model_validator, field_validator
-
+# from sqlmodel import SQLModel, Field
 from .shared import HireStatusEnum
 from pydantic import BaseModel, Field
 
 
 class AmBase(BaseModel):
-    model_config = ConfigDict(
-    )
     pass
 
 
 class HireDates(AmBase):
-    # booked_date: Optional[datetime] = Field(default=None)
-    # send_out_date: Optional[datetime] = Field(default_factory=date.today)
-    # due_back_date: Optional[datetime] = Field(default=None)
-    # actual_return_date: Optional[datetime] = Field(default=None)
-    # packed_date: Optional[datetime] = Field(default=None)
-    # unpacked_date: Optional[datetime] = Field(default=None)
-    #
-    # packed_time: Optional[datetime] = Field(default=None)
-    # unpacked_time: Optional[datetime] = Field(default=None)
-    #
     booked_date: Optional[date] = Field(default=None)
     send_out_date: Optional[date] = Field(default_factory=date.today)
     due_back_date: Optional[date] = Field(default=None)
@@ -38,7 +26,6 @@ class HireDates(AmBase):
     packed_time: Optional[time] = Field(default=None)
     unpacked_time: Optional[time] = Field(default=None)
 
-    # weeks: int
     recurring_hire: bool = Field(default=False)
 
     @field_validator('send_out_date')
@@ -126,8 +113,12 @@ class HireItems(AmBase):
 class HireOrder(AmBase):
     special_kit: str
     reprogrammed: bool
-    items: HireItems
+    hire_items: HireItems
     radio_type: str
+
+    # @field_validator('hire_items', mode='before')
+    # def get_items(cls, v):
+    #     return HireItems(**v)
 
 
 class HireStaff(AmBase):

@@ -4,7 +4,7 @@ from shipr.express.msg import (
     FindRequest,
     FindResponse,
 )
-from shipr.models import combadge_protocols as cp
+from shipr.models import service_protocols as cp
 from shipr.express import types as elt
 
 
@@ -18,8 +18,8 @@ def test_pfc2(pfcom):
     assert isinstance(response.paf.specified_neighbour[0].address[0], elt.AddressPF)
 
 
-def test_hire_to_shipment(pfcom, hire_fxt):
-    req = pfcom.hire_to_shipment_request(hire_fxt)
+def test_hire_to_shipment(pfcom, hire_in):
+    req = pfcom.hire_to_shipment_request(hire_in)
     resp = pfcom.get_shipment_resp(req)
     shipment_ = resp.completed_shipment_info.completed_shipments.completed_shipment[0]
     ship_num = shipment_.shipment_number
@@ -28,8 +28,8 @@ def test_hire_to_shipment(pfcom, hire_fxt):
     assert isinstance(res, Path)
 
 
-def test_choose_address(pfcom, hire_fxt):
-    add, score = pfcom.choose_hire_address(hire_fxt)
+def test_choose_address(pfcom, hire_in):
+    add, score = pfcom.choose_hire_address(hire_in)
     assert isinstance(add, elt.AddressPF)
 
 

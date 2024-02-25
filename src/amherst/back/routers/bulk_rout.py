@@ -1,7 +1,7 @@
 from fastui import AnyComponent
 from pydantic import BaseModel, Field
 
-from amherst.models import HireTable
+from amherst.models import HireDB
 from pycommence import get_csr
 
 
@@ -33,7 +33,7 @@ def hire_filter_init(customer: str, cmc: Cmc):
     if customer:
         cursor.filter_by_field("Customer", 'Equal To', customer)
         data = cursor.get_all_records()
-        data = [HireTable.from_record(_) for _ in data]
+        data = [HireDB.from_record(_) for _ in data]
         filter_form_initial["customer"] = {"value": customer, "label": customer}
     else:
         data = cursor.get_all_records()

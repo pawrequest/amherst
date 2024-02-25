@@ -6,17 +6,13 @@ from typing import Optional, ClassVar
 
 from pydantic import Field
 from .shared import (
-    DateAm,
-    DateMaybe,
-    DecimalAm,
-    ListComma,
-    TimeMaybe,
     HireStatusEnum,
 )
-from pycommence.models.cmc_models import CmcTableRaw
+from .types import DateAm, DateMaybe, TimeMaybe, ListComma, DecimalAm
+from pycommence.models.cmc_models import CmcModelRaw
 
 
-class HireCmc(CmcTableRaw):
+class HireRaw(CmcModelRaw):
     """ Direct representation of Commence Hire Category"""
     table_name: ClassVar[str] = 'Hire'
 
@@ -57,12 +53,20 @@ class HireCmc(CmcTableRaw):
     discount_description: str = Field(alias='Discount Description')
 
     # address
-    delivery_address: str = Field(alias='Delivery Address')
-    delivery_contact: str = Field(alias='Delivery Contact')
-    delivery_email: str = Field(alias='Delivery Email')
-    delivery_name: str = Field(alias='Delivery Name')
-    delivery_postcode: str = Field(alias='Delivery Postcode')
-    delivery_telephone: str = Field(alias='Delivery Tel')
+    address: str = Field(alias='Delivery Address')
+    contact: str = Field(alias='Delivery Contact')
+    email: str = Field(alias='Delivery Email')
+    business_name: str = Field(alias='Delivery Name')
+    postcode: str = Field(alias='Delivery Postcode')
+    telephone: str = Field(alias='Delivery Tel')
+    #
+    # # address
+    # delivery_address: str = Field(alias='Delivery Address')
+    # delivery_contact: str = Field(alias='Delivery Contact')
+    # delivery_email: str = Field(alias='Delivery Email')
+    # delivery_name: str = Field(alias='Delivery Name')
+    # delivery_postcode: str = Field(alias='Delivery Postcode')
+    # delivery_telephone: str = Field(alias='Delivery Tel')
 
     # shipping
     send_collect: str = Field(alias='Send / Collect')

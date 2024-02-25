@@ -1,4 +1,4 @@
-from amherst.models import Hire, Sale
+from amherst.models import HireWSubModels, Sale
 from pycommence import Csr
 
 """NO CHECKS ON DATABASE NAME!!"""
@@ -20,8 +20,8 @@ def test_salwe_fxt(sale_fxt):
     assert isinstance(sale_fxt, Sale)
 
 
-def test_hire_fxt(hire_fxt):
-    assert isinstance(hire_fxt, Hire)
+def test_hire_fxt(hire_in):
+    assert isinstance(hire_in, HireWSubModels)
 
 # @pytest.mark.xfail(reason='Not implemented')
 # def test_dates_after(hire_csr: CsrCmc):

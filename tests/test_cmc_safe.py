@@ -1,7 +1,7 @@
 import pytest
 
-from amherst.models.hire import Hire, INITIAL_FILTER_ARRAY
-from amherst.models.hire_cmc import HireCmc
+from amherst.models.hire_in import HireIn, INITIAL_FILTER_ARRAY
+from amherst.models.hire_raw import HireRaw
 from amherst.models.sale import Sale
 from amherst.models.shared import HireStatusEnum
 from pycommence import Cmc, Csr
@@ -34,14 +34,14 @@ def test_default_csr():
 def test_from_cmc(cmc):
     csr = cmc.get_cursor('Hire')
     ahire = csr.get_record(TEST_HIRE_NAME)
-    hirecmc = HireCmc(**ahire)
-    hire = Hire.from_cmc(hirecmc)
-    assert isinstance(hire, Hire)
+    hirecmc = HireRaw(**ahire)
+    hire = HireIn.from_raw_cmc(hirecmc)
+    assert isinstance(hire, HireIn)
 
 
 def test_hire_from_name():
-    hire2 = Hire.from_name(TEST_HIRE_NAME)
-    assert isinstance(hire2, Hire)
+    hire2 = HireIn.from_name(TEST_HIRE_NAME)
+    assert isinstance(hire2, HireIn)
     ...
 
 
@@ -58,9 +58,9 @@ def test_current_hire(cmc):
 
     recs = cursor.get_all_records()
     for rec in recs:
-        hire = Hire.from_record(rec)
-        assert hire.status.status == HireStatusEnum.BOOKED_IN
-        assert not hire.status.closed
+        hire = HireIn.from_record(rec)
+        assert hire.hire_status.status == HireStatusEnum.BOOKED_IN
+        assert not hire.hire_status.closed
         # if rec['Send Out Date']:
         #     assert rec['Send Out Date'] > '2022-01-01'
     ...
@@ -72,6 +72,6 @@ def test_filter(cmc):
     csr.filter_by_array(fil)
     recs = csr.get_all_records()
     for rec in recs:
-        hire = Hire.from_record(rec)
-        assert hire.status.status == HireStatusEnum.BOOKED_IN
+        hire = HireIn.from_record(rec)
+        assert hire.hire_status.status == HireStatusEnum.BOOKED_IN
     print(len(recs))

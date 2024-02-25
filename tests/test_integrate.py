@@ -3,10 +3,10 @@ import os
 
 from thefuzz import fuzz, process
 
-from amherst.models import Hire
+from amherst.models import HireWSubModels
 from amherst.shipping.pfcom import AmShipper
 from shipr.express.types import AddressPF, PAF
-from shipr.models.combadge_protocols import CreateShipmentService, FindService, PrintLabelService
+from shipr.models.service_protocols import CreateShipmentService, FindService, PrintLabelService
 from shipr.express.msg import (
     CreateShipmentRequest,
     FindRequest,
@@ -24,7 +24,7 @@ def test_pfc2(zconfig, pfcom):
     assert isinstance(response.paf.specified_neighbour[0].address[0], AddressPF)
 
 
-def hire_to_shipment_request(hire: Hire, pfcom: AmShipper):
+def hire_to_shipment_request(hire: HireWSubModels, pfcom: AmShipper):
     ship_req = pfcom.hire_to_shipment_request(hire)
     back = pfcom.backend(CreateShipmentService)
     req = CreateShipmentRequest(authentication=pfcom.config.auth, requested_shipment=ship_req)
@@ -32,8 +32,8 @@ def hire_to_shipment_request(hire: Hire, pfcom: AmShipper):
     return resp
 
 
-def test_hire_to_shipment(pfcom, hire_fxt):
-    req = pfcom.hire_to_shipment_request(hire_fxt)
+def test_hire_to_shipment(pfcom, hire_in):
+    req = pfcom.hire_to_shipment_request(hire_in)
     resp = pfcom.get_shipment_resp(req)
     shipment_ = resp.completed_shipment_info.completed_shipments.completed_shipment[0]
     ship_num = shipment_.shipment_number
@@ -65,9 +65,9 @@ def choose_address(address_str: str, candidates: list):
     return res
 
 
-def test_check_address(pfcom, zconfig, hire_fxt):
-    candidates = get_postocde_addresses(hire_fxt.delivery_address.postcode, pfcom, zconfig)
-    address = hire_fxt.delivery_address
+def test_check_address(pfcom, zconfig, hire_in):
+    candidates = get_postocde_addresses(hire_in.hire_delivery_address.postcode, pfcom, zconfig)
+    address = hire_in.hire_delivery_address
     res = choose_address(address.address, candidates)
     ...
 

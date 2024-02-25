@@ -3,13 +3,10 @@ from __future__ import annotations
 stand = "text-center py-1 my-1"
 
 HEAD_ROW = f"my-1 col border {stand}"
-HEAD_DIV = f"{stand}"
-PLAY_COL = f"col-1 {stand}"
-TITLE_COL = f"col-4 {stand}"
-SUB_LIST = f"{stand}"
-TITLE = f"{stand}"
 PAGE = ""
-# unused
-GURU_COL = f"col-4 {stand}"
-EPISODE_COL = f"col-4 {stand}"
-THREAD_COL = f"col-4 {stand}"
+
+COL = "col gap-3 border"
+ROW = 'row gap-3 border'
+CONTAINER = 'container border'
+DATE_BTN = 'col border'
+BOXES_BTN = 'col border'

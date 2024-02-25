@@ -5,18 +5,17 @@ from typing import ClassVar, Optional
 
 from pydantic import Field
 
-from .shared import DateMaybe, ListComma, ListNewline
-from pycommence.models.cmc_models import CmcTableRaw
+from .types import DateMaybe, ListComma, ListNewline
+from pycommence.models.cmc_models import CmcModelRaw
 
 
-class SaleCmc(CmcTableRaw):
+class SaleRaw(CmcModelRaw):
     """ Direct representation of Commence Sale Category"""
-
     table_name: ClassVar[str] = 'Sale'
 
     customer: str = Field(alias='To Customer')
 
-    # order details    
+    # order details
     name: str = Field(alias='Name')
     lost_equipment: bool = Field(False, alias='Lost Equipment')
     status: str = Field(alias='Status')

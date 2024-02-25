@@ -6,19 +6,19 @@ from typing import Optional, ClassVar, Type
 
 from pydantic import BaseModel
 
-from .sale_cmc import SaleCmc
+from .sale_raw import SaleRaw
 from .shared import (
     AddressAm,
 )
 from pycommence.models.cmc_models import (
     sub_model_from_cmc,
-    CmcTableRaw,
-    CmcModel,
+    CmcModelRaw,
+    CmcModelIn,
 )
 
 
-class Sale(CmcModel):
-    cmc_class: ClassVar[Type[CmcTableRaw]] = SaleCmc
+class Sale(CmcModelIn):
+    raw_table_class: ClassVar[Type[CmcModelRaw]] = SaleRaw
 
     customer: str
     name: str
@@ -34,7 +34,7 @@ class Sale(CmcModel):
     invoice_address: AddressAm
 
     @classmethod
-    def from_cmc(cls, cmc_obj: SaleCmc) -> Sale:
+    def from_raw_cmc(cls, cmc_obj: SaleRaw) -> Sale:
         res = cls(
             customer=cmc_obj.customer,
             name=cmc_obj.name,
