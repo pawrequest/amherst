@@ -9,31 +9,20 @@ from fastui.dev import dev_fastapi_app
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from loguru import logger
 from sqlalchemy import Select
-from sqlmodel import SQLModel, Session
-from pycommence import csr_cm
+from sqlmodel import Session
+
+from amherst.sample_data import hire_records
 from amherst.models import HireDB
+from amherst.back.routers import booking_router, hire_router
 from amherst import back as ab
-
-
 load_dotenv()
 
 
-def populate_db_from_cmc1(session: Session, model: type[SQLModel], db_model: type[SQLModel]):
-    # data = hire_records
-    with csr_cm(model.cmc_class_type.cmc_table_name) as csr:
-        filters = model.initial_filter_array
-        data = csr.filter_by_array(filters, get=True)
-    cmc_raws = [model.cmc_class_type(**_) for _ in data]
-    model_data = [model.from_cmc(_) for _ in cmc_raws]
-    model_data_db = [db_model.model_validate(jsonable_encoder(_)) for _ in model_data]
-    session.add_all(model_data_db)
-    session.commit()
-
-def populate_db_from_cmc(session: Session, model:type[HireDB]):
-    # data = hire_records
-    with csr_cm(model.cmc_table_name) as csr:
-        filters = model.initial_filter_array. default
-        data = csr.filter_by_array(filters, get=True)
+def populate_db_from_cmc(session: Session, model: type[HireDB]):
+    data = hire_records
+    # with csr_cm(model.cmc_table_name) as csr:
+    #     filters = model.initial_filter_array. default
+    #     data = csr.filter_by_array(filters, get=True)
 
     hires = [model(record=_) for _ in data]
     hires_val = [model.validate(jsonable_encoder(_)) for _ in hires]
@@ -66,9 +55,8 @@ if frontend_reload:
 else:
     app = FastAPI(lifespan=lifespan)
 
-app.include_router(ab.hire_router, prefix="/api/hire")
-app.include_router(ab.forms_rout.router, prefix="/api/forms")
-
+app.include_router(hire_router, prefix="/api/hire")
+app.include_router(booking_router, prefix="/api/book")
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse)
@@ -84,4 +72,3 @@ async def favicon_ico() -> str:
 @app.get("/{path:path}")
 async def html_landing() -> HTMLResponse:
     return HTMLResponse(prebuilt_html(title="Amherst"))
-

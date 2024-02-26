@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import pytest
 from sqlmodel import SQLModel, Session, create_engine
 
-from amherst.models.hire_db import HireDB, addr_lines_dict
+from amherst.models.hire_db import HireDB, addr_lines_dict_am
 from amherst.models.shared import AmherstFields
 from shipr.express import shared, types as elt
 from amherst.shipping.pfcom import AmShipper
@@ -59,7 +59,7 @@ def random_contact(random_hire_record) -> elt.ContactPF:
 @pytest.fixture
 def random_address(random_hire_record) -> elt.AddressPF:
     return elt.AddressPF(
-        **addr_lines_dict(random_hire_record.get('address')),
+        **addr_lines_dict_am(random_hire_record.get('address')),
         town='',
         postcode=random_hire_record.get('postcode')
     )

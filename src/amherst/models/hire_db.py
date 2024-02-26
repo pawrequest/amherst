@@ -5,7 +5,8 @@ from pydantic import field_validator
 from sqlmodel import Column, Field, JSON, SQLModel
 
 from amherst.models.shared import AmherstFields, INITIAL_FILTER_ARRAY2
-from amherst.models.types import ContactType, AddressType
+from amherst.models.types import AddressType, ContactType
+from pawsupport.get_set import hash_simple_md5
 from pycommence import FilterArray
 from shipr import types as elt
 
@@ -28,6 +29,10 @@ class HireDB(SQLModel, table=True):
     boxes: Optional[int] = Field(default=None)
     ship_date: Optional[date] = Field(default=None)
 
+    @property
+    def get_hash(self):
+        return hash_simple_md5([self.name, self.ship_date.isoformat()])
+
     @field_validator("name", mode="after")
     def name_is_none(cls, v, info):
         v = v or info.data.get('record').get(AmherstFields.NAME)
@@ -43,7 +48,7 @@ class HireDB(SQLModel, table=True):
     @field_validator('address', mode="after")
     def address_is_none(cls, v, info):
         v = v or elt.AddressPF(
-            **addr_lines_dict(info.data.get('record').get(AmherstFields.ADDRESS)),
+            **addr_lines_dict_am(info.data.get('record').get(AmherstFields.ADDRESS)),
             town='', postcode=info.data.get('record').get(AmherstFields.POSTCODE)
         )
         return v
@@ -67,7 +72,7 @@ class HireDB(SQLModel, table=True):
         return v
 
 
-def addr_lines_dict(address: str) -> dict[str, str]:
+def addr_lines_dict_am(address: str) -> dict[str, str]:
     addr_lines = address.splitlines()
     if len(addr_lines) < 3:
         addr_lines.extend([''] * (3 - len(addr_lines)))

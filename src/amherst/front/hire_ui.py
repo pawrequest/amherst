@@ -1,136 +1,175 @@
 from __future__ import annotations, annotations
 
-from datetime import date
-from typing import Optional
+import datetime
 
-from fastui.events import PageEvent
-from pydantic import BaseModel, Field, field_validator, model_validator
+from fastui.events import GoToEvent, PageEvent
 from fastui import components as c
-from thefuzz import process
 
-from amherst.models import HireDB
-from amherst.shipping.pfcom import AmShipper
-from pawsupport.convert import get_ordinal_suffix
-from shipr import enums as ele, types as elt
 from pawsupport.fastui_ps import fui
-from shipr.express.types import AddressPF
+from shipr.express.types import AddressChoice
 from . import amui, css
-from ..models.shared import AmherstFields
+from .amui import address_col, date_string
+from .controller_abc import UIBase
 
 
-# from amherst.models import HireWSubModels
-
-class HireState(BaseModel):
-    boxes: int = 1
-    ship_date: Optional[date] = Field(default_factory=date.today)
-    ship_service: Optional[ele.ServiceCode] = ele.ServiceCode.EXPRESS24
-    candidates: list[elt.AddressPF] = Field(default_factory=list)
-    address: Optional[elt.AddressPF] = Field(default=None)
-    contact: Optional[elt.ContactPF] = Field(default=None)
-    address_choice: Optional[elt.AddressChoice] = Field(default=None)
-    ...
-
-    @field_validator('ship_date', mode='after')
-    def validate_ship_date(cls, v):
-        tod = date.today()
-        return v if v >= tod else tod
-
-
-class HireUI(BaseModel):
-    ...
-    pfcom: AmShipper = Field(default_factory=AmShipper.from_env)
-    hire: HireDB
-    state: Optional[HireState] = None
-
-    # @field_validator('state', mode='after')
-    # def state_is_none(cls, v, info):
-    #     v = v or HireState(
-    #         boxes=info.data.get('hire').boxes,
-    #     )
-    #     return v
-
-
-    @model_validator(mode='after')
-    def set_state(self):
-        if self.state is None:
-            self.state = HireState()
-        self.state.boxes = self.state.boxes or self.hire.boxes
-        self.state.ship_date = self.state.ship_date or self.hire.ship_date
-        self.state.contact = self.state.contact or self.hire.contact
-        self.state.candidates = (self.state.candidates
-                                 or self.pfcom.get_candidates(self.hire.address.postcode))
-        self.state.address_choice = (self.state.address_choice
-                                     or self.pfcom.choose_hire_address(self.hire.address))
-        self.state.address = self.state.address or self.state.address_choice.address
-        return self
-
-
-    async def get_components(self) -> list[c.AnyComponent]:
-        return fui.Container.wrap(
-            await self.address_section(),
-            await self.details_section()
-        )
+class HireUI(UIBase):
 
     async def get_page(self) -> list[c.AnyComponent]:
+        date_ = self.state.ship_date
+        text = await date_string(date_)
+        num_b = self.state.boxes
+
         return amui.Page.default_page(
-            await self.get_components(),
+            fui.Container.wrap(
+                amui.Row(
+                    components=[
+                        # input address
+                        amui.Col.wrap(
+                            fui.Text(text=self.state.contact.business_name),
+                            *await address_col(self.state.input_address),
+                            wrap_inner=amui.Row
+                        ),
+
+                        # address buttons
+                        amui.Col.wrap(
+                            fui.Text(text=f'Address score: {self.state.address_choice.score}'),
+                            c.Button(text="Choose this address"),
+                            c.Button(text="Enter address manually", on_click=None),
+                            c.Button(
+                                text='Choose a Different Address',
+                                on_click=PageEvent(name='address-chooser')
+                            ),
+                            await self.address_modal(),
+                            wrap_inner=amui.Row,
+                        ),
+                        # output address
+                        await address_col(self.state.address_choice.address, wrap_in=amui.Col)
+                    ]
+                ),
+                amui.Row.wrap(
+                    c.Button(
+                        text=text,
+                        on_click=PageEvent(
+                            name='date-chooser',
+                        ),
+                    ),
+                    await self.date_modal(),
+                    c.Button(
+                        text=f'{num_b} Boxes',
+                        on_click=PageEvent(name='boxes-chooser'),
+                        class_name=css.BOXES_BTN
+                    ),
+                    await self.boxes_modal(),
+                    c.Button(
+                        text='Ship',
+                        on_click=PageEvent(name='ship-chooser'),
+                    ),
+                    await self.ship_modal(),
+                )
+            ),
             title="Hire Shipping"
         )
 
-    async def address_section(self):
-        async def amherst_address_col():
-            return amui.Col.wrap(
-                fui.Text(text=self.hire.record.get(AmherstFields.CUSTOMER)),
-                *await address_col(self.hire.address),
-                wrap_inner=amui.Row
+    async def ship_modal(self):
+        async def ship_buttons():
+            return [c.Button(
+                text="Request Shipping",
+                on_click=GoToEvent(
+                    url=f'/book/go/{self.state.model_dump_json()}',
+                    # query={
+                    #     'state': 'sdfgdf'
+                    # }
+                )
             )
+            ]
 
-        async def address_buttons_div(outer_wrap=amui.Col, wrap_inner=amui.Row):
-            ret = outer_wrap.wrap(
-                fui.Text(text=f'Address score: {self.state.address_choice.score}'),
-                c.Button(text="Choose this address"),
-                c.Button(text="Enter address manually", on_click=None),
+        return c.Modal(
+            title='ship Modal',
+            body=await ship_buttons(),
+            footer=[
                 c.Button(
-                    text='Choose a Different Address',
-                    on_click=PageEvent(name='address-chooser')
+                    text='Close',
+                    on_click=PageEvent(name='ship-chooser', clear=True)
                 ),
-                amui.address_chooser_modal(self.state.candidates),
-                wrap_inner=wrap_inner,
-            )
-            return ret
-
-        return amui.Row(
-            components=[
-                await amherst_address_col(),
-                await address_buttons_div(),
-                await address_col(self.state.address, wrap_in=amui.Col)
-            ]
+            ],
+            open_trigger=PageEvent(name='ship-chooser'),
         )
 
-    async def details_section(self):
-        async def boxes_btn():
-            num_b = self.state.boxes
-            return c.Button(text=f'{num_b} Boxes', on_click=None, class_name=css.BOXES_BTN)
-
-        async def date_btn():
-            date_ = self.state.ship_date
-            fstr = f'%A %d{get_ordinal_suffix(date_.day)} %B'
-            text = f'{date_:{fstr}}'
-            return c.Button(
-                text=text,
-                on_click=None,
-            )
-
-        return amui.Row(
-            components=[
-                await date_btn(),
-                await boxes_btn()
+    async def address_modal(self):
+        async def address_chooser_buttons():
+            return [
+                c.Button(
+                    text=can.address_line1,
+                    on_click=GoToEvent(
+                        url=f'/hire/id/{self.state.hire_id}',
+                        query={
+                            'state': self.state.update(
+                                address_choice=AddressChoice(
+                                    address=can,
+                                    score=100
+                                )
+                            ).model_dump_json()
+                        }
+                    )
+                )
+                for can in self.state.candidates
             ]
+
+        return c.Modal(
+            title='Address Modal',
+            body=await address_chooser_buttons(),
+            footer=[
+                c.Button(
+                    text='Close',
+                    on_click=PageEvent(name='address-chooser', clear=True)
+                ),
+            ],
+            open_trigger=PageEvent(name='address-chooser'),
         )
 
+    async def date_modal(self):
+        async def date_chooser_buttons() -> list[c.AnyComponent]:
+            start_date = datetime.date.today()
+            date_range = [start_date + datetime.timedelta(days=x) for x in
+                          range(7)]
+            weekday_dates = [d for d in date_range if d.weekday() < 5]  # 0-4 are weekdays
 
-async def address_col(address: AddressPF, wrap_in=None):
-    txts = fui.Text.all_text(address)
-    if wrap_in:
-        return wrap_in.wrap(*txts, wrap_inner=amui.Row)
-    return txts
+            return [c.Button(
+                text=await date_string(ship_date),
+                on_click=GoToEvent(
+                    url=f'/hire/id/{self.state.hire_id}',
+                    # url='/book/go2',
+                    query={'state': self.state.update(ship_date=ship_date).model_dump_json()}
+                )
+            ) for ship_date in weekday_dates
+            ]
+
+        return c.Modal(
+            title='Date',
+            body=await date_chooser_buttons(),
+            footer=[
+                c.Button(text='Close', on_click=PageEvent(name='date-chooser', clear=True)),
+            ],
+            open_trigger=PageEvent(name='date-chooser'),
+        )
+
+    async def boxes_modal(self):
+        async def boxes_chooser_buttons() -> list[c.AnyComponent]:
+            return [c.Button(
+                text=str(i),
+                on_click=GoToEvent(
+                    url=f'/hire/id/{self.state.hire_id}',
+                    query={'state': self.state.update(boxes=i).model_dump_json()}
+                )
+            ) for i in range(1, 11)
+            ]
+
+        return c.Modal(
+            title='Number of Boxes',
+            body=await boxes_chooser_buttons(),
+            footer=[
+                c.Button(text='Close', on_click=PageEvent(name='boxes-chooser', clear=True)),
+            ],
+            open_trigger=PageEvent(name='boxes-chooser'),
+            open_context={'oc': 'boxes'}
+        )

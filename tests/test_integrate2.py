@@ -29,7 +29,7 @@ def test_hire_to_shipment(pfcom, hire_in):
 
 
 def test_choose_address(pfcom, hire_in):
-    add, score = pfcom.choose_hire_address(hire_in)
+    add, score = pfcom.guess_address(hire_in)
     assert isinstance(add, elt.AddressPF)
 
 

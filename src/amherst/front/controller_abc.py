@@ -7,6 +7,7 @@ from fastui import components as c
 from pydantic import BaseModel, Field, field_validator
 from sqlmodel import SQLModel
 
+from amherst.front.state import ShipState
 from amherst.shipping.pfcom import AmShipper
 from shipr.express.shared import BaseRequest
 
@@ -52,3 +53,12 @@ class PartialRequest(BaseModel):
             raise ValueError(f"{attr} is not a valid attribute")
         self.attr_dict[attr] = value
         return self
+
+
+class UIBase(BaseModel, ABC):
+    pfcom: AmShipper = Field(default_factory=AmShipper.from_env)
+    state: ShipState
+
+    @abstractmethod
+    async def get_page(self) -> list[c.AnyComponent]:
+        raise NotImplementedError

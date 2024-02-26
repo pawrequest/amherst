@@ -3,9 +3,11 @@ from __future__ import annotations
 from fastui import components as c
 from fastui.events import GoToEvent, PageEvent
 
+from pawsupport.convert import get_ordinal_suffix
 from pawsupport.fastui_ps import Containable, fui
 from amherst.front import css
 from shipr.express import types as elt
+from shipr.express.types import AddressPF
 
 
 class Container(fui.Container):
@@ -35,24 +37,8 @@ class Navbar(fui.NavbarPR):
     #     return cls.from_routable(Hire)
 
 
-def address_chooser_modal(candidates: list[elt.AddressPF]) -> c.Modal:
-    return c.Modal(
-        title='Address Modal',
-        body=address_chooser_buttons(candidates),
-        footer=[
-            c.Button(text='Close', on_click=PageEvent(name='address-chooser', clear=True)),
-        ],
-        open_trigger=PageEvent(name='address-chooser'),
-    )
 
 
-def address_chooser_buttons(candidates: list[elt.AddressPF]) -> list[c.AnyComponent]:
-    ret = [
-        c.Button(
-            text=can.address_line1, on_click=GoToEvent(url='/hire', query=can.model_dump())
-        ) for can in candidates
-    ]
-    return ret
 
 
 class Page(fui.PagePR):
@@ -67,3 +53,16 @@ def address_first_lines(
         fui.Text(text=f'{candidate.address_line1} {candidate.address_line2}')
     )
     return contained
+
+
+async def date_string(date_):
+    fstr = f'%A %#d{get_ordinal_suffix(date_.day)} %B'
+    text = f'{date_:{fstr}}'
+    return text
+
+
+async def address_col(address: AddressPF, wrap_in=None):
+    txts = fui.Text.all_text(address)
+    if wrap_in:
+        return wrap_in.wrap(*txts, wrap_inner=Row)
+    return txts
