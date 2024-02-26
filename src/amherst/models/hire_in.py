@@ -6,34 +6,15 @@ from sqlmodel import Field, Column, JSON
 from pycommence.api.filters import CmcFilter, FilterArray, FilterCondition
 from pycommence.models.cmc_models import CmcModelIn, sub_model_from_cmc
 from . import hire_db_parts as parts
-from amherst.models.shared import AddressAm, HireStatusEnum
+from amherst.models.shared import AddressAm, HireStatusEnum, INITIAL_FILTER_ARRAY2
 from amherst.models.hire_raw import HireRaw
 
-INITIAL_FILTER_ARRAY1 = [
-    CmcFilter(
-        field_name='Status',
-        condition=FilterCondition.EQUAL_TO,
-        value=HireStatusEnum.BOOKED_IN,
-    )
-]
 
-INITIAL_FILTER_ARRAY = FilterArray(
-    CmcFilter(
-        field_name='Status',
-        condition=FilterCondition.EQUAL_TO,
-        value=HireStatusEnum.BOOKED_IN,
-    ),
-    CmcFilter(
-        field_name='Send Out Date',
-        condition=FilterCondition.AFTER,
-        value='2023-01-01',
-    ),
-)
 
 
 class HireIn(CmcModelIn):
     raw_table_class = HireRaw
-    initial_filter_array = INITIAL_FILTER_ARRAY
+    initial_filter_array = INITIAL_FILTER_ARRAY2
 
     name: str
     customer: str

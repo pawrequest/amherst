@@ -4,16 +4,14 @@ import os
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from amherst.front.hire_ui import HireState
-    from amherst.models import HireWSubModels
-from amherst.models.shared import AddressAm
+    from amherst.models.hire_db_parts import HireState
 from shipr import PFCom, express as el
 from shipr.models import service_protocols as cp
 
 
 class AmShipper(PFCom):
 
-    def am_address_to_pf(self, address_am: AddressAm):
+    def am_address_to_pf(self, address_am):
         town = self.get_town(address_am.postcode)
         addr_lines_dict = address_am.addr_lines_dict
         addr_lines_dict = {k: v for k, v in addr_lines_dict.items() if v.lower() != town.lower()}
@@ -25,15 +23,15 @@ class AmShipper(PFCom):
         )
 
     def choose_hire_address(self, hire) -> el.types.AddressChoice:
-        cmc_address = hire.hire_delivery_address.address
-        candidates = self.get_candidates(hire.hire_delivery_address.postcode)
+        cmc_address = hire.hire_address.address
+        candidates = self.get_candidates(hire.hire_address.postcode)
         add, score = super().choose_one_str(cmc_address, candidates)
         return el.types.AddressChoice(address=add, score=score)
 
     def choose_hire_address2(self, hire) -> el.types.AddressChoice:
-        pf_address = self.am_address_to_pf(hire.hire_delivery_address)
+        pf_address = self.am_address_to_pf(hire.hire_address)
         am_string = self.get_lines(pf_address)
-        candidates = self.get_candidates(hire.hire_delivery_address.postcode)
+        candidates = self.get_candidates(hire.hire_address.postcode)
         # cand_ls = [can.address_line1 + ' ' + can.address_line2 for can in candidates]
         add, score = super().choose_one_str(am_string, candidates)
         return el.types.AddressChoice(address=add, score=score)

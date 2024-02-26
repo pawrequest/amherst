@@ -1,20 +1,24 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
-from _decimal import Decimal
-from typing import Optional, ClassVar
+from typing import ClassVar, Optional
 
-from pydantic import Field
+from sqlmodel import Column, Field, JSON
+
 from .shared import (
     HireStatusEnum,
 )
-from .types import DateAm, DateMaybe, TimeMaybe, ListComma, DecimalAm
+from .types import DateMaybe, DecimalAm, ListComma, TimeMaybe
 from pycommence.models.cmc_models import CmcModelRaw
 
 
-class HireRaw(CmcModelRaw):
+class HireRaw(CmcModelRaw, table=True):
     """ Direct representation of Commence Hire Category"""
-    table_name: ClassVar[str] = 'Hire'
+    cmc_table_name: ClassVar[str] = 'Hire'
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    record: dict = Field(default_factory=dict, sa_column=Column(JSON))
 
     # hire details
     name: str = Field(alias='Name')
@@ -24,7 +28,7 @@ class HireRaw(CmcModelRaw):
 
     # dates and times
     booked_date: DateMaybe = Field(alias='Booked Date')
-    send_out_date: DateMaybe = Field(alias='Send Out Date')
+    send_out_date: DateMaybe = Field(alias='Send Out Date', default_factory=datetime.date)
     due_back_date: DateMaybe = Field(alias='Due Back Date')
     actual_return_date: DateMaybe = Field(alias='Actual Return Date')
     packed_date: DateMaybe = Field(alias='Packed Date')
@@ -32,7 +36,6 @@ class HireRaw(CmcModelRaw):
     unpacked_date: DateMaybe = Field(alias='Unpacked Date')
     unpacked_time: TimeMaybe = Field(alias='Unpacked Time')
     recurring_hire: bool = Field(alias='Recurring Hire')
-    # weeks: int = Field(alias='Weeks')
 
     # status and notes
     status: HireStatusEnum = Field(alias='Status')
@@ -45,7 +48,7 @@ class HireRaw(CmcModelRaw):
     missing_kit: str = Field(alias='Missing Kit')
 
     # payment
-    invoice: Path = Field(alias='Invoice')
+    invoice: Optional[Path] = Field(alias='Invoice', default=None)
     purchase_order: Optional[str] = Field(alias='Purchase Order')
     payment_terms: str = Field(alias='Payment Terms')
     delivery_cost: DecimalAm = Field(alias='Delivery Cost')
@@ -60,20 +63,12 @@ class HireRaw(CmcModelRaw):
     postcode: str = Field(alias='Delivery Postcode')
     telephone: str = Field(alias='Delivery Tel')
     #
-    # # address
-    # delivery_address: str = Field(alias='Delivery Address')
-    # delivery_contact: str = Field(alias='Delivery Contact')
-    # delivery_email: str = Field(alias='Delivery Email')
-    # delivery_name: str = Field(alias='Delivery Name')
-    # delivery_postcode: str = Field(alias='Delivery Postcode')
-    # delivery_telephone: str = Field(alias='Delivery Tel')
-
     # shipping
     send_collect: str = Field(alias='Send / Collect')
     send_method: str = Field(alias='Send Method')
     boxes: int = Field(alias='Boxes')
     all_address: str = Field(alias='All Address')
-    tracking_numbers: ListComma = Field(alias='Tracking Numbers', default_factory=list)
+    tracking_numbers: ListComma = Field(alias='Tracking Numbers', default_factory=list, sa_column=Column(JSON))
 
     # staff
     packed_by: str = Field(alias='Packed By')

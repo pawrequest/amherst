@@ -1,13 +1,17 @@
+from __future__ import annotations
+
 from abc import ABC
 from datetime import date, time
 from decimal import Decimal
 from pathlib import Path
 from typing import List, Optional
 
-from pydantic import ConfigDict, BaseModel
-from sqlmodel import Column, Field, JSON, Relationship, SQLModel
+from pydantic import ConfigDict, field_validator
+from sqlmodel import Column, Field, JSON, SQLModel
 
 from amherst.models.shared import HireStatusEnum
+from shipr.express import types as elt
+from shipr.express.enums import ServiceCode
 
 
 class AmBaseDB(SQLModel, ABC):
@@ -16,51 +20,13 @@ class AmBaseDB(SQLModel, ABC):
     )
 
 
-class ContactAm(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id")
+class ContactAm(AmBaseDB):
     email: str
     name: str
     telephone: str
 
 
-class AddressAm(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id")
-
-    address: str
-    contact: str
-    email: str
-    postcode: str
-    telephone: str
-
-    @property
-    def addr_lines(self) -> list[str]:
-        addr_lines = self.address.splitlines()
-        if len(addr_lines) < 3:
-            addr_lines.extend([''] * (3 - len(addr_lines)))
-        elif len(addr_lines) > 3:
-            addr_lines[2] = ','.join(addr_lines[2:])
-        return addr_lines
-
-
-    @property
-    def addr_lines_dict(self) -> dict[str, str]:
-        addr_lines = self.address.splitlines()
-        if len(addr_lines) < 3:
-            addr_lines.extend([''] * (3 - len(addr_lines)))
-        elif len(addr_lines) > 3:
-            addr_lines[2] = ','.join(addr_lines[2:])
-        return {
-            f'address_line{num}': line
-            for num, line in enumerate(addr_lines, start=1)
-        }
-
-
-class HireShipping(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id", unique=True)
-
+class HireShipping(AmBaseDB):
     send_collect: str = Field(default="")
     send_method: str = Field(default="")
     all_address: str = Field(default="")
@@ -68,10 +34,7 @@ class HireShipping(AmBaseDB, table=True):
     boxes: int = Field(default=0)
 
 
-class HireDates(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id")
-
+class HireDates(AmBaseDB):
     booked_date: Optional[date] = Field(default=None)
     send_out_date: Optional[date] = Field(default_factory=date.today)
     due_back_date: Optional[date] = Field(default=None)
@@ -83,10 +46,7 @@ class HireDates(AmBaseDB, table=True):
     recurring_hire: bool = Field(default=False)
 
 
-class HireStatus(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id")
-
+class HireStatus(AmBaseDB):
     status: HireStatusEnum
     closed: bool = Field(default=False)
     return_notes: str = Field(default="")
@@ -96,10 +56,7 @@ class HireStatus(AmBaseDB, table=True):
     missing_kit: str = Field(default="")
 
 
-class HirePayment(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id")
-
+class HirePayment(AmBaseDB):
     invoice: Optional[Path] = Field(default=None)
     purchase_order: Optional[str] = Field(default=None)
     payment_terms: str = Field(default="")
@@ -108,11 +65,7 @@ class HirePayment(AmBaseDB, table=True):
     delivery_cost: Decimal = Field(default=Decimal(0))
 
 
-class HireItems(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    order_id: Optional[int] = Field(default=None, foreign_key="hireorder.id")
-    # order: Optional['HireOrder'] = Relationship(back_populates="items")
-
+class HireItems(AmBaseDB):
     sgl_charger: Optional[int] = Field(0)
     vhf: Optional[int] = Field(0)
     em: Optional[int] = Field(0)
@@ -137,27 +90,29 @@ class HireItems(AmBaseDB, table=True):
     wand_bat: Optional[int] = Field(0)
     wand_charger: Optional[int] = Field(0)
     aerial_adapt: Optional[int] = Field(0)
-    # Include all your fields here as in your original model
 
 
-class HireOrder(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id")
-    items_id: Optional[int] = Field(default=None, foreign_key="hireitems.id")
-    items: Optional[HireItems] = Relationship(
-                sa_relationship_kwargs={
-                    "primaryjoin": "HireItems.order_id==HireOrder.id",
-                    "lazy": "joined",
-                },
-            )
-
+class HireOrder(AmBaseDB):
+    hire_items: Optional[HireItems] = Field(default=None, sa_column=Column(JSON))
     special_kit: str = Field(default="")
     reprogrammed: bool = Field(default=False)
     radio_type: str = Field(default="")
 
 
-class HireStaff(AmBaseDB, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id")
+class HireStaff(AmBaseDB):
     packed_by: Optional[str] = Field(default=None)
     unpacked_by: Optional[str] = Field(default=None)
+
+
+class HireState(AmBaseDB):
+    boxes: int = 1
+    ship_date: Optional[date] = Field(default_factory=date.today)
+    ship_service: Optional[ServiceCode] = ServiceCode.EXPRESS24
+    candidates: list[elt.AddressPF] = Field(default_factory=list, sa_column=Column(JSON))
+    recipient_address: Optional[elt.AddressPF] = Field(default=None, sa_column=Column(JSON))
+    recipient_contact: Optional[elt.ContactPF] = Field(default=None, sa_column=Column(JSON))
+
+    @field_validator('ship_date', mode='after')
+    def validate_ship_date(cls, v):
+        tod = date.today()
+        return v if v >= tod else tod

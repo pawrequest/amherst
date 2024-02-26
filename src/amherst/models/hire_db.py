@@ -1,154 +1,183 @@
-from typing import Optional
+from datetime import date
+from typing import ClassVar, Optional
+from sqlalchemy.types import TypeDecorator
 
-from pydantic import model_validator, field_validator
-from sqlmodel import Column, Field, JSON, Relationship, SQLModel
+from pydantic import BaseModel, field_validator
+from sqlmodel import Column, Field, JSON, SQLModel
 
-from amherst.models.hire_in import HireIn
-from amherst.models import hire_db_parts as parts
-from amherst.front.hire_ui import HireState
-from pydantic._internal._model_construction import ModelMetaclass
+from amherst.models.shared import AmherstFields, INITIAL_FILTER_ARRAY2
+from pycommence import FilterArray
+from shipr import types as elt
+from shipr.express.types import AddressPFPartial
 
 
-class HireStateDB(HireState, table=True):
-    __tablename__ = "hire_state"
-    id: Optional[int] = Field(default=None, primary_key=True)
-    hire_id: Optional[int] = Field(default=None, foreign_key="hire.id", unique=True)
-    # hire: Optional[HireDB] = Relationship(back_populates="hire_state")
+class Notifications(SQLModel):
+    notification_type: list[str] = Field(default_factory=list, sa_column=Column(JSON))
+
+
+
+
+class ContactType(TypeDecorator):
+    impl = JSON
+
+    def process_bind_param(self, value, dialect):
+        return value.model_dump_json() if value is not None else ''
+
+    def process_result_value(self, value, dialect):
+        return ContactPFSQL.model_validate_json(value) if value else None
+
+class AddressPartialType(TypeDecorator):
+    impl = JSON
+
+    def process_bind_param(self, value, dialect):
+        return value.model_dump_json() if value is not None else ''
+
+    def process_result_value(self, value, dialect):
+        return AddressPFPartial.model_validate_json(value) if value else None
+
+
+class AddressType(TypeDecorator):
+    impl = JSON
+
+    def process_bind_param(self, value, dialect):
+        return value.model_dump_json() if value is not None else ''
+
+    def process_result_value(self, value, dialect):
+        return AddressPFPartial.model_validate_json(value) if value else None
+
+
+class ContactPFSQL(BaseModel):
+    business_name: str
+    email_address: str
+    mobile_phone: str
+
+    # contact_name: Optional[str] = Field(None)
+    # telephone: Optional[str] = Field(None)
+    # fax: Optional[str] = Field(None)
+    #
+    # senders_name: Optional[str] = Field(None)
+    # notifications: Optional[Notifications] = Field(None, sa_column=Column(JSON))
 
 
 class HireDB(SQLModel, table=True):
     """ Primary Hire Type """
     __tablename__ = "hire"
 
-    @classmethod
-    def make_and_add(cls, cmc_obj: HireIn, session):
-        hire = cls(cmc_in_model=cmc_obj)
-        session.add(hire)
-        session.commit()
-        session.refresh(hire)
-        hire_id = hire.id
-
-
-        for attr_name in cmc_obj.model_fields:
-            attr = getattr(cmc_obj, attr_name)
-            attr_type = cmc_obj.model_fields[attr_name].annotation
-            if isinstance(attr_type, ModelMetaclass):
-                ...
-
-        session.add(hire)
-        session.commit()
-        session.refresh(hire)
-
-        return hire
-
-    # @model_validator(mode='after')
-    # def unpack_cmc_in_model(self):
-    #     for k, v in self.cmc_in_model.model_dump().items():
-    #         setattr(self, k, v)
-
-    # @field_validator('cmc_in_model', mode='after')
-    # def jsonify_cmc_in_model(cls, v):
-    #     return v.model_dump()
-
     id: Optional[int] = Field(default=None, primary_key=True)
-    cmc_in_model: HireIn = Field(sa_column=Column(JSON))
 
-    hire_shipping_id: Optional[int] = Field(
-        default=None,
-        foreign_key="hireshipping.id",
-        unique=True
-    )
-    hire_shipping: Optional[parts.HireShipping] = Relationship(
-        # back_populates="hire",
-        sa_relationship_kwargs={
-            "primaryjoin": "HireShipping.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
+    initial_filter_array: ClassVar[FilterArray] = Field(
+        default=INITIAL_FILTER_ARRAY2,
+        sa_column=Column(JSON)
     )
 
-    hire_dates_id: Optional[int] = Field(default=None, foreign_key="hiredates.id")
-    hire_dates: Optional[parts.HireDates] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "HireDates.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
-    )
+    record: dict = Field(sa_column=Column(JSON))
 
-    hire_status_id: Optional[int] = Field(default=None, foreign_key="hirestatus.id")
-    hire_status: Optional[parts.HireStatus] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "HireStatus.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
-    )
+    hire_address: Optional[elt.AddressPF] = Field(default=None, sa_column=Column(AddressType))
+    hire_contact: Optional[ContactPFSQL] = Field(default=None, sa_column=Column(ContactType))
+    boxes: Optional[int] = Field(default=None)
+    ship_date: Optional[date] = Field(default=None)
+    partial_address: Optional[AddressPFPartial] = Field(default=None, sa_column=Column(AddressPartialType))
 
-    hire_delivery_address_id: Optional[int] = Field(default=None, foreign_key="addressam.id")
-    hire_delivery_address: Optional[parts.AddressAm] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "AddressAm.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
-    )
+    @field_validator("boxes", mode="before")
+    def boxes_is_none(cls, v, info):
+        v = v if v is not None else info.data.get('record').get(AmherstFields.BOXES)
+        if not v:
+            v = 1
+        return v
 
-    hire_payment_id: Optional[int] = Field(default=None, foreign_key="hirepayment.id")
-    hire_payment: Optional[parts.HirePayment] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "HirePayment.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
-    )
+    @field_validator('partial_address', mode="after")
+    def address_is_none(cls, v, info):
+        v = v or elt.AddressPFPartial(
+            **addr_lines_dict(info.data.get('record').get(AmherstFields.ADDRESS)),
+            postcode=info.data.get('record').get(AmherstFields.POSTCODE)
+        )
+        return v
 
-    hire_order_id: Optional[int] = Field(default=None, foreign_key="hireorder.id")
-    hire_order: Optional[parts.HireOrder] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "HireOrder.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
-    )
+    @field_validator('hire_contact', mode="after")
+    def contact_is_none(cls, v, info):
+        # todo check api reqs vis combinations of fields
+        v = v or ContactPFSQL(
+            business_name=info.data.get('record').get(AmherstFields.CUSTOMER),
+            email_address=info.data.get('record').get(AmherstFields.EMAIL),
+            mobile_phone=info.data.get('record').get(AmherstFields.TELEPHONE),
+            # contact_name=info.data.get('record').get(AmherstFields.CONTACT),
+        )
+        return v
 
-    hire_staff_id: Optional[int] = Field(default=None, foreign_key="hirestaff.id")
-    hire_staff: Optional[parts.HireStaff] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "HireStaff.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
-    )
-
-    hire_state_id: Optional[int] = Field(default=None, foreign_key="hire_state.id", unique=True)
-    hire_state: Optional['HireStateDB'] = Relationship(
-        sa_relationship_kwargs={
-            "primaryjoin": "HireStateDB.hire_id==HireDB.id",
-            "lazy": "joined",
-        },
-    )
-
-    # @field_validator('dates', mode='after')
-    # def get_dates(cls, v):
-    #     dates = sub_model_from_cmc_db(parts.HireDates, hire_fxt, test_session)
-
-    # @classmethod
-    # def from_raw(cls, cmc_obj: HireRaw, session) -> Self:
-    #     return cls.model_validate(
-    #         dict(
-    #             name=cmc_obj.name,
-    #             customer=cmc_obj.customer,
-    #             dates=sub_model_from_cmc_db(parts.HireDates, cmc_obj, session),
-    #         )
+    # @model_validator(mode="after")
+    # def address_contact(self):
+    #     print(self.record.get('customer'))
+    #     self.hire_contact = self.hire_contact if self.hire_contact is not None \
+    #         else elt.ContactPF(
+    #         business_name=self.record.get(AmherstFields.CUSTOMER),
+    #         email_address=self.record.get(AmherstFields.EMAIL),
+    #         mobile_phone=self.record.get(AmherstFields.TELEPHONE)
     #     )
+    #     self.hire_address = self.hire_address if self.hire_address is not None \
+    #         else elt.AddressPF(
+    #         **addr_lines_dict(self.record.get(AmherstFields.ADDRESS)),
+    #         town='', postcode=self.record.get(AmherstFields.POSTCODE)
+    #     )
+    #     return self
 
-    # @classmethod
-    # def from_raw(cls, cmc_obj: HireRaw, session) -> Self:
-    #     hire = cls.model_validate(cmc_obj.model_dump())
-    #     hire.hire_dates = sub_model_from_cmc_db(parts.HireDates, cmc_obj, session)
-    #     # mod.status = sub_model_from_cmc_db(HireStatus, cmc_obj, session)
-    #     hire.hire_shipping = sub_model_from_cmc_db(parts.HireShipping, cmc_obj, session)
-    #     # mod.delivery_address = sub_model_from_cmc_db(
-    #     #     parts.AddressAm,
-    #     #     cmc_obj,
-    #     #     session,
-    #     #     prepend='delivery_'
-    #     # )
-    #     hire.hire_payment = sub_model_from_cmc_db(parts.HirePayment, cmc_obj, session)
-    #     hire.hire_order = sub_model_from_cmc_db(parts.HireOrder, cmc_obj, session)
-    #     hire.hire_staff = sub_model_from_cmc_db(parts.HireStaff, cmc_obj, session)
-    #     return hire
+    # @field_validator("ship_date", mode="after")
+    # def ship_date_validate(cls, v):
+    #     v = v or v.record.get('ship_date')
+    #     tod = date.today()
+    #     v = v if v > tod else tod
+    #     return v
+
+
+# hire_shipping: Optional[parts.HireShipping] = Field(default=None, sa_column=Column(JSON))
+# hire_dates: Optional[parts.HireDates] = Field(default=None, sa_column=Column(JSON))
+# hire_status: Optional[parts.HireStatus] = Field(default=None, sa_column=Column(JSON))
+# hire_payment: Optional[parts.HirePayment] = Field(default=None, sa_column=Column(JSON))
+# hire_order: Optional[parts.HireOrder] = Field(default=None, sa_column=Column(JSON))
+# hire_staff: Optional[parts.HireStaff] = Field(default=None, sa_column=Column(JSON))
+
+# @field_validator("hire_dates", mode="after")
+# def hire_dates_is_none(cls, v) -> parts.HireDates:
+#     if v is None:
+#         v =
+#         return parts.HireDates()
+#     return v
+#
+#
+#
+# def from_raw_cmc(cls, cmc_raw: HireRaw) -> Self:
+#     submodels = {
+#         'hire_dates': parts.HireDates,
+#         'hire_status': parts.HireStatus,
+#         'hire_shipping': parts.HireShipping,
+#         'hire_address_am': AddressAm,
+#         'hire_payment': parts.HirePayment,
+#         'hire_order': parts.HireOrder,
+#         'staff': parts.HireStaff,
+#     }
+#     out_dict = {}
+#     for model_name, model_class in submodels.items():
+#         out_dict[model_name] = sub_model_from_cmc(model_class, cmc_raw)
+#     out_dict['name'] = cmc_raw.name
+#     out_dict['customer'] = cmc_raw.customer
+#
+#     return cls.model_validate(out_dict)
+#
+def addr_lines(address: str) -> list[str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    return addr_lines
+
+
+def addr_lines_dict(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    return {
+        f'address_line{num}': line
+        for num, line in enumerate(addr_lines, start=1)
+    }

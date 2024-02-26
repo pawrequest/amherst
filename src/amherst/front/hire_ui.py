@@ -1,39 +1,14 @@
 from __future__ import annotations, annotations
 
-from datetime import date
-from typing import Optional
+from amherst.front.controller_abc import UI
 
-from fastui import components as c
-from fastui.events import PageEvent
-from pydantic import field_validator
-from sqlmodel import Column, Field, JSON
 
-from amherst.front.amui import Page, address_chooser_modal
-from amherst.front import amui, css
-from amherst.front.controller_abc import UI, UIState
 # from amherst.models import HireWSubModels
-from pawsupport.fastui_ps import fui
-from pawsupport.convert import get_ordinal_suffix
-from shipr.express import types as elt
-from shipr.express.enums import ServiceCode
-
-
-class HireState(UIState):
-    boxes: int = 1
-    ship_date: Optional[date] = Field(default_factory=date.today)
-    ship_service: Optional[ServiceCode] = ServiceCode.EXPRESS24
-    candidates: list[elt.AddressPF] = Field(default_factory=list, sa_column=Column(JSON))
-    recipient_address: Optional[elt.AddressPF] = Field(default=None, sa_column=Column(JSON))
-    recipient_contact: Optional[elt.ContactPF] = Field(default=None, sa_column=Column(JSON))
-
-    @field_validator('ship_date', mode='after')
-    def validate_ship_date(cls, v):
-        return v if v >= date.today() else date.today()
 
 
 class HireUI(UI):
     ...
-    # # pfcom: AmShipper = Field(default_factory=AmShipper.from_env)
+    # pfcom: AmShipper = Field(default_factory=AmShipper.from_env)
     # source_model: HireWSubModels
     # state: Optional[HireState] = None
     #

@@ -66,8 +66,8 @@ def choose_address(address_str: str, candidates: list):
 
 
 def test_check_address(pfcom, zconfig, hire_in):
-    candidates = get_postocde_addresses(hire_in.hire_delivery_address.postcode, pfcom, zconfig)
-    address = hire_in.hire_delivery_address
+    candidates = get_postocde_addresses(hire_in.hire_address.postcode, pfcom, zconfig)
+    address = hire_in.hire_address
     res = choose_address(address.address, candidates)
     ...
 

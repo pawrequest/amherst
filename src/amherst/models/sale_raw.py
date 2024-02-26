@@ -11,7 +11,7 @@ from pycommence.models.cmc_models import CmcModelRaw
 
 class SaleRaw(CmcModelRaw):
     """ Direct representation of Commence Sale Category"""
-    table_name: ClassVar[str] = 'Sale'
+    cmc_table_name: ClassVar[str] = 'Sale'
 
     customer: str = Field(alias='To Customer')
 

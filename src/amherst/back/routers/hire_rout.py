@@ -9,9 +9,8 @@ from amherst.back.database import get_session
 # from amherst.front.hire_api import HireUI
 from amherst.front.hire_ui import HireUI as HireUI
 # from amherst.front.hire_api2 import HireUI as HireUI2
-from amherst.models import HireDB
 from amherst.back import get_pfc
-from amherst.models.hire_in import HireIn
+# from amherst.models.hire_in import HireIn
 from amherst.shipping.pfcom import AmShipper
 from shipr.express import types as elt
 
@@ -26,11 +25,11 @@ async def hire_view_id2(
         state: Optional[HireUI] = None
 ) -> list[AnyComponent]:
     logger.info(f"hire_id: {hire_id}")
-    hire_tb = session.get(HireDB, hire_id)
-    hire = HireIn.model_validate(hire_tb.model_dump())
-    ui = HireUI(source_model=hire, pfcom=pf_com, state=state)
-    page = await ui.get_page()
-    return page
+    # hire_tb = session.get(HireDB, hire_id)
+    # hire = HireIn.model_validate(hire_tb.model_dump())
+    # ui = HireUI(source_model=hire, pfcom=pf_com, state=state)
+    # page = await ui.get_page()
+    # return page
 
 
 #
