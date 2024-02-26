@@ -3,7 +3,6 @@ import os
 
 from thefuzz import fuzz, process
 
-from amherst.models import HireWSubModels
 from amherst.shipping.pfcom import AmShipper
 from shipr.express.types import AddressPF, PAF
 from shipr.models.service_protocols import CreateShipmentService, FindService, PrintLabelService

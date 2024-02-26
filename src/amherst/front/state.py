@@ -13,8 +13,6 @@ from shipr.express.msg import CreateShipmentRequest, CreateShipmentResponse
 
 
 class ShipState(BasePFType):
-    response: Optional[CreateShipmentResponse] = Field(default=None)
-    request: Optional[CreateShipmentRequest] = Field(default=None)
     hire_id: int
     input_address: elt.AddressPF
     boxes: int = 1
@@ -23,6 +21,12 @@ class ShipState(BasePFType):
     candidates: list[elt.AddressPF] = Field(default_factory=list)
     contact: Optional[elt.ContactPF] = Field(default=None)
     address_choice: Optional[elt.AddressChoice] = Field(default=None)
+    request: Optional[CreateShipmentRequest] = Field(default=None)
+    response: Optional[CreateShipmentResponse] = Field(default=None)
+
+    @property
+    def export(self):
+        return self.model_dump_json(exclude={'candidates'})
 
     def update(self, **kwargs):
         return self.model_copy(update=kwargs)

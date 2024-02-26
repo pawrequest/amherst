@@ -25,6 +25,7 @@ class AmShipper(PFCom):
 
 
 def state_to_shipment(state: ShipState) -> el.shipment.RequestedShipmentMinimum:
+    add = elt.AddressPF.model_validate(state.address_choice.address)
     req = el.shipment.RequestedShipmentMinimum(
         department_id=el.enums.DepartmentEnum.MAIN,
         shipment_type=el.enums.DeliveryTypeEnum.DELIVERY,
@@ -32,7 +33,7 @@ def state_to_shipment(state: ShipState) -> el.shipment.RequestedShipmentMinimum:
         service_code=el.enums.ServiceCode.EXPRESS24,
         shipping_date=state.ship_date,
         recipient_contact=state.contact,
-        recipient_address=state.address_choice.address,
+        recipient_address=add,
         total_number_of_parcels=state.boxes,
     )
     return req

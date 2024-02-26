@@ -1,7 +1,8 @@
 # from __future__ import annotations
+import os
 from typing import Optional
 
-from fastui import AnyComponent, FastUI, components as c
+from fastui import AnyComponent, FastUI
 from fastapi import APIRouter, Depends
 from loguru import logger
 
@@ -20,7 +21,6 @@ from amherst.shipping.pfcom import AmShipper
 router = APIRouter()
 
 
-
 @router.get("/go/{state}", response_model=FastUI, response_model_exclude_none=True)
 async def book(
         state: Optional[str] = None,
@@ -37,6 +37,7 @@ async def book(
     page = await ui.get_page()
     return page
 
+
 # @router.get("/go", response_model=FastUI, response_model_exclude_none=True)
 # async def book(
 #         state: Optional[str] = None,
@@ -49,3 +50,12 @@ async def book(
 #     ui = BookingUI(pfcom=pf_com, state=state)
 #     page = await ui.get_page()
 #     return page
+
+
+@router.get('/print/{shipment_num}', response_model=FastUI, response_model_exclude_none=True)
+async def print_label(
+        shipment_num,
+        pfcom=Depends(get_pfc)
+):
+    label_path = pfcom.get_label(shipment_num)
+    os.startfile(label_path)

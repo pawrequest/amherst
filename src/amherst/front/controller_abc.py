@@ -11,9 +11,9 @@ from amherst.front.state import ShipState
 from amherst.shipping.pfcom import AmShipper
 from shipr.express.shared import BaseRequest
 
-
-class UIState(SQLModel, ABC):
-    ...
+#
+# class UIState(SQLModel, ABC):
+#     ...
 
 
 # class UI(BaseModel, ABC):
