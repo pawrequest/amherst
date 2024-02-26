@@ -8,8 +8,10 @@ from typing import Optional, TypeVar, Any
 
 from loguru import logger
 from pydantic import BeforeValidator, BaseModel, PlainSerializer
+from sqlalchemy import TypeDecorator, JSON
 from typing_extensions import Annotated
 
+from shipr.express import types as elt
 
 
 class FilterEnumAm(StrEnum):
@@ -120,4 +122,25 @@ ListComma = Annotated[list, BeforeValidator(list_from_string_comma)]
 ListNewline = Annotated[list, BeforeValidator(list_from_string_newline)]
 DecimalAm = Annotated[Decimal, BeforeValidator(decimal_from_string)]
 T = TypeVar('T', bound=BaseModel)
+
+
+class ContactType(TypeDecorator):
+    impl = JSON
+
+    def process_bind_param(self, value, dialect):
+        return value.model_dump_json() if value is not None else ''
+
+    def process_result_value(self, value, dialect):
+        return elt.ContactPF.model_validate_json(value) if value else None
+
+
+class AddressType(TypeDecorator):
+    impl = JSON
+
+    def process_bind_param(self, value, dialect):
+        return value.model_dump_json() if value is not None else ''
+
+    def process_result_value(self, value, dialect):
+        return elt.AddressPF.model_validate_json(value) if value else None
+
 

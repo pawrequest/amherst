@@ -1,5 +1,6 @@
+from datetime import date
+
 from amherst.models import HireDB
-from amherst.models.hire_raw import HireRaw
 
 #
 # def test_random_hire_raw(random_hire_raw):
@@ -17,6 +18,7 @@ def test_hire_db_session(random_hire_db: HireDB, test_session):
     test_session.commit()
     test_session.refresh(random_hire_db)
     assert random_hire_db.id is not None
+    assert random_hire_db.ship_date >= date.today()
 
 
 def test_contact(random_contact):

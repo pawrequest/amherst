@@ -15,18 +15,18 @@ class UIState(SQLModel, ABC):
     ...
 
 
-class UI(BaseModel, ABC):
-    pfcom: AmShipper = Field(default_factory=AmShipper.from_env)
-    source_model: BaseModel
-    state: UIState
-
-    @abstractmethod
-    async def get_components(self) -> list[c.AnyComponent]:
-        raise NotImplementedError
-
-    async def get_page(self) -> list[c.AnyComponent]:
-        raise NotImplementedError
-
+# class UI(BaseModel, ABC):
+#     pfcom: AmShipper = Field(default_factory=AmShipper.from_env)
+#     source_model: BaseModel
+#     state: UIState
+#
+#     @abstractmethod
+#     async def get_components(self) -> list[c.AnyComponent]:
+#         raise NotImplementedError
+#
+#     async def get_page(self) -> list[c.AnyComponent]:
+#         raise NotImplementedError
+#
 
 
 

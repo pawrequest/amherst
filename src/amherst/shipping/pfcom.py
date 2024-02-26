@@ -3,6 +3,10 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
+from thefuzz import fuzz, process
+
+from shipr.express.types import AddressPF
+
 if TYPE_CHECKING:
     from amherst.models.hire_db_parts import HireState
 from shipr import PFCom, express as el
@@ -22,18 +26,14 @@ class AmShipper(PFCom):
             postcode=address_am.postcode
         )
 
-    def choose_hire_address(self, hire) -> el.types.AddressChoice:
-        cmc_address = hire.hire_address.address
-        candidates = self.get_candidates(hire.hire_address.postcode)
-        add, score = super().choose_one_str(cmc_address, candidates)
-        return el.types.AddressChoice(address=add, score=score)
-
-    def choose_hire_address2(self, hire) -> el.types.AddressChoice:
-        pf_address = self.am_address_to_pf(hire.hire_address)
-        am_string = self.get_lines(pf_address)
-        candidates = self.get_candidates(hire.hire_address.postcode)
-        # cand_ls = [can.address_line1 + ' ' + can.address_line2 for can in candidates]
-        add, score = super().choose_one_str(am_string, candidates)
+    def choose_hire_address(self, address: AddressPF) -> el.types.AddressChoice:
+        candidates_dict = {self.get_lines(add): add for add in self.get_candidates(address.postcode)}
+        chosen, score = process.extractOne(
+            self.get_lines(address),
+            list(candidates_dict.keys()),
+            scorer=fuzz.token_sort_ratio
+        )
+        add = candidates_dict[chosen]
         return el.types.AddressChoice(address=add, score=score)
 
     def get_lines(self, pf_address: el.types.AddressPF) -> str:
@@ -109,8 +109,8 @@ def state_to_shipment(state: HireState) -> el.shipment.RequestedShipmentMinimum:
         contract_number=os.environ['PF_CONT_NUM_1'],
         service_code=el.enums.ServiceCode.EXPRESS24,
         shipping_date=state.ship_date,
-        recipient_contact=state.recipient_contact,
-        recipient_address=state.recipient_address,
+        recipient_contact=state.contact,
+        recipient_address=state.address,
         total_number_of_parcels=state.boxes,
     )
     return req

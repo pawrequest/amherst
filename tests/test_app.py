@@ -20,7 +20,7 @@ def test_index():
 
 @pytest.fixture
 def controller(hire_in, pfcom, test_session) -> HireUI:
-    return HireUI(source_model=hire_in, pfcom=pfcom)
+    return HireUI(hire=hire_in, pfcom=pfcom)
 
 
 def test_controller(controller):
@@ -29,7 +29,7 @@ def test_controller(controller):
 
 def test_controller_state(controller: HireUI, test_session):
     state = controller.state
-    hire = controller.source_model
+    hire = controller.hire
     hiredb = HireDB.model_validate(hire.model_dump())
     test_session.add(hiredb)
     test_session.commit()

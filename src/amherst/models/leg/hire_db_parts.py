@@ -104,15 +104,3 @@ class HireStaff(AmBaseDB):
     unpacked_by: Optional[str] = Field(default=None)
 
 
-class HireState(AmBaseDB):
-    boxes: int = 1
-    ship_date: Optional[date] = Field(default_factory=date.today)
-    ship_service: Optional[ServiceCode] = ServiceCode.EXPRESS24
-    candidates: list[elt.AddressPF] = Field(default_factory=list, sa_column=Column(JSON))
-    recipient_address: Optional[elt.AddressPF] = Field(default=None, sa_column=Column(JSON))
-    recipient_contact: Optional[elt.ContactPF] = Field(default=None, sa_column=Column(JSON))
-
-    @field_validator('ship_date', mode='after')
-    def validate_ship_date(cls, v):
-        tod = date.today()
-        return v if v >= tod else tod

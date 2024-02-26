@@ -26,6 +26,7 @@ class ContactAm(BaseModel):
     name: str
     telephone: str
 
+
 #
 # class AddressAm(BaseModel):
 #     # todo separate contact
@@ -166,3 +167,38 @@ class AmherstFields(StrEnum):
     WAND = 'Number Wand'
     WAND_BAT = 'Number Wand Battery'
     WAND_CHARGER = 'Number Wand Charger'
+
+
+class SaleFields(StrEnum):
+    CUSTOMER = 'To Customer'
+    NAME = 'Name'
+    LOST_EQUIPMENT = 'Lost Equipment'
+    STATUS = 'Status'
+    DATE_ORDERED = 'Date Ordered'
+    DATE_SENT = 'Date Sent'
+    INVOICE_TERMS = 'Invoice Terms'
+    INVOICE = 'Invoice'
+    PURCHASE_ORDER_PRINT = 'Purchase Order Print'
+    PURCHASE_ORDER = 'Purchase Order'
+    ITEMS_ORDERED = 'Items Ordered'
+    SERIAL_NUMBERS = 'Serial Numbers'
+    ORDER_PACKED_BY = 'Order Packed By'
+    ORDER_TAKEN_BY = 'Order Taken By'
+    DELIVERY_METHOD = 'Delivery Method'
+    OUTBOUND_ID = 'Outbound ID'
+    NOTES = 'Notes'
+    DELIVERY_NOTES = 'Delivery Notes'
+    DELIVERY_ADDRESS = 'Delivery Address'
+    DELIVERY_CONTACT = 'Delivery Contact'
+    DELIVERY_EMAIL = 'Delivery Email'
+    DELIVERY_NAME = 'Delivery Name'
+    DELIVERY_POSTCODE = 'Delivery Postcode'
+    DELIVERY_TELEPHONE = 'Delivery Telephone'
+    INVOICE_ADDRESS = 'Invoice Address'
+    INVOICE_CONTACT = 'Invoice Contact'
+    INVOICE_EMAIL = 'Invoice Email'
+    INVOICE_NAME = 'Invoice Name'
+    INVOICE_POSTCODE = 'Invoice Postcode'
+    INVOICE_TELEPHONE = 'Invoice Telephone'
+
+

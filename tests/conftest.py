@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import pytest
 from sqlmodel import SQLModel, Session, create_engine
 
-from amherst.models.hire_db import HireDB
+from amherst.models.hire_db import HireDB, addr_lines_dict
 from amherst.models.shared import AmherstFields
 from shipr.express import shared, types as elt
 from amherst.shipping.pfcom import AmShipper
@@ -90,16 +90,6 @@ def addr_lines(address: str) -> list[str]:
     return addr_lines
 
 
-def addr_lines_dict(address: str) -> dict[str, str]:
-    addr_lines = address.splitlines()
-    if len(addr_lines) < 3:
-        addr_lines.extend([''] * (3 - len(addr_lines)))
-    elif len(addr_lines) > 3:
-        addr_lines[2] = ','.join(addr_lines[2:])
-    return {
-        f'address_line{num}': line
-        for num, line in enumerate(addr_lines, start=1)
-    }
 
 
 # @pytest.fixture

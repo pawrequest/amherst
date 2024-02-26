@@ -4,8 +4,8 @@ from sqlmodel import SQLModel, Session
 
 from amherst.shipping.pfcom import AmShipper
 load_dotenv()
-DB_URL = "sqlite:///:memory:"
-# db_url = "sqlite:///amherst.db"
+# DB_URL = "sqlite:///:memory:"
+DB_URL = "sqlite:///amherst.db"
 CONNECT_ARGS = {"check_same_thread": False}
 ENGINE = create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
 
