@@ -8,7 +8,7 @@ from amherst.models.shared import AmherstFields, INITIAL_FILTER_ARRAY2
 from amherst.models.types import AddressType, ContactType
 from pawsupport.get_set import hash_simple_md5
 from pycommence import FilterArray
-from shipr import types as elt
+from shipr.models import pf_types as elt
 
 
 class HireDB(SQLModel, table=True):

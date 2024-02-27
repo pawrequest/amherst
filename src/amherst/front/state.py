@@ -8,11 +8,11 @@ from pydantic import BaseModel, Field, field_validator
 from amherst.models import HireDB
 from amherst.shipping.pfcom import AmShipper
 
-from shipr.express import types as elt, enums as ele, BasePFType
-from shipr.express.msg import CreateShipmentRequest, CreateShipmentResponse
+from shipr.models import pf_types as elt, pf_enums as ele
+from shipr.models.pf_msg import CreateShipmentRequest, CreateShipmentResponse
 
 
-class ShipState(BasePFType):
+class ShipState(elt.BasePFType):
     hire_id: int
     input_address: elt.AddressPF
     boxes: int = 1

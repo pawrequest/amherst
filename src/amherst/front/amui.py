@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from fastui import components as c
-from fastui.events import GoToEvent, PageEvent
-
 from pawsupport.convert import get_ordinal_suffix
 from pawsupport.fastui_ps import Containable, fui
 from amherst.front import css
-from shipr.express import types as elt
-from shipr.express.types import AddressPF
+from shipr.models import pf_types as elt
 
 
 class Container(fui.Container):
@@ -37,10 +33,6 @@ class Navbar(fui.NavbarPR):
     #     return cls.from_routable(Hire)
 
 
-
-
-
-
 class Page(fui.PagePR):
     class_name: str = css.PAGE
 
@@ -61,7 +53,7 @@ async def date_string(date_):
     return text
 
 
-async def address_col(address: AddressPF, wrap_in=None):
+async def address_col(address: elt.AddressPF, wrap_in=None):
     txts = fui.Text.all_text(address)
     if wrap_in:
         return wrap_in.wrap(*txts, wrap_inner=Row)

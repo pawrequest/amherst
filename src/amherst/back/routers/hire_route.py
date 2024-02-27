@@ -14,7 +14,7 @@ from amherst.back import get_pfc
 from amherst.models import HireDB
 from amherst.shipping.pfcom import AmShipper
 from pawsupport.sqlmodel_ps import obj_in_session
-from pycommence import csr_cm
+from pycommence import csr_context
 
 router = APIRouter()
 
@@ -47,7 +47,7 @@ async def hire_view_name(
     logger.info(f"hire_name: {hire_name}")
 
     hire_name = base64.urlsafe_b64decode(hire_name).decode()
-    with csr_cm('Hire') as csr:
+    with csr_context('Hire') as csr:
         hire_record = csr.get_record(hire_name)
     hire = HireDB(record=hire_record)
     hire = HireDB.validate(hire)

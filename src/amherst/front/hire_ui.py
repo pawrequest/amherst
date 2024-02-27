@@ -6,7 +6,7 @@ from fastui.events import GoToEvent, PageEvent
 from fastui import components as c
 
 from pawsupport.fastui_ps import fui
-from shipr.express.types import AddressChoice
+from shipr.models.pf_types import AddressChoice
 from . import amui, css
 from .amui import address_col, date_string
 from .controller_abc import UIBase
