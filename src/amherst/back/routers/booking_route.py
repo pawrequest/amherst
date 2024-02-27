@@ -5,6 +5,7 @@ from typing import Optional
 from fastui import AnyComponent, FastUI
 from fastapi import APIRouter, Depends
 from loguru import logger
+from pydantic import BaseModel
 
 from amherst.back import get_pfc
 from amherst.front.booking_ui import BookingUI
@@ -19,6 +20,24 @@ from amherst.shipping.pfcom import AmShipper
 # from amherst.shipping.pfcom import AmShipper
 
 router = APIRouter()
+
+
+
+@router.post("/post/")
+async def book(state: Optional[ShipState] = None):
+    logger.info("posting")
+    print(state)
+    return {'state': 'state'}
+
+    # return default_page()
+    # req = pfcom.state_to_shipment_request(state)
+    # resp = pfcom.get_shipment_resp(req)
+    # state.request = req
+    # state.response = resp
+    #
+    # ui = BookingUI(pfcom=pfcom, state=state)
+    # page = await ui.get_page()
+    # return page
 
 
 @router.get("/go/{state}", response_model=FastUI, response_model_exclude_none=True)
@@ -36,20 +55,6 @@ async def book(
     ui = BookingUI(pfcom=pfcom, state=state)
     page = await ui.get_page()
     return page
-
-
-# @router.get("/go", response_model=FastUI, response_model_exclude_none=True)
-# async def book(
-#         state: Optional[str] = None,
-#         pf_com: AmShipper = Depends(get_pfc),
-# ) -> list[AnyComponent]:
-#     logger.info("go2")
-#     if not state:
-#         raise ValueError("state is required")
-#     state = ShipState.model_validate_json(state)
-#     ui = BookingUI(pfcom=pf_com, state=state)
-#     page = await ui.get_page()
-#     return page
 
 
 @router.get('/print/{shipment_num}', response_model=FastUI, response_model_exclude_none=True)

@@ -1,8 +1,15 @@
 from typing import Optional
 
+from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import TypeDecorator
-from sqlmodel import Field, JSON, SQLModel, Column
+from sqlalchemy import Column, JSON, TypeDecorator
+from sqlmodel import Field, SQLModel
+from starlette.testclient import TestClient
+
+test_app = FastAPI()
+client_test = TestClient(test_app)
+
+
 class NestedJson(TypeDecorator):
     impl = JSON
 
@@ -13,16 +20,15 @@ class NestedJson(TypeDecorator):
         return MyPydanticModel.model_validate_json(value) if value else None
 
 
-class ContactPFSQL(BaseModel):
-    business_name: str
-    email_address: str
-    mobile_phone: str
 class MyPydanticModel(BaseModel):
     name: str
     age: int
 
+
 def serial(self):
     return self.model_dump_json()
+
+
 class MyTableModel(SQLModel, table=True):
     model_config = ConfigDict(
         json_encoders={
@@ -36,8 +42,8 @@ class MyTableModel(SQLModel, table=True):
 def test_insert_my_table_model(test_session):
     pydantic_model_instance = MyPydanticModel(name="John Doe", age=30)
 
-    table_model_instance = MyTableModel()
-    # table_model_instance = MyTableModel(data=pydantic_model_instance)
+    # table_model_instance = MyTableModel()
+    table_model_instance = MyTableModel(data=pydantic_model_instance)
 
     test_session.add(table_model_instance)
     test_session.commit()
@@ -46,3 +52,29 @@ def test_insert_my_table_model(test_session):
     assert db_entry is not None
     assert db_entry.data.name == "John Doe"
     assert db_entry.data.age == 30
+
+
+class Item(BaseModel):
+    name: str
+    description: str = None
+    price: float
+    tax: float = None
+
+
+@test_app.post("/items/")
+async def create_item(item: Item):
+    return {"name": item.name, "price": item.price}
+
+
+def test_create_item():
+    response = client_test.post(
+        "/items/", json={
+            "name": "Sample Item",
+            "price": 15.99
+        }
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "Sample Item",
+        "price": 15.99
+    }

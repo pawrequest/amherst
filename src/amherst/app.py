@@ -14,6 +14,7 @@ from sqlmodel import Session
 from amherst.sample_data import hire_records
 from amherst.models import HireDB
 from amherst.back.routers import booking_router, hire_router
+from amherst.back.routers.rout import router as rout
 from amherst import back as ab
 load_dotenv()
 
@@ -57,6 +58,7 @@ else:
 
 app.include_router(hire_router, prefix="/api/hire")
 app.include_router(booking_router, prefix="/api/book")
+app.include_router(rout, prefix="/api")
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse)

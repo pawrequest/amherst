@@ -1,12 +1,9 @@
-import pytest
+from datetime import date
+
 from fastapi.testclient import TestClient
 
 from amherst.app import app
-from amherst.front.hire_ui import HireUI
-from amherst.models.hire_db_parts import HireDates
-from amherst.models.hire_db import HireDB
-from pycommence.models.cmc_sql import sub_model_from_cmc_db
-from typing import Type, get_type_hints
+from amherst.models import HireDB
 
 client = TestClient(app)
 
@@ -18,35 +15,41 @@ def test_index():
     assert r.headers.get('content-type') == 'text/html; charset=utf-8'
 
 
-@pytest.fixture
-def controller(hire_in, pfcom, test_session) -> HireUI:
-    return HireUI(hire=hire_in, pfcom=pfcom)
+def test_hire_router():
+    response = client.get("/api/hire/id/1")
+    # print(f"Status Code: {response.status_code}")
+    ...
 
 
-def test_controller(controller):
-    assert isinstance(controller, HireUI)
-
-
-def test_controller_state(controller: HireUI, test_session):
-    state = controller.state
-    hire = controller.hire
-    hiredb = HireDB.model_validate(hire.model_dump())
-    test_session.add(hiredb)
+def test_hire_db_session(random_hire_db: HireDB, test_session):
+    random_hire_db = HireDB.validate(random_hire_db)
+    test_session.add(random_hire_db)
     test_session.commit()
-    test_session.refresh(hiredb)
-    ...
-
-def test_from_raw(hire_in, test_session):
-    hire2 = HireDB.from_namedb(hire_in.name, test_session)
-    dates = sub_model_from_cmc_db(HireDates, hire_in, test_session)
-    hire2.hire_dates = dates
-    test_session.add(hire2)
-    test_session.commit()
-    test_session.refresh(hire2)
-    assert isinstance(hire2, HireDB)
-    assert hire2.hire_dates == dates
+    test_session.refresh(random_hire_db)
+    assert random_hire_db.id is not None
+    assert random_hire_db.ship_date >= date.today()
 
 
-def test_from_db(hire_in, test_session):
-    ...
-    ...
+def test_get_hire_db(random_hire_db):
+    assert isinstance(random_hire_db, HireDB)
+
+
+def test_contact(random_contact):
+    assert random_contact.business_name
+    assert random_contact.email_address
+    assert random_contact.mobile_phone
+
+
+def test_create_item():
+    response = client.post(
+        "/book/items/", json={
+            "name": "Sample Item",
+        }
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "Sample Item",
+    }
+
+
+

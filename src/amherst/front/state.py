@@ -44,5 +44,5 @@ def state_from_hire(hire: HireDB, pfcom: AmShipper) -> ShipState:
     state.ship_date = hire.ship_date
     state.contact = hire.contact
     state.candidates = pfcom.get_candidates(hire.address.postcode)
-    state.address_choice = pfcom.guess_address(hire.address)
+    state.address_choice = pfcom.address_choice_str(address_lines=hire.address.address_lines_str, postcode=hire.address.postcode)
     return ShipState.model_validate(state)
