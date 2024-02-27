@@ -5,11 +5,10 @@ from typing import Optional
 
 from fastui import components as c
 from pydantic import BaseModel, Field, field_validator
-from sqlmodel import SQLModel
 
 from amherst.front.state import ShipState
 from amherst.shipping.pfcom import AmShipper
-from shipr.express.shared import BaseRequest
+from shipr.models.pf_types import BaseRequest
 
 #
 # class UIState(SQLModel, ABC):

@@ -11,7 +11,7 @@ from pydantic import BeforeValidator, BaseModel, PlainSerializer
 from sqlalchemy import TypeDecorator, JSON
 from typing_extensions import Annotated
 
-from shipr.express import types as elt
+from shipr.models import pf_types as elt
 
 
 class FilterEnumAm(StrEnum):

@@ -4,17 +4,15 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
-from pycommence import CmcFilter, FilterArray
-from pycommence.api import entities as ent
-from pycommence.api.filters import FilterCondition
+from pycommence import CmcFilter, Connection, FilterArray, FilterCondition
 
-SALE_CUSTOMERS = ent.Connection(
+SALE_CUSTOMERS = Connection(
     name='SaleCustomers',
     to_table='Customers',
     from_table='Sale',
 )
 
-HIRE_CUSTOMERS = ent.Connection(
+HIRE_CUSTOMERS = Connection(
     name='HireCustomers',
     to_table='Customers',
     from_table='Hire',
@@ -200,5 +198,3 @@ class SaleFields(StrEnum):
     INVOICE_NAME = 'Invoice Name'
     INVOICE_POSTCODE = 'Invoice Postcode'
     INVOICE_TELEPHONE = 'Invoice Telephone'
-
-
