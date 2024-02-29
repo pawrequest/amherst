@@ -3,9 +3,9 @@ import base64
 import threading
 import time
 import webbrowser
-from loguru import logger
 import uvicorn
 from dotenv import load_dotenv
+from loguru import logger
 
 load_dotenv()
 
@@ -26,6 +26,8 @@ def main(hire_name=None):
     time.sleep(3)
 
     adr = get_addr(hire_name)
+    logger.info(f"Opening {adr}")
+
     webbrowser.open(adr)
 
     try:
@@ -33,8 +35,9 @@ def main(hire_name=None):
     except KeyboardInterrupt:
         print("Server is shutting down...")
 
+
 def run_server():
-    uvicorn.run('amherst.app:app', host="127.0.0.1", port=8000, log_level="info")
+    uvicorn.run("amherst.app:app", host="127.0.0.1", port=8000, log_level="info")
 
 
 # class ServerReadyHandler:
@@ -51,10 +54,10 @@ def run_server():
 #     server = uvicorn.Server(config)
 #     server.run()
 
+
 def get_addr(hire_name):
     hire_name_encoded = base64.urlsafe_b64encode(hire_name.encode()).decode()
-    adr = f"http://127.0.0.1:8000/hire/{hire_name_encoded}"
-    logger.info(f"Opening {adr}")
+    adr = f"http://127.0.0.1:8000/hire/get/name64/{hire_name_encoded}"
     return adr
 
 

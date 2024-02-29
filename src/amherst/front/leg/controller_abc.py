@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from typing import Optional
 
-from fastui import components as c
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 
-from amherst.front.state import ShipState
-from amherst.shipping.pfcom import AmShipper
 from shipr.models.pf_types import BaseRequest
 
 #
@@ -29,16 +25,13 @@ from shipr.models.pf_types import BaseRequest
 #
 
 
-
 class PartialRequest(BaseModel):
     request_type: type[BaseRequest]
     attr_dict: Optional[dict] = None
 
-    @field_validator('attr_dict', mode='after')
+    @field_validator("attr_dict", mode="after")
     def get_attr_dict(cls, v, info):
-        return v or {
-            attr: None for attr in info.data['request_type'].model_fields
-        }
+        return v or {attr: None for attr in info.data["request_type"].model_fields}
 
     def get_request(self):
         dict_attrs = list(self.attr_dict.keys())
@@ -52,12 +45,3 @@ class PartialRequest(BaseModel):
             raise ValueError(f"{attr} is not a valid attribute")
         self.attr_dict[attr] = value
         return self
-
-
-class UIBase(BaseModel, ABC):
-    pfcom: AmShipper = Field(default_factory=AmShipper.from_env)
-    state: ShipState
-
-    @abstractmethod
-    async def get_page(self) -> list[c.AnyComponent]:
-        raise NotImplementedError

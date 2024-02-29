@@ -1,67 +1,22 @@
-from typing import Optional
-
+import pydantic
 from fastapi import FastAPI
-from pydantic import BaseModel, ConfigDict
-from sqlalchemy import Column, JSON, TypeDecorator
-from sqlmodel import Field, SQLModel
 from starlette.testclient import TestClient
 
-test_app = FastAPI()
-client_test = TestClient(test_app)
+from shipr.models import extended, db_models
+from . import monkey as test_amherst
+
+app = FastAPI()
+client_test = TestClient(app)
 
 
-class NestedJson(TypeDecorator):
-    impl = JSON
-
-    def process_bind_param(self, value, dialect):
-        return value.model_dump_json() if value is not None else ''
-
-    def process_result_value(self, value, dialect):
-        return MyPydanticModel.model_validate_json(value) if value else None
-
-
-class MyPydanticModel(BaseModel):
-    name: str
-    age: int
-
-
-def serial(self):
-    return self.model_dump_json()
-
-
-class MyTableModel(SQLModel, table=True):
-    model_config = ConfigDict(
-        json_encoders={
-            MyPydanticModel: serial
-        }
-    )
-    id: Optional[int] = Field(default=None, primary_key=True)
-    data: Optional[MyPydanticModel] = Field(default=None, sa_column=Column(NestedJson))
-
-
-def test_insert_my_table_model(test_session):
-    pydantic_model_instance = MyPydanticModel(name="John Doe", age=30)
-
-    # table_model_instance = MyTableModel()
-    table_model_instance = MyTableModel(data=pydantic_model_instance)
-
-    test_session.add(table_model_instance)
-    test_session.commit()
-
-    db_entry = test_session.get(MyTableModel, table_model_instance.id)
-    assert db_entry is not None
-    assert db_entry.data.name == "John Doe"
-    assert db_entry.data.age == 30
-
-
-class Item(BaseModel):
+class Item(pydantic.BaseModel):
     name: str
     description: str = None
     price: float
     tax: float = None
 
 
-@test_app.post("/items/")
+@app.post("/items/")
 async def create_item(item: Item):
     return {"name": item.name, "price": item.price}
 
@@ -78,3 +33,33 @@ def test_create_item():
         "name": "Sample Item",
         "price": 15.99
     }
+
+
+# class HireIn(BaseModel):
+#     __tablename__ = "hire"
+#     cmc_table_name: ClassVar[str] = "Hire"
+#     initial_filter_array: ClassVar[FilterArray] = Field(default=INITIAL_FILTER_ARRAY2, sa_column=Column(JSON))
+#     record: dict = Field(sa_column=Column(JSON))
+#     state: Optional[BookingStateIn] = Field(None, sa_column=Column(JSON))
+
+
+def test_address(fake_address, long_address, pfcom, test_session):
+    chosen = pfcom.choose_address(fake_address)
+    addr = db_models.AddressRecipientDB.model_validate(chosen)
+    addr = addr.model_validate(addr)
+    assert addr is not None
+    test_session.add(addr)
+    test_session.commit()
+    test_session.refresh(addr)
+    db_entry = test_session.get(db_models.AddressRecipientDB, addr.id)
+    assert db_entry is not None
+
+
+def test_contact(fake_contact, test_session):
+    con = fake_contact.model_validate(fake_contact)
+    assert con is not None
+    # test_session.add(con)
+    # test_session.commit()
+    # test_session.refresh(con)
+    # db_entry = test_session.get(fc.Contact, con.id)
+    # assert db_entry is not None

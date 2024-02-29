@@ -1,4 +1,4 @@
-from . import amui, css
+from . import amui, css, pages
 
 
-__all__ = ['amui', 'css']
+__all__ = ["amui", "css", "pages"]

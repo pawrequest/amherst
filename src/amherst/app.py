@@ -3,42 +3,27 @@ from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.encoders import jsonable_encoder
 from fastui import prebuilt_html
 from fastui.dev import dev_fastapi_app
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from loguru import logger
-from sqlalchemy import Select
 from sqlmodel import Session
 
-from amherst.sample_data import hire_records
-from amherst.models import HireDB
-from amherst.back.routers import booking_router, hire_router
-from amherst.back.routers.rout import router as rout
-from amherst import back as ab
+from amherst import database
+
+# from amherst.models.booking_state_db import HireState  # noqa F401
+from amherst.routers import booking_router, hire_router, main_router
+from amherst.front.pages.server_load import router as server_load_router
+
 load_dotenv()
-
-
-def populate_db_from_cmc(session: Session, model: type[HireDB]):
-    data = hire_records
-    # with csr_cm(model.cmc_table_name) as csr:
-    #     filters = model.initial_filter_array. default
-    #     data = csr.filter_by_array(filters, get=True)
-
-    hires = [model(record=_) for _ in data]
-    hires_val = [model.validate(jsonable_encoder(_)) for _ in hires]
-    existing = [_[0] for _ in session.exec(Select(model.name)).all()]
-    hires_new = [_ for _ in hires_val if _.name not in existing]
-    session.add_all(hires_new)
-    session.commit()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        ab.create_db()
-        with Session(ab.ENGINE) as session:
-            populate_db_from_cmc(session, HireDB)
+        database.create_db()
+        with Session(database.ENGINE) as session:
+            database.populate_db_from_cmc(session)
 
         logger.info("tables created")
         # main_task = asyncio.create_task()
@@ -58,7 +43,11 @@ else:
 
 app.include_router(hire_router, prefix="/api/hire")
 app.include_router(booking_router, prefix="/api/book")
-app.include_router(rout, prefix="/api")
+app.include_router(server_load_router, prefix="/api/sl")
+app.include_router(main_router, prefix="/api")
+
+
+# app.include_router(rout, prefix="/api/rout")
 
 
 @app.get("/robots.txt", response_class=PlainTextResponse)
