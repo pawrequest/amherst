@@ -1,8 +1,9 @@
 # import os
 # from datetime import date, timedelta
 # from pathlib import Path
-# from typing import Annotated, Callable, List, Literal, Optional, Self, ClassVar
+# from typing import Annotated, Callable, ClassVar, List, Literal, Optional, Self
 # from enum import Enum, StrEnum
+# import typing as _ty
 #
 # from loguru import logger
 # from pydantic import (
@@ -15,17 +16,17 @@
 #     field_validator,
 # )
 # from pydantic.alias_generators import to_pascal, to_snake
-# from sqlalchemy import JSON, TypeDecorator, Column
+# from sqlalchemy import Column, JSON, TypeDecorator
 # from sqlmodel import Field, SQLModel
+# import sqlalchemy as sqa
+# import sqlmodel as sqm
 #
 # from pawsupport.get_set import hash_simple_md5
 # from .test_client import ELClient
 # from pawsupport import convert_print_silent2
 # from pawsupport.pydantic.pyd_types import TruncatedSafeMaybeStr, TruncatedSafeStr
 # import pycommence
-# import sqlalchemy as sqa
-# import sqlmodel as sqm
-# import typing as _ty
+#
 #
 # class BasePFType(SQLModel):
 #     model_config = ConfigDict(
@@ -85,13 +86,13 @@
 #
 # INITIAL_FILTER_ARRAY2 = pycommence.FilterArray().add_filters(
 #     pycommence.CmcFilter(
-#         field_name="Status",
-#         condition=pycommence.FilterCondition.EQUAL_TO,
+#         cmc_col="Status",
+#         condition='Equal To',
 #         value="BOOKED_IN",
 #     ),
 #     pycommence.CmcFilter(
-#         field_name="Send Out Date",
-#         condition=pycommence.FilterCondition.AFTER,
+#         cmc_col="Send Out Date",
+#         condition='After',
 #         value="2023-01-01",
 #     ),
 # )
@@ -272,6 +273,7 @@
 #     tod = date.today()
 #     return condate(ge=tod, le=tod + timedelta(days=7))
 #
+#
 # ValidShipDate = valid_ship_date_type()
 #
 # SALE_CUSTOMERS = pycommence.Connection(
@@ -279,7 +281,6 @@
 #     to_table="Customers",
 #     from_table="Sale",
 # )
-#
 #
 # HIRE_CUSTOMERS = pycommence.Connection(
 #     name="HireCustomers",
@@ -430,7 +431,6 @@
 #         }
 #
 #
-#
 # class AddressSender(BaseAddress):
 #     town: TruncatedSafeStr(24)
 #     postcode: str
@@ -452,8 +452,6 @@
 #     postcode: Optional[str] = None
 #     count: Optional[int] = Field(None)
 #     specified_neighbour: Optional[List[SpecifiedNeighbour]] = Field(None, description="")
-#
-#
 #
 #
 # class BookingStateUpdater(BaseUIState):
@@ -852,7 +850,6 @@
 #
 #
 # class HireIn(SQLModel):
-#     __tablename__ = "hire"
 #     cmc_table_name: ClassVar[str] = "Hire"
 #     initial_filter_array: ClassVar[pycommence.FilterArray] = Field(
 #         default=INITIAL_FILTER_ARRAY2, sa_column=Column(JSON)
@@ -933,3 +930,7 @@
 #         session.commit()
 #         session.refresh(self, state)
 #         return self
+#
+#
+# class AddressRecipientDB(AddressRecipient, sqm.SQLModel, table=True):
+#     id: Optional[int] = sqm.Field(default=None, primary_key=True)

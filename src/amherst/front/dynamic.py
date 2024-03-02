@@ -6,11 +6,11 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-import shipr.models.shipr_shared
+import shipr.models.pf_shared
 from amherst.front import amui
 from amherst.front.ui_helpers import BoxesEnum
 
-import shipr.models.extended
+import shipr.models.pf_ext
 from shipr.models import el_enums as ele
 
 

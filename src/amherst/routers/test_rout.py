@@ -7,7 +7,7 @@ from fastui.events import GoToEvent
 from fastui.forms import fastui_form
 from pydantic import BaseModel, Field
 
-from amherst.database import get_pfc, get_session
+from amherst.am_db import get_pfc, get_session
 from amherst.front import amui
 
 router = APIRouter()

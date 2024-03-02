@@ -1,15 +1,19 @@
 import os
+import random
 from pathlib import Path
 
 from dotenv import load_dotenv
 import pytest
-from pydantic import ValidationError
 from sqlmodel import SQLModel, Session, create_engine
 
-from shipr.models import extended
-from .test_client import ELClient
+import pycommence
+from amherst import sample_data, shipper
+from amherst.models import hire_model, am_shared
+
+from amherst.models.am_shared import AmherstFields
+from shipr.models import pf_ext, pf_top
+
 # from . import monkey as el_types
-from amherst.models import shared
 
 ENV_FILE = Path(r"C:\Users\RYZEN\prdev\amdev\.env").resolve()
 if not ENV_FILE.is_file():
@@ -32,32 +36,32 @@ HIRE_NAME_ENCODED = "UG9ydHNtb3V0aCBQcmlkZSAtIDAyLzA3LzIwMjQgcmVmIDIwMzU5"
 ### COMMENCE
 
 
-# @pytest.fixture
-# def hire_csr():
-#     with csr_context("Hire") as csr:
-#         yield csr
-#
-#
-# @pytest.fixture
-# def sale_csr():
-#     with csr_context("Sale") as csr:
-#         yield csr
-#
-#
-# @pytest.fixture(scope="session")
-# def random_hire_record():
-#     rec = random.choice(hire_records)
-#     return rec
-#
-#
-# ### SQLModel
-# @pytest.fixture
-# def random_hire_db(random_hire_record) -> Hire:
-#     hire = Hire(record=random_hire_record)
-#     return hire.model_validate(hire)
-#
-#
-# ### FASTAPI
+@pytest.fixture
+def hire_csr():
+    with pycommence.csr_context("Hire") as csr:
+        yield csr
+
+
+@pytest.fixture
+def sale_csr():
+    with pycommence.csr_context("Sale") as csr:
+        yield csr
+
+
+@pytest.fixture(scope="session")
+def random_hire_record():
+    rec = random.choice(sample_data.hires)
+    return rec
+
+
+### SQLModel
+@pytest.fixture
+def random_hire_db(random_hire_record) -> hire_model.Hire:
+    hire = hire_model.Hire(record=random_hire_record)
+    return hire.model_validate(hire)
+
+
+### FASTAPI
 
 
 @pytest.fixture(scope="session")
@@ -69,46 +73,34 @@ def test_session():
         yield session
 
 
-# ## ExpressLink
-# @pytest.fixture
-# def zconfig():
-#     wsdl = os.environ.get("PF_WSDL")
-#     binding = os.environ.get("PF_BINDING")
-#     ep = os.environ.get("PF_ENDPOINT_SAND")
-#     return shipr.ZeepConfig(binding=binding, wsdl=wsdl, auth=el_types.Authentication.from_env(), endpoint=ep)
-
+## ExpressLink
 
 @pytest.fixture
 def pfcom():
-    return ELClient.from_env()
+    return shipper.ELClient.from_env()
 
 
 @pytest.fixture
-def service(pfcom):
-    return pfcom.new_service()
-
-
-@pytest.fixture
-def random_contact(random_hire_record) -> extended.Contact:
-    return extended.Contact(
-        business_name=random_hire_record.get(shared.AmherstFields.CUSTOMER),
-        email_address=random_hire_record.get(shared.AmherstFields.EMAIL),
-        mobile_phone=random_hire_record.get(shared.AmherstFields.TELEPHONE),
+def random_contact(random_hire_record) -> pf_top.Contact:
+    return pf_top.Contact(
+        business_name=random_hire_record.get(am_shared.AmherstFields.CUSTOMER),
+        email_address=random_hire_record.get(am_shared.AmherstFields.EMAIL),
+        mobile_phone=random_hire_record.get(am_shared.AmherstFields.TELEPHONE),
     )
 
 
-# @pytest.fixture
-# def random_address(random_hire_record) -> elt.AddressPF:
-#     return elt.AddressPF(
-#         address_line1=random_hire_record.get(AmherstFields.ADDRESS),
-#         town=random_hire_record.get(AmherstFields.TOWN),
-#         postcode=random_hire_record.get(AmherstFields.POSTCODE)
-#     )
+@pytest.fixture
+def random_address(random_hire_record) -> pf_ext.AddressRecipient:
+    return pf_ext.AddressRecipient(
+        address_line1=random_hire_record.get(AmherstFields.ADDRESS),
+        town='',
+        postcode=random_hire_record.get(AmherstFields.POSTCODE)
+    )
 
 
 @pytest.fixture
 def fake_address():
-    addr = extended.AddressRecipient.model_validate(
+    addr = pf_ext.AddressRecipient.model_validate(
         dict(
             address_line1="30 Bennet Close",
             town="East Wickham",
@@ -120,25 +112,23 @@ def fake_address():
 
 @pytest.fixture
 def long_address():
-    with pytest.raises(ValidationError):
-        addr = extended.AddressRecipient.model_validate(
-            dict(
-                address_line1="30 Bennet Close" * 10,
-                town="East Wickham",
-                postcode="DA16 3HU",
-            )
+    addr = pf_ext.AddressRecipient.model_validate(
+        dict(
+            address_line1="30 Bennet Close" * 10,
+            town="East Wickham",
+            postcode="DA16 3HU",
         )
-        return addr.model_validate(addr)
+    )
+    return addr.model_validate(addr)
 
 
 @pytest.fixture
-def fake_contact() -> extended.Contact:
-    return extended.Contact(
+def fake_contact() -> pf_top.Contact:
+    return pf_top.Contact(
         business_name="Test Business",
         email_address="notreal@fake.com",
         mobile_phone="1234567890",
     )
-
 
 # @pytest.fixture
 # def min_shipment_r(fake_address, fake_contact) -> el_msg.RequestedShipmentMinimum:
@@ -152,3 +142,12 @@ def fake_contact() -> extended.Contact:
 #         recipient_address=fake_address,
 #         total_number_of_parcels=1,
 #     )
+@pytest.fixture(scope="session")
+def random_hires():
+    hires = [hire_model.Hire.model_validate(
+        hire_model.Hire(
+            record=random.choice(sample_data.hires)
+        )
+    ) for _ in
+        range(20)]
+    return hires

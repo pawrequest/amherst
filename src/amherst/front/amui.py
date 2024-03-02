@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-import shipr.models.extended
+import shipr.models.pf_ext
 from pawsupport.convert import get_ordinal_suffix
 from pawsupport.fastui_ps import Containable, fui
 from amherst.front import css

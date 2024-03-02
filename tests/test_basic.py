@@ -2,8 +2,9 @@ import pydantic
 from fastapi import FastAPI
 from starlette.testclient import TestClient
 
-from shipr.models import extended, db_models
-from . import monkey as test_amherst
+# from __future__ import annotations
+# if _ty.TYPE_CHECKING:
+#     pass
 
 app = FastAPI()
 client_test = TestClient(app)
@@ -33,33 +34,3 @@ def test_create_item():
         "name": "Sample Item",
         "price": 15.99
     }
-
-
-# class HireIn(BaseModel):
-#     __tablename__ = "hire"
-#     cmc_table_name: ClassVar[str] = "Hire"
-#     initial_filter_array: ClassVar[FilterArray] = Field(default=INITIAL_FILTER_ARRAY2, sa_column=Column(JSON))
-#     record: dict = Field(sa_column=Column(JSON))
-#     state: Optional[BookingStateIn] = Field(None, sa_column=Column(JSON))
-
-
-def test_address(fake_address, long_address, pfcom, test_session):
-    chosen = pfcom.choose_address(fake_address)
-    addr = db_models.AddressRecipientDB.model_validate(chosen)
-    addr = addr.model_validate(addr)
-    assert addr is not None
-    test_session.add(addr)
-    test_session.commit()
-    test_session.refresh(addr)
-    db_entry = test_session.get(db_models.AddressRecipientDB, addr.id)
-    assert db_entry is not None
-
-
-def test_contact(fake_contact, test_session):
-    con = fake_contact.model_validate(fake_contact)
-    assert con is not None
-    # test_session.add(con)
-    # test_session.commit()
-    # test_session.refresh(con)
-    # db_entry = test_session.get(fc.Contact, con.id)
-    # assert db_entry is not None

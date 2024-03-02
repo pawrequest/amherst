@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import StrEnum, Enum
+from typing import Literal
 
-
-from pycommence import CmcFilter, Connection, FilterArray, FilterCondition
+from pycommence import CmcFilter, Connection, FilterArray
 
 SALE_CUSTOMERS = Connection(
     name="SaleCustomers",
@@ -16,6 +16,21 @@ HIRE_CUSTOMERS = Connection(
     to_table="Customers",
     from_table="Hire",
 )
+
+HireStatusType = Literal[
+    'Booked in',
+    'Booked in and packed',
+    'Partially packed',
+    'Out',
+    'Returned all OK',
+    'Returned with problems',
+    'Quote given',
+    'Cancelled',
+    'Extended',
+    'Sold To Customer',
+    '',
+
+]
 
 
 class HireStatusEnum(StrEnum):
@@ -34,13 +49,13 @@ class HireStatusEnum(StrEnum):
 INITIAL_FILTER_ARRAY = FilterArray(
     filters={
         1: CmcFilter(
-            field_name="Status",
-            condition=FilterCondition.EQUAL_TO,
-            value=HireStatusEnum.BOOKED_IN,
+            cmc_col="Status",
+            condition='Equal To',
+            value='Booked in',
         ),
         2: CmcFilter(
-            field_name="Send Out Date",
-            condition=FilterCondition.AFTER,
+            cmc_col="Send Out Date",
+            condition='After',
             value="2023-01-01",
         ),
     }
@@ -48,19 +63,19 @@ INITIAL_FILTER_ARRAY = FilterArray(
 
 INITIAL_FILTER_ARRAY2 = FilterArray().add_filters(
     CmcFilter(
-        field_name="Status",
-        condition=FilterCondition.EQUAL_TO,
-        value=HireStatusEnum.BOOKED_IN,
+        cmc_col="Status",
+        condition='Equal To',
+        value='Booked in'
     ),
     CmcFilter(
-        field_name="Send Out Date",
-        condition=FilterCondition.AFTER,
+        cmc_col="Send Out Date",
+        condition='After',
         value="2023-01-01",
     ),
 )
 
 
-class AmherstFields(StrEnum):
+class AmherstFields(str, Enum):
     ACTUAL_RETURN_DATE = "Actual Return Date"
     ADDRESS = "Delivery Address"
     AERIAL_ADAPT = "Number Aerial Adapt"

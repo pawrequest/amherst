@@ -1,4 +1,4 @@
-from __future__ import annotations
+# from __future__ import annotations
 
 import os
 from pathlib import Path
@@ -10,7 +10,8 @@ from thefuzz import fuzz, process
 from zeep import Client
 from zeep.proxy import ServiceProxy
 
-from shipr.models import el_msg as msg, service_protocols as cp, extended, shipr_shared as shared
+import shipr.models.pf_top
+from shipr.models import pf_msg as msg, pf_msg_protocols as cp, pf_ext, pf_shared as shared
 
 SCORER = fuzz.token_sort_ratio
 
@@ -65,7 +66,7 @@ class ELClient(BaseModel):
         return msg.CreateShipmentResponse.model_validate(resp)
 
     def get_candidates(self, postcode: str) -> list[extended.AddressRecipient]:
-        req = msg.FindRequest(authentication=self.config.auth, paf=extended.PAF(postcode=postcode))
+        req = msg.FindRequest(authentication=self.config.auth, paf=pf_top.PAF(postcode=postcode))
         back = self.backend(cp.FindService)
         response = back.find(request=req.model_dump(by_alias=True))
         if paf := response.paf:
@@ -93,12 +94,12 @@ class ELClient(BaseModel):
         candidates = self.candidates_dict(address.postcode)
         if not candidates:
             return None
-        chosen, score = process.extractOne(address.address_lines_str(), list(candidates.keys()), scorer=SCORER)
+        chosen, score = process.extractOne(address.lines_str, list(candidates.keys()), scorer=SCORER)
         add = candidates[chosen]
         return add
 
     def candidates_dict(self, postcode):
-        candidates_dict = {add.address_lines_str(): add for add in self.get_candidates(postcode)}
+        candidates_dict = {add.lines_str(): add for add in self.get_candidates(postcode)}
         return candidates_dict
 
     def address_choice_str(self, address_lines: str, postcode: str) -> extended.AddressChoice:
@@ -106,3 +107,4 @@ class ELClient(BaseModel):
         chosen, score = process.extractOne(address_lines, list(candidates_dict.keys()), scorer=SCORER)
         add = candidates_dict[chosen]
         return extended.AddressChoice(address=add, score=score)
+

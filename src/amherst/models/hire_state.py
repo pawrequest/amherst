@@ -1,14 +1,18 @@
-from typing import Optional, TYPE_CHECKING
+# from __future__ import annotations
+import base64
+import datetime as dt
+import pathlib
 
-from sqlmodel import Field, Relationship, SQLModel
+import pydantic as pyd
 
-if TYPE_CHECKING:
-    from .hire_db import Hire
-from .links import HireStateLink
-from shipr.models.booking_state import BookingStateIn
+from shipr.models import (pf_ext, pf_msg, pf_shared, pf_top)
+from shipr.models.ui_states import states
 
 
-class HireState(BookingStateIn, SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    # hire_id: int = Field(foreign_key="hire.id", unique=True, index=True)
-    hire: "Hire" = Relationship(back_populates="state", link_model=HireStateLink)
+# if _ty.TYPE_CHECKING:
+#     pass
+
+
+# ship_date: pf_shared.ValidShipDate = sqm.Field(default_factory=date.today)
+
+
