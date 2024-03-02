@@ -12,7 +12,7 @@ from shipr.models.ui_states import bookings, states
 
 
 class HireBooking(bookings.BaseBooking):
-    hire: hire_in.Hire = sqm.Field(sa_column=sqa.Column(sqlpr.GenericJSONType(hire_in.Hire)))
+    hire: hire_model.Hire = sqm.Field(sa_column=sqa.Column(sqlpr.GenericJSONType(hire_model.Hire)))
     state: states.ShipState = sqm.Field(
         sa_column=sqm.Column(sqlpr.GenericJSONType(states.ShipState))
     )

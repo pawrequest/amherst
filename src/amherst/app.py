@@ -9,7 +9,7 @@ import fastapi
 import sqlmodel as sqm
 
 import shipr.models.ui_states.states
-from amherst.models import hire_booking, hire_model, hire_state
+from amherst.models import hire_booking, hire_model
 from amherst import am_db, routers, sample_data, shipper
 from shipr.models import pf_shared
 from pawsupport.logging_ps.config_loguru import get_loguru
@@ -46,6 +46,7 @@ app.include_router(routers.hire_router, prefix="/api/hire")
 # app.include_router(routers.book, prefix="/api/book")
 app.include_router(routers.booking_router, prefix="/api/book")
 app.include_router(routers.server_load_router, prefix="/api/sl")
+app.include_router(routers.forms_router, prefix="/api/forms")
 app.include_router(routers.main_router, prefix="/api")
 
 
@@ -68,7 +69,7 @@ async def html_landing() -> fastapi.responses.HTMLResponse:
 
 
 def initial_hire_state(
-        hire: hire_in.Hire,
+        hire: hire_model.Hire,
         pfcom: shipper.ELClient,
         ship_service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24
 ) -> shipr.models.ui_states.states.ShipState:
@@ -96,7 +97,7 @@ def records_to_sesh(
         *records: dict[str, str]
 ):
     for record in records:
-        hire_input_ = hire_in.Hire(record=record)
+        hire_input_ = hire_model.Hire(record=record)
         hire_input = hire_input_.model_validate(hire_input_)
 
         state = initial_hire_state(hire_input, pfcom)
@@ -110,8 +111,8 @@ def records_to_sesh(
 
 def populate_db_from_cmc(session: sqm.Session, pfcom):
     records = sample_data.hires
-    # with cmc.csr_context(hire_in.Hire.cmc_table_name) as csr:
-    #     filters = hire_in.Hire.initial_filter_array.default
+    # with cmc.csr_context(hire_model.Hire.cmc_table_name) as csr:
+    #     filters = hire_model.Hire.initial_filter_array.default
     #     records = csr.filter_by_array(filters, get=True)
     records = records[:3]
     records_to_sesh(session, pfcom, *records)

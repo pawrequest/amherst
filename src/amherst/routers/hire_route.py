@@ -8,16 +8,32 @@ from fastui.events import GoToEvent
 from loguru import logger
 from sqlmodel import Session
 
-import shipr.models.ui_states.states
 from amherst.front.pages import hire_page
-from amherst.models import hire_booking, hire_state
+from amherst.front.pages.new_address_page import AddressPage
+from amherst.models import hire_booking
 from amherst.am_db import get_hire_cursor, get_pfc, get_session
 from amherst.hire_to_sesh import hire_record_to_session
 from amherst.routers.booking_route import get_booking
 from amherst.shipper import AmShipper
 from pycommence import Csr
+from shipr.models.ui_states import states
 
 router = APIRouter()
+
+
+@router.get("/new_address/{booking_id}", response_model=FastUI, response_model_exclude_none=True)
+async def new_address(
+        booking_id: int,
+        # postcode: str|None = None,
+        pfcom: AmShipper = Depends(get_pfc),
+        session: Session = Depends(get_session),
+):
+    booking_in = await get_booking(booking_id, session)
+    booking_out = hire_booking.HireBookingOut.model_validate(booking_in)
+    postcode = booking_in.hire.input_address.postcode
+    candidates = pfcom.get_candidates(postcode)
+    page = AddressPage(booking=booking_out, candidates=candidates)
+    return await page.get_page()
 
 
 @router.get(
@@ -32,7 +48,7 @@ async def update_hire(
 ) -> list[AnyComponent]:
     try:
         upd = base64.urlsafe_b64decode(update_64).decode()
-        updt = shipr.models.ui_states.states.ShipStatePartial.model_validate_json(upd)
+        updt = states.ShipStatePartial.model_validate_json(upd)
     except pydantic.ValidationError as e:
         raise ValueError(
             f"update_64: {update_64} is not a valid base64 encoded ShipStatePartial\n{e}"

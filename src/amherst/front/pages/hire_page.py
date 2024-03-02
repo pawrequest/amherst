@@ -2,20 +2,27 @@ from __future__ import annotations, annotations
 
 import datetime
 
+import pydantic
 from fastui.events import GoToEvent, PageEvent
 from fastui import components as c
 
 from amherst.front import amui, css, ui_helpers
 from amherst.models import hire_booking
-from amherst.routers import server_load
 from pawsupport.fastui_ps import fui
 from amherst.front.pages.base_page import BasePage
 from shipr.models.ui_states import states
 from shipr.models.ui_states.states import update_get_partial64
 
 
+class PostcodeSelect(pydantic.BaseModel):
+    postcode: str
+
+
 class HirePage(BasePage):
     booking: hire_booking.HireBooking
+
+    def postcode_select(self):
+        return c.ModelForm(model=PostcodeSelect, submit_url="/api/forms/postcode")
 
     async def get_page(self) -> list[c.AnyComponent]:
         return await ui_helpers.page_w_alerts(
@@ -37,13 +44,15 @@ class HirePage(BasePage):
 
     async def control_buttons(self):
         return amui.Col.wrap(
-            c.Button(text="Choose this address"),
+            amui.Row.empty(),
             c.Button(text="Enter address manually", on_click=None),
             c.Button(
-                text="Choose a Different Address",
-                on_click=PageEvent(name="address-chooser")
+                text="Choose new address",
+                on_click=GoToEvent(
+                    url=f"/hire/new_address/{self.booking.id}",
+                ),
             ),
-            await self.address_modal(),
+            self.postcode_select(),
             wrap_inner=amui.Row,
         )
 
@@ -80,12 +89,10 @@ class HirePage(BasePage):
     async def address_modal(self):
         async def from_server():
             return [
-                c.ServerLoad(
-                    path=f"/sl/candidate_buttons/{self.booking.id}/{self.booking.state.address.postcode}",
-                    load_trigger=PageEvent(name="address-chooser"),
-                    components=await server_load.candidate_buttons(
-                        booking_id=self.booking.id,
-                        postcode=self.booking.state.address.postcode
+                c.Button(
+                    text="Choose new address",
+                    on_click=GoToEvent(
+                        url=f"/hire/new_address/{self.booking.id}",
                     ),
                 )
             ]
