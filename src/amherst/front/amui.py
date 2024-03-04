@@ -5,7 +5,6 @@ from datetime import date
 import fastui.class_name as _class_name
 from fastui import builders, styles
 from fastui import components as c
-from pawsupport.convert import get_ordinal_suffix
 from shipr.models import pf_ext, pf_top
 
 
@@ -37,6 +36,10 @@ def address_first_lines(
     class_name: _class_name.ClassName = styles.ROW_STYLE,
 ):
     return c.Div.wrap(c.Text(text=f'{candidate.address_line1} {candidate.address_line2}'), class_name=class_name)
+
+
+def get_ordinal_suffix(day: int) -> str:
+    return {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th') if day not in (11, 12, 13) else 'th'
 
 
 def date_string(date_: date) -> str:

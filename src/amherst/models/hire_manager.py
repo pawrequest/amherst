@@ -4,7 +4,7 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 
 from amherst.models import hire_model
-from pawsupport.sqlmodel_ps import sqlpr
+from pawsupport import sqlpr
 from shipr.ship_ui import managers, states
 
 
