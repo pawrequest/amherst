@@ -10,9 +10,6 @@ from loguru import logger
 
 load_dotenv()
 
-aname = r'http://127.0.0.1:8000/hire/new/UG9ydHNtb3V0aCBQcmlkZSAtIDAyLzA3LzIwMjQgcmVmIDIwMzU5'
-
-
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('hire_name', type=str)

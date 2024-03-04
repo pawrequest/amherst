@@ -18,7 +18,7 @@ async def lifespan(app: fastapi.FastAPI):
         am_db.create_db()
         with sqm.Session(am_db.ENGINE) as session:
             pfcom = shipper.AmShipper.from_env()
-        populate_db_from_cmc(session, pfcom)
+        # populate_db_from_cmc(session, pfcom)
 
         logger.info('tables created')
         # main_task = asyncio.create_task()
