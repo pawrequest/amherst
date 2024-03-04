@@ -1,0 +1,4 @@
+-e file:///C:/Users/RYZEN/prdev/amdev/pawsupport
+-e file:///C:/Users/RYZEN/prdev/amdev/pycommence
+-e file:///C:/Users/RYZEN/prdev/amdev/shipr
+-e file:///C:/Users/RYZEN/prdev/amdev/amherst

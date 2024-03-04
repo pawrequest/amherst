@@ -3,16 +3,19 @@ import base64
 import threading
 import time
 import webbrowser
+
 import uvicorn
 from dotenv import load_dotenv
 from loguru import logger
 
 load_dotenv()
 
+aname = r'http://127.0.0.1:8000/hire/new/UG9ydHNtb3V0aCBQcmlkZSAtIDAyLzA3LzIwMjQgcmVmIDIwMzU5'
+
 
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("hire_name", type=str)
+    arg_parser.add_argument('hire_name', type=str)
     return arg_parser.parse_args()
 
 
@@ -20,24 +23,25 @@ def main(hire_name=None):
     if hire_name is None:
         args = parse_arguments()
         hire_name = args.hire_name
+
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
+    time.sleep(1)
+    hire_name_encoded = base64.urlsafe_b64encode(hire_name.encode()).decode()
 
-    time.sleep(3)
+    adr = f'http://127.0.0.1:8000/hire/new/{hire_name_encoded}'
 
-    adr = get_addr(hire_name)
-    logger.info(f"Opening {adr}")
-
+    logger.info(f'Opening {adr}')
     webbrowser.open(adr)
 
     try:
         server_thread.join()
     except KeyboardInterrupt:
-        print("Server is shutting down...")
+        print('Server is shutting down...')
 
 
 def run_server():
-    uvicorn.run("amherst.app:app", host="127.0.0.1", port=8000, log_level="info")
+    uvicorn.run('amherst.app:app', host='127.0.0.1', port=8000, log_level='info')
 
 
 # class ServerReadyHandler:
@@ -55,12 +59,6 @@ def run_server():
 #     server.run()
 
 
-def get_addr(hire_name):
-    hire_name_encoded = base64.urlsafe_b64encode(hire_name.encode()).decode()
-    adr = f"http://127.0.0.1:8000/hire/get/name64/{hire_name_encoded}"
-    return adr
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = parse_arguments()
     main(args.hire_name)

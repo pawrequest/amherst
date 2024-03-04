@@ -7,15 +7,17 @@ from loguru import logger
 from sqlmodel import Session
 
 import amherst.front.pages.hire_shipping
+import pycommence
 import shipr
-from amherst.am_db import get_hire_cursor, get_pfc, get_session
+from amherst import rec_importer
+from amherst.am_db import get_pfc, get_session
+from amherst.front.pages import hire_shipping
 from amherst.models import hire_manager, hire_model
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
 from fastui import FastUI
 from fastui import components as c
 from fastui.events import GoToEvent
-from pycommence import Csr
 from shipr.ship_ui import states
 
 router = APIRouter()
@@ -31,7 +33,7 @@ async def neighbours(
     man_out = hire_manager.HireManagerOut.model_validate(man_in)
     postcode = man_in.hire.input_address.postcode
     candidates = pfcom.get_candidates(postcode)
-    return await amherst.front.pages.hp_2.address_chooser(manager=man_out, candidates=candidates)
+    return await amherst.front.pages.hire_shipping.address_chooser(manager=man_out, candidates=candidates)
 
 
 @router.get('/pcneighbours/{booking_id}/{postcode}', response_model=FastUI, response_model_exclude_none=True)
@@ -44,7 +46,7 @@ async def pcneighbours(
     man_in = await get_manager(booking_id, session)
     man_out = hire_manager.HireManagerOut.model_validate(man_in)
     candidates = pfcom.get_candidates(postcode)
-    return await amherst.front.pages.hp_2.address_chooser(manager=man_out, candidates=candidates)
+    return await amherst.front.pages.hire_shipping.address_chooser(manager=man_out, candidates=candidates)
 
 
 @router.get('/update/{booking_id}/{update_64}', response_model=FastUI, response_model_exclude_none=True)
@@ -65,7 +67,7 @@ async def update_hire(
     session.add(man_in)
     session.commit()
     session.refresh(man_in)
-    return await hp_2.hire_page(manager=man_in)
+    return await hire_shipping.hire_page(manager=man_in)
 
     # return [c.Text(text="Booking not found")]
 
@@ -79,31 +81,34 @@ async def view_hire(
     man_out = hire_manager.HireManagerOut.model_validate(man_in)
     if not man_out:
         raise ValueError(f'manager id {manager_id} not found')
-    return await hp_2.hire_page(manager=man_out)
+    return await hire_shipping.hire_page(manager=man_out)
 
 
 @router.get('/new/{hire_name}')
 async def hire_from_cmc_name_64(
     hire_name: str,
     session=Depends(get_session),
-    cursor: Csr = Depends(get_hire_cursor),
+    # cursor: Csr = Depends(get_hire_cursor),
     pfcom: AmShipper = Depends(get_pfc),
 ):
     hire_name = base64.urlsafe_b64decode(hire_name).decode()
     logger.info(f'hire_name: {hire_name}')
-    hire_record = cursor.get_record(hire_name)
+    with pycommence.csr_context('Hire') as cursor:
+        hire_record = cursor.get_record(hire_name)
 
-    hire = hire_record_to_session(hire_record, session, pfcom)
-    return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{hire.id}'))]
+    added = rec_importer.records_to_managers(session, pfcom, hire_record)[0]
+
+    # hire = hire_record_to_session(hire_record, session, pfcom)
+    return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{added.id}'))]
 
 
-def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> hire_model.Hire:
+def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> hire_manager.HireManagerDB:
     """Create a new hire and state in the database from a record dict."""
     hire_ = hire_model.Hire(record=record)
     state = shipr.ShipState.hire_initial(hire_, pfcom)
-    hire_.state = state
-    hire = hire_model.Hire.model_validate(hire_)
-    session.add(hire)
+    manager = hire_manager.HireManagerDB(hire=hire_, state=state)
+    manager = manager.model_validate(manager)
+    session.add(manager)
     session.commit()
-    session.refresh(hire)
-    return hire
+    session.refresh(manager)
+    return manager
