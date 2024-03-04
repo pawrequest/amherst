@@ -10,7 +10,7 @@ dependencies = [
     'pycommence',
     'shipr',
     'pydantic',
-    'fastui',
+    'fastuipr',
     'fastapi',
     'pyinstaller',
     'pypdf',
