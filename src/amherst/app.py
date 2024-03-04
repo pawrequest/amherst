@@ -1,20 +1,22 @@
 # from __future__ import annotations
 
-import sys
 import contextlib
+import sys
 
-import fastui
-from dotenv import load_dotenv
 import fastapi
 import sqlmodel as sqm
+from dotenv import load_dotenv
 
-import shipr.models.ui_states.states
-from amherst.models import hire_booking, hire_model
+import fastui
+import shipr
 from amherst import am_db, routers, sample_data, shipper
-from shipr.models import pf_shared
+from amherst.models import hire_manager, hire_model
 from pawsupport.logging_ps.config_loguru import get_loguru
+from shipr import ShipState
+from shipr.models import pf_shared
 
 load_dotenv()
+
 logger = get_loguru(__name__)
 
 
@@ -26,7 +28,7 @@ async def lifespan(app: fastapi.FastAPI):
             pfcom = shipper.AmShipper.from_env()
             populate_db_from_cmc(session, pfcom)
 
-        logger.info("tables created")
+        logger.info('tables created')
         # main_task = asyncio.create_task()
         yield
 
@@ -36,43 +38,43 @@ async def lifespan(app: fastapi.FastAPI):
         # await asyncio.gather(main_task)
 
 
-frontend_reload = "--reload" in sys.argv
+frontend_reload = '--reload' in sys.argv
 if frontend_reload:
     app = fastui.dev.dev_fastapi_app(lifespan=lifespan)
 else:
     app = fastapi.FastAPI(lifespan=lifespan)
 
-app.include_router(routers.hire_router, prefix="/api/hire")
+app.include_router(routers.hire_router, prefix='/api/hire')
 # app.include_router(routers.book, prefix="/api/book")
-app.include_router(routers.booking_router, prefix="/api/book")
-app.include_router(routers.server_load_router, prefix="/api/sl")
-app.include_router(routers.forms_router, prefix="/api/forms")
-app.include_router(routers.main_router, prefix="/api")
+app.include_router(routers.booking_router, prefix='/api/book')
+app.include_router(routers.server_load_router, prefix='/api/sl')
+app.include_router(routers.forms_router, prefix='/api/forms')
+app.include_router(routers.main_router, prefix='/api')
 
 
 # app.include_router(rout, prefix="/api/rout")
 
 
-@app.get("/robots.txt", response_class=fastapi.responses.PlainTextResponse)
+@app.get('/robots.txt', response_class=fastapi.responses.PlainTextResponse)
 async def robots_txt() -> str:
-    return "User-agent: *\nAllow: /"
+    return 'User-agent: *\nAllow: /'
 
 
-@app.get("/favicon.ico", status_code=404, response_class=fastapi.responses.PlainTextResponse)
+@app.get('/favicon.ico', status_code=404, response_class=fastapi.responses.PlainTextResponse)
 async def favicon_ico() -> str:
-    return "page not found"
+    return 'page not found'
 
 
-@app.get("/{path:path}")
+@app.get('/{path:path}')
 async def html_landing() -> fastapi.responses.HTMLResponse:
-    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title="Amherst"))
+    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
 
 
 def initial_hire_state(
-        hire: hire_model.Hire,
-        pfcom: shipper.ELClient,
-        ship_service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24
-) -> shipr.models.ui_states.states.ShipState:
+    hire: hire_model.Hire,
+    pfcom: shipper.ELClient,
+    ship_service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24,
+) -> shipr.ShipState:
     try:
         address = pfcom.choose_address(hire.input_address)
     except ValueError as e:
@@ -81,7 +83,7 @@ def initial_hire_state(
         )
         address = hire.input_address
 
-    state = shipr.models.ui_states.states.ShipState(
+    state = ShipState(
         boxes=hire.boxes,
         ship_date=hire.ship_date,
         ship_service=ship_service,
@@ -91,18 +93,14 @@ def initial_hire_state(
     return state.model_validate(state)
 
 
-def records_to_sesh(
-        session: sqm.Session,
-        pfcom: shipper.AmShipper,
-        *records: dict[str, str]
-):
+def records_to_sesh(session: sqm.Session, pfcom: shipper.AmShipper, *records: dict[str, str]):
     for record in records:
         hire_input_ = hire_model.Hire(record=record)
         hire_input = hire_input_.model_validate(hire_input_)
 
         state = initial_hire_state(hire_input, pfcom)
 
-        hire_book = hire_booking.HireBookingDB(hire=hire_input, state=state)
+        hire_book = hire_manager.HireManagerDB(hire=hire_input, state=state)
         hb = hire_book.model_validate(hire_book)
         session.add(hb)
 

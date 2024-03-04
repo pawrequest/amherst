@@ -1,7 +1,7 @@
 import shipr.models.pf_ext
 import shipr.models.pf_top
 from shipr.models.pf_msg import FindRequest, FindResponse
-from shipr.models import pf_msg_protocols as cp
+from shipr.msgs import pf_msg_protocols as cp
 
 
 def test_pfc2(pfcom):

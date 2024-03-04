@@ -5,16 +5,15 @@ import datetime as dt
 import sqlmodel as sqm
 import sqlalchemy as sqa
 
-import shipr.models.ui_states.abc
+import shipr.ui_states.abc
 from pawsupport.sqlmodel_ps import sqlpr
-from shipr.models.ui_states import states
 
 
 # if _ty.TYPE_CHECKING:
 #     pass
 
 
-class SStae(shipr.models.ui_states.abc.BaseUIState):
+class SStae(shipr.ui_states.abc.BaseUIState):
     id: int | None = None
 
 

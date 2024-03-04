@@ -1,91 +1,98 @@
 # from __future__ import annotations
 import base64
 
-import pydantic
 from fastapi import APIRouter, Depends
-from fastui import AnyComponent, FastUI, components as c
-from fastui.events import GoToEvent
 from loguru import logger
 from sqlmodel import Session
 
-from amherst.front.pages import hire_page
-from amherst.front.pages.new_address_page import AddressPage
-from amherst.models import hire_booking
+import amherst.front.pages.hp_2
+import shipr
 from amherst.am_db import get_hire_cursor, get_pfc, get_session
+from amherst.front.pages import hp_2
 from amherst.hire_to_sesh import hire_record_to_session
-from amherst.routers.booking_route import get_booking
+from amherst.models import hire_manager
+from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
+from fastui import FastUI
+from fastui import components as c
+from fastui.events import GoToEvent
 from pycommence import Csr
-from shipr.models.ui_states import states
+from shipr.ship_ui import states
 
 router = APIRouter()
 
 
-@router.get("/new_address/{booking_id}", response_model=FastUI, response_model_exclude_none=True)
-async def new_address(
-        booking_id: int,
-        # postcode: str|None = None,
-        pfcom: AmShipper = Depends(get_pfc),
-        session: Session = Depends(get_session),
+@router.get('/neighbours/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
+async def neighbours(
+    booking_id: int,
+    pfcom: AmShipper = Depends(get_pfc),
+    session: Session = Depends(get_session),
 ):
-    booking_in = await get_booking(booking_id, session)
-    booking_out = hire_booking.HireBookingOut.model_validate(booking_in)
-    postcode = booking_in.hire.input_address.postcode
+    man_in = await get_manager(booking_id, session)
+    man_out = hire_manager.HireManagerOut.model_validate(man_in)
+    postcode = man_in.hire.input_address.postcode
     candidates = pfcom.get_candidates(postcode)
-    page = AddressPage(booking=booking_out, candidates=candidates)
-    return await page.get_page()
+    return await amherst.front.pages.hp_2.address_chooser(manager=man_out, candidates=candidates)
 
 
-@router.get(
-    "/update/{booking_id}/{update_64}",
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
+@router.get('/pcneighbours/{booking_id}/{postcode}', response_model=FastUI, response_model_exclude_none=True)
+async def pcneighbours(
+    booking_id: int,
+    postcode: str,
+    pfcom: AmShipper = Depends(get_pfc),
+    session: Session = Depends(get_session),
+):
+    man_in = await get_manager(booking_id, session)
+    man_out = hire_manager.HireManagerOut.model_validate(man_in)
+    candidates = pfcom.get_candidates(postcode)
+    return await amherst.front.pages.hp_2.address_chooser(manager=man_out, candidates=candidates)
+
+
+@router.get('/update/{booking_id}/{update_64}', response_model=FastUI, response_model_exclude_none=True)
 async def update_hire(
-        booking_id: int,
-        update_64: str | None = None,
-        session: Session = Depends(get_session),
-) -> list[AnyComponent]:
-    try:
-        upd = base64.urlsafe_b64decode(update_64).decode()
-        updt = states.ShipStatePartial.model_validate_json(upd)
-    except pydantic.ValidationError as e:
-        raise ValueError(
-            f"update_64: {update_64} is not a valid base64 encoded ShipStatePartial\n{e}"
-        )
+    booking_id: int,
+    update_64: str | None = None,
+    session: Session = Depends(get_session),
+) -> list[c.AnyComponent]:
+    updt = states.ShipStatePartial.model_validate_64(update_64)
 
-    booking = await get_booking(booking_id, session)
-    booking.state = booking.state.model_copy(
-        update=updt.model_dump(exclude_none=True)
-    )
-    session.add(booking)
+    man_in = await get_manager(booking_id, session)
+    man_out = hire_manager.HireManagerOut.model_validate(man_in)
+
+    updated_state_ = man_out.state.get_updated(updt)
+    updated_state = shipr.ShipState.model_validate(updated_state_)
+    man_in.state = updated_state
+    # man_out = hire_manager.HireManagerDB.model_validate(man_in)
+    session.add(man_in)
     session.commit()
-    session.refresh(booking)
-    page = hire_page.HirePage(booking=booking)
-    return await page.get_page()
+    session.refresh(man_in)
+    return await hp_2.hire_page(manager=man_in)
+
     # return [c.Text(text="Booking not found")]
 
 
-@router.get("/view/{booking_id}", response_model=FastUI, response_model_exclude_none=True)
+@router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def view_hire(
-        booking_id: int,
-        session: Session = Depends(get_session),
-) -> list[AnyComponent]:
-    booking = await get_booking(booking_id, session)
-    page = hire_page.HirePage(booking=booking)
-    return await page.get_page()
+    manager_id: int,
+    session: Session = Depends(get_session),
+) -> list[c.AnyComponent]:
+    man_in = await get_manager(manager_id, session)
+    man_out = hire_manager.HireManagerOut.model_validate(man_in)
+    if not man_out:
+        raise ValueError(f'manager id {manager_id} not found')
+    return await hp_2.hire_page(manager=man_out)
 
 
-@router.get("/new/{hire_name}")
+@router.get('/new/{hire_name}')
 async def hire_from_cmc_name_64(
-        hire_name: str,
-        session=Depends(get_session),
-        cursor: Csr = Depends(get_hire_cursor),
-        pfcom: AmShipper = Depends(get_pfc),
+    hire_name: str,
+    session=Depends(get_session),
+    cursor: Csr = Depends(get_hire_cursor),
+    pfcom: AmShipper = Depends(get_pfc),
 ):
     hire_name = base64.urlsafe_b64decode(hire_name).decode()
-    logger.info(f"hire_name: {hire_name}")
+    logger.info(f'hire_name: {hire_name}')
     hire_record = cursor.get_record(hire_name)
 
     hire = hire_record_to_session(hire_record, session, pfcom)
-    return [c.FireEvent(event=GoToEvent(url=f"/hire/view/{hire.id}"))]
+    return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{hire.id}'))]

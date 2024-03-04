@@ -1,7 +1,7 @@
 # from __future__ import annotations
 
-import typing as _ty
 import datetime as dt
+import typing as _ty
 
 import sqlmodel as sqm
 
@@ -15,13 +15,12 @@ from shipr.models import (
     pf_top,
 )
 
-
 # if _ty.TYPE_CHECKING:
 #     pass
 
 
 class Hire(pf_shared.BasePFType):
-    cmc_table_name: _ty.ClassVar[str] = "Hire"
+    cmc_table_name: _ty.ClassVar[str] = 'Hire'
     initial_filter_array: _ty.ClassVar[cmc.FilterArray] = sqm.Field(
         default=am_shared.INITIAL_FILTER_ARRAY2,
         # sa_column=sqm.Column(sqm.JSON)
@@ -55,7 +54,7 @@ class Hire(pf_shared.BasePFType):
     def input_address(self) -> pf_ext.AddressRecipient:
         return pf_ext.AddressRecipient(
             **addr_lines_dict_am(self.record.get(am_shared.AmherstFields.ADDRESS)),
-            town="",
+            town='',
             postcode=self.record.get(am_shared.AmherstFields.POSTCODE),
         )
 
@@ -73,9 +72,10 @@ class Hire(pf_shared.BasePFType):
 def addr_lines_dict_am(address: str) -> dict[str, str]:
     addr_lines = address.splitlines()
     if len(addr_lines) < 3:
-        addr_lines.extend([""] * (3 - len(addr_lines)))
+        addr_lines.extend([''] * (3 - len(addr_lines)))
     elif len(addr_lines) > 3:
-        addr_lines[2] = ",".join(addr_lines[2:])
-    return {f"address_line{num}": line for num, line in enumerate(addr_lines, start=1)}
+        addr_lines[2] = ','.join(addr_lines[2:])
+    return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
+
 
 #
