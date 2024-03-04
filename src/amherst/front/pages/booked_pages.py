@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from amherst.models import hire_manager
-from fastui import builders
-from fastui import components as c
-from fastui import events as e
+from fastuipr import builders
+from fastuipr import components as c
+from fastuipr import events as e
 from shipr.models.pf_shared import Alert
 
 

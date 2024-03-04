@@ -6,7 +6,7 @@ import sqlmodel as sqm
 from dotenv import load_dotenv
 from loguru import logger
 
-import fastui
+import fastuipr
 from amherst import am_db, rec_importer, routers, sample_data, shipper
 
 load_dotenv()
@@ -29,12 +29,7 @@ async def lifespan(app: fastapi.FastAPI):
         # main_task.cancel()
         # await asyncio.gather(main_task)
 
-
-frontend_reload = '--reload' in sys.argv
-if frontend_reload:
-    app = fastui.dev.dev_fastapi_app(lifespan=lifespan)
-else:
-    app = fastapi.FastAPI(lifespan=lifespan)
+app = fastapi.FastAPI(lifespan=lifespan)
 
 app.include_router(routers.hire_router, prefix='/api/hire')
 app.include_router(routers.booking_router, prefix='/api/book')
@@ -65,4 +60,4 @@ def populate_db_from_cmc(session: sqm.Session, pfcom):
 
 @app.get('/{path:path}')
 async def html_landing() -> fastapi.responses.HTMLResponse:
-    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
+    return fastapi.responses.HTMLResponse(fastuipr.prebuilt_html(title='Amherst'))

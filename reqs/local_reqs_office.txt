@@ -1,3 +1,5 @@
--e file:///C:/Users/Giles/prdev/pycommence
--e file:///C:/Users/Giles/prdev/shipr
-git+https://github.com/pawrequest/pawsupport
+-e file:///C:/Users/Giles/prdev/amdev/pycommence
+-e file:///C:/Users/Giles/prdev/amdev/shipr
+-e file:///C:/Users/Giles/prdev/amdev/pawsupport
+-e file:///C:/Users/Giles/prdev/amdev/fastuipr
+-e file:///C:/Users/Giles/prdev/amdev/amherst

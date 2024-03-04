@@ -15,9 +15,9 @@ from amherst.front.pages import hire_shipping
 from amherst.models import hire_manager, hire_model
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
-from fastui import FastUI
-from fastui import components as c
-from fastui.events import GoToEvent
+from fastuipr import FastUI
+from fastuipr import components as c
+from fastuipr.events import GoToEvent
 from shipr.ship_ui import states
 
 router = APIRouter()

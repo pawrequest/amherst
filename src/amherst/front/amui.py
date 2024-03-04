@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from datetime import date
 
-import fastui.class_name as _class_name
-from fastui import builders, styles
-from fastui import components as c
+import fastuipr.class_name as _class_name
+from fastuipr import builders, styles
+from fastuipr import components as c
 from shipr.models import pf_ext, pf_top
 
 

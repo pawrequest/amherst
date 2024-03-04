@@ -7,30 +7,30 @@ import fastapi
 import sqlmodel as sqm
 from loguru import logger
 
-import fastui
+import fastuipr
 import shipr
 from amherst import am_db, shipper
 from amherst.front import amui
 from amherst.front.pages import booked_pages
 from amherst.models import hire_manager
-from fastui import components as c
+from fastuipr import components as c
 from shipr.ship_ui import states
 
 router = fastapi.APIRouter()
 
 
 @router.get('/dummy/')
-async def dummy_page() -> list[fastui.AnyComponent]:
-    print('pbboking opsted')
+async def dummy_page() -> list[fastuipr.AnyComponent]:
+    print('dummy page got')
     return amui.Page.default_page(c.Text(text='dummy'))
 
 
-@router.get('/go/{manager_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
+@router.get('/go/{manager_id}', response_model=fastuipr.FastUI, response_model_exclude_none=True)
 async def go(
     manager_id: int,
     pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
     session: sqm.Session = fastapi.Depends(am_db.get_session),
-) -> list[fastui.AnyComponent]:
+) -> list[fastuipr.AnyComponent]:
     logger.warning(f'booking_id: {manager_id}')
     manager = await get_manager(manager_id, session)
 
@@ -79,7 +79,7 @@ async def get_manager(manager_id: int, session: sqm.Session) -> hire_manager.Hir
     return man_in
 
 
-@router.get('/print/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
+@router.get('/print/{booking_id}', response_model=fastuipr.FastUI, response_model_exclude_none=True)
 async def print_label(
     booking_id: int, pfcom=fastapi.Depends(am_db.get_pfc), session=fastapi.Depends(am_db.get_session)
 ):

@@ -9,9 +9,9 @@ import amherst.routers.forms
 from amherst.front import amui
 from amherst.models import hire_manager
 from amherst.routers.forms import VALID_PC, PostcodeSelect
-from fastui import AnyComponent, builders, styles
-from fastui import components as c
-from fastui import events as e
+from fastuipr import AnyComponent, builders, styles
+from fastuipr import components as c
+from fastuipr import events as e
 from shipr.models import pf_ext
 from shipr.ship_ui import states
 

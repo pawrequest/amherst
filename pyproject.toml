@@ -6,11 +6,11 @@ authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
 dependencies = [
-    'pawsupport[fast, office]',
+    'pawsupport',
     'pycommence',
     'shipr',
     'pydantic',
-    'fastuipr',
+    "fastuipr",
     'fastapi',
     'pyinstaller',
     'pypdf',

@@ -11,10 +11,10 @@ from loguru import logger
 import shipr
 from amherst import am_db
 from amherst.routers.booking_route import get_manager
-from fastui import FastUI
-from fastui import components as c
-from fastui import events as e
-from fastui.forms import fastui_form
+from fastuipr import FastUI
+from fastuipr import components as c
+from fastuipr import events as e
+from fastuipr.forms import fastui_form
 from pawsupport.pydantic import pyd_types
 from pawsupport.pydantic.pyd_types import default_gen, is_valid_postcode
 from shipr import models as s_mod
