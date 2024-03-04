@@ -1,16 +1,15 @@
 # from __future__ import annotations
 import base64
 
+import sqlmodel as sqm
 from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlmodel import Session
 
-import amherst.front.pages.hp_2
+import amherst.front.pages.hire_shipping
 import shipr
 from amherst.am_db import get_hire_cursor, get_pfc, get_session
-from amherst.front.pages import hp_2
-from amherst.hire_to_sesh import hire_record_to_session
-from amherst.models import hire_manager
+from amherst.models import hire_manager, hire_model
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
 from fastui import FastUI
@@ -96,3 +95,15 @@ async def hire_from_cmc_name_64(
 
     hire = hire_record_to_session(hire_record, session, pfcom)
     return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{hire.id}'))]
+
+
+def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> hire_model.Hire:
+    """Create a new hire and state in the database from a record dict."""
+    hire_ = hire_model.Hire(record=record)
+    state = shipr.ShipState.hire_initial(hire_, pfcom)
+    hire_.state = state
+    hire = hire_model.Hire.model_validate(hire_)
+    session.add(hire)
+    session.commit()
+    session.refresh(hire)
+    return hire

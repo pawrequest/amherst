@@ -23,14 +23,14 @@ router = fastapi.APIRouter()
 
 
 class PostcodeSelect(_p.BaseModel):
-    postcode: VALID_PC
+    postcode_to_fetch_addresses_from: VALID_PC
 
     @classmethod
     def with_default(cls, postcode: str):
         dflt2 = default_gen(VALID_PC, default=postcode)
 
         class _PostcodeSelect(cls):
-            postcode: dflt2
+            postcode_to_fetch_addresses_from: dflt2
 
         return _PostcodeSelect
 
@@ -40,10 +40,12 @@ async def postcode_post(
     manager_id: int,
     form: Annotated[PostcodeSelect, fastui_form(PostcodeSelect)],
 ):
-    if not is_valid_postcode(form.postcode):
-        logger.warning(f'Invalid postcode: {form.postcode}')
+    if not is_valid_postcode(form.postcode_to_fetch_addresses_from):
+        logger.warning(f'Invalid postcode: {form.postcode_to_fetch_addresses_from}')
         return [c.FireEvent(event=e.GoToEvent(url=f'/hire/view/{manager_id}'))]
-    return [c.FireEvent(event=e.GoToEvent(url=f'/hire/pcneighbours/{manager_id}/{form.postcode}'))]
+    return [
+        c.FireEvent(event=e.GoToEvent(url=f'/hire/pcneighbours/{manager_id}/{form.postcode_to_fetch_addresses_from}'))
+    ]
 
 
 class ContactForm(pydantic.BaseModel):
@@ -51,8 +53,6 @@ class ContactForm(pydantic.BaseModel):
     email_address: pyd_types.TruncatedSafeStr(50)
     mobile_phone: str
     contact_name: pyd_types.TruncatedSafeMaybeStr(30)
-    telephone: str | None = None
-    senders_name: pyd_types.TruncatedSafeMaybeStr(25)
 
     @classmethod
     def with_default(cls, contact: s_mod.Contact):
@@ -60,16 +60,12 @@ class ContactForm(pydantic.BaseModel):
         em_ = default_gen(pyd_types.TruncatedSafeStr(50), default=contact.email_address)
         mob_t = default_gen(str, default=contact.mobile_phone)
         con_t = default_gen(pyd_types.TruncatedSafeMaybeStr(30), default=contact.contact_name)
-        tel_t = default_gen(str | None, default=contact.telephone)
-        sender_t = default_gen(pyd_types.TruncatedSafeMaybeStr(25), default=contact.senders_name)
 
         class _ContactSelect(cls):
             business_name: bus_t
             email_address: em_
             mobile_phone: mob_t
             contact_name: con_t
-            telephone: tel_t
-            senders_name: sender_t
 
         return _ContactSelect
 

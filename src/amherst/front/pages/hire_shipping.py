@@ -12,7 +12,6 @@ from amherst.routers.forms import VALID_PC, PostcodeSelect
 from fastui import AnyComponent, builders, styles
 from fastui import components as c
 from fastui import events as e
-from fastui.types_ import ModalType
 from shipr.models import pf_ext
 from shipr.ship_ui import states
 
@@ -21,45 +20,60 @@ async def hire_page(manager: hire_manager.HireManager) -> list[c.AnyComponent]:
     return await builders.page_w_alerts(
         alerts=[],
         components=[
-            await address_row(manager),
-            await controls_row(manager),
+            await main_row(manager),
+            # await controls_row(manager),
         ],
     )
 
     # await self.service_button(),
-    # await self.manual_entry(),
 
 
-async def address_row(manager: hire_manager.HireManager) -> c.Div:
+async def main_row(manager: hire_manager.HireManager) -> c.Div:
     return c.Div.wrap(
-        await input_address_col(manager),
-        await contact_form_col(manager),
-        await address_form_col(manager),
+        await left_col(manager),
+        await middle_col(manager),
+        await right_col(manager),
         class_name=styles.ROW_STYLE,
     )
 
 
-async def input_address_col(manager):
+async def left_col(manager) -> c.Div:
     return c.Div.wrap(
-        await amui.address_n_contact_col(
-            address=manager.hire.input_address, contact=manager.hire.contact, title_prefix='Input '
-        ),
-        await address_from_postcode_col(manager.id, manager.state.address.postcode),
-        class_name=styles.COL_STYLE,
+        await input_address_div(manager),
+        await boxes_modal_row(manager),
+        await date_modal_row(manager),
+        *await book_modal(manager.id),
+        class_name=styles.LEFT_COL_STYLE,
     )
 
 
-async def contact_form_col(manager):
+async def input_address_div(manager):
+    return c.Div.wrap(
+        *builders.all_text(manager.hire.contact, class_name=styles.ADD_LINE_STYLE),
+        *builders.all_text(manager.hire.input_address, class_name=styles.ADD_LINE_STYLE),
+    )
+
+
+async def address_chooser_div(manager) -> c.Div:
+    return c.Div.wrap(
+        await choose_address_from_postcode(manager.id, manager.state.address.postcode),
+        class_name=styles.ADDRESS_FROM_PC_STYLE,
+    )
+
+
+async def middle_col(manager):
     return c.Div.wrap(
         c.ModelForm(
             model=amherst.routers.forms.ContactForm.with_default(manager.state.contact),
             submit_url=f'/api/forms/contact/{manager.id}',
+            submit_on_change=True,
         ),
+        await address_chooser_div(manager),
         class_name=styles.COL_STYLE,
     )
 
 
-async def address_form_col(manager):
+async def right_col(manager):
     return c.Div.wrap(
         c.ModelForm(
             model=amherst.routers.forms.AddressForm.with_default(manager.state.address),
@@ -69,23 +83,13 @@ async def address_form_col(manager):
     )
 
 
-async def address_from_postcode_col(man_id: int, postcode: str):
+async def choose_address_from_postcode(man_id: int, postcode: str):
     return c.Div.wrap(
         c.ModelForm(
             model=PostcodeSelect.with_default(postcode),
             submit_url=f'/api/forms/postcode/{man_id}',
         ),
-        class_name=styles.ROW_STYLE,
-    )
-
-
-async def controls_row(manager):
-    return c.Div.wrap(
-        *await boxes_modal(manager),
-        *await date_modal(manager),
-        *await book_modal(manager.id),
-        class_name=styles.ROW_STYLE,
-        # inner_class_name=styles.COL_STYLE,
+        class_name=styles.BOXES_BUTTON,
     )
 
 
@@ -98,7 +102,7 @@ async def neighbouring_addresses(man_id) -> c.Button:
     )
 
 
-async def boxes_modal(manager: hire_manager.HireManager) -> ModalType:
+async def boxes_modal_row(manager: hire_manager.HireManager) -> c.Div:
     async def boxes_chooser_buttons() -> list[c.AnyComponent]:
         return [
             c.Button(
@@ -106,11 +110,12 @@ async def boxes_modal(manager: hire_manager.HireManager) -> ModalType:
                 on_click=e.GoToEvent(
                     url=f'/hire/update/{manager.id}/{manager.state.update_dump_64(boxes=i)}',
                 ),
+                class_name=styles.BOXES_BUTTON,
             )
             for i in range(1, 11)
         ]
 
-    return (
+    return c.Div.wrap(
         c.Button(
             text=f'{manager.state.boxes} Boxes',
             on_click=e.PageEvent(name='boxes-chooser'),
@@ -124,6 +129,7 @@ async def boxes_modal(manager: hire_manager.HireManager) -> ModalType:
             ],
             open_trigger=e.PageEvent(name='boxes-chooser'),
         ),
+        class_name=styles.ROW_STYLE,
     )
 
 
@@ -160,7 +166,7 @@ async def address_chooser(
     )
 
 
-async def date_modal(manager: hire_manager.HireManagerOut) -> ModalType:
+async def date_modal_row(manager: hire_manager.HireManagerOut) -> c.Div:
     async def date_chooser_buttons() -> list[c.AnyComponent]:
         start_date = dt.date.today()
         date_range = [start_date + dt.timedelta(days=x) for x in range(7)]
@@ -172,11 +178,12 @@ async def date_modal(manager: hire_manager.HireManagerOut) -> ModalType:
                 on_click=e.GoToEvent(
                     url=f'/hire/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(ship_date=ship_date))}',
                 ),
+                class_name=styles.BOXES_BUTTON,
             )
             for ship_date in weekday_dates
         ]
 
-    return (
+    return c.Div.wrap(
         c.Button(
             text=amui.date_string(manager.state.ship_date),
             on_click=e.PageEvent(
@@ -191,6 +198,7 @@ async def date_modal(manager: hire_manager.HireManagerOut) -> ModalType:
             ],
             open_trigger=e.PageEvent(name='date-chooser'),
         ),
+        class_name=styles.ROW_STYLE,
     )
 
 
@@ -205,6 +213,7 @@ async def book_modal(man_id):
                     on_click=e.GoToEvent(
                         url=f'/book/go/{man_id}',
                     ),
+                    class_name=styles.BOXES_BUTTON,
                 ),
             ],
             footer=[

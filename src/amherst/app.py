@@ -45,11 +45,8 @@ else:
     app = fastapi.FastAPI(lifespan=lifespan)
 
 app.include_router(routers.hire_router, prefix='/api/hire')
-# app.include_router(routers.book, prefix="/api/book")
 app.include_router(routers.booking_router, prefix='/api/book')
-app.include_router(routers.server_load_router, prefix='/api/sl')
 app.include_router(routers.forms_router, prefix='/api/forms')
-app.include_router(routers.main_router, prefix='/api')
 
 
 # app.include_router(rout, prefix="/api/rout")
@@ -63,11 +60,6 @@ async def robots_txt() -> str:
 @app.get('/favicon.ico', status_code=404, response_class=fastapi.responses.PlainTextResponse)
 async def favicon_ico() -> str:
     return 'page not found'
-
-
-@app.get('/{path:path}')
-async def html_landing() -> fastapi.responses.HTMLResponse:
-    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
 
 
 def initial_hire_state(
@@ -114,3 +106,8 @@ def populate_db_from_cmc(session: sqm.Session, pfcom):
     #     records = csr.filter_by_array(filters, get=True)
     records = records[:3]
     records_to_sesh(session, pfcom, *records)
+
+
+@app.get('/{path:path}')
+async def html_landing() -> fastapi.responses.HTMLResponse:
+    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
