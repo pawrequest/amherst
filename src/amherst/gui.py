@@ -6,7 +6,7 @@ from flaskwebgui import FlaskUI
 import pycommence
 from amherst import am_db, rec_importer, shipper, main
 
-
+warn = "%USERPROFILE%\.rye\shims removed from path"
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('hire_name', type=str)

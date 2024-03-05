@@ -1,12 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "amherst"
 description = "Add your description here"
 version = "0.1.0"
-
 authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
-
 dependencies = [
     "fastuipr @git+https://github.com/pawrequest/fastuipr",
     'shipr @git+https://github.com/pawrequest/shipr',
@@ -16,18 +18,14 @@ dependencies = [
     'fastapi',
     'pyinstaller',
     'pypdf',
-    'context-menu',
     'sqlmodel',
     'uvicorn[standard]',
     'python-dotenv',
     'httpx',
 ]
 readme = "README.md"
-requires-python = ">= 3.10"
+requires-python = ">= 3.12"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
 
 [tool.rye]
 managed = false
@@ -39,7 +37,6 @@ dev-dependencies = [
 ]
 
 [tool.hatch.metadata]
-
 allow-direct-references = true
 
 #[tool.hatch.build.targets.wheel]
