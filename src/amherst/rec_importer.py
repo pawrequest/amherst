@@ -9,9 +9,9 @@ from shipr.models import pf_shared
 
 
 def initial_hire_state(
-    hire: hire_model.Hire,
-    pfcom: shipper.ELClient,
-    ship_service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24,
+        hire: hire_model.Hire,
+        pfcom: shipper.ELClient,
+        ship_service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24,
 ) -> shipr.ShipState:
     try:
         address = pfcom.choose_address(hire.input_address)
@@ -32,21 +32,30 @@ def initial_hire_state(
 
 
 def records_to_managers(
-    session: sqm.Session, pfcom: shipper.AmShipper, *records: dict[str, str]
-) -> list[hire_manager.HireManagerDB]:
-    # for record in records:
-    #     manager_id =
-    added = [add_rec(pfcom, record, session) for record in records]
-    return added
+        *records: dict[str, str],
+        session: sqm.Session,
+        pfcom: shipper.AmShipper
+) -> bool | None:
+    managers = []
+    for record in records:
+        hire_input_ = hire_model.Hire(record=record)
+        print(f'importing record {hire_input_.name}')
+        hire_input = hire_input_.model_validate(hire_input_)
+        state = initial_hire_state(hire_input, pfcom)
+        manager_ = hire_manager.HireManagerDB(hire=hire_input, state=state)
+        managers.append(manager_.model_validate(manager_))
+
+    session.add_all(managers)
+    session.commit()
+    return True
 
 
 def add_rec(pfcom, record, session):
     hire_input_ = hire_model.Hire(record=record)
     hire_input = hire_input_.model_validate(hire_input_)
     state = initial_hire_state(hire_input, pfcom)
-    hire_book = hire_manager.HireManagerDB(hire=hire_input, state=state)
-    hb = hire_book.model_validate(hire_book)
-    session.add(hb)
+    manager_ = hire_manager.HireManagerDB(hire=hire_input, state=state)
+    manager = manager_.model_validate(manager_)
+    session.add(manager)
     session.commit()
-    session.refresh(hb)
-    return hb
+    return manager

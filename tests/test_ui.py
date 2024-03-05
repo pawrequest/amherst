@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 import pytest
 
-from amherst.app import app
+from amherst.main import app
 
 client = TestClient(app)
 

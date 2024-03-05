@@ -10,6 +10,7 @@ from loguru import logger
 
 load_dotenv()
 
+
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('hire_name', type=str)
@@ -23,7 +24,7 @@ def main(hire_name=None):
 
     server_thread = threading.Thread(target=run_server, daemon=True)
     server_thread.start()
-    time.sleep(1)
+    time.sleep(4)
     hire_name_encoded = base64.urlsafe_b64encode(hire_name.encode()).decode()
 
     adr = f'http://127.0.0.1:8000/hire/new/{hire_name_encoded}'

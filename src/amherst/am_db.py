@@ -10,8 +10,8 @@ from amherst import shipper
 from pycommence import csr_context
 
 load_dotenv()
-DB_URL = 'sqlite:///:memory:'
-# DB_URL = "sqlite:///amherst.db"
+# DB_URL = 'sqlite:///:memory:'
+DB_URL = "sqlite:///amherst.db"
 CONNECT_ARGS = {'check_same_thread': False}
 ENGINE = sqa.create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
 

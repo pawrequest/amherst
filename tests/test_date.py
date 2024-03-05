@@ -8,6 +8,9 @@ import sqlalchemy as sqa
 import shipr.ui_states.abc
 from pawsupport.sqlmodel_ps import sqlpr
 
+import shipr.models.pyd_types
+import shipr.models.types
+
 
 # if _ty.TYPE_CHECKING:
 #     pass
@@ -26,11 +29,11 @@ class Booking(sqm.SQLModel, table=True):
     id: int | None = sqm.Field(primary_key=True)
     hire: Hiring = sqm.Field(
         sa_column=sqa.Column(
-            sqlpr.GenericJSONType(Hiring)
+            shipr.models.types.GenericJSONType(Hiring)
         )
     )
     state: SStae = sqm.Field(
-        sa_column=sqm.Column(sqlpr.GenericJSONType(SStae))
+        sa_column=sqm.Column(shipr.models.types.GenericJSONType(SStae))
     )
 
 

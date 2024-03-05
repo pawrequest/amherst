@@ -1,22 +1,11 @@
-# from __future__ import annotations
-
 import datetime as dt
 import typing as _ty
 
 import sqlmodel as sqm
 
-import pycommence
 import pycommence as cmc
-import pycommence.wrapper
 from amherst.models import am_shared
-from shipr.models import (
-    pf_ext,
-    pf_shared,
-    pf_top,
-)
-
-# if _ty.TYPE_CHECKING:
-#     pass
+from shipr.models import pf_ext, pf_shared, pf_top
 
 
 class Hire(pf_shared.BasePFType):
@@ -76,6 +65,5 @@ def addr_lines_dict_am(address: str) -> dict[str, str]:
     elif len(addr_lines) > 3:
         addr_lines[2] = ','.join(addr_lines[2:])
     return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
-
 
 #

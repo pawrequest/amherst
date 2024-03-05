@@ -9,17 +9,18 @@ import pydantic as _p
 from loguru import logger
 
 import shipr
+import shipr.models.types
 from amherst import am_db
 from amherst.routers.booking_route import get_manager
 from fastuipr import FastUI
 from fastuipr import components as c
 from fastuipr import events as e
 from fastuipr.forms import fastui_form
-from pawsupport.pydantic import pyd_types
-from pawsupport.pydantic.pyd_types import default_gen, is_valid_postcode
 from shipr import models as s_mod
 
+
 router = fastapi.APIRouter()
+
 
 
 class PostcodeSelect(_p.BaseModel):
@@ -27,7 +28,7 @@ class PostcodeSelect(_p.BaseModel):
 
     @classmethod
     def with_default(cls, postcode: str):
-        dflt2 = default_gen(VALID_PC, default=postcode)
+        dflt2 = shipr.models.types.default_gen(VALID_PC, default=postcode)
 
         class _PostcodeSelect(cls):
             postcode_to_fetch_addresses_from: dflt2
@@ -37,29 +38,36 @@ class PostcodeSelect(_p.BaseModel):
 
 @router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def postcode_post(
-    manager_id: int,
-    form: Annotated[PostcodeSelect, fastui_form(PostcodeSelect)],
+        manager_id: int,
+        form: Annotated[PostcodeSelect, fastui_form(PostcodeSelect)],
 ):
-    if not is_valid_postcode(form.postcode_to_fetch_addresses_from):
+    if not shipr.models.types.is_valid_postcode(form.postcode_to_fetch_addresses_from):
         logger.warning(f'Invalid postcode: {form.postcode_to_fetch_addresses_from}')
         return [c.FireEvent(event=e.GoToEvent(url=f'/hire/view/{manager_id}'))]
     return [
-        c.FireEvent(event=e.GoToEvent(url=f'/hire/pcneighbours/{manager_id}/{form.postcode_to_fetch_addresses_from}'))
+        c.FireEvent(
+            event=e.GoToEvent(
+                url=f'/hire/pcneighbours/{manager_id}/{form.postcode_to_fetch_addresses_from}'
+            )
+        )
     ]
 
 
 class ContactForm(pydantic.BaseModel):
-    business_name: pyd_types.TruncatedSafeStr(40)
-    email_address: pyd_types.TruncatedSafeStr(50)
+    business_name: shipr.models.types.TruncatedSafeStr(40)
+    email_address: shipr.models.types.TruncatedSafeStr(50)
     mobile_phone: str
-    contact_name: pyd_types.TruncatedSafeMaybeStr(30)
+    contact_name: shipr.models.types.TruncatedSafeMaybeStr(30)
 
     @classmethod
     def with_default(cls, contact: s_mod.Contact):
-        bus_t = default_gen(pyd_types.TruncatedSafeStr(40), default=contact.business_name)
-        em_ = default_gen(pyd_types.TruncatedSafeStr(50), default=contact.email_address)
-        mob_t = default_gen(str, default=contact.mobile_phone)
-        con_t = default_gen(pyd_types.TruncatedSafeMaybeStr(30), default=contact.contact_name)
+        bus_t = shipr.models.types.default_gen(
+            shipr.models.types.TruncatedSafeStr(40), default=contact.business_name)
+        em_ = shipr.models.types.default_gen(
+            shipr.models.types.TruncatedSafeStr(50), default=contact.email_address)
+        mob_t = shipr.models.types.default_gen(str, default=contact.mobile_phone)
+        con_t = shipr.models.types.default_gen(
+            shipr.models.types.TruncatedSafeMaybeStr(30), default=contact.contact_name)
 
         class _ContactSelect(cls):
             business_name: bus_t
@@ -72,9 +80,9 @@ class ContactForm(pydantic.BaseModel):
 
 @router.post('/contact/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def contact_post(
-    manager_id: int,
-    form: Annotated[ContactForm, fastui_form(ContactForm)],
-    session=fastapi.Depends(am_db.get_session),
+        manager_id: int,
+        form: Annotated[ContactForm, fastui_form(ContactForm)],
+        session=fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     man_in = await get_manager(manager_id, session)
     contact = shipr.models.Contact.model_validate(form.model_dump())
@@ -83,27 +91,33 @@ async def contact_post(
     session.commit()
     return [
         c.FireEvent(
-            event=e.GoToEvent(url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(contact=contact)}'),
+            event=e.GoToEvent(
+                url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(contact=contact)}'
+            ),
         )
     ]
 
 
 class AddressForm(pydantic.BaseModel):
-    address_line1: pyd_types.TruncatedSafeStr(40)
-    address_line2: pyd_types.TruncatedSafeMaybeStr(50)
-    address_line3: pyd_types.TruncatedSafeMaybeStr(60)
-    town: pyd_types.TruncatedSafeStr(30)
+    address_line1: shipr.models.types.TruncatedSafeStr(40)
+    address_line2: shipr.models.types.TruncatedSafeMaybeStr(50)
+    address_line3: shipr.models.types.TruncatedSafeMaybeStr(60)
+    town: shipr.models.types.TruncatedSafeStr(30)
     postcode: str
     country: str = 'GB'
 
     @classmethod
     def with_default(cls, address: s_mod.AddressRecipient):
-        add1_t = default_gen(pyd_types.TruncatedSafeStr(40), default=address.address_line1)
-        add2_t = default_gen(pyd_types.TruncatedSafeMaybeStr(50), default=address.address_line2)
-        add3_t = default_gen(pyd_types.TruncatedSafeMaybeStr(60), default=address.address_line3)
-        town_t = default_gen(pyd_types.TruncatedSafeStr(30), default=address.town)
-        post_t = default_gen(str, default=address.postcode)
-        country_t = default_gen(str, default=address.country)
+        add1_t = shipr.models.types.default_gen(
+            shipr.models.types.TruncatedSafeStr(40), default=address.address_line1)
+        add2_t = shipr.models.types.default_gen(
+            shipr.models.types.TruncatedSafeMaybeStr(50), default=address.address_line2)
+        add3_t = shipr.models.types.default_gen(
+            shipr.models.types.TruncatedSafeMaybeStr(60), default=address.address_line3)
+        town_t = shipr.models.types.default_gen(
+            shipr.models.types.TruncatedSafeStr(30), default=address.town)
+        post_t = shipr.models.types.default_gen(str, default=address.postcode)
+        country_t = shipr.models.types.default_gen(str, default=address.country)
 
         class _AddressSelect(cls):
             address_line1: add1_t
@@ -118,9 +132,9 @@ class AddressForm(pydantic.BaseModel):
 
 @router.post('/address/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def address_post(
-    manager_id: int,
-    form: Annotated[AddressForm, fastui_form(AddressForm)],
-    session=fastapi.Depends(am_db.get_session),
+        manager_id: int,
+        form: Annotated[AddressForm, fastui_form(AddressForm)],
+        session=fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     man_in = await get_manager(manager_id, session)
     address = shipr.models.AddressRecipient.model_validate(form.model_dump())
@@ -129,7 +143,9 @@ async def address_post(
     session.commit()
     return [
         c.FireEvent(
-            event=e.GoToEvent(url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(address=address)}'),
+            event=e.GoToEvent(
+                url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(address=address)}'
+            ),
         )
     ]
 

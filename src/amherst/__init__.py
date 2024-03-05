@@ -1,0 +1,1 @@
+from .models.hire_model import Hire

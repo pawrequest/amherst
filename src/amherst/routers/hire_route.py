@@ -77,6 +77,7 @@ async def view_hire(
     manager_id: int,
     session: Session = Depends(get_session),
 ) -> list[c.AnyComponent]:
+    logger.info(f'hire route: {manager_id}')
     man_in = await get_manager(manager_id, session)
     man_out = hire_manager.HireManagerOut.model_validate(man_in)
     if not man_out:
@@ -96,7 +97,7 @@ async def hire_from_cmc_name_64(
     with pycommence.csr_context('Hire') as cursor:
         hire_record = cursor.get_record(hire_name)
 
-    added = rec_importer.records_to_managers(session, pfcom, hire_record)[0]
+    added = rec_importer.records_to_managers(hire_record, session=session, pfcom=pfcom)[0]
 
     # hire = hire_record_to_session(hire_record, session, pfcom)
     return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{added.id}'))]

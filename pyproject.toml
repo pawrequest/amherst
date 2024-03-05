@@ -1,22 +1,24 @@
 [project]
 name = "amherst"
-version = "0.1.0"
 description = "Add your description here"
+version = "0.1.0"
+
 authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
+
 dependencies = [
-    'pawsupport',
-    'pycommence',
-    'shipr',
+    "fastuipr @git+https://github.com/pawrequest/fastuipr",
+    'shipr @git+https://github.com/pawrequest/shipr',
+    'pycommence @git+https://github.com/pawrequest/pycommence',
+    'flaskwebgui @git+https://github.com/pawrequest/flaskwebgui',
     'pydantic',
-    "fastuipr",
     'fastapi',
     'pyinstaller',
     'pypdf',
     'context-menu',
     'sqlmodel',
-    'uvicorn',
+    'uvicorn[standard]',
     'python-dotenv',
     'httpx',
 ]
@@ -35,7 +37,9 @@ dev-dependencies = [
     "sphinx-rtd-theme",
     "myst-parser",
 ]
+
 [tool.hatch.metadata]
+
 allow-direct-references = true
 
 #[tool.hatch.build.targets.wheel]
@@ -45,3 +49,4 @@ allow-direct-references = true
 
 [project.scripts]
 am_address = "amherst.script:main"
+ship_hire = "amherst.gui:main"

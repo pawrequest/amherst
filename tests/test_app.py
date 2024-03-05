@@ -2,7 +2,7 @@ from datetime import date
 
 from fastapi.testclient import TestClient
 
-from amherst.app import app
+from amherst.main import app
 from amherst.models import Hire
 
 client = TestClient(app)
