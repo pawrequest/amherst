@@ -10,10 +10,8 @@ authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
 dependencies = [
-    "fastuipr @git+https://github.com/pawrequest/fastuipr",
     'shipr @git+https://github.com/pawrequest/shipr',
     'pycommence @git+https://github.com/pawrequest/pycommence',
-    'flaskwebgui @git+https://github.com/pawrequest/flaskwebgui',
     'pydantic',
     'fastapi',
     'pyinstaller',
