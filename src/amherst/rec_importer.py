@@ -33,9 +33,8 @@ def initial_hire_state(
 
 def records_to_managers(
         *records: dict[str, str],
-        session: sqm.Session,
         pfcom: shipper.AmShipper
-) -> bool | None:
+) -> list[hire_manager.HireManagerDB]:
     managers = []
     for record in records:
         hire_input_ = hire_model.Hire(record=record)
@@ -45,9 +44,10 @@ def records_to_managers(
         manager_ = hire_manager.HireManagerDB(hire=hire_input, state=state)
         managers.append(manager_.model_validate(manager_))
 
-    session.add_all(managers)
-    session.commit()
-    return True
+    return managers
+    # session.add_all(managers)
+    # session.commit()
+    # return True
 
 
 def add_rec(pfcom, record, session):

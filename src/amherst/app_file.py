@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 import fastuipr
-from amherst import rec_importer, routers, sample_data
+from amherst import rec_importer, routers, sample_data, am_db, shipper
 
 load_dotenv()
 
@@ -14,22 +14,16 @@ load_dotenv()
 @contextlib.asynccontextmanager
 async def lifespan(app_: fastapi.FastAPI):
     try:
-        # from amherst.models.hire_manager import HireManagerDB
-
-        # am_db.create_db()
-        # async with AsyncClient() as client:
-        #     app_.state.httpx_client = client
+        am_db.create_db()
         # with sqm.Session(am_db.ENGINE) as session:
-        #     app_.state.session = session
-        # app_.state.pfcom = shipper.AmShipper.from_env()
-
-        # populate_db_from_cmc(session, pfcom)
+        #     pf_shipper = shipper.AmShipper.from_env()
+        #     populate_db_from_cmc(session, pf_shipper)
 
         logger.info('tables created')
-        # main_task = asyncio.create_task()
         yield
 
     finally:
+        am_db.destroy_db()
         ...
         # main_task.cancel()
         # await asyncio.gather(main_task)
@@ -62,7 +56,9 @@ def populate_db_from_cmc(session: sqm.Session, pfcom):
     #     filters = hire_model.Hire.initial_filter_array.default
     #     records = csr.filter_by_array(filters, get=True)
     records = records[:3]
-    rec_importer.records_to_managers(*records, session=session, pfcom=pfcom)
+    managers = rec_importer.records_to_managers(*records, pfcom=pfcom)
+    session.add_all(managers)
+    session.commit()
 
 
 @app.get('/{path:path}')

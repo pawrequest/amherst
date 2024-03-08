@@ -5,9 +5,9 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 from dotenv import load_dotenv
 from loguru import logger
+from pycommence import csr_context
 
 from amherst import shipper
-from pycommence import csr_context
 
 load_dotenv()
 # DB_URL = 'sqlite:///:memory:'
@@ -44,6 +44,12 @@ def create_db(engine=None):
     if engine is None:
         engine = ENGINE
     sqm.SQLModel.metadata.create_all(engine)
+
+
+def destroy_db(engine=None):
+    if engine is None:
+        engine = ENGINE
+    sqm.SQLModel.metadata.drop_all(engine)
 
 
 def get_hire_cursor():

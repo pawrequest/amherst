@@ -1,59 +1,93 @@
 # from __future__ import annotations
 import base64
+import os
 
 import sqlmodel as sqm
 from fastapi import APIRouter, Depends
 from loguru import logger
 from sqlmodel import Session
-
-import amherst.front.pages.hire_shipping
 import pycommence
 import shipr
+from fastuipr import FastUI, components as c
+from fastuipr.events import GoToEvent
+from shipr.ship_ui import states
+
+import amherst.front.pages.hire_shipping
 from amherst import rec_importer
 from amherst.am_db import get_pfc, get_session
 from amherst.front.pages import hire_shipping
-from amherst.models import hire_manager, hire_model
+from amherst.models import hire_manager, hire_model, am_shared
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
-from fastuipr import FastUI
-from fastuipr import components as c
-from fastuipr.events import GoToEvent
-from shipr.ship_ui import states
 
 router = APIRouter()
 
 
+# @router.get('/open_hire_sheet/{manager_id}')
+# async def open_hire_sheet(
+#         manager_id: int,
+#         session: Session = Depends(get_session),
+# ):
+#     man_in = await get_manager(manager_id, session)
+#     hire_sheet = man_in.hire.record.get()
+
+@router.get('/open_invoice/{manager_id}')
+async def open_invoice(
+        manager_id: int,
+        session: Session = Depends(get_session),
+):
+    man_in = await get_manager(manager_id, session)
+    inv_file = man_in.hire.record.get(am_shared.AmherstFields.INVOICE)
+    if inv_file:
+        os.startfile(inv_file)
+    return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{manager_id}'))]
+
+
 @router.get('/neighbours/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
 async def neighbours(
-    booking_id: int,
-    pfcom: AmShipper = Depends(get_pfc),
-    session: Session = Depends(get_session),
+        booking_id: int,
+        pfcom: AmShipper = Depends(get_pfc),
+        session: Session = Depends(get_session),
 ):
     man_in = await get_manager(booking_id, session)
     man_out = hire_manager.HireManagerOut.model_validate(man_in)
     postcode = man_in.hire.input_address.postcode
     candidates = pfcom.get_candidates(postcode)
-    return await amherst.front.pages.hire_shipping.address_chooser(manager=man_out, candidates=candidates)
+    return await amherst.front.pages.hire_shipping.address_chooser(
+        manager=man_out,
+        candidates=candidates
+    )
 
 
-@router.get('/pcneighbours/{booking_id}/{postcode}', response_model=FastUI, response_model_exclude_none=True)
+@router.get(
+    '/pcneighbours/{booking_id}/{postcode}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
 async def pcneighbours(
-    booking_id: int,
-    postcode: str,
-    pfcom: AmShipper = Depends(get_pfc),
-    session: Session = Depends(get_session),
+        booking_id: int,
+        postcode: str,
+        pfcom: AmShipper = Depends(get_pfc),
+        session: Session = Depends(get_session),
 ):
     man_in = await get_manager(booking_id, session)
     man_out = hire_manager.HireManagerOut.model_validate(man_in)
     candidates = pfcom.get_candidates(postcode)
-    return await amherst.front.pages.hire_shipping.address_chooser(manager=man_out, candidates=candidates)
+    return await amherst.front.pages.hire_shipping.address_chooser(
+        manager=man_out,
+        candidates=candidates
+    )
 
 
-@router.get('/update/{booking_id}/{update_64}', response_model=FastUI, response_model_exclude_none=True)
+@router.get(
+    '/update/{booking_id}/{update_64}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
 async def update_hire(
-    booking_id: int,
-    update_64: str | None = None,
-    session: Session = Depends(get_session),
+        booking_id: int,
+        update_64: str | None = None,
+        session: Session = Depends(get_session),
 ) -> list[c.AnyComponent]:
     updt = states.ShipStatePartial.model_validate_64(update_64)
 
@@ -74,8 +108,8 @@ async def update_hire(
 
 @router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def view_hire(
-    manager_id: int,
-    session: Session = Depends(get_session),
+        manager_id: int,
+        session: Session = Depends(get_session),
 ) -> list[c.AnyComponent]:
     logger.info(f'hire route: {manager_id}')
     man_in = await get_manager(manager_id, session)
@@ -87,10 +121,10 @@ async def view_hire(
 
 @router.get('/new/{hire_name}')
 async def hire_from_cmc_name_64(
-    hire_name: str,
-    session=Depends(get_session),
-    # cursor: Csr = Depends(get_hire_cursor),
-    pfcom: AmShipper = Depends(get_pfc),
+        hire_name: str,
+        session=Depends(get_session),
+        # cursor: Csr = Depends(get_hire_cursor),
+        pfcom: AmShipper = Depends(get_pfc),
 ):
     hire_name = base64.urlsafe_b64decode(hire_name).decode()
     logger.info(f'hire_name: {hire_name}')

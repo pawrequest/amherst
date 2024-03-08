@@ -4,16 +4,14 @@ import datetime as dt
 import typing as _t
 
 import pydantic as _p
+from fastuipr import AnyComponent, builders, components as c, events as e, styles
+from shipr.models import pf_ext
+from shipr.ship_ui import states
 
 import amherst.routers.forms
 from amherst.front import amui
 from amherst.models import hire_manager
-from amherst.routers.forms import VALID_PC, PostcodeSelect
-from fastuipr import AnyComponent, builders, styles
-from fastuipr import components as c
-from fastuipr import events as e
-from shipr.models import pf_ext
-from shipr.ship_ui import states
+from amherst.routers.forms import PostcodeSelect, VALID_PC
 
 
 async def hire_page(manager: hire_manager.HireManager) -> list[c.AnyComponent]:
@@ -43,6 +41,7 @@ async def left_col(manager) -> c.Div:
         await boxes_modal_row(manager),
         await date_modal_row(manager),
         *await book_modal(manager.id),
+        await open_invoice(manager),
         class_name=styles.LEFT_COL_STYLE,
     )
 
@@ -102,6 +101,15 @@ async def neighbouring_addresses(man_id) -> c.Button:
     )
 
 
+async def open_invoice(manager: hire_manager.HireManager) -> c.Button:
+    return c.Button(
+        text='Open Invoice',
+        on_click=e.GoToEvent(
+            url=f'/hire/open_invoice/{manager.id}',
+        ),
+    )
+
+
 async def boxes_modal_row(manager: hire_manager.HireManager) -> c.Div:
     async def boxes_chooser_buttons() -> list[c.AnyComponent]:
         return [
@@ -146,7 +154,7 @@ def default_pc(postcode):
 
 
 async def address_chooser(
-    manager: hire_manager.HireManager, candidates: list[pf_ext.AddressRecipient]
+        manager: hire_manager.HireManager, candidates: list[pf_ext.AddressRecipient]
 ) -> list[AnyComponent]:
     return await builders.page_w_alerts(
         components=[
@@ -204,7 +212,11 @@ async def date_modal_row(manager: hire_manager.HireManagerOut) -> c.Div:
 
 async def book_modal(man_id):
     return (
-        c.Button(text='Ship', on_click=e.PageEvent(name='ship-chooser'), class_name=styles.BOXES_BUTTON),
+        c.Button(
+            text='Ship',
+            on_click=e.PageEvent(name='ship-chooser'),
+            class_name=styles.BOXES_BUTTON
+        ),
         c.Modal(
             title='ship Modal',
             body=[
@@ -244,7 +256,6 @@ async def address_modal(manager: hire_manager.HireManagerOut):
         ],
         open_trigger=e.PageEvent(name='address-chooser'),
     )
-
 
 #
 # async def candidate_frame(manager):

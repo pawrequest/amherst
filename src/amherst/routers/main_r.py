@@ -1,7 +1,6 @@
 import fastapi
-
 import fastuipr
-from fastuipr import builders, events
+from fastuipr import builders, components, events
 
 router = fastapi.APIRouter()
 
@@ -14,9 +13,6 @@ async def default_route():
 
     return await builders.page_w_alerts(
         components=[
-            fastuipr.components.Button(
-                text='go',
-                on_click=events.GoToEvent(url='/hire/view/1')
-            ),
+            components.Button(text='go', on_click=events.GoToEvent(url='/hire/view/1')),
         ],
     )

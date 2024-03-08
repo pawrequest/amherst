@@ -2,11 +2,13 @@ import argparse
 
 import sqlmodel
 from flaskwebgui import FlaskUI
-
 import pycommence
-from amherst import am_db, rec_importer, shipper, main
+from amherst.models.hire_manager import HireManagerDB
 
-warn = "%USERPROFILE%\.rye\shims removed from path"
+from amherst import am_db, app_file, rec_importer, shipper
+
+
+# warn = "%USERPROFILE%\.rye\shims removed from path"
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('hire_name', type=str)
@@ -19,16 +21,19 @@ def main(hire_name=None):
         hire_name = args.hire_name
 
     with pycommence.csr_context('Hire') as csr:
-        csr: pycommence.Csr = csr
         hire_rec = csr.get_record(hire_name)
-    pfcom = shipper.AmShipper.from_env()
+
+    pf_shipper = shipper.AmShipper.from_env()
+    from amherst.models.hire_manager import HireManagerDB
+
     am_db.create_db()
 
     with sqlmodel.Session(am_db.ENGINE) as session:
-        assert rec_importer.records_to_managers(hire_rec, session=session, pfcom=pfcom)
+        managers = rec_importer.records_to_managers(hire_rec, pfcom=pf_shipper)
+        session.add_all(managers)
+        session.commit()
 
-    fui = FlaskUI(app=main.app, server='fastapi')
-    fui.url = f'http://127.0.0.1:{fui.port}/hire/view/1'
+    fui = FlaskUI(app=app_file.app, server='fastapi')
     fui.run()
 
 
