@@ -6,15 +6,16 @@ import time
 import fastapi
 import sqlmodel as sqm
 from loguru import logger
-
 import fastuipr
 import shipr
+from fastuipr import components as c
+from shipr.ship_ui import states
+from pawsupport import pdf_tools
+
 from amherst import am_db, shipper
 from amherst.front import amui
 from amherst.front.pages import booked_pages
-from amherst.models import hire_manager
-from fastuipr import components as c
-from shipr.ship_ui import states
+from amherst.models import manager2
 
 router = fastapi.APIRouter()
 
@@ -27,9 +28,9 @@ async def dummy_page() -> list[fastuipr.AnyComponent]:
 
 @router.get('/go/{manager_id}', response_model=fastuipr.FastUI, response_model_exclude_none=True)
 async def go(
-    manager_id: int,
-    pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
-    session: sqm.Session = fastapi.Depends(am_db.get_session),
+        manager_id: int,
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[fastuipr.AnyComponent]:
     logger.warning(f'booking_id: {manager_id}')
     manager = await get_manager(manager_id, session)
@@ -63,7 +64,7 @@ async def validated_book_state(req, resp) -> states.BookingState:
     )
 
 
-async def book_hire(manager: hire_manager.HireManager, pfcom):
+async def book_hire(manager: manager2.HireManager, pfcom):
     req = pfcom.state_to_shipment_request(manager.state)
     print(f'req: {req}')
     logger.warning(f'BOOKING SHIPMENT {manager.hire.name}')
@@ -72,16 +73,25 @@ async def book_hire(manager: hire_manager.HireManager, pfcom):
     return req, resp
 
 
-async def get_manager(manager_id: int, session: sqm.Session) -> hire_manager.HireManagerDB:
-    man_in = session.get(hire_manager.HireManagerDB, manager_id)
-    if not isinstance(man_in, hire_manager.HireManagerDB):
+async def get_manager(manager_id: int, session: sqm.Session) -> manager2.GenericManagerDB:
+    man_in = session.get(manager2.GenericManagerDB, manager_id)
+    if not isinstance(man_in, manager2.GenericManagerDB):
+        raise ValueError('booking not found')
+    return man_in
+
+
+async def get_manager1(manager_id: int, session: sqm.Session) -> manager2.HireManagerDB:
+    man_in = session.get(manager2.HireManagerDB, manager_id)
+    if not isinstance(man_in, manager2.HireManagerDB):
         raise ValueError('booking not found')
     return man_in
 
 
 @router.get('/print/{booking_id}', response_model=fastuipr.FastUI, response_model_exclude_none=True)
 async def print_label(
-    booking_id: int, pfcom=fastapi.Depends(am_db.get_pfc), session=fastapi.Depends(am_db.get_session)
+        booking_id: int,
+        pfcom=fastapi.Depends(am_db.get_pfc),
+        session=fastapi.Depends(am_db.get_session)
 ):
     logger.warning(f'printing id: {booking_id}')
 
@@ -128,4 +138,7 @@ async def get_wait_label(state: states.BookingState, pfcom):
 async def prnt_label(label_path: pathlib.Path) -> None:
     if not label_path.exists():
         logger.error(f'label_path {label_path} does not exist')
+
+    pdf_tools.array_pdf.convert_many(label_path, print_files=True)
     os.startfile(label_path)
+    ...

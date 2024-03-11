@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from amherst.models import hire_manager
+from amherst.models import manager2
 from fastuipr import builders
 from fastuipr import components as c
 from fastuipr import events as e
 from shipr.models.pf_shared import Alert
 
 
-async def printed_page(manager: hire_manager.HireManager) -> list[c.AnyComponent]:
+async def printed_page(manager: manager2.HireManager) -> list[c.AnyComponent]:
     ret = await builders.page_w_alerts(
         components=[
             c.Div.wrap(
@@ -30,7 +30,7 @@ async def get_alerty(manager) -> list[Alert] | None:
     return manager.state.booking_state.response.alerts.alert if manager.state.booking_state else None
 
 
-async def booked_page(manager: hire_manager.HireManager) -> list[c.AnyComponent]:
+async def booked_page(manager: manager2.HireManager) -> list[c.AnyComponent]:
     ret = await builders.page_w_alerts(
         components=[
             c.Div.wrap(

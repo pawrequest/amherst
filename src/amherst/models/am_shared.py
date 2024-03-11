@@ -3,7 +3,7 @@ from __future__ import annotations
 from enum import Enum, StrEnum
 from typing import Literal
 
-from pycommence import CmcFilter, Connection, FilterArray
+from pycommence.api import CmcFilter, Connection, FilterArray
 
 SALE_CUSTOMERS = Connection(
     name='SaleCustomers',
@@ -125,6 +125,7 @@ class AmherstFields(str, Enum):
     SPECIAL_KIT = 'Special Kit'
     STATUS = 'Status'
     TELEPHONE = 'Delivery Tel'
+    SALE_TELEPHONE = 'Delivery Telephone'
     TRACKING_NUMBERS = 'Tracking Numbers'
     UHF = 'Number UHF'
     UHF_6WAY = 'Number UHF 6-way'
@@ -169,3 +170,12 @@ class SaleFields(StrEnum):
     INVOICE_NAME = 'Invoice Name'
     INVOICE_POSTCODE = 'Invoice Postcode'
     INVOICE_TELEPHONE = 'Invoice Telephone'
+
+
+def addr_lines_dict_am(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}

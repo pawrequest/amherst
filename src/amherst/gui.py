@@ -3,33 +3,41 @@ import argparse
 import sqlmodel
 from flaskwebgui import FlaskUI
 import pycommence
-from amherst.models.hire_manager import HireManagerDB
 
 from amherst import am_db, app_file, rec_importer, shipper
+from amherst.models import hire_model
 
 
 # warn = "%USERPROFILE%\.rye\shims removed from path"
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('hire_name', type=str)
+    arg_parser.add_argument('category', type=str)
+    arg_parser.add_argument('record_name', type=str)
     return arg_parser.parse_args()
 
 
-def main(hire_name=None):
-    if hire_name is None:
-        args = parse_arguments()
-        hire_name = args.hire_name
+def main(category: str, record_name: str):
+    with pycommence.api.csr_context(category) as csr:
+        record = csr.get_record_by_name(record_name)
 
-    with pycommence.csr_context('Hire') as csr:
-        hire_rec = csr.get_record(hire_name)
-
-    pf_shipper = shipper.AmShipper.from_env()
-    from amherst.models.hire_manager import HireManagerDB
+    pf_shipper = shipper.AmShipper.from_env(scope='SAND')
+    # from amherst.models.manager2 import HireManagerDB
 
     am_db.create_db()
 
     with sqlmodel.Session(am_db.ENGINE) as session:
-        managers = rec_importer.records_to_managers(hire_rec, pfcom=pf_shipper)
+        if category.lower() == 'hire':
+            managers = rec_importer.generic_records_to_managers(
+                record,
+                record_type=hire_model.Hire,
+                pfcom=pf_shipper
+            )
+            # managers = rec_importer.hire_records_to_managers(record, pfcom=pf_shipper)
+        elif category.lower() == 'sale':
+            managers = rec_importer.sale_records_to_managers(record, pfcom=pf_shipper)
+        # managers = rec_importer.hire_records_to_managers(record, pfcom=pf_shipper)
+        else:
+            raise ValueError(f'category {category} not found')
         session.add_all(managers)
         session.commit()
 
@@ -38,7 +46,5 @@ def main(hire_name=None):
 
 
 if __name__ == '__main__':
-    # hn = 'Test - 16/08/2023 ref 31619'
-    # main(hn)
     args = parse_arguments()
-    main(args.hire_name)
+    main(args.category, args.record_name)

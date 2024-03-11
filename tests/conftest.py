@@ -38,13 +38,13 @@ HIRE_NAME_ENCODED = "UG9ydHNtb3V0aCBQcmlkZSAtIDAyLzA3LzIwMjQgcmVmIDIwMzU5"
 
 @pytest.fixture
 def hire_csr():
-    with pycommence.csr_context("Hire") as csr:
+    with pycommence.api.csr_context("Hire") as csr:
         yield csr
 
 
 @pytest.fixture
 def sale_csr():
-    with pycommence.csr_context("Sale") as csr:
+    with pycommence.api.csr_context("Sale") as csr:
         yield csr
 
 

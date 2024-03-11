@@ -56,7 +56,7 @@ def populate_db_from_cmc(session: sqm.Session, pfcom):
     #     filters = hire_model.Hire.initial_filter_array.default
     #     records = csr.filter_by_array(filters, get=True)
     records = records[:3]
-    managers = rec_importer.records_to_managers(*records, pfcom=pfcom)
+    managers = rec_importer.hire_records_to_managers(*records, pfcom=pfcom)
     session.add_all(managers)
     session.commit()
 

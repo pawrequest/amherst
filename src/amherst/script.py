@@ -13,7 +13,7 @@ load_dotenv()
 
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('hire_name', type=str)
+    arg_parser.add_argument('record_name', type=str)
     return arg_parser.parse_args()
 
 

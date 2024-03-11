@@ -53,8 +53,8 @@ async def address_n_contact_col(
     title_prefix: str = '',
 ) -> c.Div:
     return c.Div.wrap(
-        *builders.all_text(contact, title=f'{title_prefix}Contact', class_name=styles.ROW_STYLE),
-        *builders.all_text(address, title=f'{title_prefix}Address', class_name=styles.ROW_STYLE),
+        *builders.object_strs_texts(contact, title=f'{title_prefix}Contact'),
+        *builders.object_strs_texts(address, title=f'{title_prefix}Address'),
         class_name=styles.COL_STYLE,
         inner_class_name=styles.ROW_STYLE,
     )

@@ -637,11 +637,11 @@
 #
 #
 # class ParcelContents(BasePFType):
-#     item: list[ContentData] = Field(..., description="")
+#     hire: list[ContentData] = Field(..., description="")
 #
 #
 # class LabelData(BasePFType):
-#     item: list[LabelItem] = Field(..., description="")
+#     hire: list[LabelItem] = Field(..., description="")
 #
 #
 # class Barcodes(BasePFType):

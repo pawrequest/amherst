@@ -8,6 +8,8 @@ from typing import Optional, TypeVar
 
 from pydantic import BaseModel, BeforeValidator, PlainSerializer
 
+from amherst.models import hire_model, sale_model
+
 
 def amherst_date_val(v):
     if isinstance(v, str):
@@ -82,4 +84,5 @@ TimeAm = _t.Annotated[time, BeforeValidator(amherst_time_val)]
 ListComma = _t.Annotated[list, BeforeValidator(list_from_string_comma)]
 ListNewline = _t.Annotated[list, BeforeValidator(list_from_string_newline)]
 DecimalAm = _t.Annotated[Decimal, BeforeValidator(decimal_from_string)]
-T = TypeVar('T', bound=BaseModel)
+Shipable = _t.Union[hire_model.Hire, sale_model.Sale]
+ShipableType = TypeVar('ShipableType', bound=Shipable)

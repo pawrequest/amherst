@@ -10,12 +10,12 @@ from shipr.ship_ui import states
 
 import amherst.routers.forms
 from amherst.front import amui
-from amherst.models import hire_manager
+from amherst.models import manager2
 from amherst.routers.forms import PostcodeSelect, VALID_PC
 
 
 async def hire_page(
-        manager: hire_manager.HireManager,
+        manager: manager2.HireManager,
         alerts: list[pf_shared.Alert] | None = None
 ) -> list[
     c.AnyComponent]:
@@ -31,7 +31,7 @@ async def hire_page(
     # await self.service_button(),
 
 
-async def main_row(manager: hire_manager.HireManager) -> c.Div:
+async def main_row(manager: manager2.HireManager) -> c.Div:
     return c.Div.wrap(
         await left_col(manager),
         await middle_col(manager),
@@ -46,7 +46,7 @@ async def left_col(manager) -> c.Div:
         await boxes_modal_row(manager),
         await date_modal_row(manager),
         *await book_modal(manager.id),
-        await open_invoice(manager),
+        # await open_invoice(manager),
         class_name=styles.LEFT_COL_STYLE,
     )
 
@@ -133,7 +133,7 @@ async def neighbouring_addresses(man_id) -> c.Button:
     )
 
 
-async def open_invoice(manager: hire_manager.HireManager) -> c.Button:
+async def open_invoice(manager: manager2.HireManager) -> c.Button:
     return c.Button(
         text='Open Invoice',
         on_click=e.GoToEvent(
@@ -142,7 +142,7 @@ async def open_invoice(manager: hire_manager.HireManager) -> c.Button:
     )
 
 
-async def boxes_modal_row(manager: hire_manager.HireManager) -> c.Div:
+async def boxes_modal_row(manager: manager2.HireManager) -> c.Div:
     async def boxes_chooser_buttons() -> list[c.AnyComponent]:
         return [
             c.Button(
@@ -188,7 +188,7 @@ def default_pc(postcode):
 
 
 async def address_chooser(
-        manager: hire_manager.HireManager, candidates: list[pf_ext.AddressRecipient]
+        manager: manager2.HireManager, candidates: list[pf_ext.AddressRecipient]
 ) -> list[AnyComponent]:
     return await builders.page_w_alerts(
         components=[
@@ -208,7 +208,7 @@ async def address_chooser(
     )
 
 
-async def date_modal_row(manager: hire_manager.HireManagerOut) -> c.Div:
+async def date_modal_row(manager: manager2.HireManagerOut) -> c.Div:
     async def date_chooser_buttons() -> list[c.AnyComponent]:
         start_date = dt.date.today()
         date_range = [start_date + dt.timedelta(days=x) for x in range(7)]
@@ -272,7 +272,7 @@ async def book_modal(man_id):
     )
 
 #
-# async def address_modal(manager: hire_manager.HireManagerOut):
+# async def address_modal(manager: manager2.HireManagerOut):
 #     async def from_server():
 #         return [
 #             c.Button(
