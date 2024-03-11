@@ -5,6 +5,7 @@ import os
 import sqlmodel as sqm
 from fastapi import APIRouter, Depends
 from loguru import logger
+from shipr.models import pf_shared
 from sqlmodel import Session
 import pycommence
 import shipr
@@ -37,9 +38,16 @@ async def open_invoice(
         session: Session = Depends(get_session),
 ):
     man_in = await get_manager(manager_id, session)
+    man_out = hire_manager.HireManagerOut.model_validate(man_in)
+
     inv_file = man_in.hire.record.get(am_shared.AmherstFields.INVOICE)
-    if inv_file:
+    try:
         os.startfile(inv_file)
+    except FileNotFoundError:
+        logger.error(f'Invoice file not found: {inv_file}')
+        alert = pf_shared.Alert(code=11, message=f'Invoice file not found: {inv_file}', type='ERROR')
+        return c.FireEvent(event=GoToEvent(url=f'/hire/view/{manager_id}'))
+
     return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{manager_id}'))]
 
 

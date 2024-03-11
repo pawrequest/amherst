@@ -5,7 +5,7 @@ import typing as _t
 
 import pydantic as _p
 from fastuipr import AnyComponent, builders, components as c, events as e, styles
-from shipr.models import pf_ext
+from shipr.models import pf_ext, pf_shared
 from shipr.ship_ui import states
 
 import amherst.routers.forms
@@ -14,9 +14,14 @@ from amherst.models import hire_manager
 from amherst.routers.forms import PostcodeSelect, VALID_PC
 
 
-async def hire_page(manager: hire_manager.HireManager) -> list[c.AnyComponent]:
+async def hire_page(
+        manager: hire_manager.HireManager,
+        alerts: list[pf_shared.Alert] | None = None
+) -> list[
+    c.AnyComponent]:
+    alerts = alerts or []
     return await builders.page_w_alerts(
-        alerts=[],
+        alerts=alerts,
         components=[
             await main_row(manager),
             # await controls_row(manager),
@@ -47,47 +52,74 @@ async def left_col(manager) -> c.Div:
 
 
 async def input_address_div(manager):
-    return c.Div.wrap(
-        *builders.all_text(manager.hire.contact, class_name=styles.ADD_LINE_STYLE),
-        *builders.all_text(manager.hire.input_address, class_name=styles.ADD_LINE_STYLE),
+    con_txts = builders.object_strs_texts(manager.hire.contact, title='Contact')
+    add_txts = builders.object_strs_texts(manager.hire.input_address, title='Address')
+    con_rows = builders.list_of_divs(components=con_txts, class_name=styles.ROW_STYLE)
+    add_rows = builders.list_of_divs(components=add_txts, class_name=styles.ROW_STYLE)
+    return builders.wrap_divs(
+        components=con_rows + add_rows,
+        class_name=styles.COL_STYLE,
+        inner_class_name=styles.ROW_STYLE,
     )
 
 
 async def address_chooser_div(manager) -> c.Div:
-    return c.Div.wrap(
-        await choose_address_from_postcode(manager.id, manager.state.address.postcode),
+    return builders.wrap_divs(
+        components=[
+            await choose_address_from_postcode(manager.id, manager.state.address.postcode),
+        ],
         class_name=styles.ADDRESS_FROM_PC_STYLE,
     )
 
 
 async def middle_col(manager):
-    return c.Div.wrap(
-        c.ModelForm(
-            model=amherst.routers.forms.ContactForm.with_default(manager.state.contact),
-            submit_url=f'/api/forms/contact/{manager.id}',
-            submit_on_change=True,
-        ),
-        await address_chooser_div(manager),
+    return builders.wrap_divs(
+        components=[
+            c.ModelForm(
+                model=amherst.routers.forms.ContactForm.with_default(manager.state.contact),
+                submit_url=f'/api/forms/contact/{manager.id}',
+                submit_on_change=True,
+            ),
+            await address_chooser_div(manager),
+        ],
+        class_name=styles.COL_STYLE,
+    )
+
+
+async def middle_col2(manager):
+    return builders.wrap_divs(
+        components=[
+            c.ModelForm(
+                model=amherst.routers.forms.ContactForm.with_default(manager.state.contact),
+                submit_url=f'/api/forms/contact/{manager.id}',
+                submit_on_change=True,
+            ),
+            await address_chooser_div(manager),
+        ],
         class_name=styles.COL_STYLE,
     )
 
 
 async def right_col(manager):
-    return c.Div.wrap(
-        c.ModelForm(
-            model=amherst.routers.forms.AddressForm.with_default(manager.state.address),
-            submit_url=f'/api/forms/address/{manager.id}',
-        ),
+    return builders.wrap_divs(
+        components=[
+            c.ModelForm(
+                model=amherst.routers.forms.AddressForm.with_default(manager.state.address),
+                submit_url=f'/api/forms/address/{manager.id}',
+            ),
+        ],
         class_name=styles.COL_STYLE,
     )
 
 
 async def choose_address_from_postcode(man_id: int, postcode: str):
-    return c.Div.wrap(
-        c.ModelForm(
-            model=PostcodeSelect.with_default(postcode),
-            submit_url=f'/api/forms/postcode/{man_id}',
-        ),
+    return builders.wrap_divs(
+        components=[
+            c.ModelForm(
+                model=PostcodeSelect.with_default(postcode),
+                submit_url=f'/api/forms/postcode/{man_id}',
+            ),
+        ],
         class_name=styles.BOXES_BUTTON,
     )
 
@@ -123,20 +155,22 @@ async def boxes_modal_row(manager: hire_manager.HireManager) -> c.Div:
             for i in range(1, 11)
         ]
 
-    return c.Div.wrap(
-        c.Button(
-            text=f'{manager.state.boxes} Boxes',
-            on_click=e.PageEvent(name='boxes-chooser'),
-            class_name=styles.BOXES_BUTTON,
-        ),
-        c.Modal(
-            title='Number of Boxes',
-            body=await boxes_chooser_buttons(),
-            footer=[
-                c.Button(text='Close', on_click=e.PageEvent(name='boxes-chooser', clear=True)),
-            ],
-            open_trigger=e.PageEvent(name='boxes-chooser'),
-        ),
+    return builders.wrap_divs(
+        components=[
+            c.Button(
+                text=f'{manager.state.boxes} Boxes',
+                on_click=e.PageEvent(name='boxes-chooser'),
+                class_name=styles.BOXES_BUTTON,
+            ),
+            c.Modal(
+                title='Number of Boxes',
+                body=await boxes_chooser_buttons(),
+                footer=[
+                    c.Button(text='Close', on_click=e.PageEvent(name='boxes-chooser', clear=True)),
+                ],
+                open_trigger=e.PageEvent(name='boxes-chooser'),
+            ),
+        ],
         class_name=styles.ROW_STYLE,
     )
 
@@ -191,21 +225,23 @@ async def date_modal_row(manager: hire_manager.HireManagerOut) -> c.Div:
             for ship_date in weekday_dates
         ]
 
-    return c.Div.wrap(
-        c.Button(
-            text=amui.date_string(manager.state.ship_date),
-            on_click=e.PageEvent(
-                name='date-chooser',
+    return builders.wrap_divs(
+        components=[
+            c.Button(
+                text=amui.date_string(manager.state.ship_date),
+                on_click=e.PageEvent(
+                    name='date-chooser',
+                ),
             ),
-        ),
-        c.Modal(
-            title='Date',
-            body=await date_chooser_buttons(),
-            footer=[
-                c.Button(text='Close', on_click=e.PageEvent(name='date-chooser', clear=True)),
-            ],
-            open_trigger=e.PageEvent(name='date-chooser'),
-        ),
+            c.Modal(
+                title='Date',
+                body=await date_chooser_buttons(),
+                footer=[
+                    c.Button(text='Close', on_click=e.PageEvent(name='date-chooser', clear=True)),
+                ],
+                open_trigger=e.PageEvent(name='date-chooser'),
+            ),
+        ],
         class_name=styles.ROW_STYLE,
     )
 
@@ -235,46 +271,25 @@ async def book_modal(man_id):
         ),
     )
 
-
-async def address_modal(manager: hire_manager.HireManagerOut):
-    async def from_server():
-        return [
-            c.Button(
-                text='Choose new address',
-                on_click=e.GoToEvent(
-                    url=f'/hire/new_address/{manager.id}',
-                ),
-            )
-        ]
-        # return [amui.Row.empty()]
-
-    return c.Modal(
-        title='Address Modal',
-        body=await from_server(),
-        footer=[
-            c.Button(text='Close', on_click=e.PageEvent(name='address-chooser', clear=True)),
-        ],
-        open_trigger=e.PageEvent(name='address-chooser'),
-    )
-
 #
-# async def candidate_frame(manager):
-#     poc_select = PostcodeSelect(postcode=manager.hire.input_address.postcode)
-#     return await builders.page_w_alerts(
-#         components=[
-#             c.Div.wrap(c.Text(text=f'{manager.hire.name}'), class_name=styles.ROW_STYLE),
-#             *[
-#                 c.Div(
-#                     components=[
-#                         c.Button(
-#                             text=can.address_line1,
-#                             on_click=e.GoToEvent(
-#                                 url=f'/hire/update/{manager.id}/{manager.state.update_dump_64(address=can)}'
-#                             ),
-#                         )
-#                         for can in candidates
-#                     ]
-#                 )
-#             ],
+# async def address_modal(manager: hire_manager.HireManagerOut):
+#     async def from_server():
+#         return [
+#             c.Button(
+#                 text='Choose new address',
+#                 on_click=e.GoToEvent(
+#                     url=f'/hire/new_address/{manager.id}',
+#                 ),
+#             )
 #         ]
+#         # return [amui.Row.empty()]
+#
+#     return c.Modal(
+#         title='Address Modal',
+#         body=await from_server(),
+#         footer=[
+#             c.Button(text='Close', on_click=e.PageEvent(name='address-chooser', clear=True)),
+#         ],
+#         open_trigger=e.PageEvent(name='address-chooser'),
 #     )
+#

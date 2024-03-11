@@ -54,16 +54,8 @@ def random_hire_record():
     return rec
 
 
-### SQLModel
-@pytest.fixture
-def random_hire_db(random_hire_record) -> hire_model.Hire:
-    hire = hire_model.Hire(record=random_hire_record)
-    return hire.model_validate(hire)
-
 
 ### FASTAPI
-
-
 @pytest.fixture(scope="session")
 def test_session():
     engine = create_engine(DB_MEMORY)
