@@ -12,11 +12,11 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
-    'webflaskfui @ git+https://github.com/pawrequest/flaskwebgui',
-    'shipr @ git+https://github.com/pawrequest/shipr',
-    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
-    'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'pawsupport[fast] @ git+https://github.com/pawrequest/pawsupport',
+    'pdf_tools',
+    'pycommence',
+    'flaskwebgui',
+    'fastuipr',
+    'shipr',
     'pydantic',
     'fastapi',
     'pypdf',
@@ -30,7 +30,19 @@ dev = [
     'pyinstaller',
     "pytest",
 ]
-
+all-git = [
+    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
+    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
+    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
+    'shipr @ git+https://github.com/pawrequest/shipr',
+]
+shipr-git = [
+    'shipr @ git+https://github.com/pawrequest/shipr',
+]
+fastuipr-git = [
+    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
+]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -41,5 +53,4 @@ allow-direct-references = true
 #]
 
 [project.scripts]
-am_address = "amherst.script:main"
-ship_hire = "amherst.gui:main"
+ship-hire = "amherst.amherst_fastui_app:main"

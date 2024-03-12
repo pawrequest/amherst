@@ -22,7 +22,7 @@ async def booked_page(manager: managers.BookingManager) -> list[c.AnyComponent]:
                 on_click=e.GoToEvent(
                     url=f'/book/print/{manager.id}',
                 ),
-                class_name='btn btn-lg'
+                class_name='btn btn-lg btn-primary'
             ),
             # c.Button(
             #     text='Open Invoice',

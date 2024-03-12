@@ -16,12 +16,10 @@ from amherst.routers.forms import PostcodeSelect, VALID_PC
 
 async def hire_page(
         manager: managers.BookingManager,
-        alerts: list[pf_shared.Alert] | None = None
 ) -> list[
     c.AnyComponent]:
-    alerts = alerts or []
     return await builders.page_w_alerts(
-        alerts=alerts,
+        alert_dict=manager.state.alert_dict,
         components=[
             await main_row(manager),
             # await controls_row(manager),

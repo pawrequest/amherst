@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+import os
 import pathlib
 
 import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from loguru import logger
 from pycommence.api import csr_context
 
 from amherst import shipper
 
-load_dotenv()
+# load_dotenv()
 db_name = 'amherst.db'
 DB_URL = f"sqlite:///{db_name}"
 
@@ -33,6 +34,7 @@ def get_session(engine=None) -> sqm.Session:
 
 
 def get_pfc():
+    # get envlocation from main some how?
     try:
         return shipper.AmShipper.from_env()
     except Exception as e:

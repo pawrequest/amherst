@@ -10,7 +10,7 @@ import fastuipr
 from fastuipr import builders
 import shipr
 from shipr.ship_ui import states
-from pawsupport import pdf_tools
+from pdf_tools import array_pdf
 
 from amherst import am_db, shipper
 from amherst.front.pages import booked_pages
@@ -135,4 +135,4 @@ async def prnt_label(label_path: pathlib.Path) -> None:
     if not label_path.exists():
         logger.error(f'label_path {label_path} does not exist')
 
-    pdf_tools.array_pdf.convert_many(label_path, print_files=True)
+    array_pdf.convert_many(label_path, print_files=True)

@@ -2,7 +2,7 @@ import os
 import random
 from pathlib import Path
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import pytest
 from sqlmodel import SQLModel, Session, create_engine
 
@@ -19,7 +19,7 @@ ENV_FILE = Path(r"C:\Users\RYZEN\prdev\amdev\.env").resolve()
 if not ENV_FILE.is_file():
     raise FileNotFoundError(f"File not found: {ENV_FILE}")
 
-load_dotenv(ENV_FILE)
+# load_dotenv(ENV_FILE)
 CONTRACT_NO = os.environ.get("PF_CONT_NUM_1")
 ...
 
