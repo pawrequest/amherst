@@ -12,11 +12,11 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
-    'pdf_tools',
-    'pycommence',
-    'flaskwebgui',
-    'fastuipr',
-    'shipr',
+    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
+    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
+    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
+    'shipr @ git+https://github.com/pawrequest/shipr',
     'pydantic',
     'fastapi',
     'pypdf',
@@ -31,10 +31,10 @@ dev = [
     "pytest",
 ]
 all-git = [
+    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
     'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
-    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
     'shipr @ git+https://github.com/pawrequest/shipr',
 ]
 shipr-git = [
