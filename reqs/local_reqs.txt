@@ -1,3 +1,0 @@
--e file:///C:/Users/Giles/prdev/pycommence
--e file:///C:/Users/Giles/prdev/shipr
--e file:///C:/Users/Giles/prdev/pawsupport

@@ -1,5 +1,5 @@
-import shipr.models.pf_ext
-import shipr.models.pf_top
+import shipr.models.express.pf_ext
+import shipr.models.express.pf_top
 from shipr.models.pf_msg import FindRequest, FindResponse
 from shipr.msgs import pf_msg_protocols as cp
 

@@ -1,4 +1,5 @@
 import contextlib
+import pathlib
 
 import fastapi
 import sqlmodel as sqm
@@ -14,16 +15,16 @@ load_dotenv()
 @contextlib.asynccontextmanager
 async def lifespan(app_: fastapi.FastAPI):
     try:
-        am_db.create_db()
+        # am_db.create_db()
         # with sqm.Session(am_db.ENGINE) as session:
         #     pf_shipper = shipper.AmShipper.from_env()
         #     populate_db_from_cmc(session, pf_shipper)
 
-        logger.info('tables created')
+        # logger.info('tables created')
         yield
 
     finally:
-        am_db.destroy_db()
+        # am_db.destroy_db()
         ...
         # main_task.cancel()
         # await asyncio.gather(main_task)

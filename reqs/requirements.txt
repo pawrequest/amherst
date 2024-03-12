@@ -1,5 +1,0 @@
--r ./dev_reqs.txt
--r ./local_reqs.txt
-
-pydantic
-PySimpleGui

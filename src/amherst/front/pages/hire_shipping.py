@@ -5,17 +5,17 @@ import typing as _t
 
 import pydantic as _p
 from fastuipr import AnyComponent, builders, components as c, events as e, styles
-from shipr.models import pf_ext, pf_shared
+from shipr.models import pf_shared, pf_ext
 from shipr.ship_ui import states
 
 import amherst.routers.forms
 from amherst.front import amui
-from amherst.models import manager2
+from amherst.models import managers
 from amherst.routers.forms import PostcodeSelect, VALID_PC
 
 
 async def hire_page(
-        manager: manager2.HireManager,
+        manager: managers.BookingManager,
         alerts: list[pf_shared.Alert] | None = None
 ) -> list[
     c.AnyComponent]:
@@ -31,7 +31,7 @@ async def hire_page(
     # await self.service_button(),
 
 
-async def main_row(manager: manager2.HireManager) -> c.Div:
+async def main_row(manager: managers.BookingManager) -> c.Div:
     return c.Div.wrap(
         await left_col(manager),
         await middle_col(manager),
@@ -52,8 +52,8 @@ async def left_col(manager) -> c.Div:
 
 
 async def input_address_div(manager):
-    con_txts = builders.object_strs_texts(manager.hire.contact, title='Contact')
-    add_txts = builders.object_strs_texts(manager.hire.input_address, title='Address')
+    con_txts = builders.object_strs_texts(manager.item.contact, title='Contact')
+    add_txts = builders.object_strs_texts(manager.item.input_address, title='Address')
     con_rows = builders.list_of_divs(components=con_txts, class_name=styles.ROW_STYLE)
     add_rows = builders.list_of_divs(components=add_txts, class_name=styles.ROW_STYLE)
     return builders.wrap_divs(
@@ -133,7 +133,7 @@ async def neighbouring_addresses(man_id) -> c.Button:
     )
 
 
-async def open_invoice(manager: manager2.HireManager) -> c.Button:
+async def open_invoice(manager: managers.BookingManager) -> c.Button:
     return c.Button(
         text='Open Invoice',
         on_click=e.GoToEvent(
@@ -142,7 +142,7 @@ async def open_invoice(manager: manager2.HireManager) -> c.Button:
     )
 
 
-async def boxes_modal_row(manager: manager2.HireManager) -> c.Div:
+async def boxes_modal_row(manager: managers.BookingManager) -> c.Div:
     async def boxes_chooser_buttons() -> list[c.AnyComponent]:
         return [
             c.Button(
@@ -188,7 +188,7 @@ def default_pc(postcode):
 
 
 async def address_chooser(
-        manager: manager2.HireManager, candidates: list[pf_ext.AddressRecipient]
+        manager: managers.BookingManager, candidates: list[pf_ext.AddressRecipient]
 ) -> list[AnyComponent]:
     return await builders.page_w_alerts(
         components=[
@@ -208,7 +208,7 @@ async def address_chooser(
     )
 
 
-async def date_modal_row(manager: manager2.HireManagerOut) -> c.Div:
+async def date_modal_row(manager: managers.BookingManagerOut) -> c.Div:
     async def date_chooser_buttons() -> list[c.AnyComponent]:
         start_date = dt.date.today()
         date_range = [start_date + dt.timedelta(days=x) for x in range(7)]
@@ -272,7 +272,7 @@ async def book_modal(man_id):
     )
 
 #
-# async def address_modal(manager: manager2.HireManagerOut):
+# async def address_modal(manager: managers.BookingManagerOut):
 #     async def from_server():
 #         return [
 #             c.Button(

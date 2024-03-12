@@ -1,15 +1,14 @@
 import datetime as dt
 import typing as _ty
 
-from amherst.models import am_shared
 from shipr.models import pf_ext, pf_shared, pf_top
 
+from amherst.models import am_shared
 from amherst.models.am_shared import addr_lines_dict_am
 
 
 class Sale(pf_shared.BasePFType):
     cmc_table_name: _ty.ClassVar[str] = 'Sale'
-
     record: dict[str, str]
 
     # @pyd.computed_field

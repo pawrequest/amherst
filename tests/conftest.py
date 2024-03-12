@@ -11,7 +11,7 @@ from amherst import sample_data, shipper
 from amherst.models import hire_model, am_shared
 
 from amherst.models.am_shared import AmherstFields
-from shipr.models import pf_ext, pf_top
+from shipr.models import pf_top, pf_ext
 
 # from . import monkey as el_types
 

@@ -1,23 +1,65 @@
 import datetime as dt
 import typing as _ty
 
+import pydantic as _p
 import sqlmodel as sqm
 from pycommence import api
-from shipr.models import pf_ext, pf_shared, pf_top
+from shipr.models import BaseItem, pf_ext, pf_top, pf_shared, types as s_types
 
 from amherst.models import am_shared
 
 
-class Hire(pf_shared.BasePFType):
-    cmc_table_name: _ty.ClassVar[str] = 'Hire'
+class ShipableItem(BaseItem):
+    cmc_table_name: str
+    record: dict[str, str] = sqm.Field(sa_column=sqm.Column(sqm.JSON))
     initial_filter_array: _ty.ClassVar[api.FilterArray] = sqm.Field(
         default=am_shared.INITIAL_FILTER_ARRAY2,
         # sa_column=sqm.Column(sqm.JSON)
     )
 
+    @_p.model_validator(mode='after')
+    def get_values(self):
+        match self.cmc_table_name:
+            case 'Hire':
+                self.boxes = int(self.record.get(am_shared.AmherstFields.BOXES))
+                self.ship_date = api.get_cmc_date(
+                    self.record.get(am_shared.AmherstFields.SEND_OUT_DATE)
+                )
+                phone = self.record.get(am_shared.AmherstFields.TELEPHONE)
+            case 'Sale':
+                self.boxes = 1
+                self.ship_date = dt.date.today()
+                phone = self.record.get(am_shared.AmherstFields.SALE_TELEPHONE)
+            case _:
+                raise ValueError(f'unknown table name: {self.cmc_table_name}')
+        self.contact = pf_top.Contact(
+            business_name=self.record.get(am_shared.AmherstFields.CUSTOMER),
+            email_address=self.record.get(am_shared.AmherstFields.EMAIL),
+            mobile_phone=phone,
+            contact_name=self.record.get(am_shared.AmherstFields.CONTACT),
+        )
+        self.name = self.record.get(am_shared.AmherstFields.NAME)
+        self.input_address = pf_ext.AddressRecipient(
+            **am_shared.addr_lines_dict_am(
+                self.record.get(am_shared.AmherstFields.ADDRESS)
+            ),
+            town='',
+            postcode=self.record.get(am_shared.AmherstFields.POSTCODE),
+        )
+
+        return self
+
+
+class Hire(BaseItem):
+    cmc_table_name: str = 'Hire'
     record: dict[str, str]
+    initial_filter_array: _ty.ClassVar[api.FilterArray] = sqm.Field(
+        default=am_shared.INITIAL_FILTER_ARRAY2,
+        # sa_column=sqm.Column(sqm.JSON)
+    )
 
     # @pyd.computed_field
+
     @property
     def boxes(self) -> int:
         return int(self.record.get(am_shared.AmherstFields.BOXES))

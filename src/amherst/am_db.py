@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pathlib
+
 import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
@@ -10,8 +12,10 @@ from pycommence.api import csr_context
 from amherst import shipper
 
 load_dotenv()
+db_name = 'amherst.db'
+DB_URL = f"sqlite:///{db_name}"
+
 # DB_URL = 'sqlite:///:memory:'
-DB_URL = "sqlite:///amherst.db"
 CONNECT_ARGS = {'check_same_thread': False}
 ENGINE = sqa.create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
 
@@ -51,6 +55,8 @@ def destroy_db(engine=None):
         engine = ENGINE
     sqm.SQLModel.metadata.drop_all(engine)
 
+    # db_path = pathlib.Path(db_name)
+    # db_path.unlink(missing_ok=True)
 
 def get_hire_cursor():
     with csr_context('Hire') as cursor:

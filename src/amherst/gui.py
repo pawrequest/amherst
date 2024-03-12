@@ -1,11 +1,12 @@
 import argparse
 
-import sqlmodel
+import sqlmodel as sqm
 from flaskwebgui import FlaskUI
 import pycommence
 
 from amherst import am_db, app_file, rec_importer, shipper
-from amherst.models import hire_model
+from amherst.models.hire_model import ShipableItem
+from amherst.models.managers import BookingManagerDB
 
 
 # warn = "%USERPROFILE%\.rye\shims removed from path"
@@ -15,6 +16,10 @@ def parse_arguments():
     arg_parser.add_argument('record_name', type=str)
     return arg_parser.parse_args()
 
+def delete_all_records(session: sqm.Session, model):
+    statement = sqm.delete(model)
+    session.execute(statement)
+    session.commit()
 
 def main(category: str, record_name: str):
     with pycommence.api.csr_context(category) as csr:
@@ -25,24 +30,23 @@ def main(category: str, record_name: str):
 
     am_db.create_db()
 
-    with sqlmodel.Session(am_db.ENGINE) as session:
-        if category.lower() == 'hire':
-            managers = rec_importer.generic_records_to_managers(
-                record,
-                record_type=hire_model.Hire,
-                pfcom=pf_shipper
-            )
-            # managers = rec_importer.hire_records_to_managers(record, pfcom=pf_shipper)
-        elif category.lower() == 'sale':
-            managers = rec_importer.sale_records_to_managers(record, pfcom=pf_shipper)
-        # managers = rec_importer.hire_records_to_managers(record, pfcom=pf_shipper)
-        else:
-            raise ValueError(f'category {category} not found')
-        session.add_all(managers)
+    with sqm.Session(am_db.ENGINE) as session:
+        # if category.lower() == 'hire':
+        #     item = hire_model.Hire(record=record)
+        # elif category.lower() == 'sale':
+        #     item = sale_model.Sale(record=record)
+        # else:
+        #     raise ValueError(f'category {category} not found')
+        delete_all_records(session, BookingManagerDB)
+        item = ShipableItem(cmc_table_name=category, record=record)
+        manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)
+        session.add(manager)
         session.commit()
-
-    fui = FlaskUI(app=app_file.app, server='fastapi')
-    fui.run()
+    try:
+        fui = FlaskUI(app=app_file.app, server='fastapi', on_shutdown=am_db.destroy_db)
+        fui.run()
+    finally:
+        am_db.destroy_db()
 
 
 if __name__ == '__main__':

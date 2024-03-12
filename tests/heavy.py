@@ -1,8 +1,3 @@
-import pytest
-
-from shipr.models import pf_ext, pf_top
-
-
 # @pytest.mark.skip(reason="many api calls")
 # def test_address_and_contact(
 #         random_hires: list[hire_model.Hire],

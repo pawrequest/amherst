@@ -1,5 +1,4 @@
 # from __future__ import annotations
-import base64
 import os
 
 import sqlmodel as sqm
@@ -7,17 +6,15 @@ from fastapi import APIRouter, Depends
 from loguru import logger
 from shipr.models import pf_shared
 from sqlmodel import Session
-import pycommence
 import shipr
 from fastuipr import FastUI, components as c
 from fastuipr.events import GoToEvent
 from shipr.ship_ui import states
 
 import amherst.front.pages.hire_shipping
-from amherst import rec_importer
 from amherst.am_db import get_pfc, get_session
 from amherst.front.pages import hire_shipping
-from amherst.models import manager2, hire_model, am_shared
+from amherst.models import managers, hire_model, am_shared
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
 
@@ -38,7 +35,7 @@ async def open_invoice(
         session: Session = Depends(get_session),
 ):
     man_in = await get_manager(manager_id, session)
-    man_out = manager2.HireManagerOut.model_validate(man_in)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
 
     inv_file = man_in.hire.record.get(am_shared.AmherstFields.INVOICE)
     try:
@@ -58,7 +55,7 @@ async def neighbours(
         session: Session = Depends(get_session),
 ):
     man_in = await get_manager(booking_id, session)
-    man_out = manager2.HireManagerOut.model_validate(man_in)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
     postcode = man_in.hire.input_address.postcode
     candidates = pfcom.get_candidates(postcode)
     return await amherst.front.pages.hire_shipping.address_chooser(
@@ -79,7 +76,7 @@ async def pcneighbours(
         session: Session = Depends(get_session),
 ):
     man_in = await get_manager(booking_id, session)
-    man_out = manager2.HireManagerOut.model_validate(man_in)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
     candidates = pfcom.get_candidates(postcode)
     return await amherst.front.pages.hire_shipping.address_chooser(
         manager=man_out,
@@ -100,12 +97,12 @@ async def update_hire(
     updt = states.ShipStatePartial.model_validate_64(update_64)
 
     man_in = await get_manager(booking_id, session)
-    man_out = manager2.HireManagerOut.model_validate(man_in)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
 
     updated_state_ = man_out.state.get_updated(updt)
     updated_state = shipr.ShipState.model_validate(updated_state_)
     man_in.state = updated_state
-    # man_out = manager2.HireManagerDB.model_validate(man_in)
+    # man_out = managers.BookingManagerDB.model_validate(man_in)
     session.add(man_in)
     session.commit()
     session.refresh(man_in)
@@ -121,7 +118,7 @@ async def view_hire(
 ) -> list[c.AnyComponent]:
     logger.info(f'hire route: {manager_id}')
     man_in = await get_manager(manager_id, session)
-    man_out = manager2.HireManagerOut.model_validate(man_in)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
     if not man_out:
         raise ValueError(f'manager id {manager_id} not found')
     return await hire_shipping.hire_page(manager=man_out)
@@ -145,11 +142,11 @@ async def view_hire(
 #     return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{added.id}'))]
 
 
-def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> manager2.HireManagerDB:
+def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> managers.BookingManagerDB:
     """Create a new hire and state in the database from a record dict."""
     hire_ = hire_model.Hire(record=record)
     state = shipr.ShipState.hire_initial(hire_, pfcom)
-    manager = manager2.HireManagerDB(hire=hire_, state=state)
+    manager = managers.BookingManagerDB(hire=hire_, state=state)
     manager = manager.model_validate(manager)
     session.add(manager)
     session.commit()

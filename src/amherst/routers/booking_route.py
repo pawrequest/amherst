@@ -9,13 +9,13 @@ from loguru import logger
 import fastuipr
 import shipr
 from fastuipr import components as c
-from shipr.ship_ui import states
+from shipr.ship_ui import states, managers
 from pawsupport import pdf_tools
 
 from amherst import am_db, shipper
 from amherst.front import amui
 from amherst.front.pages import booked_pages
-from amherst.models import manager2
+from amherst.models import managers
 
 router = fastapi.APIRouter()
 
@@ -64,25 +64,25 @@ async def validated_book_state(req, resp) -> states.BookingState:
     )
 
 
-async def book_hire(manager: manager2.HireManager, pfcom):
+async def book_hire(manager: managers.BookingManager, pfcom):
     req = pfcom.state_to_shipment_request(manager.state)
     print(f'req: {req}')
-    logger.warning(f'BOOKING SHIPMENT {manager.hire.name}')
+    logger.warning(f'BOOKING SHIPMENT {manager.item.name}')
     resp = pfcom.get_shipment_resp(req)
     print(f'resp: {resp}')
     return req, resp
 
 
-async def get_manager(manager_id: int, session: sqm.Session) -> manager2.GenericManagerDB:
-    man_in = session.get(manager2.GenericManagerDB, manager_id)
-    if not isinstance(man_in, manager2.GenericManagerDB):
+async def get_manager(manager_id: int, session: sqm.Session) -> managers.BookingManagerDB:
+    man_in = session.get(managers.BookingManagerDB, manager_id)
+    if not isinstance(man_in, managers.BookingManagerDB):
         raise ValueError('booking not found')
     return man_in
 
 
-async def get_manager1(manager_id: int, session: sqm.Session) -> manager2.HireManagerDB:
-    man_in = session.get(manager2.HireManagerDB, manager_id)
-    if not isinstance(man_in, manager2.HireManagerDB):
+async def get_manager1(manager_id: int, session: sqm.Session) -> managers.BookingManagerDB:
+    man_in = session.get(managers.BookingManagerDB, manager_id)
+    if not isinstance(man_in, managers.BookingManagerDB):
         raise ValueError('booking not found')
     return man_in
 

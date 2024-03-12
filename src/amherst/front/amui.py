@@ -5,7 +5,7 @@ from datetime import date
 import fastuipr.class_name as _class_name
 from fastuipr import builders, styles
 from fastuipr import components as c
-from shipr.models import pf_ext, pf_top
+from shipr.models import pf_top, pf_ext
 
 
 class Page(c.Page):

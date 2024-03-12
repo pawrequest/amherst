@@ -1,0 +1,11 @@
+-r ./dev_reqs.txt
+-r ./local_reqs_office.txt
+git+https://github.com/pawrequest/flaskwebgui
+
+pydantic
+fastapi
+pypdf
+sqlmodel
+uvicorn[standard]
+python-dotenv
+httpx
