@@ -5,7 +5,7 @@ import typing as _t
 
 import pydantic as _p
 from fastuipr import AnyComponent, builders, components as c, events as e, styles
-from shipr.models import pf_shared, pf_ext
+from shipr.models import pf_ext, pf_shared
 from shipr.ship_ui import states
 
 import amherst.routers.forms
@@ -86,20 +86,6 @@ async def middle_col(manager):
     )
 
 
-async def middle_col2(manager):
-    return builders.wrap_divs(
-        components=[
-            c.ModelForm(
-                model=amherst.routers.forms.ContactForm.with_default(manager.state.contact),
-                submit_url=f'/api/forms/contact/{manager.id}',
-                submit_on_change=True,
-            ),
-            await address_chooser_div(manager),
-        ],
-        class_name=styles.COL_STYLE,
-    )
-
-
 async def right_col(manager):
     return builders.wrap_divs(
         components=[
@@ -137,7 +123,7 @@ async def open_invoice(manager: managers.BookingManager) -> c.Button:
     return c.Button(
         text='Open Invoice',
         on_click=e.GoToEvent(
-            url=f'/hire/open_invoice/{manager.id}',
+            url=f'/hire/invoice/{manager.id}',
         ),
     )
 
@@ -231,6 +217,7 @@ async def date_modal_row(manager: managers.BookingManagerOut) -> c.Div:
                 text=amui.date_string(manager.state.ship_date),
                 on_click=e.PageEvent(
                     name='date-chooser',
+                    class_name=styles.BOXES_BUTTON,
                 ),
             ),
             c.Modal(
@@ -254,7 +241,7 @@ async def book_modal(man_id):
             class_name=styles.BOXES_BUTTON
         ),
         c.Modal(
-            title='ship Modal',
+            title='Confirm Shipping',
             body=[
                 c.Button(
                     text='BOOK',

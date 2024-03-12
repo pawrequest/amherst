@@ -4,17 +4,15 @@ import os
 import sqlmodel as sqm
 from fastapi import APIRouter, Depends
 from loguru import logger
-from shipr.models import pf_shared
 from sqlmodel import Session
 import shipr
-from fastuipr import FastUI, components as c
-from fastuipr.events import GoToEvent
+from fastuipr import FastUI, builders, components as c, events
 from shipr.ship_ui import states
 
 import amherst.front.pages.hire_shipping
 from amherst.am_db import get_pfc, get_session
 from amherst.front.pages import hire_shipping
-from amherst.models import managers, hire_model, am_shared
+from amherst.models import am_shared, hire_model, managers
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
 
@@ -29,23 +27,34 @@ router = APIRouter()
 #     man_in = await get_manager(manager_id, session)
 #     hire_sheet = man_in.hire.record.get()
 
-@router.get('/open_invoice/{manager_id}')
+@router.get('/invoice/{manager_id}')
 async def open_invoice(
         manager_id: int,
         session: Session = Depends(get_session),
 ):
     man_in = await get_manager(manager_id, session)
-    man_out = managers.BookingManagerOut.model_validate(man_in)
+    inv_file = man_in.item.record.get(am_shared.AmherstFields.INVOICE)
 
-    inv_file = man_in.hire.record.get(am_shared.AmherstFields.INVOICE)
     try:
         os.startfile(inv_file)
     except FileNotFoundError:
         logger.error(f'Invoice file not found: {inv_file}')
-        alert = pf_shared.Alert(code=11, message=f'Invoice file not found: {inv_file}', type='ERROR')
-        return c.FireEvent(event=GoToEvent(url=f'/hire/view/{manager_id}'))
+        # alert = pf_shared.Alert(code=11, message=f'Invoice file not found: {inv_file}', type='ERROR')
 
-    return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{manager_id}'))]
+    # return await builders.page_w_alerts(
+    #     components=[
+    #         c.Button(
+    #             text='Back',
+    #             # on_click=c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}')),
+    #             on_click=events.GoToEvent(
+    #                 url=f'/hire/invoice/{manager_id}',
+    #             ),
+    #         )
+    #     ],
+    #     title='back',
+    # )
+
+    return c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}'))
 
 
 @router.get('/neighbours/{booking_id}', response_model=FastUI, response_model_exclude_none=True)

@@ -1,0 +1,4 @@
+pawsupport[fast] @ git+https://github.com/pawrequest/pawsupport
+-r ./git_reqs.txt
+-r ./dev_reqs.txt
+-r ./normal_reqs.txt

@@ -1,48 +1,38 @@
 from __future__ import annotations
 
-from shipr.ship_ui import managers
-
-from amherst.models import managers
-from fastuipr import builders
-from fastuipr import components as c
-from fastuipr import events as e
+from fastuipr import builders, components as c, events as e
 from shipr.models.pf_shared import Alert
 
-
-async def printed_page(manager: managers.BookingManager) -> list[c.AnyComponent]:
-    ret = await builders.page_w_alerts(
-        components=[
-            c.Div.wrap(
-                c.Button(
-                    text='RePrint ',
-                    # f"{self.booking.state.book_state.shipment_num()}"
-                    # on_click=None,
-                    on_click=e.GoToEvent(url=f'/book/print/{manager.id}'),
-                ),
-                c.Text(text='dddd'),
-            ),
-        ],
-        title='Booking Response',
-        alerts=await get_alerty(manager),
-    )
-    return ret
+from amherst.models import managers
 
 
 async def get_alerty(manager) -> list[Alert] | None:
-    return manager.state.booking_state.response.alerts.alert if manager.state.booking_state else None
+    if manager.state.booking_state:
+        if alerts := manager.state.booking_state.response.alerts:
+            return alerts.alert
+    return None
 
 
 async def booked_page(manager: managers.BookingManager) -> list[c.AnyComponent]:
     ret = await builders.page_w_alerts(
         components=[
-            c.Div.wrap(
-                c.Button(
-                    text=f'Download and Print Label for Shipment {manager.state.booking_state.shipment_num()}',
-                    on_click=e.GoToEvent(
-                        url=f'/book/print/{manager.id}',
-                    ),
+            # c.Div.wrap(
+            c.Button(
+                text=f'Array and Re/Print Labels for {manager.item.name}',
+                on_click=e.GoToEvent(
+                    url=f'/book/print/{manager.id}',
                 ),
+                class_name='btn btn-lg'
             ),
+            # c.Button(
+            #     text='Open Invoice',
+            #     on_click=e.GoToEvent(
+            #         url=f'/hire/invoice/{manager.id}',
+            #     ),
+            # ),
+            # class_name=styles.CONTAINER_STYLE,
+            # inner_class_name=styles.ROW_STYLE,
+            # ),
         ],
         title='booking',
         alerts=await get_alerty(manager),

@@ -1,11 +1,3 @@
 -r ./local_reqs_hm.txt
 -r ./dev_reqs.txt
-git+https://github.com/pawrequest/flaskwebgui
-pawsupport[fast]
-pydantic
-fastapi
-pypdf
-sqlmodel
-uvicorn[standard]
-python-dotenv
-httpx
+-r ./normal_reqs.txt

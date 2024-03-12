@@ -2,7 +2,6 @@ from loguru import logger
 import shipr
 from shipr import ShipState
 from shipr.models import pf_shared
-from shipr.ship_ui import managers
 
 from amherst import shipper
 from amherst.models import hire_model, managers, sale_model, types as am_types

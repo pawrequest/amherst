@@ -3,10 +3,15 @@ import argparse
 import sqlmodel as sqm
 from flaskwebgui import FlaskUI
 import pycommence
+from shipr import types as s_types
+from loguru import logger
+from dotenv import load_dotenv
 
 from amherst import am_db, app_file, rec_importer, shipper
 from amherst.models.hire_model import ShipableItem
 from amherst.models.managers import BookingManagerDB
+
+load_dotenv()
 
 
 # warn = "%USERPROFILE%\.rye\shims removed from path"
@@ -14,18 +19,21 @@ def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=str)
     arg_parser.add_argument('record_name', type=str)
+    arg_parser.add_argument('scope', nargs='?', type=str, default='SAND')
     return arg_parser.parse_args()
+
 
 def delete_all_records(session: sqm.Session, model):
     statement = sqm.delete(model)
     session.execute(statement)
     session.commit()
 
-def main(category: str, record_name: str):
+
+def main(category: str, record_name: str, scope: s_types.ShipperScope = 'SAND'):
     with pycommence.api.csr_context(category) as csr:
         record = csr.get_record_by_name(record_name)
 
-    pf_shipper = shipper.AmShipper.from_env(scope='SAND')
+    pf_shipper = shipper.AmShipper.from_env(scope=scope)
     # from amherst.models.manager2 import HireManagerDB
 
     am_db.create_db()
@@ -51,4 +59,7 @@ def main(category: str, record_name: str):
 
 if __name__ == '__main__':
     args = parse_arguments()
-    main(args.category, args.record_name)
+    scope = args.scope
+    if scope == 'LIVE':
+        logger.warning('LIVE SCOPE')
+    main(args.category, args.record_name, scope)

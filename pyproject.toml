@@ -12,9 +12,11 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
-    'shipr',
-    'pycommence',
-    'pawsupport[office]',
+    'webflaskfui @ git+https://github.com/pawrequest/flaskwebgui',
+    'shipr @ git+https://github.com/pawrequest/shipr',
+    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
+    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'pawsupport[fast] @ git+https://github.com/pawrequest/pawsupport',
     'pydantic',
     'fastapi',
     'pypdf',
