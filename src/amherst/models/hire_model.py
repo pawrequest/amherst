@@ -38,10 +38,11 @@ class ShipableItem(BaseItem):
             mobile_phone=phone,
             contact_name=self.record.get(am_shared.AmherstFields.CONTACT),
             notifications=pf_lists.Notifications(
-                notification_type=[pf_shared.NotificationType.EMAIL,
-                                   pf_shared.NotificationType.SMS_DOD,
-                                   # pf_shared.NotificationType.SMS_ATTEMPT_DEL
-                                   ]
+                notification_type=[
+                    pf_shared.NotificationType.EMAIL,
+                    pf_shared.NotificationType.SMS_DOD,
+                    pf_shared.NotificationType.SMS_ATTEMPT_DEL
+                ]
             )
         )
         self.name = self.record.get(am_shared.AmherstFields.NAME)

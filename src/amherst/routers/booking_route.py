@@ -7,7 +7,6 @@ import fastapi
 import sqlmodel as sqm
 from loguru import logger
 import fastuipr
-from fastuipr import builders
 import shipr
 from shipr.ship_ui import states
 from pdf_tools import array_pdf
@@ -24,7 +23,7 @@ async def view_booked(
         manager_id: int,
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[fastuipr.AnyComponent]:
-    manager = await get_manager1(manager_id, session)
+    manager = await get_manager(manager_id, session)
     manager_ = managers.BookingManagerOut.model_validate(manager)
     return await booked_pages.booked_page(manager=manager_)
     # return await builders.page_w_alerts(
@@ -82,13 +81,6 @@ async def book_shipping(manager: managers.BookingManager, pfcom):
 
 
 async def get_manager(manager_id: int, session: sqm.Session) -> managers.BookingManagerDB:
-    man_in = session.get(managers.BookingManagerDB, manager_id)
-    if not isinstance(man_in, managers.BookingManagerDB):
-        raise ValueError('booking not found')
-    return man_in
-
-
-async def get_manager1(manager_id: int, session: sqm.Session) -> managers.BookingManagerDB:
     man_in = session.get(managers.BookingManagerDB, manager_id)
     if not isinstance(man_in, managers.BookingManagerDB):
         raise ValueError('booking not found')
