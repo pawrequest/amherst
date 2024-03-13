@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from fastuipr import builders, components as c, events as e
-from shipr.models.pf_shared import Alert
+from fastuipr import builders, components as c, events as e, types_ as f_types
 
 from amherst.models import managers
 
 
-async def get_alerty(manager) -> list[Alert] | None:
+async def get_alerty(manager) -> f_types.AlertDict | None:
     if manager.state.booking_state:
         if alerts := manager.state.booking_state.response.alerts:
-            return alerts.alert
-    return None
+            return {a.message: a.type for a in alerts.alert}
 
 
 async def booked_page(manager: managers.BookingManager) -> list[c.AnyComponent]:
@@ -35,6 +33,6 @@ async def booked_page(manager: managers.BookingManager) -> list[c.AnyComponent]:
             # ),
         ],
         title='booking',
-        alerts=await get_alerty(manager),
+        alert_dict=await get_alerty(manager),
     )
     return ret
