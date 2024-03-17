@@ -5,10 +5,10 @@ import time
 import webbrowser
 
 import uvicorn
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from loguru import logger
 
-load_dotenv()
+# load_dotenv()
 
 
 def parse_arguments():

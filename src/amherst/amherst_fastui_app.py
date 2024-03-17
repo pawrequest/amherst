@@ -3,7 +3,6 @@ import argparse
 import sqlmodel as sqm
 from flaskwebgui import FlaskUI
 import pycommence
-from shipr import types as s_types
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -11,15 +10,15 @@ from amherst import am_db, app_file, rec_importer, shipper
 from amherst.models.hire_model import ShipableItem
 from amherst.models.managers import BookingManagerDB
 
-load_dotenv()
-
+env_loc = r"R:\paul_r\.internal\envs\ship.env"
+load_dotenv(env_loc)
 
 # warn = "%USERPROFILE%\.rye\shims removed from path"
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=str)
     arg_parser.add_argument('record_name', type=str)
-    arg_parser.add_argument('scope', nargs='?', type=str, default='SAND')
+    arg_parser.add_argument('env_loc', nargs='?', type=str)
     return arg_parser.parse_args()
 
 
@@ -29,22 +28,26 @@ def delete_all_records(session: sqm.Session, model):
     session.commit()
 
 
-def main(category: str, record_name: str, scope: s_types.ShipperScope = 'SAND'):
+def main(
+        category: str = None,
+        record_name: str = None,
+):
+    if not all([category, record_name]):
+        logger.info('Arguments missing, using command line arguments: ')
+        args = parse_arguments()
+
+        category = category or args.category
+        record_name = record_name or args.record_name
+    logger.info(f'\n{category=}\n{record_name=}')
+
     with pycommence.api.csr_context(category) as csr:
         record = csr.get_record_by_name(record_name)
 
-    pf_shipper = shipper.AmShipper.from_env(scope=scope)
-    # from amherst.models.manager2 import HireManagerDB
+    pf_shipper = shipper.AmShipper.from_env()
 
     am_db.create_db()
 
     with sqm.Session(am_db.ENGINE) as session:
-        # if category.lower() == 'hire':
-        #     item = hire_model.Hire(record=record)
-        # elif category.lower() == 'sale':
-        #     item = sale_model.Sale(record=record)
-        # else:
-        #     raise ValueError(f'category {category} not found')
         delete_all_records(session, BookingManagerDB)
         item = ShipableItem(cmc_table_name=category, record=record)
         manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)
@@ -59,7 +62,4 @@ def main(category: str, record_name: str, scope: s_types.ShipperScope = 'SAND'):
 
 if __name__ == '__main__':
     args = parse_arguments()
-    scope = args.scope
-    if scope == 'LIVE':
-        logger.warning('LIVE SCOPE')
-    main(args.category, args.record_name, scope)
+    main(args.category, args.record_name)

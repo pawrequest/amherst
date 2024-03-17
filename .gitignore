@@ -13,3 +13,4 @@ wheels/
 /.idea/
 .env
 /docs/_build/
+/src/amherst/amherst.db
