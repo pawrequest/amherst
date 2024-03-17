@@ -4,13 +4,14 @@ import pathlib
 import time
 
 import fastapi
+import fastui
 import sqlmodel as sqm
 from loguru import logger
 import fastuipr
 from fastuipr import builders
 import shipr
 from shipr.ship_ui import states
-from pawsupport import pdf_tools
+from suppawt import pdf_tools
 
 from amherst import am_db, shipper
 from amherst.front.pages import booked_pages
@@ -19,11 +20,11 @@ from amherst.models import managers
 router = fastapi.APIRouter()
 
 
-@router.get('/view/{manager_id}', response_model=fastuipr.FastUI, response_model_exclude_none=True)
+@router.get('/view/{manager_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
 async def view_booked(
         manager_id: int,
         session: sqm.Session = fastapi.Depends(am_db.get_session),
-) -> list[fastuipr.AnyComponent]:
+) -> list[fastui.AnyComponent]:
     manager = await get_manager1(manager_id, session)
     manager_ = managers.BookingManagerOut.model_validate(manager)
     return await booked_pages.booked_page(manager=manager_)
@@ -39,7 +40,7 @@ async def go(
         manager_id: int,
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
-) -> list[fastuipr.AnyComponent]:
+) -> list[fastui.AnyComponent]:
     logger.warning(f'booking_id: {manager_id}')
     manager = await get_manager(manager_id, session)
 

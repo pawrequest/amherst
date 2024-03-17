@@ -1,5 +1,5 @@
 git+https://github.com/pawrequest/flaskwebgui
-pawsupport[fast]
+suppawt[fast]
 pydantic
 fastapi
 pypdf

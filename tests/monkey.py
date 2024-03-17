@@ -21,10 +21,10 @@
 # import sqlalchemy as sqa
 # import sqlmodel as sqm
 #
-# from pawsupport.get_set import hash_simple_md5
+# from suppawt.get_set import hash_simple_md5
 # from .test_client import ELClient
-# from pawsupport import convert_print_silent2
-# from pawsupport.pydantic.pyd_types import TruncatedSafeMaybeStr, TruncatedSafeStr
+# from suppawt import convert_print_silent2
+# from suppawt.pydantic.pyd_types import TruncatedSafeMaybeStr, TruncatedSafeStr
 # import pycommence
 #
 #

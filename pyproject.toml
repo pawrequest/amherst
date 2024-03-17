@@ -12,11 +12,11 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
-    'webflaskfui @ git+https://github.com/pawrequest/flaskwebgui',
-    'shipr @ git+https://github.com/pawrequest/shipr',
-    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
-    'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'pawsupport[fast] @ git+https://github.com/pawrequest/pawsupport',
+    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
+    'fastuipr',
+    'shipr',
+    'pycommence',
+    'suppawt',
     'pydantic',
     'fastapi',
     'pypdf',
@@ -30,8 +30,14 @@ dev = [
     'pyinstaller',
     "pytest",
 ]
+git = [
+    'shipr @ git+https://github.com/pawrequest/shipr',
+    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
+    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'suppawt @ git+https://github.com/pawrequest/suppawt', ]
 
-
+[tool.rye]
+managed = true
 [tool.hatch.metadata]
 allow-direct-references = true
 
