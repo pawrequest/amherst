@@ -57,7 +57,7 @@ def main(
         session.add(manager)
         session.commit()
     try:
-        fui = FlaskUI(app=app_file.app, server='fastapi')
+        fui = FlaskUI(app=app_file.app, server='fastapi', height=800, width=800, fullscreen=False)
         fui.run()
     finally:
         ...

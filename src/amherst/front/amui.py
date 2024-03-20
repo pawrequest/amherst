@@ -4,7 +4,7 @@ from datetime import date
 from enum import Enum, auto
 
 import fastui.class_name as _class_name
-from fastuipr import builders, styles
+from pawdantic.pawui import builders, styles
 from fastui import components as c
 from shipr.models import pf_top, pf_ext
 

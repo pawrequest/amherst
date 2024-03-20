@@ -1,16 +1,10 @@
 import contextlib
-import pathlib
 
 import fastapi
 import fastui
 import sqlmodel as sqm
-# from dotenv import load_dotenv
-from loguru import logger
 
-import fastuipr
-from amherst import rec_importer, routers, sample_data, am_db, shipper
-
-# load_dotenv()
+from amherst import rec_importer, routers, sample_data
 
 
 @contextlib.asynccontextmanager

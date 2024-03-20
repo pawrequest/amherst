@@ -1,7 +1,7 @@
 import fastapi
 from fastui import FastUI, components as c, events
 
-from fastuipr import builders, styles
+from pawdantic.pawui import builders, styles
 from ..front import styles as am_styles
 
 router = fastapi.APIRouter()

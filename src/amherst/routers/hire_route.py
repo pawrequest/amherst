@@ -27,11 +27,11 @@ router = APIRouter()
 #     man_in = await get_manager(manager_id, session)
 #     hire_sheet = man_in.hire.record.get()
 
-@router.get('/invoice/{manager_id}')
+@router.get('/invoice/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def open_invoice(
         manager_id: int,
         session: Session = Depends(get_session),
-):
+) -> list[c.AnyComponent]:
     man_in = await get_manager(manager_id, session)
     inv_file = man_in.item.record.get(am_shared.AmherstFields.INVOICE)
 
@@ -41,8 +41,10 @@ async def open_invoice(
         logger.error(f'Invoice file not found: {inv_file}')
         # alert = pf_shared.Alert(code=11, message=f'Invoice file not found: {inv_file}', type='ERROR')
 
+    return [c.FireEvent(event=events.GoToEvent(url=f'/hire/view/{manager_id}'))]
+
     # return await builders.page_w_alerts(
-    #     components=[
+    #     components=[`
     #         c.Button(
     #             text='Back',
     #             # on_click=c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}')),
@@ -54,7 +56,7 @@ async def open_invoice(
     #     title='back',
     # )
 
-    return c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}'))
+    # return c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}'))
 
 
 @router.get('/neighbours/{booking_id}', response_model=FastUI, response_model_exclude_none=True)

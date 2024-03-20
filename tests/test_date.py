@@ -8,7 +8,6 @@ import sqlalchemy as sqa
 import shipr.ui_states.abc
 from suppawt.sqlmodel_ps import sqlpr
 
-import shipr.models.pyd_types
 import shipr.models.types
 
 

@@ -7,10 +7,11 @@ import pydantic as _p
 from fastui import AnyComponent, components as c, events as e
 
 import amherst.routers.forms
+import shipr.ship_ui.forms
 from amherst.front import amui, styles as am_styles
 from amherst.models import managers
-from amherst.routers.forms import PostcodeSelect, VALID_PC
-from fastuipr import builders, styles
+from shipr.models.types import PostcodeSelect, VALID_PC
+from pawdantic.pawui import builders, styles
 from shipr.models import pf_ext
 from shipr.ship_ui import states
 
@@ -21,10 +22,7 @@ async def hire_page(
     c.AnyComponent]:
     return await builders.page_w_alerts(
         alert_dict=manager.state.alert_dict,
-        components=[
-            await main_row(manager),
-            # await controls_row(manager),
-        ],
+        components=[await main_row(manager)],
     )
 
     # await self.service_button(),
@@ -47,28 +45,30 @@ async def left_col(manager) -> c.Div:
             await input_address_div(manager),
             await boxes_modal_row(manager),
             await date_modal_row(manager),
-            *await book_modal(manager.id),
+            await book_modal(manager.id),
+            await open_invoice(manager),
         ],
-        # await open_invoice(manager),
         class_name=am_styles.LEFT_COL_STYLE,
     )
 
 
 async def input_address_div(manager):
-    contact_txts = builders.object_strs_texts(manager.item.contact, title='Contact')
-    add_txts = builders.object_strs_texts(manager.item.input_address, title='Address')
-    return builders.wrap_divs(
+    return c.Div(
         components=[
-            *builders.list_of_divs(components=contact_txts, class_name=styles.ROW_STYLE),
-            *builders.list_of_divs(components=add_txts, class_name=styles.ROW_STYLE),
+            *builders.list_of_divs(
+                components=[
+                    *builders.object_strs_texts(manager.item.contact, title='Contact'),
+                    *builders.object_strs_texts(manager.item.input_address, title='Address'),
+                ], class_name=styles.ROW_STYLE
+            ),
         ],
-        class_name=styles.COL_STYLE,
+        class_name=styles.ROW_STYLE,
         # inner_class_name=styles.ROW_STYLE,
     )
 
 
 async def address_chooser_div(manager) -> c.Div:
-    return builders.wrap_divs(
+    return c.Div(
         components=[
             await choose_address_from_postcode(manager.id, manager.state.address.postcode),
         ],
@@ -77,10 +77,10 @@ async def address_chooser_div(manager) -> c.Div:
 
 
 async def middle_col(manager):
-    return builders.wrap_divs(
+    return c.Div(
         components=[
             c.ModelForm(
-                model=amherst.routers.forms.ContactForm.with_default(manager.state.contact),
+                model=shipr.ship_ui.forms.ContactForm.with_default(manager.state.contact),
                 submit_url=f'/api/forms/contact/{manager.id}',
                 submit_on_change=True,
             ),
@@ -91,10 +91,11 @@ async def middle_col(manager):
 
 
 async def right_col(manager):
-    return builders.wrap_divs(
+    return c.Div(
         components=[
             c.ModelForm(
-                model=amherst.routers.forms.AddressForm.with_default(manager.state.address),
+                # model=shipr.ship_ui.forms.AddressForm.with_default(manager.state.address),
+                model=shipr.ship_ui.forms.ContactAndAddressForm.with_default(manager.state.contact, manager.state.address),
                 submit_url=f'/api/forms/address/{manager.id}',
             ),
         ],
@@ -103,7 +104,7 @@ async def right_col(manager):
 
 
 async def choose_address_from_postcode(man_id: int, postcode: str):
-    return builders.wrap_divs(
+    return c.Div(
         components=[
             c.ModelForm(
                 model=PostcodeSelect.with_default(postcode),
@@ -123,12 +124,17 @@ async def neighbouring_addresses(man_id) -> c.Button:
     )
 
 
-async def open_invoice(manager: managers.BookingManager) -> c.Button:
-    return c.Button(
-        text='Open Invoice',
-        on_click=e.GoToEvent(
-            url=f'/hire/invoice/{manager.id}',
-        ),
+async def open_invoice(manager: managers.BookingManager) -> c.Div:
+    return c.Div(
+        components=[
+            c.Button(
+                text='Open Invoice',
+                on_click=e.GoToEvent(
+                    url=f'/hire/invoice/{manager.id}',
+                ),
+            )
+        ],
+        class_name=styles.ROW_STYLE,
     )
 
 
@@ -145,7 +151,7 @@ async def boxes_modal_row(manager: managers.BookingManager) -> c.Div:
             for i in range(1, 11)
         ]
 
-    return builders.wrap_divs(
+    return c.Div(
         components=[
             c.Button(
                 text=f'{manager.state.boxes} Boxes',
@@ -216,7 +222,7 @@ async def date_modal_row(manager: managers.BookingManagerOut) -> c.Div:
             for ship_date in weekday_dates
         ]
 
-    return builders.wrap_divs(
+    return c.Div(
         components=[
             c.Button(
                 text=amui.date_string(manager.state.ship_date),
@@ -238,29 +244,32 @@ async def date_modal_row(manager: managers.BookingManagerOut) -> c.Div:
     )
 
 
-async def book_modal(man_id):
-    return (
-        c.Button(
-            text='Ship',
-            on_click=e.PageEvent(name='ship-chooser'),
-            class_name=am_styles.BOXES_BUTTON
-        ),
-        c.Modal(
-            title='Confirm Shipping',
-            body=[
-                c.Button(
-                    text='BOOK',
-                    on_click=e.GoToEvent(
-                        url=f'/book/go/{man_id}',
+async def book_modal(man_id) -> c.Div:
+    return c.Div(
+        components=[
+            c.Button(
+                text='Ship',
+                on_click=e.PageEvent(name='ship-chooser'),
+                class_name=am_styles.BOXES_BUTTON
+            ),
+            c.Modal(
+                title='Confirm Shipping',
+                body=[
+                    c.Button(
+                        text='BOOK',
+                        on_click=e.GoToEvent(
+                            url=f'/book/go/{man_id}',
+                        ),
+                        class_name=am_styles.BOXES_BUTTON,
                     ),
-                    class_name=am_styles.BOXES_BUTTON,
-                ),
-            ],
-            footer=[
-                c.Button(text='Close', on_click=e.PageEvent(name='ship-chooser', clear=True)),
-            ],
-            open_trigger=e.PageEvent(name='ship-chooser'),
-        ),
+                ],
+                footer=[
+                    c.Button(text='Close', on_click=e.PageEvent(name='ship-chooser', clear=True)),
+                ],
+                open_trigger=e.PageEvent(name='ship-chooser'),
+            ),
+        ],
+        class_name=styles.ROW_STYLE,
     )
 
 #
