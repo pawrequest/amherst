@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import date
+from enum import Enum, auto
 
-import fastuipr.class_name as _class_name
+import fastui.class_name as _class_name
 from fastuipr import builders, styles
-from fastuipr import components as c
+from fastui import components as c
 from shipr.models import pf_top, pf_ext
 
 
@@ -58,3 +59,16 @@ async def address_n_contact_col(
         class_name=styles.COL_STYLE,
         inner_class_name=styles.ROW_STYLE,
     )
+
+
+class BoxesEnum(str, Enum):
+    one = auto()
+    two = auto()
+    three = auto()
+    four = auto()
+    five = auto()
+    six = auto()
+    seven = auto()
+    eight = auto()
+    nine = auto()
+    ten = auto()

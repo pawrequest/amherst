@@ -12,12 +12,11 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
-    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
-    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
-    'pycommence @ git+https://github.com/pawrequest/pycommence',
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
-#    'shipr @ git+https://github.com/pawrequest/shipr',
-    'shipr @ file://C:/Users/giles/prdev/amdev/shipr',
+    'fastuipr',
+    'shipr',
+    'pycommence',
+    'suppawt',
     'pydantic',
     'fastapi',
     'pypdf',
@@ -31,20 +30,14 @@ dev = [
     'pyinstaller',
     "pytest",
 ]
-all-git = [
+git = [
+    'shipr @ git+https://github.com/pawrequest/shipr',
     'fastuipr @ git+https://github.com/pawrequest/fastuipr',
-    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
-    'shipr @ git+https://github.com/pawrequest/shipr',
-]
-shipr-git = [
-    'shipr @ git+https://github.com/pawrequest/shipr',
-]
-fastuipr-git = [
-    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
-]
+    'suppawt @ git+https://github.com/pawrequest/suppawt', ]
 
+[tool.rye]
+managed = true
 [tool.hatch.metadata]
 allow-direct-references = true
 
@@ -52,6 +45,3 @@ allow-direct-references = true
 #packages = [
 #    "amherst",
 #]
-
-[project.scripts]
-ship-hire = "amherst.amherst_fastui_app:main"

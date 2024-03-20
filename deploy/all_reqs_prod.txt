@@ -1,3 +1,4 @@
+suppawt @ git+https://github.com/pawrequest/suppawt
 -r ./git_reqs.txt
 -r ./dev_reqs.txt
 -r ./normal_reqs.txt

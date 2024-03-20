@@ -1,9 +1,9 @@
 git+https://github.com/pawrequest/flaskwebgui
-git+https://github.com/pawrequest/pdf_tools
-git+https://github.com/pawrequest/pycommence
-
-sqlmodel
+suppawt[fast]
+pydantic
 fastapi
+pypdf
+sqlmodel
 uvicorn[standard]
 python-dotenv
 httpx

@@ -1,2 +1,5 @@
+-e file:///C:/Users/RYZEN/prdev/workbench/suppawt
 -e file:///C:/Users/RYZEN/prdev/workbench/fastuipr
 -e file:///C:/Users/RYZEN/prdev/workbench/shipr
+-e file:///C:/Users/RYZEN/prdev/workbench/pycommence
+-e file:///C:/Users/RYZEN/prdev/workbench/fastuipr

@@ -4,12 +4,13 @@ import datetime as dt
 import typing as _t
 
 import pydantic as _p
-from fastuipr import AnyComponent, builders, components as c, events as e, styles
+from fastui import AnyComponent, components as c, events as e
+
+from fastuipr import builders
 from shipr.models import pf_ext, pf_shared
 from shipr.ship_ui import states
-
 import amherst.routers.forms
-from amherst.front import amui
+from amherst.front import amui, styles
 from amherst.models import managers
 from amherst.routers.forms import PostcodeSelect, VALID_PC
 
@@ -30,21 +31,25 @@ async def hire_page(
 
 
 async def main_row(manager: managers.BookingManager) -> c.Div:
-    return c.Div.wrap(
-        await left_col(manager),
-        await middle_col(manager),
-        await right_col(manager),
+    return builders.wrap_divs(
+        components=[
+            await left_col(manager),
+            await middle_col(manager),
+            await right_col(manager),
+        ],
         class_name=styles.ROW_STYLE,
     )
 
 
 async def left_col(manager) -> c.Div:
-    return c.Div.wrap(
-        await input_address_div(manager),
-        await boxes_modal_row(manager),
-        await date_modal_row(manager),
-        *await book_modal(manager.id),
-        # await open_invoice(manager),
+    return builders.wrap_divs(
+        components=[
+            await input_address_div(manager),
+            await boxes_modal_row(manager),
+            await date_modal_row(manager),
+            *await book_modal(manager.id),
+            # await open_invoice(manager),
+        ],
         class_name=styles.LEFT_COL_STYLE,
     )
 
@@ -215,8 +220,8 @@ async def date_modal_row(manager: managers.BookingManagerOut) -> c.Div:
                 text=amui.date_string(manager.state.ship_date),
                 on_click=e.PageEvent(
                     name='date-chooser',
-                    class_name=styles.BOXES_BUTTON,
                 ),
+                class_name=styles.BOXES_BUTTON,
             ),
             c.Modal(
                 title='Date',
