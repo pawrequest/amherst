@@ -6,13 +6,12 @@ import typing as _t
 import pydantic as _p
 from fastui import AnyComponent, components as c, events as e
 
-import amherst.routers.forms
 import shipr.ship_ui.forms
 from amherst.front import amui, styles as am_styles
 from amherst.models import managers
-from shipr.models.types import PostcodeSelect, VALID_PC
 from pawdantic.pawui import builders, styles
 from shipr.models import pf_ext
+from shipr.models.types import PostcodeSelect, VALID_PC
 from shipr.ship_ui import states
 
 
@@ -95,7 +94,10 @@ async def right_col(manager):
         components=[
             c.ModelForm(
                 # model=shipr.ship_ui.forms.AddressForm.with_default(manager.state.address),
-                model=shipr.ship_ui.forms.ContactAndAddressForm.with_default(manager.state.contact, manager.state.address),
+                model=shipr.ship_ui.forms.ContactAndAddressForm.with_default(
+                    manager.state.contact,
+                    manager.state.address
+                ),
                 submit_url=f'/api/forms/address/{manager.id}',
             ),
         ],
