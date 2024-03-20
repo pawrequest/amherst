@@ -1,4 +1,4 @@
-from pycommence import Csr
+from pycommence.api import Csr
 
 """NO CHECKS ON DATABASE NAME!!"""
 
