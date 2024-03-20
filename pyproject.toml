@@ -45,7 +45,3 @@ allow-direct-references = true
 #packages = [
 #    "amherst",
 #]
-
-[project.scripts]
-am_address = "amherst.script:main"
-ship_hire = "amherst.gui:main"
