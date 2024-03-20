@@ -13,4 +13,6 @@ wheels/
 /.idea/
 .env
 /docs/_build/
+/amherst.db
+/notenv
 /src/amherst/amherst.db

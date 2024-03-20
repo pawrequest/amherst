@@ -7,15 +7,12 @@ import fastapi
 import fastui
 import sqlmodel as sqm
 from loguru import logger
-import fastuipr
-from fastuipr import builders
-import shipr
-from shipr.ship_ui import states
-from pdf_tools import array_pdf
 
+import shipr
 from amherst import am_db, shipper
 from amherst.front.pages import booked_pages
 from amherst.models import managers
+from shipr.ship_ui import states
 
 router = fastapi.APIRouter()
 
@@ -25,7 +22,7 @@ async def view_booked(
         manager_id: int,
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[fastui.AnyComponent]:
-    manager = await get_manager1(manager_id, session)
+    manager = await get_manager(manager_id, session)
     manager_ = managers.BookingManagerOut.model_validate(manager)
     return await booked_pages.booked_page(manager=manager_)
     # return await builders.page_w_alerts(
@@ -35,7 +32,7 @@ async def view_booked(
     # )
 
 
-@router.get('/go/{manager_id}', response_model=fastuipr.FastUI, response_model_exclude_none=True)
+@router.get('/go/{manager_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
 async def go(
         manager_id: int,
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
@@ -89,14 +86,7 @@ async def get_manager(manager_id: int, session: sqm.Session) -> managers.Booking
     return man_in
 
 
-async def get_manager1(manager_id: int, session: sqm.Session) -> managers.BookingManagerDB:
-    man_in = session.get(managers.BookingManagerDB, manager_id)
-    if not isinstance(man_in, managers.BookingManagerDB):
-        raise ValueError('booking not found')
-    return man_in
-
-
-@router.get('/print/{booking_id}', response_model=fastuipr.FastUI, response_model_exclude_none=True)
+@router.get('/print/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
 async def print_label(
         booking_id: int,
         pfcom=fastapi.Depends(am_db.get_pfc),

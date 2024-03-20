@@ -2,6 +2,7 @@ import contextlib
 import pathlib
 
 import fastapi
+import fastui
 import sqlmodel as sqm
 # from dotenv import load_dotenv
 from loguru import logger
@@ -64,4 +65,4 @@ def populate_db_from_cmc(session: sqm.Session, pfcom):
 
 @app.get('/{path:path}')
 async def html_landing() -> fastapi.responses.HTMLResponse:
-    return fastapi.responses.HTMLResponse(fastuipr.prebuilt_html(title='Amherst'))
+    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))

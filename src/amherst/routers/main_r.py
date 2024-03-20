@@ -1,7 +1,7 @@
 import fastapi
-import fastuipr
+from fastui import FastUI, components as c, events
+
 from fastuipr import builders, styles
-from fastui import components as c, events, FastUI
 from ..front import styles as am_styles
 
 router = fastapi.APIRouter()
@@ -15,12 +15,14 @@ async def default_route():
 
     return await builders.page_w_alerts(
         components=[
-            c.Div.wrap(
-                c.Button(
-                    text='go',
-                    on_click=events.GoToEvent(url='/hire/view/1'),
-                    class_name=am_styles.BOXES_BUTTON
-                ),
+            builders.wrap_divs(
+                components=[
+                    c.Button(
+                        text='go',
+                        on_click=events.GoToEvent(url='/hire/view/1'),
+                        class_name=am_styles.BOXES_BUTTON
+                    ),
+                ],
                 class_name=styles.ROW_STYLE,
             ),
         ],

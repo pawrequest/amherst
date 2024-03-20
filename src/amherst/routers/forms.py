@@ -12,10 +12,8 @@ import shipr
 import shipr.models.types
 from amherst import am_db
 from amherst.routers.booking_route import get_manager
-from fastuipr import FastUI
-from fastuipr import components as c
-from fastuipr import events as e
-from fastuipr.forms import fastui_form
+from fastui import components as c, events as e, FastUI
+from fastui.forms import fastui_form
 from shipr import models as s_mod
 
 

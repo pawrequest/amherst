@@ -26,18 +26,18 @@ class AmShipper(ELClient):
     pass
 
 
-def booking_state_to_shipment_complex(state: ship_ui.ShipState) -> pf_top.RequestedShipmentSimple:
-    # add = elt.AddressRecipientPF.model_validate(state.address)
-    return pf_top.RequestedShipmentSimple(
-        department_id=s_types.DepartmentNum,
-        shipment_type='DELIVERY',
-        contract_number=os.environ["PF_CONT_NUM_1"],
-        service_code=state.ship_service,
-        shipping_date=state.ship_date,
-        recipient_contact=state.contact,
-        recipient_address=state.address,
-        total_number_of_parcels=state.boxes,
-        sender_address=AmherstPFAddress,
-        sender_contact=AmherstPFContact,
-
-    )
+# def booking_state_to_shipment_complex(state: ship_ui.ShipState) -> pf_top.RequestedShipmentSimple:
+#     # add = elt.AddressRecipientPF.model_validate(state.address)
+#     return pf_top.RequestedShipmentSimple(
+#         department_id=s_types.DepartmentNum,
+#         shipment_type='DELIVERY',
+#         contract_number=os.environ["PF_CONT_NUM_1"],
+#         service_code=state.ship_service,
+#         shipping_date=state.ship_date,
+#         recipient_contact=state.contact,
+#         recipient_address=state.address,
+#         total_number_of_parcels=state.boxes,
+#         sender_address=AmherstPFAddress,
+#         sender_contact=AmherstPFContact,
+#
+#     )

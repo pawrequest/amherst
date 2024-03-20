@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from fastuipr import builders, components as c, events as e, types_ as f_types
+from fastuipr import builders, types_ as f_types
+from fastui import components as c, events as e
 
 from amherst.models import managers
 
