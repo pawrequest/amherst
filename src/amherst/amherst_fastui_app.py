@@ -44,7 +44,7 @@ def main(
     load_dotenv(env_loc)
 
     with pycommence.api.csr_context(category) as csr:
-        record = csr.get_record_by_name(record_name)
+        record = csr.record_by_name(record_name)
 
     pf_shipper = shipper.AmShipper.from_env()
 
