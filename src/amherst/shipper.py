@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 
 from shipr import ELClient, models, msgs, ship_ui
-from shipr.models import pf_ext, pf_shared, pf_top
+from shipr.models import pf_ext, pf_lists, pf_shared, pf_top
 
 
 class AmherstAddress(pf_ext.BaseAddress):
@@ -33,10 +33,17 @@ class AmherstContact(pf_top.Contact):
     contact_name: str = 'Giles Toman'
     telephone: str = '02073289792'
 
+    notifications: pf_lists.RecipientNotifications = pf_lists.RecipientNotifications(
+        notification_type=[
+            pf_shared.NotificationType.DELIVERY,
+            pf_shared.NotificationType.EMAIL,
+        ]
+    )
+
 
 class AmShipper(ELClient):
     def state_to_collection_request(self, state: ship_ui.ShipState):
-        ship_req = shipstate_to_collection(state)
+        ship_req = state_to_amherst_collection(state)
         req = msgs.CreateCollectionRequest(
             authentication=self.config.auth,
             requested_shipment=ship_req
@@ -61,7 +68,7 @@ class AmShipper(ELClient):
 #     )
 
 
-def shipstate_to_collection(state: ship_ui.ShipState) -> models.CollectionMinimum:
+def state_to_amherst_collection(state: ship_ui.ShipState) -> models.CollectionMinimum:
     col_min = models.CollectionMinimum(
         contract_number=os.environ['PF_CONT_NUM_1'],
         service_code=pf_shared.ServiceCode.EXPRESS24,

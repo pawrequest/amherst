@@ -38,7 +38,7 @@
 #     )
 #
 #
-# class Notifications(BasePFType):
+# class RecipientNotifications(BasePFType):
 #     notification_type: List[str] = Field(default_factory=list)
 #
 #
@@ -52,7 +52,7 @@
 #     fax: Optional[str] = None
 #
 #     senders_name: TruncatedSafeMaybeStr(25)
-#     notifications: Optional[Notifications] = None
+#     notifications: Optional[RecipientNotifications] = None
 #
 #
 # class AddressJson(TypeDecorator):

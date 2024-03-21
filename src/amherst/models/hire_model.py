@@ -4,16 +4,9 @@ import typing as _ty
 import pydantic as _p
 import sqlmodel as sqm
 
+from amherst.models import am_shared
 from pycommence import api
 from shipr.models import BaseItem, pf_ext, pf_lists, pf_shared, pf_top
-
-STANDARD_NOTIFICATIONS = [
-    pf_shared.NotificationType.EMAIL_DOD_INT,
-    pf_shared.NotificationType.SMS_DOD,
-    # pf_shared.NotificationType.SMS_ATTEMPT_DEL
-]
-
-from amherst.models import am_shared
 
 
 class ShipableItem(BaseItem):
@@ -44,9 +37,7 @@ class ShipableItem(BaseItem):
             email_address=self.record.get(am_shared.AmherstFields.EMAIL),
             mobile_phone=phone,
             contact_name=self.record.get(am_shared.AmherstFields.CONTACT),
-            notifications=pf_lists.Notifications(
-                notification_type=STANDARD_NOTIFICATIONS
-            )
+            notifications=pf_lists.RecipientNotifications(),
         )
         self.name = self.record.get(am_shared.AmherstFields.NAME)
         self.input_address = pf_ext.AddressRecipient(

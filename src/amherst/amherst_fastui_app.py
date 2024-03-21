@@ -1,5 +1,6 @@
 import argparse
 import pathlib
+import sys
 
 import sqlmodel as sqm
 from dotenv import load_dotenv
@@ -63,7 +64,9 @@ def main(
             app=app_file.app, server='fastapi',
             # height=1600,
             # width=1000,
-            fullscreen=True
+            fullscreen=True,
+            # on_shutdown=lambda: sys.exit(0)
+
         )
         fui.run()
     finally:
