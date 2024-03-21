@@ -27,6 +27,9 @@ router = APIRouter()
 #     man_in = await get_manager(manager_id, session)
 #     hire_sheet = man_in.hire.record.get()
 
+
+
+
 @router.get('/invoice/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def open_invoice(
         manager_id: int,

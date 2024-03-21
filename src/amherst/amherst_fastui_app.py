@@ -2,13 +2,15 @@ import argparse
 import pathlib
 
 import sqlmodel as sqm
-from flaskwebgui import FlaskUI
-import pycommence
-from loguru import logger
 from dotenv import load_dotenv
+from flaskwebgui import FlaskUI
 
+import pycommence
 from amherst import am_db, app_file, rec_importer, shipper
 from amherst.models import hire_model, managers
+from suppawt.logging_ps import get_loguru
+
+logger = get_loguru(profile='local', log_file='amherst.log')
 
 
 def parse_arguments():
@@ -57,7 +59,12 @@ def main(
         session.add(manager)
         session.commit()
     try:
-        fui = FlaskUI(app=app_file.app, server='fastapi', height=800, width=800, fullscreen=False)
+        fui = FlaskUI(
+            app=app_file.app, server='fastapi',
+            # height=1600,
+            # width=1000,
+            fullscreen=True
+        )
         fui.run()
     finally:
         ...

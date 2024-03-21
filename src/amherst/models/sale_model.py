@@ -11,23 +11,23 @@ class Sale(pf_shared.BasePFType):
     cmc_table_name: _ty.ClassVar[str] = 'Sale'
     record: dict[str, str]
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def boxes(self) -> int:
         return 1
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def name(self) -> str:
         return self.record.get(am_shared.AmherstFields.NAME)
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def ship_date(self) -> dt.date:
         """uses cmc cannonical format yyyymmdd"""
         return dt.date.today()
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def input_address(self) -> pf_ext.AddressRecipient:
         return pf_ext.AddressRecipient(
@@ -36,7 +36,7 @@ class Sale(pf_shared.BasePFType):
             postcode=self.record.get(am_shared.AmherstFields.POSTCODE),
         )
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def contact(self) -> pf_top.Contact:
         return pf_top.Contact(

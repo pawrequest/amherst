@@ -3,8 +3,15 @@ import typing as _ty
 
 import pydantic as _p
 import sqlmodel as sqm
+
 from pycommence import api
 from shipr.models import BaseItem, pf_ext, pf_lists, pf_shared, pf_top
+
+STANDARD_NOTIFICATIONS = [
+    pf_shared.NotificationType.EMAIL_DOD_INT,
+    pf_shared.NotificationType.SMS_DOD,
+    # pf_shared.NotificationType.SMS_ATTEMPT_DEL
+]
 
 from amherst.models import am_shared
 
@@ -38,11 +45,7 @@ class ShipableItem(BaseItem):
             mobile_phone=phone,
             contact_name=self.record.get(am_shared.AmherstFields.CONTACT),
             notifications=pf_lists.Notifications(
-                notification_type=[
-                    pf_shared.NotificationType.EMAIL,
-                    pf_shared.NotificationType.SMS_DOD,
-                    pf_shared.NotificationType.SMS_ATTEMPT_DEL
-                ]
+                notification_type=STANDARD_NOTIFICATIONS
             )
         )
         self.name = self.record.get(am_shared.AmherstFields.NAME)
@@ -65,18 +68,18 @@ class Hire(BaseItem):
         # sa_column=sqm.Column(sqm.JSON)
     )
 
-    # @pyd.computed_field
+    # @_p.computed_field
 
     @property
     def boxes(self) -> int:
         return int(self.record.get(am_shared.AmherstFields.BOXES))
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def name(self) -> str:
         return self.record.get(am_shared.AmherstFields.NAME)
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def ship_date(self) -> dt.date:
         """uses cmc cannonical format yyyymmdd"""
@@ -87,7 +90,7 @@ class Hire(BaseItem):
                 return v_date
         return tod
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def input_address(self) -> pf_ext.AddressRecipient:
         return pf_ext.AddressRecipient(
@@ -96,7 +99,7 @@ class Hire(BaseItem):
             postcode=self.record.get(am_shared.AmherstFields.POSTCODE),
         )
 
-    # @pyd.computed_field
+    # @_p.computed_field
     @property
     def contact(self) -> pf_top.Contact:
         return pf_top.Contact(

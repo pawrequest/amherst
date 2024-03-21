@@ -21,6 +21,8 @@ async def hire_page(
     c.AnyComponent]:
     return await builders.page_w_alerts(
         alert_dict=manager.state.alert_dict,
+        page_class_name=am_styles.PAGE_STYLE,
+        container_class_name=am_styles.CONTAINER_STYLE,
         components=[await main_row(manager)],
     )
 
@@ -31,37 +33,53 @@ async def main_row(manager: managers.BookingManager) -> c.Div:
     return builders.wrap_divs(
         components=[
             await left_col(manager),
-            await middle_col(manager),
             await right_col(manager),
         ],
-        class_name=styles.ROW_STYLE,
+        class_name='row my-3',
+    )
+
+
+async def away_collection_row(manager_id: int) -> c.Div:
+    return c.Div(
+        components=[
+            c.Button(
+                text='Away Collection',
+                on_click=e.GoToEvent(
+                    url=f'/book/collection/{manager_id}',
+                ),
+                class_name=am_styles.BUTTON,
+            ),
+        ],
     )
 
 
 async def left_col(manager) -> c.Div:
-    return builders.wrap_divs(
+    return c.Div(
+        class_name='col col-4 mx-auto',
         components=[
             await input_address_div(manager),
             await boxes_modal_row(manager),
             await date_modal_row(manager),
-            await book_modal(manager.id),
             await open_invoice(manager),
+            await book_modal(manager.id),
+            await away_collection_row(manager.id),
+
         ],
-        class_name=am_styles.LEFT_COL_STYLE,
     )
 
 
 async def input_address_div(manager):
     return c.Div(
+        class_name='row mv-5',
         components=[
             *builders.list_of_divs(
+                class_name='row',
                 components=[
                     *builders.object_strs_texts(manager.item.contact, title='Contact'),
                     *builders.object_strs_texts(manager.item.input_address, title='Address'),
-                ], class_name=styles.ROW_STYLE
+                ],
             ),
         ],
-        class_name=styles.ROW_STYLE,
         # inner_class_name=styles.ROW_STYLE,
     )
 
@@ -71,7 +89,7 @@ async def address_chooser_div(manager) -> c.Div:
         components=[
             await choose_address_from_postcode(manager.id, manager.state.address.postcode),
         ],
-        class_name=am_styles.ADDRESS_FROM_PC_STYLE,
+        class_name='row mx-auto',
     )
 
 
@@ -85,7 +103,7 @@ async def middle_col(manager):
             ),
             await address_chooser_div(manager),
         ],
-        class_name=styles.COL_STYLE,
+        class_name='col',
     )
 
 
@@ -99,9 +117,10 @@ async def right_col(manager):
                     manager.state.address
                 ),
                 submit_url=f'/api/forms/address/{manager.id}',
+                class_name='row h6',
             ),
         ],
-        class_name=styles.COL_STYLE,
+        class_name='col',
     )
 
 
@@ -113,7 +132,7 @@ async def choose_address_from_postcode(man_id: int, postcode: str):
                 submit_url=f'/api/forms/postcode/{man_id}',
             ),
         ],
-        class_name=am_styles.BOXES_BUTTON,
+        class_name=am_styles.BUTTON,
     )
 
 
@@ -148,7 +167,7 @@ async def boxes_modal_row(manager: managers.BookingManager) -> c.Div:
                 on_click=e.GoToEvent(
                     url=f'/hire/update/{manager.id}/{manager.state.update_dump_64(boxes=i)}',
                 ),
-                class_name=am_styles.BOXES_BUTTON,
+                class_name=am_styles.BUTTON,
             )
             for i in range(1, 11)
         ]
@@ -158,7 +177,7 @@ async def boxes_modal_row(manager: managers.BookingManager) -> c.Div:
             c.Button(
                 text=f'{manager.state.boxes} Boxes',
                 on_click=e.PageEvent(name='boxes-chooser'),
-                class_name=am_styles.BOXES_BUTTON,
+                class_name=am_styles.BUTTON,
             ),
             c.Modal(
                 title='Number of Boxes',
@@ -219,7 +238,7 @@ async def date_modal_row(manager: managers.BookingManagerOut) -> c.Div:
                 on_click=e.GoToEvent(
                     url=f'/hire/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(ship_date=ship_date))}',
                 ),
-                class_name=am_styles.BOXES_BUTTON,
+                class_name=am_styles.BUTTON,
             )
             for ship_date in weekday_dates
         ]
@@ -231,7 +250,7 @@ async def date_modal_row(manager: managers.BookingManagerOut) -> c.Div:
                 on_click=e.PageEvent(
                     name='date-chooser',
                 ),
-                class_name=am_styles.BOXES_BUTTON,
+                class_name=am_styles.BUTTON,
             ),
             c.Modal(
                 title='Date',
@@ -252,7 +271,7 @@ async def book_modal(man_id) -> c.Div:
             c.Button(
                 text='Ship',
                 on_click=e.PageEvent(name='ship-chooser'),
-                class_name=am_styles.BOXES_BUTTON
+                class_name=am_styles.BUTTON
             ),
             c.Modal(
                 title='Confirm Shipping',
@@ -262,7 +281,7 @@ async def book_modal(man_id) -> c.Div:
                         on_click=e.GoToEvent(
                             url=f'/book/go/{man_id}',
                         ),
-                        class_name=am_styles.BOXES_BUTTON,
+                        class_name=am_styles.BUTTON,
                     ),
                 ],
                 footer=[

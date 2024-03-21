@@ -1,8 +1,7 @@
 import fastapi
 from fastui import FastUI, components as c, events
 
-from pawdantic.pawui import builders, styles
-from ..front import styles as am_styles
+from pawdantic.pawui import builders
 
 router = fastapi.APIRouter()
 
@@ -15,15 +14,16 @@ async def default_route():
 
     return await builders.page_w_alerts(
         components=[
-            builders.wrap_divs(
+            c.Div(
+                class_name=' row my-5 mx-auto',
                 components=[
                     c.Button(
                         text='go',
                         on_click=events.GoToEvent(url='/hire/view/1'),
-                        class_name=am_styles.BOXES_BUTTON
+                        class_name='btn btn-primary h-300px',
+
                     ),
                 ],
-                class_name=styles.ROW_STYLE,
             ),
         ],
     )

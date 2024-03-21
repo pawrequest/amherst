@@ -1,11 +1,13 @@
 # from __future__ import annotations
+from __future__ import annotations
+
 import os
 
-from shipr.models import pf_ext, pf_top, types as s_types
-from shipr import ELClient, ship_ui
+from shipr import ELClient, models, msgs, ship_ui
+from shipr.models import pf_ext, pf_shared, pf_top
 
 
-class AmherstPFAddress(pf_ext.AddressSender):
+class AmherstAddress(pf_ext.BaseAddress):
     address_line1: str = '70 Kingsgate Road'
     address_line2: str = 'Kilburn'
     address_line3: str = ''
@@ -14,7 +16,17 @@ class AmherstPFAddress(pf_ext.AddressSender):
     country: str = 'GB'
 
 
-class AmherstPFContact(pf_top.Contact):
+am_add_dict = dict(
+    address_line1='70 Kingsgate Road',
+    address_line2='Kilburn',
+    address_line3='',
+    town='London',
+    postcode='NW6 4TE',
+    country='GB',
+)
+
+
+class AmherstContact(pf_top.Contact):
     business_name: str = 'Amherst Radio Center'
     email_address: str = 'radios@amherst.co.uk'
     mobile_phone: str = '07979147257'
@@ -23,7 +35,13 @@ class AmherstPFContact(pf_top.Contact):
 
 
 class AmShipper(ELClient):
-    pass
+    def state_to_collection_request(self, state: ship_ui.ShipState):
+        ship_req = shipstate_to_collection(state)
+        req = msgs.CreateCollectionRequest(
+            authentication=self.config.auth,
+            requested_shipment=ship_req
+        )
+        return req
 
 
 # def booking_state_to_shipment_complex(state: ship_ui.ShipState) -> pf_top.RequestedShipmentSimple:
@@ -38,6 +56,20 @@ class AmShipper(ELClient):
 #         recipient_address=state.address,
 #         total_number_of_parcels=state.boxes,
 #         sender_address=AmherstPFAddress,
-#         sender_contact=AmherstPFContact,
+#         sender_contact=AmherstContact,
 #
 #     )
+
+
+def shipstate_to_collection(state: ship_ui.ShipState) -> models.CollectionMinimum:
+    col_min = models.CollectionMinimum(
+        contract_number=os.environ['PF_CONT_NUM_1'],
+        service_code=pf_shared.ServiceCode.EXPRESS24,
+        shipping_date=state.ship_date,
+        recipient_contact=AmherstContact(),
+        recipient_address=pf_ext.AddressRecipient.model_validate(am_add_dict),
+        total_number_of_parcels=state.boxes,
+        print_own_label=True,
+        collection_info=pf_top.collection_info_from_state(state),
+    )
+    return col_min.model_validate(col_min)

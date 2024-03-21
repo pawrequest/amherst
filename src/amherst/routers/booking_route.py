@@ -5,6 +5,7 @@ import time
 
 import fastapi
 import fastui
+import pdf_tools
 import sqlmodel as sqm
 from loguru import logger
 
@@ -12,6 +13,7 @@ import shipr
 from amherst import am_db, shipper
 from amherst.front.pages import booked_pages
 from amherst.models import managers
+from shipr import ELClient
 from shipr.ship_ui import states
 
 router = fastapi.APIRouter()
@@ -32,6 +34,36 @@ async def view_booked(
     # )
 
 
+@router.get(
+    '/collection/{manager_id}',
+    response_model=fastui.FastUI,
+    response_model_exclude_none=True
+)
+async def book_collection(
+        manager_id: int,
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        session: sqm.Session = fastapi.Depends(am_db.get_session),
+) -> list[fastui.AnyComponent]:
+    logger.warning(f'booking_id: {manager_id}')
+    manager = await get_manager(manager_id, session)
+
+    if manager.state.booking_state is not None:
+        logger.error(f'booking {manager_id} already booked')
+        return await booked_pages.booked_page(manager=manager)
+
+    req, resp = await book_collect(manager, pfcom)
+    return await process_shipment_n_collections(manager, pfcom, req, resp, session)
+
+
+async def book_collect(manager: managers.BookingManager, pfcom: shipper.AmShipper):
+    req = pfcom.state_to_collection_request(manager.state)
+    print(f'req: {req}')
+    logger.warning(f'BOOKING COLLECTION {manager.item.name}')
+    resp = pfcom.get_shipment_resp(req)
+    print(f'resp: {resp}')
+    return req, resp
+
+
 @router.get('/go/{manager_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
 async def go(
         manager_id: int,
@@ -46,18 +78,19 @@ async def go(
         return await booked_pages.booked_page(manager=manager)
 
     req, resp = await book_shipping(manager, pfcom)
+    return await process_shipment_n_collections(manager, pfcom, req, resp, session)
+
+
+async def process_shipment_n_collections(manager, pfcom, req, resp, session):
     booked_state = await validated_book_state(req, resp)
     label = await wait_label(booked_state.shipment_num(), pfcom)
     os.startfile(label)
     state_ = manager.state.model_copy(update={'booking_state': booked_state})
     state = shipr.ShipState.model_validate(state_)
-
     manager.state = state
-
     session.add(manager)
     session.commit()
     session.refresh(manager)
-
     return await booked_pages.booked_page(manager=manager)
 
 

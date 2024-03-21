@@ -29,7 +29,7 @@ async def booked_page(manager: managers.BookingManager) -> list[c.AnyComponent]:
             #         url=f'/hire/invoice/{manager.id}',
             #     ),
             # ),
-            # class_name=styles.CONTAINER_STYLE,
+            # page_class_name=styles.CONTAINER_STYLE,
             # inner_class_name=styles.ROW_STYLE,
             # ),
         ],
