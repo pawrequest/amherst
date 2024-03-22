@@ -7,11 +7,11 @@ from fastui import FastUI, components as c, events
 from loguru import logger
 from sqlmodel import Session
 
-import amherst.front.pages.hire_shipping
+import amherst.front.pages.shipping_page
 import shipr
 from amherst import am_db
 from amherst.am_db import get_pfc, get_session
-from amherst.front.pages import hire_shipping
+from amherst.front.pages import shipping_page
 from amherst.models import am_shared, managers
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
@@ -58,7 +58,7 @@ async def open_invoice(
         os.startfile(inv_file)
     except (FileNotFoundError, TypeError):
         logger.error(f'Invoice file not found: {inv_file}')
-        return await hire_shipping.hire_page(
+        return await shipping_page.ship_page(
             manager=man_out,
             alert_dict={'INVOICE NOT FOUND': 'WARNING'}
         )
@@ -96,7 +96,7 @@ async def pcneighbours(
     man_in = await get_manager(booking_id, session)
     man_out = managers.BookingManagerOut.model_validate(man_in)
     candidates = pfcom.get_candidates(postcode)
-    return await amherst.front.pages.hire_shipping.address_chooser(
+    return await amherst.front.pages.shipping_page.address_chooser(
         manager=man_out,
         candidates=candidates
     )
@@ -125,7 +125,7 @@ async def update_hire(
     session.commit()
     session.refresh(man_in)
     man_out = managers.BookingManagerOut.model_validate(man_in)
-    return await hire_shipping.hire_page(manager=man_out)
+    return await shipping_page.ship_page(manager=man_out)
 
     # return [c.Text(text="Booking not found")]
 
@@ -140,7 +140,7 @@ async def view_hire(
     man_out = managers.BookingManagerOut.model_validate(man_in)
     if not man_out:
         raise ValueError(f'manager id {manager_id} not found')
-    return await hire_shipping.hire_page(manager=man_out)
+    return await shipping_page.ship_page(manager=man_out)
 
 # @router.get('/new/{hire_name}')
 # async def hire_from_cmc_name_64(

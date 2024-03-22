@@ -4,7 +4,6 @@ import fastapi
 import fastui
 
 from amherst import routers
-from amherst.front.pages.hire_shipping import router as hs_router
 
 
 @contextlib.asynccontextmanager
@@ -30,7 +29,6 @@ app = fastapi.FastAPI(lifespan=lifespan)
 app.include_router(routers.hire_router, prefix='/api/hire')
 app.include_router(routers.booking_router, prefix='/api/book')
 app.include_router(routers.forms_router, prefix='/api/forms')
-app.include_router(hs_router, prefix='/api/hs')
 app.include_router(routers.main_router, prefix='/api')
 
 

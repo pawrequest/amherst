@@ -3,21 +3,19 @@ from __future__ import annotations
 import datetime as dt
 import typing as _t
 
-import fastapi
 from fastui import AnyComponent, components as c, events as e
 
 import shipr.ship_ui.forms
 from amherst.front import amui, styles as am_styles
 from amherst.models import managers
+from pawdantic import paw_types
 from pawdantic.pawui import builders, pawui_types, styles
 from shipr.models import pf_ext
 from shipr.models.types import PostcodeSelect
 from shipr.ship_ui import states
 
-router = fastapi.APIRouter()
 
-
-async def hire_page(
+async def ship_page(
         manager: managers.BookingManagerOut,
         alert_dict: pawui_types.AlertDict | None = None
 ) -> list[
@@ -29,19 +27,13 @@ async def hire_page(
         alert_dict=alert_dict,
         page_class_name=am_styles.PAGE_STYLE,
         container_class_name=am_styles.CONTAINER_STYLE,
-        components=[await main_row(manager)],
-    )
-
-    # await self.service_button(),
-
-
-async def main_row(manager: managers.BookingManagerOut) -> c.Div:
-    return builders.wrap_divs(
-        components=[
-            await left_col(manager),
-            await right_col(manager),
-        ],
-        class_name='row my-3',
+        components=[c.Div(
+            components=[
+                await left_col(manager),
+                await right_col(manager),
+            ],
+            class_name='row my-3',
+        )],
     )
 
 
@@ -65,14 +57,10 @@ async def right_col(manager):
         components=[
             c.ModelForm(
                 model=shipr.ship_ui.forms.ContactAndAddressForm,
-                # initial=get_initial_f_dict(
-                #     manager.state.contact.model_dump(),
-                #     manager.state.address.model_dump()
-                # ),
-                # initial=get_initial(
-                    # manager.state.contact,
-                    # manager.state.address,
-                # ),
+                initial=paw_types.multi_model_dump(
+                    manager.state.contact,
+                    manager.state.address,
+                ),
                 submit_url=f'/api/forms/address_contact/{manager.id}',
                 class_name='row h6',
                 # submit_on_change=True,
@@ -107,7 +95,7 @@ async def address_from_pc_div(manager) -> c.Div:
                 components=[
                     c.ModelForm(
                         model=PostcodeSelect,
-                        # initial={'fetch_address_from_postcode': manager.state.address.postcode},
+                        initial={'fetch_address_from_postcode': manager.state.address.postcode},
                         submit_url=f'/api/forms/postcode/{manager.id}',
                         class_name='row h6',
                     ),
@@ -133,7 +121,7 @@ async def invoice_div(manager: managers.BookingManagerOut) -> c.Div:
     )
 
 
-async def boxes_modal_row(manager: managers.BookingManagerOut) -> c.Div:
+async def boxes_modal_row(manager: managers.BookedManager) -> c.Div:
     async def boxes_chooser_button_rows() -> list[c.Div]:
         return builders.list_of_divs(
             class_name='row',
@@ -253,11 +241,10 @@ async def booking_div(
                     c.Button(
                         text=f'Book {direction.title()}Bound',
                         on_click=e.GoToEvent(
-                            url=f'/book/goanon/{direction}/{manager.id}',
+                            url=f'/book/go_book/{direction}/{manager.id}',
                         ),
                         class_name=am_styles.BUTTON,
                     ),
-                    # await review_state(manager.state)
                     c.ServerLoad(path=f'/hire/check_state/{manager.id}')
                 ],
                 footer=[

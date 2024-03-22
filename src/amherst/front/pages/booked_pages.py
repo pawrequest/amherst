@@ -1,18 +1,22 @@
 from __future__ import annotations
 
-from pawdantic.pawui import builders, pawui_types
 from fastui import components as c, events as e
 
 from amherst.models import managers
+from pawdantic.pawui import builders, pawui_types
+from shipr.ship_ui import states as ship_states
 
 
 async def get_alerty(manager) -> pawui_types.AlertDict | None:
     if manager.state.booking_state:
-        if alerts := manager.state.booking_state.response.alerts:
+        if alerts := manager.state.booking_state.state_alerts():
             return {a.message: a.type for a in alerts.alert}
 
 
-async def booked_page(manager: managers.BookingManagerOut) -> list[c.AnyComponent]:
+async def booked_page(manager: managers.BookedManager, alert_dict=None) -> list[c.AnyComponent]:
+    state_alert_dict = ship_states.state_alert_dict(manager.state.booking_state)
+    alert_dict = state_alert_dict.update(alert_dict or {})
+
     ret = await builders.page_w_alerts(
         components=[
             # c.Div.wrap(
@@ -23,17 +27,8 @@ async def booked_page(manager: managers.BookingManagerOut) -> list[c.AnyComponen
                 ),
                 class_name='btn btn-lg btn-primary'
             ),
-            # c.Button(
-            #     text='Open Invoice',
-            #     on_click=e.GoToEvent(
-            #         url=f'/hire/invoice/{manager.id}',
-            #     ),
-            # ),
-            # page_class_name=styles.CONTAINER_STYLE,
-            # inner_class_name=styles.ROW_STYLE,
-            # ),
         ],
         title='booking',
-        alert_dict=await get_alerty(manager),
+        alert_dict=alert_dict,
     )
     return ret

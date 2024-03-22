@@ -1,12 +1,10 @@
 import datetime as dt
-import typing as _t
 
 import sqlmodel as sqm
+
+from shipr import types as s_types
 from shipr.ship_ui import states
-from shipr import types as s_types, models as s_models
-
-
-from . import hire_model, sale_model, types as am_types
+from . import hire_model
 
 
 class BookingManager(sqm.SQLModel):
@@ -35,12 +33,17 @@ class BookingManagerDB(BookingManager, table=True):
     state: states.ShipState = sqm.Field(
         sa_column=sqm.Column(s_types.GenericJSONType(states.ShipState))
     )
-    item: hire_model.ShipableItem = sqm.Field(sa_column=sqm.Column(s_types.GenericJSONType(hire_model.ShipableItem)))
+    item: hire_model.ShipableItem = sqm.Field(
+        sa_column=sqm.Column(s_types.GenericJSONType(hire_model.ShipableItem))
+    )
     booking_date: dt.date = sqm.Field(default_factory=dt.date.today)
 
 
 class BookingManagerOut(BookingManager, table=False):
     id: int
+
+
+BookedManager = BookingManagerDB | BookingManagerOut
 
 #
 #
