@@ -10,7 +10,7 @@ import pycommence
 from amherst import sample_data, shipper
 from amherst.models import hire_model, am_shared
 
-from amherst.models.am_shared import AmherstFields
+from amherst.models.am_shared import HireFields
 from shipr.models import pf_top, pf_ext
 
 # from . import monkey as el_types
@@ -75,18 +75,18 @@ def pfcom():
 @pytest.fixture
 def random_contact(random_hire_record) -> pf_top.Contact:
     return pf_top.Contact(
-        business_name=random_hire_record.get(am_shared.AmherstFields.CUSTOMER),
-        email_address=random_hire_record.get(am_shared.AmherstFields.EMAIL),
-        mobile_phone=random_hire_record.get(am_shared.AmherstFields.TELEPHONE),
+        business_name=random_hire_record.get(am_shared.HireFields.CUSTOMER),
+        email_address=random_hire_record.get(am_shared.HireFields.DELIVERY_EMAIL),
+        mobile_phone=random_hire_record.get(am_shared.HireFields.TELEPHONE),
     )
 
 
 @pytest.fixture
 def random_address(random_hire_record) -> pf_ext.AddressRecipient:
     return pf_ext.AddressRecipient(
-        address_line1=random_hire_record.get(AmherstFields.ADDRESS),
+        address_line1=random_hire_record.get(HireFields.DELIVERY_ADDRESS),
         town='',
-        postcode=random_hire_record.get(AmherstFields.POSTCODE)
+        postcode=random_hire_record.get(HireFields.POSTCODE)
     )
 
 

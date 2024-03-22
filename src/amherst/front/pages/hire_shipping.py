@@ -3,15 +3,18 @@ from __future__ import annotations
 import datetime as dt
 import typing as _t
 
+import fastapi
 from fastui import AnyComponent, components as c, events as e
 
 import shipr.ship_ui.forms
 from amherst.front import amui, styles as am_styles
 from amherst.models import managers
-from pawdantic.pawui import builders, styles, pawui_types
+from pawdantic.pawui import builders, pawui_types, styles
 from shipr.models import pf_ext
 from shipr.models.types import PostcodeSelect
 from shipr.ship_ui import states
+
+router = fastapi.APIRouter()
 
 
 async def hire_page(
@@ -49,16 +52,33 @@ async def left_col(manager) -> c.Div:
             await input_address_div(manager),
             await boxes_modal_row(manager),
             await date_modal_div(manager),
-            await open_invoice(manager),
-            # await outbound_modal_div(manager),
-            # await inbound_modal_div(manager),
+            await invoice_div(manager),
             await booking_div(manager, 'in'),
             await booking_div(manager, 'out'),
-            await address_chooser_div(manager),
-
-            # await away_collection_row(manager.id),
-
+            await address_from_pc_div(manager),
         ],
+    )
+
+
+async def right_col(manager):
+    return c.Div(
+        components=[
+            c.ModelForm(
+                model=shipr.ship_ui.forms.ContactAndAddressForm,
+                # initial=get_initial_f_dict(
+                #     manager.state.contact.model_dump(),
+                #     manager.state.address.model_dump()
+                # ),
+                # initial=get_initial(
+                    # manager.state.contact,
+                    # manager.state.address,
+                # ),
+                submit_url=f'/api/forms/address_contact/{manager.id}',
+                class_name='row h6',
+                # submit_on_change=True,
+            ),
+        ],
+        class_name='col',
     )
 
 
@@ -80,14 +100,14 @@ async def input_address_div(manager, class_name='row', inner_class_name='row') -
     )
 
 
-async def address_chooser_div(manager) -> c.Div:
+async def address_from_pc_div(manager) -> c.Div:
     return c.Div(
         components=[
-            # await choose_address_from_postcode(manager.id, manager.state.address.postcode),
             c.Div(
                 components=[
                     c.ModelForm(
-                        model=PostcodeSelect.with_default(manager.state.address.postcode),
+                        model=PostcodeSelect,
+                        # initial={'fetch_address_from_postcode': manager.state.address.postcode},
                         submit_url=f'/api/forms/postcode/{manager.id}',
                         class_name='row h6',
                     ),
@@ -99,51 +119,7 @@ async def address_chooser_div(manager) -> c.Div:
     )
 
 
-async def middle_col(manager):
-    return c.Div(
-        components=[
-            c.ModelForm(
-                model=shipr.ship_ui.forms.ContactForm.with_default(manager.state.contact),
-                submit_url=f'/api/forms/contact/{manager.id}',
-                submit_on_change=True,
-            ),
-            await address_chooser_div(manager),
-        ],
-        class_name='col',
-    )
-
-
-async def right_col(manager):
-    return c.Div(
-        components=[
-            c.ModelForm(
-                # model=shipr.ship_ui.forms.AddressForm.with_default(manager.state.address),
-                model=shipr.ship_ui.forms.ContactAndAddressForm.with_default(
-                    manager.state.contact,
-                    manager.state.address
-                ),
-                submit_url=f'/api/forms/address/{manager.id}',
-                class_name='row h6',
-                # submit_on_change=True,
-            ),
-        ],
-        class_name='col',
-    )
-
-
-async def choose_address_from_postcode(man_id: int, postcode: str):
-    return c.Div(
-        components=[
-            c.ModelForm(
-                model=PostcodeSelect.with_default(postcode),
-                submit_url=f'/api/forms/postcode/{man_id}',
-            ),
-        ],
-        class_name=am_styles.BUTTON,
-    )
-
-
-async def open_invoice(manager: managers.BookingManagerOut) -> c.Div:
+async def invoice_div(manager: managers.BookingManagerOut) -> c.Div:
     return c.Div(
         components=[
             c.Button(
@@ -220,41 +196,6 @@ async def address_chooser(
     )
 
 
-# async def address_chooser_modal_div(manager: managers.BookingManagerOut, class_name='row') -> c.Div:
-#     async def address_chooser_buttons() -> list[c.AnyComponent]:
-#         return [
-#             c.Button(
-#                 text=can.address_line1,
-#                 on_click=e.GoToEvent(
-#                     url=f'/hire/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(address=can))}',
-#                 ),
-#                 class_name=am_styles.BUTTON,
-#             )
-#             for can in manager.state.address_candidates
-#         ]
-#
-#     return c.Div(
-#         components=[
-#             c.Button(
-#                 text='Choose Address',
-#                 on_click=e.PageEvent(
-#                     name='address-chooser',
-#                 ),
-#                 class_name=am_styles.BUTTON,
-#             ),
-#             c.Modal(
-#                 title='Address',
-#                 body=await address_chooser_buttons(),
-#                 footer=[
-#                     c.Button(text='Close', on_click=e.PageEvent(name='address-chooser', clear=True)),
-#                 ],
-#                 open_trigger=e.PageEvent(name='address-chooser'),
-#             ),
-#         ],
-#         class_name=class_name,
-#     )
-
-
 async def date_modal_div(manager: managers.BookingManagerOut, class_name='row') -> c.Div:
     async def date_chooser_buttons() -> list[c.AnyComponent]:
         start_date = dt.date.today()
@@ -316,7 +257,8 @@ async def booking_div(
                         ),
                         class_name=am_styles.BUTTON,
                     ),
-                    await review_state(manager.state)
+                    # await review_state(manager.state)
+                    c.ServerLoad(path=f'/hire/check_state/{manager.id}')
                 ],
                 footer=[
                     c.Button(
@@ -329,90 +271,3 @@ async def booking_div(
         ],
         class_name=class_name,
     )
-
-
-async def review_state(state: shipr.ShipState) -> c.Div:
-    # texts = builders.object_strs_texts(state, with_keys='YES')
-    texts = builders.dict_strs_texts(state.model_dump(), with_keys='YES')
-    return c.Div(
-        components=builders.list_of_divs(
-            components=texts
-        ),
-        class_name='row'
-    )
-
-# async def away_collection_row(manager_id: int) -> c.Div:
-#     return c.Div(
-#         components=[
-#             c.Button(
-#                 text='Away Collection',
-#                 on_click=e.GoToEvent(
-#                     url=f'/book/collection/{manager_id}',
-#                 ),
-#                 class_name=am_styles.BUTTON,
-#             ),
-#         ],
-#     )
-
-#
-
-
-# async def inbound_modal_div(manager: managers.BookingManagerOut, class_name='row') -> c.Div:
-#     return c.Div(
-#         components=[
-#             c.Button(
-#                 text='Ship InBound',
-#                 on_click=e.PageEvent(name='ship-in'),
-#                 class_name=am_styles.BUTTON,
-#             ),
-#             c.Modal(
-#                 title='Confirm Inbound Shipping',
-#                 body=[
-#                     c.Button(
-#                         text='Book InBound',
-#                         on_click=e.GoToEvent(
-#                             url=f'/book/collection/{manager.id}',
-#                         ),
-#                         class_name=am_styles.BUTTON,
-#                     ),
-#                     await review_state(manager.state)
-#                 ],
-#                 footer=[
-#                     c.Button(text='Close', on_click=e.PageEvent(name='ship-in', clear=True)),
-#                 ],
-#                 open_trigger=e.PageEvent(name='ship-in'),
-#             ),
-#         ],
-#         class_name=class_name,
-#     )
-
-
-# async def outbound_modal_div(manager, class_name='row') -> c.Div:
-#     return c.Div(
-#         components=[
-#             c.Button(
-#                 text='Ship OutBound',
-#                 on_click=e.PageEvent(name='ship-out'),
-#                 class_name=am_styles.BUTTON,
-#             ),
-#             c.Modal(
-#                 title='Confirm Outbound Shipping',
-#                 body=[
-#                     c.Button(
-#                         text='Book OutBound',
-#                         on_click=e.GoToEvent(
-#                             url=f'/book/go/{manager.id}',
-#                         ),
-#                         class_name=am_styles.BUTTON,
-#                     ),
-#                     await review_state(manager.state)
-# 
-#                 ],
-#                 footer=[
-#                     c.Button(text='Close', on_click=e.PageEvent(name='ship-out', clear=True)),
-#                 ],
-#                 open_trigger=e.PageEvent(name='ship-out'),
-#             ),
-#         ],
-#         class_name=class_name,
-#     )

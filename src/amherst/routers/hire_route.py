@@ -1,22 +1,39 @@
 # from __future__ import annotations
 import os
 
-import sqlmodel as sqm
+import fastapi
 from fastapi import APIRouter, Depends
+from fastui import FastUI, components as c, events
 from loguru import logger
 from sqlmodel import Session
-import shipr
-from fastui import FastUI, components as c, events
-from shipr.ship_ui import states
 
 import amherst.front.pages.hire_shipping
+import shipr
+from amherst import am_db
 from amherst.am_db import get_pfc, get_session
 from amherst.front.pages import hire_shipping
-from amherst.models import am_shared, hire_model, managers
+from amherst.models import am_shared, managers
 from amherst.routers.booking_route import get_manager
 from amherst.shipper import AmShipper
+from pawdantic.pawui import builders
+from shipr.ship_ui import states
 
 router = APIRouter()
+
+
+@router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)
+async def check_state(
+        man_id: int,
+        session=fastapi.Depends(am_db.get_session),
+) -> list[c.AnyComponent]:
+    man_in = await get_manager(man_id, session)
+    texts = builders.dict_strs_texts(man_in.state.model_dump(), with_keys='YES')
+    return [c.Div(
+        components=builders.list_of_divs(
+            components=texts
+        ),
+        class_name='row'
+    )]
 
 
 # @router.get('/open_hire_sheet/{manager_id}')
@@ -28,20 +45,23 @@ router = APIRouter()
 #     hire_sheet = man_in.hire.record.get()
 
 
-
-
 @router.get('/invoice/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def open_invoice(
         manager_id: int,
         session: Session = Depends(get_session),
 ) -> list[c.AnyComponent]:
     man_in = await get_manager(manager_id, session)
-    inv_file = man_in.item.record.get(am_shared.AmherstFields.INVOICE)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
+    inv_file = man_in.item.record.get(am_shared.HireFields.INVOICE)
 
     try:
         os.startfile(inv_file)
-    except FileNotFoundError:
+    except (FileNotFoundError, TypeError):
         logger.error(f'Invoice file not found: {inv_file}')
+        return await hire_shipping.hire_page(
+            manager=man_out,
+            alert_dict={'INVOICE NOT FOUND': 'WARNING'}
+        )
         # alert = pf_shared.Alert(code=11, message=f'Invoice file not found: {inv_file}', type='ERROR')
 
     return [c.FireEvent(event=events.GoToEvent(url=f'/hire/view/{manager_id}'))]
@@ -60,22 +80,6 @@ async def open_invoice(
     # )
 
     # return c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}'))
-
-
-@router.get('/neighbours/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
-async def neighbours(
-        booking_id: int,
-        pfcom: AmShipper = Depends(get_pfc),
-        session: Session = Depends(get_session),
-):
-    man_in = await get_manager(booking_id, session)
-    man_out = managers.BookingManagerOut.model_validate(man_in)
-    postcode = man_in.hire.input_address.postcode
-    candidates = pfcom.get_candidates(postcode)
-    return await amherst.front.pages.hire_shipping.address_chooser(
-        manager=man_out,
-        candidates=candidates
-    )
 
 
 @router.get(
@@ -111,16 +115,17 @@ async def update_hire(
     updt = states.ShipStatePartial.model_validate_64(update_64)
 
     man_in = await get_manager(booking_id, session)
-    man_out = managers.BookingManagerOut.model_validate(man_in)
 
-    updated_state_ = man_out.state.get_updated(updt)
+    # updated_state_ = man_out.state.get_updated(updt)
+    updated_state_ = man_in.state.get_updated(updt)
     updated_state = shipr.ShipState.model_validate(updated_state_)
     man_in.state = updated_state
     # man_out = managers.BookingManagerDB.model_validate(man_in)
     session.add(man_in)
     session.commit()
     session.refresh(man_in)
-    return await hire_shipping.hire_page(manager=man_in)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
+    return await hire_shipping.hire_page(manager=man_out)
 
     # return [c.Text(text="Booking not found")]
 
@@ -136,7 +141,6 @@ async def view_hire(
     if not man_out:
         raise ValueError(f'manager id {manager_id} not found')
     return await hire_shipping.hire_page(manager=man_out)
-
 
 # @router.get('/new/{hire_name}')
 # async def hire_from_cmc_name_64(

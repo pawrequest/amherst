@@ -98,9 +98,9 @@
 # )
 #
 #
-# class AmherstFields(StrEnum):
+# class HireFields(StrEnum):
 #     ACTUAL_RETURN_DATE = "Actual Return Date"
-#     ADDRESS = "Delivery Address"
+#     DELIVERY_ADDRESS = "Delivery Address"
 #     AERIAL_ADAPT = "Number Aerial Adapt"
 #     ALL_ADDRESS = "All Address"
 #     BATTERIES = "Number Batteries"
@@ -110,7 +110,7 @@
 #     CASES = "Number Cases"
 #     CLIPON_AERIAL = "Number Clipon Aerial"
 #     CLOSED = "Closed"
-#     CONTACT = "Delivery Contact"
+#     DELIVERY_CONTACT = "Delivery Contact"
 #     CUSTOMER = "To Customer"
 #     DB_LABEL_PRINTED = "DB label printed"
 #     DELIVERY_COST = "Delivery Cost"
@@ -871,12 +871,12 @@
 #
 #     @field_validator("name", mode="after")
 #     def name_is_none(cls, v, info):
-#         v = v or info.data.get("record").get(AmherstFields.NAME)
+#         v = v or info.data.get("record").get(HireFields.NAME)
 #         return v
 #
 #     @field_validator("boxes", mode="before")
 #     def boxes_is_none(cls, v, info):
-#         v = v if v is not None else info.data.get("record").get(AmherstFields.BOXES)
+#         v = v if v is not None else info.data.get("record").get(HireFields.BOXES)
 #         if not v:
 #             v = 1
 #         return v
@@ -884,9 +884,9 @@
 #     @field_validator("input_address", "input_address", mode="after")
 #     def input_address_is_none(cls, v, info):
 #         v = v or AddressRecipient(
-#             **addr_lines_dict_am(info.data.get("record").get(AmherstFields.ADDRESS)),
+#             **addr_lines_dict_am(info.data.get("record").get(HireFields.DELIVERY_ADDRESS)),
 #             town="",
-#             postcode=info.data.get("record").get(AmherstFields.POSTCODE),
+#             postcode=info.data.get("record").get(HireFields.POSTCODE),
 #         )
 #         return v
 #
@@ -894,10 +894,10 @@
 #     # def contact_is_none(cls, v, info):
 #     #     # todo check api reqs vis combinations of fields
 #     #     v = v or Contact(
-#     #         business_name=info.data.get("record").get(AmherstFields.CUSTOMER),
-#     #         email_address=info.data.get("record").get(AmherstFields.EMAIL),
-#     #         mobile_phone=info.data.get("record").get(AmherstFields.TELEPHONE),
-#     #         contact_name=info.data.get("record").get(AmherstFields.CONTACT),
+#     #         business_name=info.data.get("record").get(HireFields.CUSTOMER),
+#     #         email_address=info.data.get("record").get(HireFields.EMAIL),
+#     #         mobile_phone=info.data.get("record").get(HireFields.TELEPHONE),
+#     #         contact_name=info.data.get("record").get(HireFields.DELIVERY_CONTACT),
 #     #     )
 #     #     return v
 #

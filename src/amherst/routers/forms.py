@@ -12,7 +12,7 @@ import shipr.models.types
 from amherst import am_db
 from amherst.routers.booking_route import get_manager
 from shipr.models.types import PostcodeSelect
-from shipr.ship_ui.forms import AddressForm, ContactForm
+from shipr.ship_ui import forms
 
 router = fastapi.APIRouter()
 
@@ -34,41 +34,76 @@ async def postcode_post(
     ]
 
 
-@router.post('/contact/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def contact_post(
+# @router.post('/contact/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def contact_post(
+#         manager_id: int,
+#         form: Annotated[ContactForm, fastui_form(ContactForm)],
+#         session=fastapi.Depends(am_db.get_session),
+# ) -> list[c.AnyComponent]:
+#     man_in = await get_manager(manager_id, session)
+#     contact = shipr.models.Contact.model_validate(form.model_dump())
+#     man_in.state.contact = contact
+#     session.add(man_in)
+#     session.commit()
+#     return [
+#         c.FireEvent(
+#             event=e.GoToEvent(
+#                 url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(contact=contact)}'
+#             ),
+#         )
+#     ]
+
+
+@router.post(
+    '/address_contact/{manager_id}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def address_contact_post(
         manager_id: int,
-        form: Annotated[ContactForm, fastui_form(ContactForm)],
+        form: Annotated[forms.ContactAndAddressForm, fastui_form(forms.ContactAndAddressForm)],
         session=fastapi.Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
+):
     man_in = await get_manager(manager_id, session)
-    contact = shipr.models.Contact.model_validate(form.model_dump())
-    man_in.state.contact = contact
-    session.add(man_in)
-    session.commit()
+    contact = shipr.models.Contact(
+        business_name=form.business_name,
+        email_address=form.email_address,
+        mobile_phone=form.mobile_phone,
+        contact_name=form.contact_name,
+    )
+    address = shipr.models.AddressRecipient(
+        address_line1=form.address_line1,
+        address_line2=form.address_line2,
+        address_line3=form.address_line3,
+        town=form.town,
+        postcode=form.postcode,
+        country=form.country,
+    )
+    address = address.model_validate(address)
+    contact = contact.model_validate(contact)
     return [
         c.FireEvent(
             event=e.GoToEvent(
-                url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(contact=contact)}'
+                url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(address=address, contact=contact)}'
             ),
         )
     ]
 
-
-@router.post('/address/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def address_post(
-        manager_id: int,
-        form: Annotated[AddressForm, fastui_form(AddressForm)],
-        session=fastapi.Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
-    man_in = await get_manager(manager_id, session)
-    address = shipr.models.AddressRecipient.model_validate(form.model_dump())
-    man_in.state.address = address
-    session.add(man_in)
-    session.commit()
-    return [
-        c.FireEvent(
-            event=e.GoToEvent(
-                url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(address=address)}'
-            ),
-        )
-    ]
+# @router.post('/address/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def address_post(
+#         manager_id: int,
+#         form: Annotated[AddressForm, fastui_form(AddressForm)],
+#         session=fastapi.Depends(am_db.get_session),
+# ) -> list[c.AnyComponent]:
+#     man_in = await get_manager(manager_id, session)
+#     address = shipr.models.AddressRecipient.model_validate(form.model_dump())
+#     man_in.state.address = address
+#     session.add(man_in)
+#     session.commit()
+#     return [
+#         c.FireEvent(
+#             event=e.GoToEvent(
+#                 url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(address=address)}'
+#             ),
+#         )
+#     ]

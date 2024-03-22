@@ -2,9 +2,9 @@ import contextlib
 
 import fastapi
 import fastui
-import sqlmodel as sqm
 
-from amherst import rec_importer, routers, sample_data
+from amherst import routers
+from amherst.front.pages.hire_shipping import router as hs_router
 
 
 @contextlib.asynccontextmanager
@@ -30,6 +30,7 @@ app = fastapi.FastAPI(lifespan=lifespan)
 app.include_router(routers.hire_router, prefix='/api/hire')
 app.include_router(routers.booking_router, prefix='/api/book')
 app.include_router(routers.forms_router, prefix='/api/forms')
+app.include_router(hs_router, prefix='/api/hs')
 app.include_router(routers.main_router, prefix='/api')
 
 
@@ -46,15 +47,15 @@ async def favicon_ico() -> str:
     return 'page not found'
 
 
-def populate_db_from_cmc(session: sqm.Session, pfcom):
-    records = sample_data.hires
-    # with cmc.csr_context(hire_model.Hire.cmc_table_name) as csr:
-    #     filters = hire_model.Hire.initial_filter_array.default
-    #     records = csr.filter_by_array(filters, get=True)
-    records = records[:3]
-    managers = rec_importer.hire_records_to_managers(*records, pfcom=pfcom)
-    session.add_all(managers)
-    session.commit()
+# def populate_db_from_cmc(session: sqm.Session, pfcom):
+#     records = sample_data.hires
+#     # with cmc.csr_context(hire_model.Hire.cmc_table_name) as csr:
+#     #     filters = hire_model.Hire.initial_filter_array.default
+#     #     records = csr.filter_by_array(filters, get=True)
+#     records = records[:3]
+#     managers = rec_importer.hire_records_to_managers(*records, pfcom=pfcom)
+#     session.add_all(managers)
+#     session.commit()
 
 
 @app.get('/{path:path}')

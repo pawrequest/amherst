@@ -70,9 +70,9 @@ INITIAL_FILTER_ARRAY2 = FilterArray().add_filters(
 )
 
 
-class AmherstFields(str, Enum):
+class HireFields(str, Enum):
     ACTUAL_RETURN_DATE = 'Actual Return Date'
-    ADDRESS = 'Delivery Address'
+    DELIVERY_ADDRESS = 'Delivery Address'
     AERIAL_ADAPT = 'Number Aerial Adapt'
     ALL_ADDRESS = 'All Address'
     BATTERIES = 'Number Batteries'
@@ -82,7 +82,7 @@ class AmherstFields(str, Enum):
     CASES = 'Number Cases'
     CLIPON_AERIAL = 'Number Clipon Aerial'
     CLOSED = 'Closed'
-    CONTACT = 'Delivery Contact'
+    DELIVERY_CONTACT = 'Delivery Contact'
     CUSTOMER = 'To Customer'
     DB_LABEL_PRINTED = 'DB label printed'
     DELIVERY_COST = 'Delivery Cost'
@@ -90,7 +90,7 @@ class AmherstFields(str, Enum):
     DISCOUNT_PERCENTAGE = 'Discount Percentage'
     DUE_BACK_DATE = 'Due Back Date'
     EM = 'Number EM'
-    EMAIL = 'Delivery Email'
+    DELIVERY_EMAIL = 'Delivery Email'
     EMC = 'Number EMC'
     HEADSET = 'Number Headset'
     HEADSET_BIG = 'Number Headset Big'
@@ -139,7 +139,23 @@ class AmherstFields(str, Enum):
     WAND_CHARGER = 'Number Wand Charger'
 
 
-class SaleFields(StrEnum):
+class CustomerFields(str, Enum):
+    SEND_OUT_DATE = 'dummy'
+    BOXES = 'dummy'
+
+    NAME = 'Name'
+    DELIVERY_ADDRESS = 'Deliv Address'
+    DELIVERY_CONTACT = 'Deliv Contact'
+    DELIVERY_EMAIL = 'Deliv Email'
+    DELIVERY_NAME = 'Deliv Name'
+    DELIVERY_POSTCODE = 'Deliv Postcode'
+    DELVIERY_TELEPHONE = 'Deliv Telephone'
+
+
+class SaleFields(str, Enum):
+    BOXES = 'dummy'
+    SEND_OUT_DATE = 'dummy'
+
     CUSTOMER = 'To Customer'
     NAME = 'Name'
     LOST_EQUIPMENT = 'Lost Equipment'

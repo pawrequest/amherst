@@ -18,13 +18,22 @@ dependencies = [
     'shipr',
     'pycommence',
     'suppawt',
-    'pydantic',
+    'pydantic[email]',
+    'email-validator',
+    'pydantic-extra-types',
     'fastapi',
     'pypdf',
     'sqlmodel',
     'uvicorn[standard]',
     'python-dotenv',
     'httpx',
+    "docx2pdf",
+    "docxtpl",
+    "openpyxl",
+    "pandas",
+    "pysimplegui",
+    "pywin32",
+    "xlrd",
 ]
 [project.optional-dependencies]
 dev = [
