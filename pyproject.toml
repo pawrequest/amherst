@@ -33,7 +33,6 @@ dev = [
 ]
 git = [
     'shipr @ git+https://github.com/pawrequest/shipr',
-    #    'fastuipr @ git+https://github.com/pawrequest/fastuipr',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
     'suppawt @ git+https://github.com/pawrequest/suppawt', ]
 

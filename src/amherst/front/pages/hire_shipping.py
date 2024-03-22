@@ -15,7 +15,7 @@ from shipr.ship_ui import states
 
 
 async def hire_page(
-        manager: managers.BookingManager,
+        manager: managers.BookingManagerOut,
 ) -> list[
     c.AnyComponent]:
     return await builders.page_w_alerts(
@@ -28,7 +28,7 @@ async def hire_page(
     # await self.service_button(),
 
 
-async def main_row(manager: managers.BookingManager) -> c.Div:
+async def main_row(manager: managers.BookingManagerOut) -> c.Div:
     return builders.wrap_divs(
         components=[
             await left_col(manager),
@@ -58,12 +58,12 @@ async def left_col(manager) -> c.Div:
     )
 
 
-async def input_address_div(manager):
+async def input_address_div(manager, class_name='row', inner_class_name='row') -> c.Div:
     return c.Div(
-        class_name='row',
+        class_name=class_name,
         components=[
             *builders.list_of_divs(
-                class_name='row',
+                class_name=inner_class_name,
                 components=[
                     *builders.dict_strs_texts(manager.item.contact.model_dump(), title='Contact'),
                     *builders.dict_strs_texts(
@@ -71,13 +71,8 @@ async def input_address_div(manager):
                         title='Address'
                     ),
                 ],
-                # components=[
-                #         *builders.object_strs_texts(manager.item.contact, title='Contact'),
-                #         *builders.object_strs_texts(manager.item.input_address, title='Address'),
-                #     ],
             ),
         ],
-        # inner_class_name=styles.ROW_STYLE,
     )
 
 
@@ -141,15 +136,6 @@ async def choose_address_from_postcode(man_id: int, postcode: str):
             ),
         ],
         class_name=am_styles.BUTTON,
-    )
-
-
-async def neighbouring_addresses(man_id) -> c.Button:
-    return c.Button(
-        text='Choose neighbouring address',
-        on_click=e.GoToEvent(
-            url=f'/hire/neighbours/{man_id}',
-        ),
     )
 
 
@@ -228,6 +214,7 @@ async def address_chooser(
         ],
         title='addresses',
     )
+
 
 # async def address_chooser_modal_div(manager: managers.BookingManagerOut, class_name='row') -> c.Div:
 #     async def address_chooser_buttons() -> list[c.AnyComponent]:
