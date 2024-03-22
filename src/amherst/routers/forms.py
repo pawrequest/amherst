@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import datetime as dt
 from typing import Annotated
 
 import fastapi
+import pydantic as _p
 from fastui import FastUI, components as c, events as e
 from fastui.forms import fastui_form
 from loguru import logger
@@ -10,28 +12,55 @@ from loguru import logger
 import shipr
 import shipr.models.types
 from amherst import am_db
-from amherst.routers.booking_route import get_manager
+from amherst.routers.back_funcs import get_manager
+from shipr.models import pf_ext
 from shipr.models.types import PostcodeSelect
-from shipr.ship_ui import forms
+from shipr.ship_ui import forms, states
 
 router = fastapi.APIRouter()
+
+
+# @router.post('/boxes/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def boxes_post(
+#         manager_id: int,
+#         form: Annotated[BoxesModelForm, fastui_form(BoxesModelForm)],
+# ):
+#     ...
+#     return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
 
 
 @router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def postcode_post(
         manager_id: int,
         form: Annotated[PostcodeSelect, fastui_form(PostcodeSelect)],
-):
+) -> list[c.AnyComponent]:
     if not shipr.models.types.is_valid_postcode(form.fetch_address_from_postcode):
         logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
-        return [c.FireEvent(event=e.GoToEvent(url=f'/hire/view/{manager_id}'))]
+        return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
     return [
         c.FireEvent(
             event=e.GoToEvent(
-                url=f'/hire/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
+                url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
             )
         )
     ]
+
+
+class FormType(_p.BaseModel):
+    boxes: int
+    date: dt.date
+    direction: str
+    address: str
+
+
+@router.post('/book_form/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def book_form_post(
+        manager_id: int,
+        form: Annotated[FormType, fastui_form(FormType)],
+):
+    addy = pf_ext.AddressRecipient.model_validate_json(form.address)
+    ...
+    return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
 
 
 # @router.post('/contact/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
@@ -48,10 +77,34 @@ async def postcode_post(
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(contact=contact)}'
+#                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64(contact=contact)}'
 #             ),
 #         )
 #     ]
+
+class AddressForm(_p.BaseModel):
+    address: str
+
+
+@router.post(
+    '/address_select/{manager_id}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def address_contact_post(
+        manager_id: int,
+        form: Annotated[AddressForm, fastui_form(AddressForm)],
+        session=fastapi.Depends(am_db.get_session),
+):
+    addy = pf_ext.AddressRecipient.model_validate_json(form.address)
+    manager = await get_manager(manager_id, session)
+    return [
+        c.FireEvent(
+            event=e.GoToEvent(
+                url=f'/ship/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(address=addy))}'
+            )
+        )
+    ]
 
 
 @router.post(
@@ -84,7 +137,7 @@ async def address_contact_post(
     return [
         c.FireEvent(
             event=e.GoToEvent(
-                url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(address=address, contact=contact)}'
+                url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64(address=address, contact=contact)}'
             ),
         )
     ]
@@ -103,7 +156,7 @@ async def address_contact_post(
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/hire/update/{manager_id}/{man_in.state.update_dump_64(address=address)}'
+#                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64(address=address)}'
 #             ),
 #         )
 #     ]

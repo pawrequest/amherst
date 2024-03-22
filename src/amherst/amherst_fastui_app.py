@@ -3,7 +3,7 @@ import pathlib
 
 import sqlmodel as sqm
 from dotenv import load_dotenv
-from flaskwebgui import FlaskUI
+from flaskwebgui import FlaskUI, close_application
 
 import pycommence
 from amherst import am_db, app_file, rec_importer, shipper
@@ -70,6 +70,8 @@ def main(
         )
         fui.run()
     finally:
+        close_application()
+
         ...
 
 

@@ -15,7 +15,7 @@ import shipr
 from amherst import am_db, shipper
 from amherst.front.pages import booked_pages, shipping_page
 from amherst.models import managers
-from pawdantic.pawui import pawui_types
+from amherst.routers.back_funcs import get_manager
 from shipr.ship_ui import states
 
 router = fastapi.APIRouter()
@@ -112,14 +112,13 @@ async def process_shipment(
     if not resp.completed_shipment_info:
         raise shipr.ExpressLinkError(str(states.response_alert_dict(resp)))
 
-    booked_state = await validated_book_state(req, resp)
+    booked_state = states.BookingState.model_validate(dict(request=req, response=resp))
     label = await wait_label(booked_state.shipment_num(), pfcom)
     os.startfile(label)
     state_ = manager.state.model_copy(update={'booking_state': booked_state})
     state = shipr.ShipState.model_validate(state_)
     manager.state = state
     return manager
-
 
 
 async def validated_book_state(req, resp) -> states.BookingState:
@@ -131,22 +130,6 @@ async def validated_book_state(req, resp) -> states.BookingState:
     )
 
 
-async def book_oubound(manager: managers.BookingManagerOut, pfcom):
-    req = pfcom.state_to_shipment_request(manager.state)
-    print(f'req: {req}')
-    logger.warning(f'BOOKING SHIPMENT {manager.item.name}')
-    resp = pfcom.get_shipment_resp(req)
-    print(f'resp: {resp}')
-    return req, resp
-
-
-async def get_manager(manager_id: int, session: sqm.Session) -> managers.BookingManagerDB:
-    man_in = session.get(managers.BookingManagerDB, manager_id)
-    if not isinstance(man_in, managers.BookingManagerDB):
-        raise ValueError('booking not found')
-    return man_in
-
-
 @router.get('/print/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
 async def print_label(
         booking_id: int,
@@ -156,19 +139,31 @@ async def print_label(
     logger.warning(f'printing id: {booking_id}')
 
     man_in = await get_manager(booking_id, session)
-    if booked := man_in.state.booking_state:
-        if booked.label_path:
-            await prnt_label(booked.label_path)
-        else:
-            booked.label_path = await wait_label(booked.shipment_num(), pfcom)
-            await prnt_label(booked.label_path)
-            session.add(man_in)
-            session.commit()
-    else:
-        raise ValueError(f'booking {booking_id} has no booked state')
-    man_out = managers.BookingManagerOut.model_validate(man_in)
 
-    return await booked_pages.booked_page(manager=man_out)
+    booked = man_in.state.booking_state
+    if not booked.label_path:
+        booked.label_path = await wait_label(booked.shipment_num(), pfcom)
+        session.add(man_in)
+        session.commit()
+
+    await prnt_label(booked.label_path)
+
+    return await booked_pages.booked_page(manager=man_in)
+
+    # man_out = managers.BookingManagerOut.model_validate(man_in)
+    #
+    # if booked := man_in.state.booking_state:
+    #     if booked.label_path:
+    #         await prnt_label(booked.label_path)
+    #     else:
+    #         booked.label_path = await wait_label(booked.shipment_num(), pfcom)
+    #         await prnt_label(booked.label_path)
+    #         session.add(man_in)
+    #         session.commit()
+    # else:
+    #     raise ValueError(f'booking {booking_id} has no booked state')
+    # man_out = managers.BookingManagerOut.model_validate(man_in)
+
 
 
 async def wait_label(ship_num: str, pfcom: shipper.AmShipper):

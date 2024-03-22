@@ -3,16 +3,18 @@ from __future__ import annotations
 import datetime as dt
 import typing as _t
 
-from fastui import AnyComponent, components as c, events as e
+from fastui import AnyComponent, components as c, events as e, forms as fastui_forms
 
-import shipr.ship_ui.forms
-from amherst.front import amui, styles as am_styles
+import pawdantic.paw_strings
+from amherst.front import styles as am_styles
 from amherst.models import managers
 from pawdantic import paw_types
 from pawdantic.pawui import builders, pawui_types, styles
 from shipr.models import pf_ext
+from shipr.models.dynamic import BoxesModelForm
 from shipr.models.types import PostcodeSelect
 from shipr.ship_ui import states
+from shipr.ship_ui.forms import ContactAndAddressForm
 
 
 async def ship_page(
@@ -42,13 +44,86 @@ async def left_col(manager) -> c.Div:
         class_name='col col-4 mx-auto',
         components=[
             await input_address_div(manager),
-            await boxes_modal_row(manager),
-            await date_modal_div(manager),
+            # await boxes_modal_row(manager),
+            # await boxes_enum_select(manager.id),
+            await book_form_div(manager),
+            # await date_modal_div(manager),
             await invoice_div(manager),
-            await booking_div(manager, 'in'),
-            await booking_div(manager, 'out'),
+            # await booking_div(manager, 'in'),
+            # await booking_div(manager, 'out'),
             await address_from_pc_div(manager),
         ],
+    )
+
+
+def get_dates() -> list[fastui_forms.SelectOption]:
+    return [
+        fastui_forms.SelectOption(
+            value=str(d.isoformat()),
+            label=pawdantic.paw_strings.date_string(d),
+        )
+        for d in [dt.date.today() + dt.timedelta(days=i) for i in range(7)]
+    ]
+
+
+def get_addresses(candidates: list[pf_ext.AddressRecipient]) -> list[fastui_forms.SelectOption]:
+    return [
+        fastui_forms.SelectOption(
+            value=cand.model_dump_json(),
+            label=cand.address_line1,
+        )
+        for cand in candidates
+    ]
+
+
+async def book_form_div(manager):
+    # return c.ServerLoad(path=f'/sl/booking_form/{manager.id}')
+    return c.Div(
+        class_name='row',
+        components=[
+            c.Form(
+                form_fields=[
+                    c.FormFieldSelect(
+                        name='boxes',
+                        options=[
+                            fastui_forms.SelectOption(value=str(i), label=str(i))
+                            for i in range(1, 11)
+                        ],
+                        initial=str(manager.state.boxes),
+                        title='boxes',
+                    ),
+                    c.FormFieldSelect(
+                        name='date',
+                        options=get_dates(),
+                        initial=str(manager.state.ship_date.isoformat()),
+                        title='date',
+                    ),
+                    c.FormFieldSelect(
+                        name='address',
+                        options=get_addresses(manager.state.candidates),
+                        title='address',
+                        initial=manager.state.address.model_dump_json(),
+                    ),
+                    # c.FormField(
+                    #     name='ship_service',
+                    #     label='Service',
+                    #     input_type='text',
+                    #     value=manager.state.ship_service,
+                    # ),
+                    c.FormFieldSelect(
+                        name='direction',
+                        title='direction',
+                        options=[
+                            fastui_forms.SelectOption(value='in', label='Inbound'),
+                            fastui_forms.SelectOption(value='out', label='Outbound'),
+                        ],
+                        initial='out',
+                    ),
+                ],
+                submit_url=f'/api/forms/book_form/{manager.id}',
+
+            ),
+        ]
     )
 
 
@@ -56,7 +131,7 @@ async def right_col(manager):
     return c.Div(
         components=[
             c.ModelForm(
-                model=shipr.ship_ui.forms.ContactAndAddressForm,
+                model=ContactAndAddressForm,
                 initial=paw_types.multi_model_dump(
                     manager.state.contact,
                     manager.state.address,
@@ -93,12 +168,14 @@ async def address_from_pc_div(manager) -> c.Div:
         components=[
             c.Div(
                 components=[
+
                     c.ModelForm(
                         model=PostcodeSelect,
                         initial={'fetch_address_from_postcode': manager.state.address.postcode},
                         submit_url=f'/api/forms/postcode/{manager.id}',
                         class_name='row h6',
                     ),
+
                 ],
                 class_name=am_styles.BUTTON,
             )
@@ -113,11 +190,23 @@ async def invoice_div(manager: managers.BookingManagerOut) -> c.Div:
             c.Button(
                 text='Open Invoice',
                 on_click=e.GoToEvent(
-                    url=f'/hire/invoice/{manager.id}',
+                    url=f'/ship/invoice/{manager.id}',
                 ),
             )
         ],
         class_name=styles.ROW_STYLE,
+    )
+
+
+async def boxes_enum_select(manager_id):
+    return c.Div(
+        components=[
+            c.ModelForm(
+                model=BoxesModelForm,
+                submit_url=f'/api/forms/boxes/{manager_id}',
+
+            )
+        ],
     )
 
 
@@ -129,7 +218,7 @@ async def boxes_modal_row(manager: managers.BookedManager) -> c.Div:
                 c.Button(
                     text=str(i),
                     on_click=e.GoToEvent(
-                        url=f'/hire/update/{manager.id}/{manager.state.update_dump_64(boxes=i)}',
+                        url=f'/ship/update/{manager.id}/{manager.state.update_dump_64(boxes=i)}',
                     ),
                     class_name=am_styles.BUTTON,
                 )
@@ -173,7 +262,7 @@ async def address_chooser(
                     c.Button(
                         text=can.address_line1,
                         on_click=e.GoToEvent(
-                            url=f'/hire/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(address=can))}',
+                            url=f'/ship/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(address=can))}',
                         ),
                     )
                 ],
@@ -181,6 +270,28 @@ async def address_chooser(
             for can in candidates
         ],
         title='addresses',
+    )
+
+
+async def address_chooser2(
+        manager: managers.BookingManagerOut, candidates: list[pf_ext.AddressRecipient]
+):
+    return c.Form(
+        form_fields=[
+            c.FormFieldSelect(
+                name='address',
+                options=[
+                    fastui_forms.SelectOption(
+                        value=can.model_dump_json(),
+                        label=can.address_line1,
+                    )
+                    for can in candidates
+                ],
+                initial=manager.state.address.model_dump_json(),
+                title='address',
+            ),
+        ],
+        submit_url=f'/api/forms/address_select/{manager.id}',
     )
 
 
@@ -192,9 +303,9 @@ async def date_modal_div(manager: managers.BookingManagerOut, class_name='row') 
 
         return [
             c.Button(
-                text=amui.date_string(ship_date),
+                text=pawdantic.paw_strings.date_string(ship_date),
                 on_click=e.GoToEvent(
-                    url=f'/hire/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(ship_date=ship_date))}',
+                    url=f'/ship/update/{manager.id}/{manager.state.update_dump_64_o(states.ShipStatePartial(ship_date=ship_date))}',
                 ),
                 class_name=am_styles.BUTTON,
             )
@@ -204,7 +315,7 @@ async def date_modal_div(manager: managers.BookingManagerOut, class_name='row') 
     return c.Div(
         components=[
             c.Button(
-                text=amui.date_string(manager.state.ship_date),
+                text=pawdantic.paw_strings.date_string(manager.state.ship_date),
                 on_click=e.PageEvent(
                     name='date-chooser',
                 ),
@@ -245,7 +356,7 @@ async def booking_div(
                         ),
                         class_name=am_styles.BUTTON,
                     ),
-                    c.ServerLoad(path=f'/hire/check_state/{manager.id}')
+                    c.ServerLoad(path=f'/sl/check_state/{manager.id}')
                 ],
                 footer=[
                     c.Button(

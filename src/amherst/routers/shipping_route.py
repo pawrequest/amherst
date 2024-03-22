@@ -1,39 +1,19 @@
 # from __future__ import annotations
 import os
 
-import fastapi
 from fastapi import APIRouter, Depends
 from fastui import FastUI, components as c, events
 from loguru import logger
 from sqlmodel import Session
 
-import amherst.front.pages.shipping_page
 import shipr
-from amherst import am_db
-from amherst.am_db import get_pfc, get_session
+from amherst.am_db import get_session
 from amherst.front.pages import shipping_page
 from amherst.models import am_shared, managers
-from amherst.routers.booking_route import get_manager
-from amherst.shipper import AmShipper
-from pawdantic.pawui import builders
+from amherst.routers.back_funcs import get_manager
 from shipr.ship_ui import states
 
 router = APIRouter()
-
-
-@router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)
-async def check_state(
-        man_id: int,
-        session=fastapi.Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
-    man_in = await get_manager(man_id, session)
-    texts = builders.dict_strs_texts(man_in.state.model_dump(), with_keys='YES')
-    return [c.Div(
-        components=builders.list_of_divs(
-            components=texts
-        ),
-        class_name='row'
-    )]
 
 
 # @router.get('/open_hire_sheet/{manager_id}')
@@ -83,31 +63,11 @@ async def open_invoice(
 
 
 @router.get(
-    '/pcneighbours/{booking_id}/{postcode}',
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
-async def pcneighbours(
-        booking_id: int,
-        postcode: str,
-        pfcom: AmShipper = Depends(get_pfc),
-        session: Session = Depends(get_session),
-):
-    man_in = await get_manager(booking_id, session)
-    man_out = managers.BookingManagerOut.model_validate(man_in)
-    candidates = pfcom.get_candidates(postcode)
-    return await amherst.front.pages.shipping_page.address_chooser(
-        manager=man_out,
-        candidates=candidates
-    )
-
-
-@router.get(
     '/update/{booking_id}/{update_64}',
     response_model=FastUI,
     response_model_exclude_none=True
 )
-async def update_hire(
+async def update_shipment(
         booking_id: int,
         update_64: str | None = None,
         session: Session = Depends(get_session),
@@ -131,7 +91,7 @@ async def update_hire(
 
 
 @router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def view_hire(
+async def view_shipment(
         manager_id: int,
         session: Session = Depends(get_session),
 ) -> list[c.AnyComponent]:

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import pathlib
+from contextlib import contextmanager
 
 import httpx
 import sqlalchemy as sqa
@@ -40,6 +41,16 @@ def get_pfc():
     except Exception as e:
         logger.error(f'get_pfc: {e}')
 
+
+@contextmanager
+def get_pfc_context():
+    try:
+        pfc_instance = shipper.AmShipper.from_env()
+        yield pfc_instance
+    except Exception as e:
+        logger.error(f'get_pfc: {e}')
+    finally:
+        ...
 
 async def get_http_client():
     async with httpx.AsyncClient() as client:

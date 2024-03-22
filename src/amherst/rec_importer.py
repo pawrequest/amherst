@@ -15,6 +15,7 @@ def initial_state(
     state = shipr.ShipStatePartial()
     try:
         state.address = pfcom.choose_address(shipable.input_address)
+        state.candidates = pfcom.get_candidates(shipable.input_address.postcode)
     except s_types.ExpressLinkError as e:
         logger.error(
             f"USING BAD ADDRESS no address at postcode '{shipable.input_address.postcode}' for hire {shipable.name}: {e}"
