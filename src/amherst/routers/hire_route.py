@@ -156,14 +156,14 @@ async def view_hire(
 #     return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{added.id}'))]
 
 
-def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> managers.BookingManagerDB:
-    """Create a new hire and state in the database from a record dict."""
-    hire_ = hire_model.Hire(record=record)
-    ship = hire_model.ShipableItem.model_validate(hire_)
-    state = shipr.ShipState.hire_initial(hire_, pfcom)
-    manager = managers.BookingManagerDB(item=ship, state=state)
-    manager = manager.model_validate(manager)
-    session.add(manager)
-    session.commit()
-    session.refresh(manager)
-    return manager
+# def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> managers.BookingManagerDB:
+#     """Create a new hire and state in the database from a record dict."""
+#     hire_ = hire_model.Hire(record=record)
+#     ship = hire_model.ShipableItem.model_validate(hire_)
+#     state = shipr.ShipState.hire_initial(hire_, pfcom)
+#     manager = managers.BookingManagerDB(item=ship, state=state)
+#     manager = manager.model_validate(manager)
+#     session.add(manager)
+#     session.commit()
+#     session.refresh(manager)
+#     return manager

@@ -6,10 +6,10 @@ import sqlmodel as sqm
 
 from amherst.models import am_shared
 from pycommence import api
-from shipr.models import BaseItem, pf_ext, pf_lists, pf_shared, pf_top
+from shipr.models import base_item, pf_ext, pf_lists, pf_top
 
 
-class ShipableItem(BaseItem):
+class ShipableItem(base_item.BaseItem):
     cmc_table_name: str
     record: dict[str, str] = sqm.Field(sa_column=sqm.Column(sqm.JSON))
     initial_filter_array: _ty.ClassVar[api.FilterArray] = sqm.Field(
@@ -37,7 +37,7 @@ class ShipableItem(BaseItem):
             email_address=self.record.get(am_shared.AmherstFields.EMAIL),
             mobile_phone=phone,
             contact_name=self.record.get(am_shared.AmherstFields.CONTACT),
-            notifications=pf_lists.RecipientNotifications(),
+            notifications=pf_lists.RecipientNotifications.standard_recip(),
         )
         self.name = self.record.get(am_shared.AmherstFields.NAME)
         self.input_address = pf_ext.AddressRecipient(
@@ -51,7 +51,57 @@ class ShipableItem(BaseItem):
         return self
 
 
-class Hire(BaseItem):
+class Hire(base_item.BaseItem):
+    cmc_table_name: str = 'Hire'
+    record: dict[str, str]
+    initial_filter_array: _ty.ClassVar[api.FilterArray] = sqm.Field(
+        default=am_shared.INITIAL_FILTER_ARRAY2,
+        # sa_column=sqm.Column(sqm.JSON)
+    )
+
+    # @_p.computed_field
+
+    @property
+    def boxes(self) -> int:
+        return int(self.record.get(am_shared.AmherstFields.BOXES))
+
+    # @_p.computed_field
+    @property
+    def name(self) -> str:
+        return self.record.get(am_shared.AmherstFields.NAME)
+
+    # @_p.computed_field
+    @property
+    def ship_date(self) -> dt.date:
+        """uses cmc cannonical format yyyymmdd"""
+        tod = dt.date.today()
+        if v_str := self.record.get(am_shared.AmherstFields.SEND_OUT_DATE):
+            v_date = api.get_cmc_date(v_str)
+            if v_date > tod:
+                return v_date
+        return tod
+
+    # @_p.computed_field
+    @property
+    def input_address(self) -> pf_ext.AddressRecipient:
+        return pf_ext.AddressRecipient(
+            **am_shared.addr_lines_dict_am(self.record.get(am_shared.AmherstFields.ADDRESS)),
+            town='',
+            postcode=self.record.get(am_shared.AmherstFields.POSTCODE),
+        )
+
+    # @_p.computed_field
+    @property
+    def contact(self) -> pf_top.Contact:
+        return pf_top.Contact(
+            business_name=self.record.get(am_shared.AmherstFields.CUSTOMER),
+            email_address=self.record.get(am_shared.AmherstFields.EMAIL),
+            mobile_phone=self.record.get(am_shared.AmherstFields.TELEPHONE),
+            contact_name=self.record.get(am_shared.AmherstFields.CONTACT),
+        )
+
+
+class HireProt(base_item.ShippableProtocol):
     cmc_table_name: str = 'Hire'
     record: dict[str, str]
     initial_filter_array: _ty.ClassVar[api.FilterArray] = sqm.Field(

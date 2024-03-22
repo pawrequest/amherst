@@ -22,13 +22,13 @@ async def postcode_post(
         manager_id: int,
         form: Annotated[PostcodeSelect, fastui_form(PostcodeSelect)],
 ):
-    if not shipr.models.types.is_valid_postcode(form.postcode_to_fetch_addresses_from):
-        logger.warning(f'Invalid postcode: {form.postcode_to_fetch_addresses_from}')
+    if not shipr.models.types.is_valid_postcode(form.fetch_address_from_postcode):
+        logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
         return [c.FireEvent(event=e.GoToEvent(url=f'/hire/view/{manager_id}'))]
     return [
         c.FireEvent(
             event=e.GoToEvent(
-                url=f'/hire/pcneighbours/{manager_id}/{form.postcode_to_fetch_addresses_from}'
+                url=f'/hire/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
             )
         )
     ]

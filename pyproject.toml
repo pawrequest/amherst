@@ -12,7 +12,6 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
-    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
     'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
     'pawdantic[ui, sql]',
     #    'fastuipr',

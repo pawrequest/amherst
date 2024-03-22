@@ -2,6 +2,7 @@
 import os
 import pathlib
 import time
+import typing as _t
 
 import fastapi
 import fastui
@@ -13,7 +14,6 @@ import shipr
 from amherst import am_db, shipper
 from amherst.front.pages import booked_pages
 from amherst.models import managers
-from shipr import ELClient
 from shipr.ship_ui import states
 
 router = fastapi.APIRouter()
@@ -78,6 +78,33 @@ async def go(
         return await booked_pages.booked_page(manager=manager)
 
     req, resp = await book_shipping(manager, pfcom)
+    return await process_shipment_n_collections(manager, pfcom, req, resp, session)
+
+
+@router.get(
+    '/goanon/{direction}/{manager_id}',
+    response_model=fastui.FastUI,
+    response_model_exclude_none=True
+)
+async def goanon(
+        manager_id: int,
+        direction: _t.Literal['in', 'out'],
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        session: sqm.Session = fastapi.Depends(am_db.get_session),
+) -> list[fastui.AnyComponent]:
+    logger.warning(f'booking_id: {manager_id}')
+    manager = await get_manager(manager_id, session)
+
+    if manager.state.booking_state is not None:
+        logger.error(f'booking {manager_id} already booked')
+        return await booked_pages.booked_page(manager=manager)
+
+    match direction:
+        case 'in':
+            req, resp = await book_collect(manager, pfcom)
+        case 'out':
+            req, resp = await book_shipping(manager, pfcom)
+
     return await process_shipment_n_collections(manager, pfcom, req, resp, session)
 
 

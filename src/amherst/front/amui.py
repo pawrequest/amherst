@@ -4,22 +4,23 @@ from datetime import date
 from enum import Enum, auto
 
 import fastui.class_name as _class_name
-from pawdantic.pawui import builders, styles
 from fastui import components as c
-from shipr.models import pf_top, pf_ext
+
+from pawdantic.pawui import styles
+from shipr.models import pf_ext
 
 
 class Page(c.Page):
     @classmethod
     def default_page(
-        cls,
-        *components: c.AnyComponent,
-        title: str = 'Amherst',
-        navbar=None,
-        footer=None,
-        header_class: _class_name.ClassNameField = None,
-        class_name: _class_name.ClassNameField = None,
-        contained=False,
+            cls,
+            *components: c.AnyComponent,
+            title: str = 'Amherst',
+            navbar=None,
+            footer=None,
+            header_class: _class_name.ClassNameField = None,
+            class_name: _class_name.ClassNameField = None,
+            contained=False,
     ) -> list[c.AnyComponent]:
         return super().default_page(
             *components,
@@ -33,10 +34,13 @@ class Page(c.Page):
 
 
 def address_first_lines(
-    candidate: pf_ext.AddressRecipient,
-    class_name: _class_name.ClassName = styles.ROW_STYLE,
+        candidate: pf_ext.AddressRecipient,
+        class_name: _class_name.ClassName = styles.ROW_STYLE,
 ):
-    return c.Div.wrap(c.Text(text=f'{candidate.address_line1} {candidate.address_line2}'), class_name=class_name)
+    return c.Div.wrap(
+        c.Text(text=f'{candidate.address_line1} {candidate.address_line2}'),
+        class_name=class_name
+    )
 
 
 def get_ordinal_suffix(day: int) -> str:
@@ -46,19 +50,6 @@ def get_ordinal_suffix(day: int) -> str:
 def date_string(date_: date) -> str:
     fstr = f'%A %#d{get_ordinal_suffix(date_.day)} %B'
     return f'{date_:{fstr}}'
-
-
-async def address_n_contact_col(
-    address: pf_ext.AddressRecipient,
-    contact: pf_top.Contact,
-    title_prefix: str = '',
-) -> c.Div:
-    return c.Div.wrap(
-        *builders.object_strs_texts(contact, title=f'{title_prefix}Contact'),
-        *builders.object_strs_texts(address, title=f'{title_prefix}Address'),
-        class_name=styles.COL_STYLE,
-        inner_class_name=styles.ROW_STYLE,
-    )
 
 
 class BoxesEnum(str, Enum):

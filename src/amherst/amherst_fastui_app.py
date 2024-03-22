@@ -1,6 +1,5 @@
 import argparse
 import pathlib
-import sys
 
 import sqlmodel as sqm
 from dotenv import load_dotenv
@@ -61,10 +60,11 @@ def main(
         session.commit()
     try:
         fui = FlaskUI(
-            app=app_file.app, server='fastapi',
+            fullscreen=True,
+            app=app_file.app,
+            server='fastapi',
             # height=1600,
             # width=1000,
-            fullscreen=True,
             # on_shutdown=lambda: sys.exit(0)
 
         )
@@ -75,4 +75,4 @@ def main(
 
 if __name__ == '__main__':
     args = parse_arguments()
-    main(args.category, args.record_name)
+    main(args.category, args.record_name, args.env_loc)
