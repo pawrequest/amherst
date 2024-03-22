@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from pawdantic.pawui import builders, types_ as f_types
+from pawdantic.pawui import builders, pawui_types
 from fastui import components as c, events as e
 
 from amherst.models import managers
 
 
-async def get_alerty(manager) -> f_types.AlertDict | None:
+async def get_alerty(manager) -> pawui_types.AlertDict | None:
     if manager.state.booking_state:
         if alerts := manager.state.booking_state.response.alerts:
             return {a.message: a.type for a in alerts.alert}
 
 
-async def booked_page(manager: managers.BookingManager) -> list[c.AnyComponent]:
+async def booked_page(manager: managers.BookingManagerOut) -> list[c.AnyComponent]:
     ret = await builders.page_w_alerts(
         components=[
             # c.Div.wrap(

@@ -1,4 +1,5 @@
 # from __future__ import annotations
+import datetime as dt
 import os
 import pathlib
 import time
@@ -12,7 +13,7 @@ from loguru import logger
 
 import shipr
 from amherst import am_db, shipper
-from amherst.front.pages import booked_pages
+from amherst.front.pages import booked_pages, hire_shipping
 from amherst.models import managers
 from shipr.ship_ui import states
 
@@ -93,19 +94,27 @@ async def goanon(
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[fastui.AnyComponent]:
     logger.warning(f'booking_id: {manager_id}')
-    manager = await get_manager(manager_id, session)
+    man_in = await get_manager(manager_id, session)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
 
-    if manager.state.booking_state is not None:
+    if man_out.state.booking_state is not None:
         logger.error(f'booking {manager_id} already booked')
-        return await booked_pages.booked_page(manager=manager)
+        return await booked_pages.booked_page(manager=man_out)
 
     match direction:
         case 'in':
-            req, resp = await book_collect(manager, pfcom)
+            tod = dt.date.today()
+            if man_out.state.ship_date <= tod:
+                alert_dict = {'CAN NOT COLLECT TODAY': 'ERROR'}
+                # v = tod + dt.timedelta(days=1)
+                return await hire_shipping.hire_page(man_out, alert_dict=alert_dict)
+            req, resp = await book_collect(man_in, pfcom)
         case 'out':
-            req, resp = await book_shipping(manager, pfcom)
+            req, resp = await book_shipping(man_in, pfcom)
+        case _:
+            raise ValueError(f'invalid direction {direction=}')
 
-    return await process_shipment_n_collections(manager, pfcom, req, resp, session)
+    return await process_shipment_n_collections(man_in, pfcom, req, resp, session)
 
 
 async def process_shipment_n_collections(manager, pfcom, req, resp, session):

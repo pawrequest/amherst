@@ -8,7 +8,7 @@ from fastui import AnyComponent, components as c, events as e
 import shipr.ship_ui.forms
 from amherst.front import amui, styles as am_styles
 from amherst.models import managers
-from pawdantic.pawui import builders, styles
+from pawdantic.pawui import builders, styles, pawui_types
 from shipr.models import pf_ext
 from shipr.models.types import PostcodeSelect
 from shipr.ship_ui import states
@@ -16,10 +16,14 @@ from shipr.ship_ui import states
 
 async def hire_page(
         manager: managers.BookingManagerOut,
+        alert_dict: pawui_types.AlertDict | None = None
 ) -> list[
     c.AnyComponent]:
+    alert_dict = alert_dict or {}
+    state_alerts = manager.state.alert_dict or {}
+    alert_dict.update(state_alerts)
     return await builders.page_w_alerts(
-        alert_dict=manager.state.alert_dict,
+        alert_dict=alert_dict,
         page_class_name=am_styles.PAGE_STYLE,
         container_class_name=am_styles.CONTAINER_STYLE,
         components=[await main_row(manager)],
