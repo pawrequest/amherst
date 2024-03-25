@@ -293,7 +293,7 @@
 #     BOOKED_IN = "Booked in"
 #     PACKED = "Booked in and packed"
 #     PARTIALLY_PACKED = "Partially packed"
-#     OUT = "Out"
+#     OUTBOUND = "Out"
 #     RTN_OK = "Returned all OK"
 #     RTN_PROBLEMS = "Returned with problems"
 #     QUOTE_GIVEN = "Quote given"

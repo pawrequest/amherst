@@ -79,7 +79,8 @@ async def go_book(
 
     if man_in.state.booking_state is not None:
         logger.error(f'booking {manager_id} already booked')
-        return await booked_pages.booked_page(manager=man_in)
+        alert_dict = {'ALREADY BOOKED': 'ERROR'}
+        return await booked_pages.booked_page(manager=man_in, alert_dict=alert_dict)
 
     try:
         if direction == 'in':
@@ -130,6 +131,26 @@ async def validated_book_state(req, resp) -> states.BookingState:
     )
 
 
+def create_email(man_in):
+    pass
+
+
+def send_label(man_in):
+    email = create_email(man_in)
+    pass
+
+
+@router.get('/email/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
+async def email_label(
+        booking_id: int,
+        pfcom=fastapi.Depends(am_db.get_pfc),
+        session=fastapi.Depends(am_db.get_session)
+):
+    logger.warning(f'printing id: {booking_id}')
+    man_in = await get_manager(booking_id, session)
+    send_label(man_in)
+
+
 @router.get('/print/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
 async def print_label(
         booking_id: int,
@@ -163,7 +184,6 @@ async def print_label(
     # else:
     #     raise ValueError(f'booking {booking_id} has no booked state')
     # man_out = managers.BookingManagerOut.model_validate(man_in)
-
 
 
 async def wait_label(ship_num: str, pfcom: shipper.AmShipper):

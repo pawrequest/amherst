@@ -1,10 +1,10 @@
 from loguru import logger
-import shipr
-from shipr import types as s_types
-from shipr.models import pf_ext, pf_shared
 
+import shipr
 from amherst import shipper
 from amherst.models import hire_model, managers
+from shipr import types as s_types
+from shipr.models import pf_ext, pf_shared
 
 
 def initial_state(
@@ -31,6 +31,7 @@ def initial_state(
     state.ship_date = shipable.ship_date
     state.ship_service = ship_service
     state.contact = shipable.contact
+    state.direction = 'OUTBOUND'
 
     return shipr.ShipState.model_validate(state.model_dump())
 

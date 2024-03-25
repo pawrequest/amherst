@@ -20,15 +20,37 @@ async def booked_page(manager: managers.BookedManager, alert_dict=None) -> list[
     ret = await builders.page_w_alerts(
         components=[
             # c.Div.wrap(
+            await print_div(manager),
+        ],
+        title='booking',
+        alert_dict=alert_dict,
+    )
+    return ret
+
+
+async def print_div(manager):
+    return c.Div(
+        components=[
             c.Button(
                 text=f'Array and Re/Print Labels for {manager.item.name}',
                 on_click=e.GoToEvent(
                     url=f'/book/print/{manager.id}',
                 ),
                 class_name='btn btn-lg btn-primary'
-            ),
-        ],
-        title='booking',
-        alert_dict=alert_dict,
+            )
+        ]
     )
-    return ret
+
+
+async def email_div(manager):
+    return c.Div(
+        components=[
+            c.Button(
+                text=f'Email Labels for {manager.item.name}',
+                on_click=e.GoToEvent(
+                    url=f'/book/email/{manager.id}',
+                ),
+                class_name='btn btn-lg btn-primary'
+            )
+        ]
+    )

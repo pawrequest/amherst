@@ -2,8 +2,11 @@ import contextlib
 
 import fastapi
 import fastui
+from starlette.requests import Request
 
 from amherst import routers
+from amherst.routers.back_funcs import ManagerNotFound
+from pawdantic.pawui import pawui_types, builders
 
 
 @contextlib.asynccontextmanager
@@ -60,3 +63,11 @@ async def favicon_ico() -> str:
 @app.get('/{path:path}')
 async def html_landing() -> fastapi.responses.HTMLResponse:
     return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
+
+
+@app.exception_handler(ManagerNotFound)
+async def manager_not_found_exception_handler(request: Request, exc: ManagerNotFound):
+    alert_dict: pawui_types.AlertDict = {'BOOKING NOT FOUND': 'ERROR'}
+    return await builders.page_w_alerts(alert_dict=alert_dict, components=[builders.back_link])
+
+

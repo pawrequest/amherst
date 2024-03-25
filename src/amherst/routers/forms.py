@@ -12,8 +12,9 @@ from loguru import logger
 import shipr
 import shipr.models.types
 from amherst import am_db
+from amherst.models import managers
 from amherst.routers.back_funcs import get_manager
-from shipr.models import pf_ext
+from shipr.models import pf_ext, pf_top
 from shipr.models.types import PostcodeSelect
 from shipr.ship_ui import forms, states
 
@@ -108,11 +109,32 @@ async def address_contact_post(
 
 
 @router.post(
+    '/boxes/{manager_id}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def boxes_post(
+        manager_id: int,
+        boxes: int = fastapi.Form(...),
+        session=fastapi.Depends(am_db.get_session),
+):
+    man_in = await get_manager(manager_id, session)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
+    return [
+        c.FireEvent(
+            event=e.GoToEvent(
+                url=f'/ship/update/{manager_id}/{man_out.state.update_dump_64(boxes=boxes)}'
+            ),
+        )
+    ]
+
+
+@router.post(
     '/address_contact/{manager_id}',
     response_model=FastUI,
     response_model_exclude_none=True
 )
-async def address_contact_post(
+async def address_contact_post2(
         manager_id: int,
         form: Annotated[forms.ContactAndAddressForm, fastui_form(forms.ContactAndAddressForm)],
         session=fastapi.Depends(am_db.get_session),
@@ -138,6 +160,50 @@ async def address_contact_post(
         c.FireEvent(
             event=e.GoToEvent(
                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64(address=address, contact=contact)}'
+            ),
+        )
+    ]
+
+
+@router.post(
+    '/big/{manager_id}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def big_post(
+        manager_id: int,
+        form: Annotated[forms.FullForm, fastui_form(forms.FullForm)],
+        session=fastapi.Depends(am_db.get_session),
+):
+    man_in = await get_manager(manager_id, session)
+    form_data = dict(
+        boxes=form.boxes,
+        ship_date=form.ship_date,
+        direction=form.direction.value,
+        contact=pf_top.Contact.model_validate(
+            shipr.models.Contact(
+                business_name=form.business_name,
+                email_address=form.email_address,
+                mobile_phone=form.mobile_phone,
+                contact_name=form.contact_name,
+            )
+        ),
+        address=pf_ext.AddressRecipient.model_validate(
+            shipr.models.AddressRecipient(
+                address_line1=form.address_line1,
+                address_line2=form.address_line2,
+                address_line3=form.address_line3,
+                town=form.town,
+                postcode=form.postcode,
+                country=form.country,
+            ),
+        )
+    )
+
+    return [
+        c.FireEvent(
+            event=e.GoToEvent(
+                url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64(update={**form_data})}'
             ),
         )
     ]
