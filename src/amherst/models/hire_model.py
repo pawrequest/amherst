@@ -35,7 +35,7 @@ class ShipableItem(base_item.BaseItem):
         self.boxes = int(self.record.get(fields_enum.BOXES, 1))
         shippy = self.record.get(fields_enum.SEND_OUT_DATE)
         self.ship_date = api.get_cmc_date(shippy) if shippy else dt.date.today()
-        phone = self.record.get(fields_enum.DELVIERY_TELEPHONE)
+        phone = self.record.get(fields_enum.DELIVERY_TELEPHONE)
         email = self.record.get(fields_enum.DELIVERY_EMAIL)
         contact_name = self.record.get(fields_enum.DELIVERY_CONTACT)
         address_str = self.record.get(fields_enum.DELIVERY_ADDRESS)

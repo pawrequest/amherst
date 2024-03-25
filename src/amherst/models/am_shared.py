@@ -149,7 +149,7 @@ class CustomerFields(str, Enum):
     DELIVERY_EMAIL = 'Deliv Email'
     DELIVERY_NAME = 'Deliv Name'
     DELIVERY_POSTCODE = 'Deliv Postcode'
-    DELVIERY_TELEPHONE = 'Deliv Telephone'
+    DELIVERY_TELEPHONE = 'Deliv Telephone'
 
 
 class SaleFields(str, Enum):
