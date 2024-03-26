@@ -1,8 +1,11 @@
 import contextlib
+import pathlib
 
 import fastapi
 import fastui
 from starlette.requests import Request
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
 from amherst import routers
 from amherst.routers.back_funcs import ManagerNotFound
@@ -26,14 +29,20 @@ async def lifespan(app_: fastapi.FastAPI):
         # main_task.cancel()
         # await asyncio.gather(main_task)
 
+BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 app = fastapi.FastAPI(lifespan=lifespan)
 
-app.include_router(routers.ship_router, prefix='/api/ship')
-app.include_router(routers.booking_router, prefix='/api/book')
-app.include_router(routers.forms_router, prefix='/api/forms')
-app.include_router(routers.server_router, prefix='/api/sl')
-app.include_router(routers.main_router, prefix='/api')
+templates = Jinja2Templates(directory="/front/templates")
+# app.mount("/front/static", StaticFiles(directory="/front/static"), name="static")
+app.mount("/front/static", StaticFiles(directory=BASE_DIR / "front/static"), name="static")
+
+
+# app.include_router(routers.ship_router, prefix='/api/ship')
+# app.include_router(routers.booking_router, prefix='/api/book')
+# app.include_router(routers.forms_router, prefix='/api/forms')
+# app.include_router(routers.server_router, prefix='/api/sl')
+# app.include_router(routers.main_router, prefix='/api')
 
 
 # app.include_router(rout, prefix="/api/rout")

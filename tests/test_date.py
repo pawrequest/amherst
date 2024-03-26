@@ -5,10 +5,7 @@ import datetime as dt
 import sqlmodel as sqm
 import sqlalchemy as sqa
 
-import shipr.ui_states.abc
-from suppawt.sqlmodel_ps import sqlpr
-
-import shipr.models.types
+import shipr.types
 
 
 # if _ty.TYPE_CHECKING:
@@ -28,11 +25,11 @@ class Booking(sqm.SQLModel, table=True):
     id: int | None = sqm.Field(primary_key=True)
     hire: Hiring = sqm.Field(
         sa_column=sqa.Column(
-            shipr.models.types.GenericJSONType(Hiring)
+            shipr.types.GenericJSONType(Hiring)
         )
     )
     state: SStae = sqm.Field(
-        sa_column=sqm.Column(shipr.models.types.GenericJSONType(SStae))
+        sa_column=sqm.Column(shipr.types.GenericJSONType(SStae))
     )
 
 

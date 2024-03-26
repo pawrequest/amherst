@@ -14,31 +14,31 @@ from amherst.models import managers
 from amherst.routers.back_funcs import get_manager
 from amherst.shipper import AmShipper
 from pawdantic.pawui import builders
-from shipr.models import dynamic
+from shipr.ship_ui import dynamic
 
 router = fastapi.APIRouter()
 
 
-@router.get('/booking_form/{man_id}', response_model=FastUI, response_model_exclude_none=True)
-async def booking_form(
-        man_id: int,
-        session=fastapi.Depends(am_db.get_session),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
-) -> list[c.AnyComponent]:
-    man_in = await amherst.routers.back_funcs.get_manager(man_id, session)
-    candidates = pfcom.get_candidates(man_in.state.address.postcode)
-    booking_form_ = dynamic.make_booking_form_type(candidates=candidates)
-    res = [c.Div(
-        components=[
-            c.ModelForm(
-                model=booking_form_,
-                submit_url=f'/api/forms/book_form/{man_id}',
-            ),
-        ],
-        class_name='row'
-    ),
-    ]
-    return res
+# @router.get('/booking_form/{man_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def booking_form(
+#         man_id: int,
+#         session=fastapi.Depends(am_db.get_session),
+#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+# ) -> list[c.AnyComponent]:
+#     man_in = await amherst.routers.back_funcs.get_manager(man_id, session)
+#     candidates = pfcom.get_candidates(man_in.state.address.postcode)
+#     booking_form_ = dynamic.make_booking_form_type(candidates=candidates)
+#     res = [c.Div(
+#         components=[
+#             c.ModelForm(
+#                 model=booking_form_,
+#                 submit_url=f'/api/forms/book_form/{man_id}',
+#             ),
+#         ],
+#         class_name='row'
+#     ),
+#     ]
+#     return res
 
 
 @router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)

@@ -457,7 +457,7 @@
 # class BookingStateUpdater(BaseUIState):
 #     boxes: Optional[PositiveInt] = None
 #     ship_date: Optional[ValidShipDate] = None
-#     ship_service: Optional[ServiceCode] = None
+#     service: Optional[ServiceCode] = None
 #     contact: Optional[Contact] = Field(sa_column=sqm.Column(sqm.JSON))
 #     address: Optional[AddressRecipient] = Field(sa_column=sqm.Column(sqm.JSON))
 #     input_address: Optional[AddressRecipient] = Field(sa_column=sqm.Column(sqm.JSON))
@@ -470,7 +470,7 @@
 #
 #     boxes: PositiveInt = Field(1)
 #     ship_date: ValidShipDate
-#     ship_service: ServiceCode
+#     service: ServiceCode
 #     contact: Contact = Field(sa_column=sqm.Column(sqm.JSON))
 #     address: AddressRecipient = Field(sa_column=sqm.Column(sqm.JSON))
 #
@@ -479,7 +479,7 @@
 #         return cls(
 #             boxes=hire.boxes,
 #             ship_date=hire.ship_date,
-#             ship_service=ServiceCode.EXPRESS24,
+#             service=ServiceCode.EXPRESS24,
 #             contact=hire.contact,
 #             address=pfcom.choose_address(hire.input_address),
 #             # candidates=pfcom.get_candidates(hire.address.postcode),

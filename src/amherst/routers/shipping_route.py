@@ -83,7 +83,6 @@ async def update_shipment(
     # man_out = managers.BookingManagerDB.model_validate(man_in)
     session.add(man_in)
     session.commit()
-    session.refresh(man_in)
     man_out = managers.BookingManagerOut.model_validate(man_in)
     return await shipping_page.ship_page(manager=man_out)
 

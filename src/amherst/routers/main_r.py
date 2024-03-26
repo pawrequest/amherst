@@ -13,6 +13,7 @@ async def default_route():
     # return fastapi.responses.RedirectResponse(url='/hire/view/1')
 
     return await builders.page_w_alerts(
+        # page_class_name='',
         components=[
             c.Div(
                 class_name=' row my-5 mx-auto',
@@ -20,7 +21,7 @@ async def default_route():
                     c.Button(
                         text='go',
                         on_click=events.GoToEvent(url='/ship/view/1'),
-                        class_name='btn btn-primary h-300px',
+                        class_name='btn btn-primary h-300px ',
 
                     ),
                 ],

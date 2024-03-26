@@ -57,7 +57,7 @@ class AmShipper(ELClient):
 #         department_id=s_types.DepartmentNum,
 #         shipment_type='DELIVERY',
 #         contract_number=os.environ["PF_CONT_NUM_1"],
-#         service_code=state.ship_service,
+#         service_code=state.service,
 #         shipping_date=state.ship_date,
 #         recipient_contact=state.contact,
 #         recipient_address=state.address,
