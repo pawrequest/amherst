@@ -6,14 +6,14 @@ import typing as _t
 from fastui import AnyComponent, components as c, events as e, forms as fastui_forms
 
 import pawdantic.paw_strings
+import shipr.ship_ui.forms
 from amherst.front import styles as am_styles
 from amherst.models import managers
 from pawdantic import paw_types
 from pawdantic.pawui import builders, pawui_types, styles
 from shipr.models import pf_ext
-from shipr.models.dynamic import BoxesModelForm
-from shipr.models.types import PostcodeSelect
 from shipr.ship_ui import forms as ship_forms, states
+from shipr.ship_ui.dynamic import BoxesModelForm
 
 
 async def ship_page(
@@ -194,7 +194,7 @@ async def address_from_pc_div(manager) -> c.Div:
                 components=[
 
                     c.ModelForm(
-                        model=PostcodeSelect,
+                        model=shipr.ship_ui.forms.PostcodeSelect,
                         initial={'fetch_address_from_postcode': manager.state.address.postcode},
                         submit_url=f'/api/forms/postcode/{manager.id}',
                         class_name='row h6',

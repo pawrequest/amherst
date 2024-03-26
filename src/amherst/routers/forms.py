@@ -10,13 +10,12 @@ from fastui.forms import fastui_form
 from loguru import logger
 
 import shipr
-import shipr.models.types
+import shipr.types
 from amherst import am_db
 from amherst.models import managers
 from amherst.routers.back_funcs import get_manager
 from shipr.models import pf_ext, pf_top
-from shipr.models.types import PostcodeSelect
-from shipr.ship_ui import forms, states
+from shipr.ship_ui import forms as ship_forms, states
 
 router = fastapi.APIRouter()
 
@@ -33,7 +32,7 @@ router = fastapi.APIRouter()
 @router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def postcode_post(
         manager_id: int,
-        form: Annotated[PostcodeSelect, fastui_form(PostcodeSelect)],
+        form: Annotated[ship_forms.PostcodeSelect, fastui_form(ship_forms.PostcodeSelect)],
 ) -> list[c.AnyComponent]:
     if not shipr.models.types.is_valid_postcode(form.fetch_address_from_postcode):
         logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
@@ -136,7 +135,7 @@ async def boxes_post(
 )
 async def address_contact_post2(
         manager_id: int,
-        form: Annotated[forms.ContactAndAddressForm, fastui_form(forms.ContactAndAddressForm)],
+        form: Annotated[ship_forms.ContactAndAddressForm, fastui_form(ship_forms.ContactAndAddressForm)],
         session=fastapi.Depends(am_db.get_session),
 ):
     man_in = await get_manager(manager_id, session)
@@ -172,7 +171,7 @@ async def address_contact_post2(
 )
 async def big_post(
         manager_id: int,
-        form: Annotated[forms.FullForm, fastui_form(forms.FullForm)],
+        form: Annotated[ship_forms.B, fastui_form(FullForm)],
         session=fastapi.Depends(am_db.get_session),
 ):
     man_in = await get_manager(manager_id, session)
