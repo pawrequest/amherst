@@ -10,7 +10,6 @@ from shipr.models import pf_ext, pf_shared
 def initial_state(
         shipable: hire_model.ShipableItem,
         pfcom: shipper.ELClient,
-        service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24,
 ) -> shipr.ShipState:
     state = shipr.ShipStatePartial()
     try:
@@ -29,7 +28,7 @@ def initial_state(
 
     state.boxes = shipable.boxes
     state.ship_date = shipable.ship_date
-    state.service = service
+    state.service = pf_shared.ServiceCode.EXPRESS24
     state.contact = shipable.contact
     state.direction = 'out'
 

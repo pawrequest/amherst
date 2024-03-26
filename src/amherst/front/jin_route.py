@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Request
+import pathlib
+
+from fastapi import APIRouter, Depends, Request, responses
 from fastapi.responses import HTMLResponse
 from sqlmodel import Session
 from starlette.templating import Jinja2Templates
@@ -6,14 +8,13 @@ from starlette.templating import Jinja2Templates
 from amherst.am_db import get_session
 from amherst.models import managers
 from amherst.routers.back_funcs import get_manager
-
+tmpl = r'C:\Users\RYZEN\prdev\workbench\amherst\src\amherst\front\templates'
 router = APIRouter()
-
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=tmpl)
 
 
 @router.get("/{man_id}", response_class=HTMLResponse)
-async def index(
+async def view(
         request: Request,
         man_id: int,
         session: Session = Depends(get_session),
@@ -28,3 +29,6 @@ async def index(
         context={'manager': man_out}
     )
 
+@router.get('/', response_class=HTMLResponse)
+async def index():
+    return responses.RedirectResponse(url='/1')

@@ -1,0 +1,68 @@
+.body {
+}
+
+.main-div {
+    /*align-items: center;*/
+    /*justify-content: center;*/
+    /*align-content: center;*/
+    border-radius: 1em;
+}
+
+.shipping-container {
+    display: grid;
+    width: min(80%, 70rem);
+    /*grid-auto-flow: row;*/
+    /*padding-block: 2rem;*/
+    grid-template-columns: 1fr 1fr .5fr .5fr;
+    grid-template-areas:
+    'address-in date service boxes'
+    'address-in busname contact contact'
+    'address-in phone email email'
+    'address-in addselect addselect addselect';
+    margin-inline: auto;
+    border-radius: 1em;
+
+
+
+    /*margin: 5rem auto;*/
+    /*gap: 3rem;*/
+}
+
+
+.date {
+    grid-area: date;
+}
+
+.service {
+    grid-area: service;
+}
+
+.boxes {
+    grid-area: boxes;
+}
+
+.busname {
+    grid-area: busname;
+}
+
+.contact {
+    grid-area: contact;
+}
+
+.address-in {
+    grid-area: address-in;
+    background-color: #00A000;
+}
+
+.phone {
+    grid-area: phone;
+}
+
+.email {
+    grid-area: email;
+}
+
+.addselect {
+    grid-area: addselect;
+}
+

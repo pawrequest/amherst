@@ -6,7 +6,7 @@ import fastui
 from starlette.requests import Request
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
-
+from amherst.front.jin_route import router as jin_router
 from amherst import routers
 from amherst.routers.back_funcs import ManagerNotFound
 from pawdantic.pawui import pawui_types, builders
@@ -36,13 +36,14 @@ app = fastapi.FastAPI(lifespan=lifespan)
 templates = Jinja2Templates(directory="/front/templates")
 # app.mount("/front/static", StaticFiles(directory="/front/static"), name="static")
 app.mount("/front/static", StaticFiles(directory=BASE_DIR / "front/static"), name="static")
-
+app.mount("/front/templates", StaticFiles(directory=BASE_DIR / "front/templates"), name="templates")
 
 # app.include_router(routers.ship_router, prefix='/api/ship')
 # app.include_router(routers.booking_router, prefix='/api/book')
 # app.include_router(routers.forms_router, prefix='/api/forms')
 # app.include_router(routers.server_router, prefix='/api/sl')
 # app.include_router(routers.main_router, prefix='/api')
+app.include_router(jin_router, prefix='')
 
 
 # app.include_router(rout, prefix="/api/rout")
@@ -69,14 +70,14 @@ async def favicon_ico() -> str:
 #     session.commit()
 
 
-@app.get('/{path:path}')
-async def html_landing() -> fastapi.responses.HTMLResponse:
-    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
+# @app.get('/{path:path}')
+# async def html_landing() -> fastapi.responses.HTMLResponse:
+#     return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
+#
 
-
-@app.exception_handler(ManagerNotFound)
-async def manager_not_found_exception_handler(request: Request, exc: ManagerNotFound):
-    alert_dict: pawui_types.AlertDict = {'BOOKING NOT FOUND': 'ERROR'}
-    return await builders.page_w_alerts(alert_dict=alert_dict, components=[builders.back_link])
-
+# @app.exception_handler(ManagerNotFound)
+# async def manager_not_found_exception_handler(request: Request, exc: ManagerNotFound):
+#     alert_dict: pawui_types.AlertDict = {'BOOKING NOT FOUND': 'ERROR'}
+#     return await builders.page_w_alerts(alert_dict=alert_dict, components=[builders.back_link])
+#
 

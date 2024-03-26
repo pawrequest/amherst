@@ -17,6 +17,12 @@ class ShipableItem(base_item.BaseItem):
         # sa_column=sqm.Column(sqm.JSON)
     )
 
+    boxes: int | None = None
+    ship_date: dt.date | None = None
+    name: str | None = None
+    input_address: pf_ext.AddressRecipient | None = None
+    contact: pf_top.Contact | None = None
+
     @_p.model_validator(mode='after')
     def get_values(self):
         match self.cmc_table_name:
@@ -58,4 +64,3 @@ class ShipableItem(base_item.BaseItem):
         )
 
         return self
-
