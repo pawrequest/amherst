@@ -13,7 +13,34 @@ async def get_alerty(manager) -> pawui_types.AlertDict | None:
             return {a.message: a.type for a in alerts.alert}
 
 
-async def booked_page(manager: managers.BookedManager, alert_dict=None) -> list[c.AnyComponent]:
+async def confirm_book_page(
+        manager: managers.BOOKED_MANAGER,
+        alert_dict: pawui_types.AlertDict = None
+) -> list[
+    c.AnyComponent]:
+    ret = await builders.page_w_alerts(
+        components=[
+            c.Div(
+                components=[
+                    c.ServerLoad(path=f'/sl/check_state/{manager.id}'),
+
+                    c.Button(
+                        text='Confirm Booking',
+                        on_click=e.GoToEvent(
+                            url=f'/book/go_book/{manager.id}',
+                        ),
+                        class_name='btn btn-lg btn-primary'
+                    ),
+                ]
+            ),
+        ],
+        title='booking',
+        alert_dict=alert_dict,
+    )
+    return ret
+
+
+async def booked_page(manager: managers.BOOKED_MANAGER, alert_dict=None) -> list[c.AnyComponent]:
     state_alert_dict = ship_states.state_alert_dict(manager.state.booking_state)
     alert_dict = state_alert_dict.update(alert_dict or {})
 

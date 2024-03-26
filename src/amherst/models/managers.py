@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime as dt
 
 import sqlmodel as sqm
@@ -43,7 +45,7 @@ class BookingManagerOut(BookingManager, table=False):
     id: int
 
 
-BookedManager = BookingManagerDB | BookingManagerOut
+BOOKED_MANAGER = BookingManagerDB | BookingManagerOut
 
 #
 #

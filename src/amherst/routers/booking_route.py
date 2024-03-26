@@ -3,7 +3,6 @@ import datetime as dt
 import os
 import pathlib
 import time
-import typing as _t
 
 import fastapi
 import fastui
@@ -36,7 +35,104 @@ async def view_booked(
     # )
 
 
-async def book_shipment(manager, pfcom, direction: _t.Literal['in', 'out']):
+@router.get(
+    '/confirm/{manager_id}/{state_64}',
+    response_model=fastui.FastUI,
+    response_model_exclude_none=True
+)
+async def get_confirmation(
+        manager_id: int,
+        state_64: str,
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        session: sqm.Session = fastapi.Depends(am_db.get_session),
+) -> list[fastui.AnyComponent]:
+    state = states.ShipState.model_validate_64(state_64)
+    state.candidates = pfcom.get_candidates(state.address.postcode)
+
+    man_in = await get_manager(manager_id, session)
+    man_in.state = state
+    session.add(man_in)
+    session.commit()
+    session.refresh(man_in)
+    return await booked_pages.confirm_book_page(man_in)
+
+
+@router.get(
+    '/go_book/{manager_id}',
+    response_model=fastui.FastUI,
+    response_model_exclude_none=True
+)
+async def do_booking(
+        manager_id: int,
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        session: sqm.Session = fastapi.Depends(am_db.get_session),
+) -> list[fastui.AnyComponent]:
+    logger.warning(f'booking_id: {manager_id}')
+    man_in = await get_manager(manager_id, session)
+
+    if man_in.state.booking_state is not None:
+        logger.error(f'booking {manager_id} already booked')
+        alert_dict = {'ALREADY BOOKED': 'ERROR'}
+        return await booked_pages.booked_page(manager=man_in, alert_dict=alert_dict)
+
+    try:
+        if man_in.state.direction == 'in':
+            tod = dt.date.today()
+            if man_in.state.ship_date <= tod:
+                raise shipr.ExpressLinkError('CAN NOT COLLECT TODAY')
+
+        req, resp = await book_shipment(man_in, pfcom)
+        booked_man = await process_shipment(man_in, pfcom, req, resp)
+
+        session.add(booked_man)
+        session.commit()
+        man_out = managers.BookingManagerOut.model_validate(booked_man)
+        return await booked_pages.booked_page(manager=man_out)
+
+    except shipr.ExpressLinkError as e:
+        alert_dict = {str(e): 'ERROR'}
+        man_out = managers.BookingManagerOut.model_validate(man_in)
+
+        return await shipping_page.ship_page(man_out, alert_dict=alert_dict)
+        # return await shipping_page.hire_page(man_out, alert_dict=alert_dict)
+
+
+
+@router.get('/email/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
+async def email_label(
+        booking_id: int,
+        pfcom=fastapi.Depends(am_db.get_pfc),
+        session=fastapi.Depends(am_db.get_session)
+):
+    logger.warning(f'printing id: {booking_id}')
+    man_in = await get_manager(booking_id, session)
+    send_label(man_in)
+
+
+@router.get('/print/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
+async def print_label(
+        booking_id: int,
+        pfcom=fastapi.Depends(am_db.get_pfc),
+        session=fastapi.Depends(am_db.get_session)
+):
+    logger.warning(f'printing id: {booking_id}')
+
+    man_in = await get_manager(booking_id, session)
+
+    booked = man_in.state.booking_state
+    if not booked.label_path:
+        booked.label_path = await wait_label(booked.shipment_num(), pfcom)
+        session.add(man_in)
+        session.commit()
+
+    await prnt_label(booked.label_path)
+
+    return await booked_pages.booked_page(manager=man_in)
+
+
+
+async def book_shipment(manager, pfcom, direction=None):
+    direction = direction or manager.state.direction
     if direction == 'out':
         req = pfcom.state_to_shipment_request(manager.state)
         action = 'SHIPMENT'
@@ -61,47 +157,6 @@ async def book_inbound(manager: managers.BookingManager, pfcom: shipper.AmShippe
     resp = pfcom.get_shipment_resp(req)
     print(f'resp: {resp}')
     return req, resp
-
-
-@router.get(
-    '/go_book/{direction}/{manager_id}',
-    response_model=fastui.FastUI,
-    response_model_exclude_none=True
-)
-async def go_book(
-        manager_id: int,
-        direction: _t.Literal['in', 'out'],
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
-        session: sqm.Session = fastapi.Depends(am_db.get_session),
-) -> list[fastui.AnyComponent]:
-    logger.warning(f'booking_id: {manager_id}')
-    man_in = await get_manager(manager_id, session)
-
-    if man_in.state.booking_state is not None:
-        logger.error(f'booking {manager_id} already booked')
-        alert_dict = {'ALREADY BOOKED': 'ERROR'}
-        return await booked_pages.booked_page(manager=man_in, alert_dict=alert_dict)
-
-    try:
-        if direction == 'in':
-            tod = dt.date.today()
-            if man_in.state.ship_date <= tod:
-                raise shipr.ExpressLinkError('CAN NOT COLLECT TODAY')
-
-        req, resp = await book_shipment(man_in, pfcom, direction)
-        booked_man = await process_shipment(man_in, pfcom, req, resp)
-
-        session.add(booked_man)
-        session.commit()
-        man_out = managers.BookingManagerOut.model_validate(booked_man)
-        return await booked_pages.booked_page(manager=man_out)
-
-    except shipr.ExpressLinkError as e:
-        alert_dict = {str(e): 'ERROR'}
-        man_out = managers.BookingManagerOut.model_validate(man_in)
-
-        return await shipping_page.ship_page(man_out, alert_dict=alert_dict)
-        # return await shipping_page.hire_page(man_out, alert_dict=alert_dict)
 
 
 async def process_shipment(
@@ -138,53 +193,6 @@ def create_email(man_in):
 def send_label(man_in):
     email = create_email(man_in)
     pass
-
-
-@router.get('/email/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
-async def email_label(
-        booking_id: int,
-        pfcom=fastapi.Depends(am_db.get_pfc),
-        session=fastapi.Depends(am_db.get_session)
-):
-    logger.warning(f'printing id: {booking_id}')
-    man_in = await get_manager(booking_id, session)
-    send_label(man_in)
-
-
-@router.get('/print/{booking_id}', response_model=fastui.FastUI, response_model_exclude_none=True)
-async def print_label(
-        booking_id: int,
-        pfcom=fastapi.Depends(am_db.get_pfc),
-        session=fastapi.Depends(am_db.get_session)
-):
-    logger.warning(f'printing id: {booking_id}')
-
-    man_in = await get_manager(booking_id, session)
-
-    booked = man_in.state.booking_state
-    if not booked.label_path:
-        booked.label_path = await wait_label(booked.shipment_num(), pfcom)
-        session.add(man_in)
-        session.commit()
-
-    await prnt_label(booked.label_path)
-
-    return await booked_pages.booked_page(manager=man_in)
-
-    # man_out = managers.BookingManagerOut.model_validate(man_in)
-    #
-    # if booked := man_in.state.booking_state:
-    #     if booked.label_path:
-    #         await prnt_label(booked.label_path)
-    #     else:
-    #         booked.label_path = await wait_label(booked.shipment_num(), pfcom)
-    #         await prnt_label(booked.label_path)
-    #         session.add(man_in)
-    #         session.commit()
-    # else:
-    #     raise ValueError(f'booking {booking_id} has no booked state')
-    # man_out = managers.BookingManagerOut.model_validate(man_in)
-
 
 async def wait_label(ship_num: str, pfcom: shipper.AmShipper):
     label_path = pfcom.get_label(ship_num).resolve()

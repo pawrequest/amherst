@@ -6,14 +6,27 @@ from fastui import FastUI, components as c, events
 from loguru import logger
 from sqlmodel import Session
 
-import shipr
+import amherst.routers.back_funcs
 from amherst.am_db import get_session
 from amherst.front.pages import shipping_page
 from amherst.models import am_shared, managers
-from amherst.routers.back_funcs import get_manager
+from amherst.routers import back_funcs
 from shipr.ship_ui import states
 
 router = APIRouter()
+
+
+@router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def view_shipment(
+        manager_id: int,
+        session: Session = Depends(get_session),
+) -> list[c.AnyComponent]:
+    logger.info(f'hire route: {manager_id}')
+    man_in = await amherst.routers.back_funcs.get_manager(manager_id, session)
+    # man_out = managers.BookingManagerOut.model_validate(man_in)
+    if not man_in:
+        raise ValueError(f'manager id {manager_id} not found')
+    return await shipping_page.ship_page(manager=man_in)
 
 
 # @router.get('/open_hire_sheet/{manager_id}')
@@ -30,7 +43,7 @@ async def open_invoice(
         manager_id: int,
         session: Session = Depends(get_session),
 ) -> list[c.AnyComponent]:
-    man_in = await get_manager(manager_id, session)
+    man_in = await amherst.routers.back_funcs.get_manager(manager_id, session)
     man_out = managers.BookingManagerOut.model_validate(man_in)
     inv_file = man_in.item.record.get(am_shared.HireFields.INVOICE)
 
@@ -64,42 +77,32 @@ async def open_invoice(
 
 @router.get(
     '/update/{booking_id}/{update_64}',
-    response_model=FastUI,
-    response_model_exclude_none=True
+    response_model=None,
+    # response_model_exclude_none=True
 )
 async def update_shipment(
         booking_id: int,
         update_64: str | None = None,
         session: Session = Depends(get_session),
-) -> list[c.AnyComponent]:
+) -> None:
     updt = states.ShipStatePartial.model_validate_64(update_64)
+    man_in = await back_funcs.get_manager(booking_id, session)
 
-    man_in = await get_manager(booking_id, session)
+    man_in.state = await back_funcs.updated_state(man_in, updt)
 
     # updated_state_ = man_out.state.get_updated(updt)
-    updated_state_ = man_in.state.get_updated(updt)
-    updated_state = shipr.ShipState.model_validate(updated_state_)
-    man_in.state = updated_state
+
+    # updated_state_ = man_in.state.get_updated(updt)
+    # updated_state = shipr.ShipState.model_validate(updated_state_)
+    # man_in.state = updated_state
+
     # man_out = managers.BookingManagerDB.model_validate(man_in)
     session.add(man_in)
     session.commit()
     man_out = managers.BookingManagerOut.model_validate(man_in)
-    return await shipping_page.ship_page(manager=man_out)
+    # return await shipping_page.ship_page(manager=man_out)
 
     # return [c.Text(text="Booking not found")]
-
-
-@router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def view_shipment(
-        manager_id: int,
-        session: Session = Depends(get_session),
-) -> list[c.AnyComponent]:
-    logger.info(f'hire route: {manager_id}')
-    man_in = await get_manager(manager_id, session)
-    man_out = managers.BookingManagerOut.model_validate(man_in)
-    if not man_out:
-        raise ValueError(f'manager id {manager_id} not found')
-    return await shipping_page.ship_page(manager=man_out)
 
 # @router.get('/new/{hire_name}')
 # async def hire_from_cmc_name_64(

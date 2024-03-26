@@ -2,11 +2,10 @@ import contextlib
 import pathlib
 
 import fastapi
-import fastui
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
-from amherst import routers
-from amherst.routers import back_funcs
-from pawdantic.pawui import builders, pawui_types
+from amherst.front.jin_route import router as jin_router
 
 
 @contextlib.asynccontextmanager
@@ -31,11 +30,15 @@ BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 app = fastapi.FastAPI(lifespan=lifespan)
 
-app.include_router(routers.ship_router, prefix='/api/ship')
-app.include_router(routers.booking_router, prefix='/api/book')
-app.include_router(routers.forms_router, prefix='/api/forms')
-app.include_router(routers.server_router, prefix='/api/sl')
-app.include_router(routers.main_router, prefix='/api')
+templates = Jinja2Templates(directory='/front/templates')
+# app.mount("/front/static", StaticFiles(directory="/front/static"), name="static")
+app.mount('/front/static', StaticFiles(directory=BASE_DIR / 'front/static'), name='static')
+app.mount('/front/templates', StaticFiles(directory=BASE_DIR / 'front/templates'), name='templates')
+
+app.include_router(jin_router, prefix='')
+
+
+# app.include_router(rout, prefix="/api/rout")
 
 
 @app.get('/robots.txt', response_class=fastapi.responses.PlainTextResponse)
@@ -46,7 +49,6 @@ async def robots_txt() -> str:
 @app.get('/favicon.ico', status_code=404, response_class=fastapi.responses.PlainTextResponse)
 async def favicon_ico() -> str:
     return 'page not found'
-
 
 # def populate_db_from_cmc(session: sqm.Session, pfcom):
 #     records = sample_data.hires
@@ -59,12 +61,13 @@ async def favicon_ico() -> str:
 #     session.commit()
 
 
-@app.get('/{path:path}')
-async def html_landing() -> fastapi.responses.HTMLResponse:
-    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
+# @app.get('/{path:path}')
+# async def html_landing() -> fastapi.responses.HTMLResponse:
+#     return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
+#
 
-
-@app.exception_handler(back_funcs.ManagerNotFound)
-async def manager_not_found_exception_handler(request: fastapi.Request, exc: back_funcs.ManagerNotFound):
-    alert_dict: pawui_types.AlertDict = {'BOOKING NOT FOUND': 'ERROR'}
-    return await builders.page_w_alerts(alert_dict=alert_dict, components=[builders.back_link])
+# @app.exception_handler(ManagerNotFound)
+# async def manager_not_found_exception_handler(request: Request, exc: ManagerNotFound):
+#     alert_dict: pawui_types.AlertDict = {'BOOKING NOT FOUND': 'ERROR'}
+#     return await builders.page_w_alerts(alert_dict=alert_dict, components=[builders.back_link])
+#
