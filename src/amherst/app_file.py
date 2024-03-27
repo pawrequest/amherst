@@ -5,6 +5,7 @@ import fastapi
 import fastui
 
 from amherst import routers
+from amherst.front.pages import shipping_page
 from amherst.routers import back_funcs
 from pawdantic.pawui import builders, pawui_types
 
@@ -35,6 +36,7 @@ app.include_router(routers.ship_router, prefix='/api/ship')
 app.include_router(routers.booking_router, prefix='/api/book')
 app.include_router(routers.forms_router, prefix='/api/forms')
 app.include_router(routers.server_router, prefix='/api/sl')
+app.include_router(shipping_page.router, prefix='/api/sp')
 app.include_router(routers.main_router, prefix='/api')
 
 

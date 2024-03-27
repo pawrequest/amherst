@@ -77,7 +77,7 @@ def random_contact(random_hire_record) -> pf_top.Contact:
     return pf_top.Contact(
         business_name=random_hire_record.get(am_shared.HireFields.CUSTOMER),
         email_address=random_hire_record.get(am_shared.HireFields.DELIVERY_EMAIL),
-        mobile_phone=random_hire_record.get(am_shared.HireFields.TELEPHONE),
+        mobile_phone=random_hire_record.get(am_shared.HireFields.DELIVERY_TELEPHONE),
     )
 
 
@@ -86,7 +86,7 @@ def random_address(random_hire_record) -> pf_ext.AddressRecipient:
     return pf_ext.AddressRecipient(
         address_line1=random_hire_record.get(HireFields.DELIVERY_ADDRESS),
         town='',
-        postcode=random_hire_record.get(HireFields.POSTCODE)
+        postcode=random_hire_record.get(HireFields.DELIVERY_POSTCODE)
     )
 
 

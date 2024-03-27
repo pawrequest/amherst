@@ -3,7 +3,7 @@ from loguru import logger
 import shipr
 from amherst import shipper
 from amherst.models import hire_model, managers
-from shipr import types as s_types
+from shipr import shipr_types as s_types
 from shipr.models import pf_ext, pf_shared
 
 

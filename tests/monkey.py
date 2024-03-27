@@ -137,7 +137,7 @@
 #     PARROT = "Number Parrot"
 #     PAYMENT_TERMS = "Payment Terms"
 #     PICKUP_ARRANGED = "Pickup Arranged"
-#     POSTCODE = "Delivery Postcode"
+#     DELIVERY_POSTCODE = "Delivery Postcode"
 #     PURCHASE_ORDER = "Purchase Order"
 #     RADIO_TYPE = "Radio Type"
 #     RECURRING_HIRE = "Recurring Hire"
@@ -152,7 +152,7 @@
 #     SGL_CHARGER = "Number Sgl Charger"
 #     SPECIAL_KIT = "Special Kit"
 #     STATUS = "Status"
-#     TELEPHONE = "Delivery Tel"
+#     DELIVERY_TELEPHONE = "Delivery Tel"
 #     TRACKING_NUMBERS = "Tracking Numbers"
 #     UHF = "Number UHF"
 #     UHF_6WAY = "Number UHF 6-way"
@@ -886,7 +886,7 @@
 #         v = v or AddressRecipient(
 #             **addr_lines_dict_am(info.data.get("record").get(HireFields.DELIVERY_ADDRESS)),
 #             town="",
-#             postcode=info.data.get("record").get(HireFields.POSTCODE),
+#             postcode=info.data.get("record").get(HireFields.DELIVERY_POSTCODE),
 #         )
 #         return v
 #
@@ -896,7 +896,7 @@
 #     #     v = v or Contact(
 #     #         business_name=info.data.get("record").get(HireFields.CUSTOMER),
 #     #         email_address=info.data.get("record").get(HireFields.EMAIL),
-#     #         mobile_phone=info.data.get("record").get(HireFields.TELEPHONE),
+#     #         mobile_phone=info.data.get("record").get(HireFields.DELIVERY_TELEPHONE),
 #     #         contact_name=info.data.get("record").get(HireFields.DELIVERY_CONTACT),
 #     #     )
 #     #     return v

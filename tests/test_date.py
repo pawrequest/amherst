@@ -5,7 +5,7 @@ import datetime as dt
 import sqlmodel as sqm
 import sqlalchemy as sqa
 
-import shipr.types
+import shipr.shipr_types
 
 
 # if _ty.TYPE_CHECKING:

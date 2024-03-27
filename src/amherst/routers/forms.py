@@ -4,21 +4,31 @@ import json
 from typing import Annotated
 
 import fastapi
-from fastui import FastUI
-from fastui import components as c
-from fastui import events as e
+from fastui import FastUI, components as c, events as e
 from fastui.forms import fastui_form
+from loguru import logger
 
 import shipr
-import shipr.types
+import shipr.shipr_types
 from amherst import am_db, shipper
 from amherst.front.pages import shipping_page
 from amherst.routers import back_funcs
 from amherst.routers.back_funcs import get_manager
+from shipr import shipr_types
 from shipr.models import pf_ext, pf_top
-from shipr.ship_ui import states
+from shipr.ship_ui import forms as ship_forms, states
 
 router = fastapi.APIRouter()
+
+
+@router.post('/full/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def full_post(
+        form: Annotated[ship_forms.FullForm, fastui_form(ship_forms.FullForm)],
+        manager_id: int,
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        session=fastapi.Depends(am_db.get_session),
+):
+    ...
 
 
 @router.post('/big/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
@@ -315,22 +325,33 @@ async def address_form_post1(
 #     ]
 
 
-# @router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-# async def postcode_post(
-#         manager_id: int,
-#         form: Annotated[ship_forms.PostcodeSelect, fastui_form(ship_forms.PostcodeSelect)],
-# ) -> list[c.AnyComponent]:
-#     if not shipr.types.is_valid_postcode(form.fetch_address_from_postcode):
-#         logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
-#         return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
-#     return [
-#         c.FireEvent(
-#             event=e.GoToEvent(
-#                 url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
-#             )
-#         )
-#     ]
+@router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def postcode_post(
+        manager_id: int,
+        form: Annotated[ship_forms.PostcodeSelect, fastui_form(ship_forms.PostcodeSelect)],
+        session=fastapi.Depends(am_db.get_session),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+) -> list[c.AnyComponent]:
+    man_in = await get_manager(manager_id, session)
+    man_in.state.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
+    session.add(man_in)
+    session.commit()
 
+    if not shipr_types.is_valid_postcode(form.fetch_address_from_postcode):
+        logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
+        return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
+
+    return await shipping_page.address_chooser(
+        manager=man_in,
+    )
+
+    # return [
+    #     c.FireEvent(
+    #         event=e.GoToEvent(
+    #             url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
+    #         )
+    #     )
+    # ]
 
 # @router.post('/boxes/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 # async def boxes_post(

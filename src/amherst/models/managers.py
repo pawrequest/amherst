@@ -4,7 +4,7 @@ import datetime as dt
 
 import sqlmodel as sqm
 
-from shipr import types as s_types
+from shipr import shipr_types as s_types
 from shipr.ship_ui import states
 from . import hire_model
 

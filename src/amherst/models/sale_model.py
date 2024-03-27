@@ -33,7 +33,7 @@
 #         return pf_ext.AddressRecipient(
 #             **addr_lines_dict_am(self.record.get(am_shared.HireFields.DELIVERY_ADDRESS)),
 #             town='',
-#             postcode=self.record.get(am_shared.HireFields.POSTCODE),
+#             postcode=self.record.get(am_shared.HireFields.DELIVERY_POSTCODE),
 #         )
 #
 #     # @_p.computed_field
