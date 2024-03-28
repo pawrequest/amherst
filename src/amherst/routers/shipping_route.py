@@ -102,91 +102,88 @@ async def update_shipment(
     # return [c.Text(text="Booking not found")]
 
 
-# @router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-# async def clickme_div(
-#         manager_id: int,
-#         session=fastapi.Depends(am_db.get_session)
-# ) -> list[c.AnyComponent]:
-#     manager = await back_funcs.get_manager(manager_id, session)
-#     return await builders.page_w_alerts(
-#         components=[
-#             c.Link(
-#                 components=[c.Text(text='click me')],
-#
-#                 # on_click=e.PageEvent(name='clickme', context={'manager': manager.model_dump_json()}),
-#                 on_click=events.PageEvent(
-#                     name='clickme',
-#                     push_path=f'/ship/view/{manager_id}',
-#                     context={'manager': manager.id},
-#                 ),
-#
-#             ),
-#             c.ServerLoad(
-#                 path=f'/ship/clickme/content/{manager.model_dump_json()}',
-#                 load_trigger=events.PageEvent(name='clickme'),
-#                 components=await clickme_content(manager.model_dump_json()),
-#
-#             ),
-#         ],
-#     )
-#
-#
-# async def add_butts(manager):
-#     return [
-#         c.Div(
-#             class_name='row my-2',
-#             components=[
-#                 c.Button(
-#                     text=can.address_line1,
-#                     on_click=events.PageEvent(
-#                         name='clickme',
-#                         push_path=f'/ship/view/{manager.id}',
-#                         context={'manager_id': manager.id},
-#                     ),
-#                 )
-#             ],
-#         )
-#         for can in manager.state.candidates
-#     ]
-#
-#
-# @router.get(
-#     '/clickme/content/{manager_json}',
-#     response_model=FastUI,
-#     response_model_exclude_none=True
-# )
-# async def clickme_content(
-#         manager_json: str,
-# ) -> list[c.AnyComponent]:
-#     manager = managers.BookingManagerOut.model_validate_json(manager_json)
-#     logger.warning('clickme_content')
-#     global ACOUNTER
-#     ACOUNTER += 1
-#     contact = manager.state.contact
-#     contact.business_name = f'counter: {ACOUNTER}'
-#     return [
-#         c.Heading(text='cliiiick me', level=2),
-#         c.Paragraph(text='clickem'),
-#         *await add_butts(manager),
-#         c.ModelForm(
-#             model=ship_forms.FullForm,
-#             submit_url=f'/api/forms/full/{manager.id}',
-#             initial={
-#                 'ship_date': manager.state.ship_date,
-#                 'boxes': manager.state.boxes,
-#                 'direction': manager.state.direction,
-#                 **paw_types.multi_model_dump(
-#                     contact,
-#                     manager.state.address,
-#                 )
-#             },
-#         ),
-#         # c.Form(
-#         #     form_fields=await ship_forms.big_form_fields(manager.state),
-#         #     submit_url=f'/api/forms/big/{manager.id}',
-#         #
-#         # )
-#     ]
+@router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def clickme_div(
+        manager_id: int,
+        session=fastapi.Depends(am_db.get_session)
+) -> list[c.AnyComponent]:
+    manager = await back_funcs.get_manager(manager_id, session)
+    return await builders.page_w_alerts(
+        components=[
+            c.Link(
+                components=[c.Text(text='click me')],
+
+                # on_click=e.PageEvent(name='clickme', context={'manager': manager.model_dump_json()}),
+                on_click=events.PageEvent(
+                    name='clickme',
+                    push_path=f'/ship/view/{manager_id}',
+                    context={'manager': manager.id},
+                ),
+
+            ),
+            c.ServerLoad(
+                path=f'/ship/clickme/content/{manager.model_dump_json()}',
+                load_trigger=events.PageEvent(name='clickme'),
+                components=await clickme_content(manager.model_dump_json()),
+
+            ),
+        ],
+    )
+
+
+async def add_butts(manager):
+    return [
+        c.Div(
+            class_name='row my-2',
+            components=[
+                c.Button(
+                    text=can.address_line1,
+                    on_click=events.PageEvent(
+                        name='clickme',
+                        push_path=f'/ship/view/{manager.id}',
+                        context={'manager_id': manager.id},
+                    ),
+                )
+            ],
+        )
+        for can in manager.state.candidates
+    ]
+
+
+@router.get(
+    '/clickme/content/{manager_json}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def clickme_content(
+        manager_json: str,
+) -> list[c.AnyComponent]:
+    manager = managers.BookingManagerOut.model_validate_json(manager_json)
+    logger.warning('clickme_content')
+    contact = manager.state.contact
+    return [
+        c.Heading(text='cliiiick me', level=2),
+        c.Paragraph(text='clickem'),
+        *await add_butts(manager),
+        c.ModelForm(
+            model=ship_forms.FullForm,
+            submit_url=f'/api/forms/full/{manager.id}',
+            initial={
+                'ship_date': manager.state.ship_date,
+                'boxes': manager.state.boxes,
+                'direction': manager.state.direction,
+                **paw_types.multi_model_dump(
+                    contact,
+                    manager.state.address,
+                )
+            },
+        ),
+        # c.Form(
+        #     form_fields=await ship_forms.big_form_fields(manager.state),
+        #     submit_url=f'/api/forms/big/{manager.id}',
+        #
+        # )
+    ]
 
 # @router.get('/new/{hire_name}')
 # async def hire_from_cmc_name_64(

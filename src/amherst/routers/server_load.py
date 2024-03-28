@@ -32,6 +32,16 @@ async def check_state(
     )]
 
 
+@router.get('/get_state/{man_id}')
+async def get_manager_json(
+        man_id: int,
+        session=fastapi.Depends(am_db.get_session),
+):
+    man_in = await get_manager(man_id, session)
+
+    return man_in.model_dump_json()
+
+
 @router.get(
     '/pcneighbours/{booking_id}/{postcode}',
     response_model=FastUI,
