@@ -1,4 +1,5 @@
 import argparse
+import os
 import pathlib
 
 import sqlmodel as sqm
@@ -17,7 +18,7 @@ def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=str)
     arg_parser.add_argument('record_name', type=str)
-    arg_parser.add_argument('env_loc', type=str)
+    arg_parser.add_argument('env_loc', type=str, nargs='?', default=None)
     return arg_parser.parse_args()
 
 
@@ -37,7 +38,7 @@ def main(
 
         category = category or args.category
         record_name = record_name or args.record_name
-        env_loc = env_loc or args.env_loc
+        env_loc = env_loc or args.env_loc or os.environ.get('AMHERST_ENV')
         env_path = pathlib.Path(env_loc)
         if not env_path.resolve().exists():
             raise FileNotFoundError(f'Environment file not found at {env_loc}')
