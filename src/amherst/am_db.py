@@ -35,7 +35,6 @@ def get_session(engine=None) -> sqm.Session:
 
 
 def get_pfc():
-    # get envlocation from main some how?
     try:
         return shipper.AmShipper.from_env()
     except Exception as e:

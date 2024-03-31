@@ -1,14 +1,7 @@
 from __future__ import annotations
 
-import json
-import typing as _t
-from datetime import date, datetime, time
+from datetime import datetime
 from decimal import Decimal
-from typing import Optional, TypeVar
-
-from pydantic import BaseModel, BeforeValidator, PlainSerializer
-
-from amherst.models import hire_model, sale_model
 
 
 def amherst_date_val(v):
@@ -60,7 +53,6 @@ def decimal_from_string(v):
         return Decimal(v)
     except ValueError:
         raise ValueError(f'Invalid decimal string: "{v}"')
-
 
 # def model_with_sub(model, jsonify=False) -> dict | str:
 #     out = {}

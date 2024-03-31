@@ -3,14 +3,13 @@ from loguru import logger
 import shipr
 from amherst import shipper
 from amherst.models import hire_model, managers
-from shipr import types as s_types
+from shipr import shipr_types as s_types
 from shipr.models import pf_ext, pf_shared
 
 
 def initial_state(
         shipable: hire_model.ShipableItem,
         pfcom: shipper.ELClient,
-        ship_service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24,
 ) -> shipr.ShipState:
     state = shipr.ShipStatePartial()
     try:
@@ -29,9 +28,9 @@ def initial_state(
 
     state.boxes = shipable.boxes
     state.ship_date = shipable.ship_date
-    state.ship_service = ship_service
+    state.service = pf_shared.ServiceCode.EXPRESS24
     state.contact = shipable.contact
-    state.direction = 'OUTBOUND'
+    state.direction = 'out'
 
     return shipr.ShipState.model_validate(state.model_dump())
 
@@ -39,7 +38,7 @@ def initial_state(
 # def initial_state2(
 #         shipable: am_types.Shipable,
 #         pfcom: shipper.ELClient,
-#         ship_service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24,
+#         service: pf_shared.ServiceCode = pf_shared.ServiceCode.EXPRESS24,
 # ) -> shipr.ShipState:
 #     try:
 #         address = pfcom.choose_address(shipable.input_address)
@@ -52,7 +51,7 @@ def initial_state(
 #     state = ShipState(
 #         boxes=shipable.boxes,
 #         ship_date=shipable.ship_date,
-#         ship_service=ship_service,
+#         service=service,
 #         contact=shipable.contact,
 #         address=address,
 #     )
