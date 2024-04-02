@@ -1,4 +1,5 @@
 # from __future__ import annotations
+import base64
 import os
 
 import fastapi
@@ -9,13 +10,15 @@ from loguru import logger
 from sqlmodel import Session
 
 import amherst.routers.back_funcs
-from amherst import am_db
-from amherst.am_db import get_session
+import pycommence
+from amherst import am_db, rec_importer, shipper
+from amherst.am_db import get_session, prep_db
 from amherst.front.pages import shipping_page
 from amherst.models import am_shared, managers
 from amherst.routers import back_funcs
 from pawdantic import paw_types
 from pawdantic.pawui import builders
+from pycommence.api import csr_context
 from shipr.ship_ui import forms as ship_forms, states
 
 ACOUNTER = 0
@@ -33,6 +36,20 @@ async def view_shipment(
     if not man_in:
         raise ValueError(f'manager id {manager_id} not found')
     return await shipping_page.ship_page(manager=man_out)
+
+
+@router.get('/view_manual/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def view_shipment_manual(
+        manager_id: int,
+        session: Session = Depends(get_session),
+        manual: bool = False,
+) -> list[c.AnyComponent]:
+    logger.info(f'hire route: {manager_id}')
+    man_in = await amherst.routers.back_funcs.get_manager(manager_id, session)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
+    if not man_in:
+        raise ValueError(f'manager id {manager_id} not found')
+    return await shipping_page.ship_page(manager=man_out, manual_entry=manual)
 
 
 # @router.get('/open_hire_sheet/{manager_id}')
@@ -185,23 +202,36 @@ async def clickme_content(
         # )
     ]
 
+#
 # @router.get('/new/{hire_name}')
 # async def hire_from_cmc_name_64(
 #         hire_name: str,
 #         session=Depends(get_session),
 #         # cursor: Csr = Depends(get_hire_cursor),
-#         pfcom: AmShipper = Depends(get_pfc),
+#         pfcom: shipper.AmShipper = Depends(am_db.get_pfc),
 # ):
 #     hire_name = base64.urlsafe_b64decode(hire_name).decode()
 #     logger.info(f'hire_name: {hire_name}')
-#     with pycommence.csr_context('Hire') as cursor:
+#     with csr_context('Hire') as cursor:
 #         hire_record = cursor.get_record(hire_name)
 #
 #     added = rec_importer.records_to_managers(hire_record, session=session, pfcom=pfcom)[0]
 #
 #     # hire = hire_record_to_session(hire_record, session, pfcom)
-#     return [c.FireEvent(event=GoToEvent(url=f'/hire/view/{added.id}'))]
-
+#     return [c.FireEvent(event=events.GoToEvent(url=f'/hire/view/{added.id}'))]
+#
+#
+# @router.get('/new/{category}/{record}')
+# async def from_deets(
+#         category: str,
+#         record: str,
+# ):
+#
+#     with pycommence.api.csr_context(category) as csr:
+#         record_ = csr.record_by_name(record)
+#         prep_db(category, record_)
+#
+#     return [c.FireEvent(event=events.GoToEvent(url=f'/hire/view/{added.id}'))]
 
 # def hire_record_to_session(record: dict, session: sqm.Session, pfcom) -> managers.BookingManagerDB:
 #     """Create a new hire and state in the database from a record dict."""

@@ -24,6 +24,14 @@ async def default_route():
                         class_name='btn btn-primary h-300px ',
 
                     ),
+                    c.Button(
+                        text='manual',
+                        on_click=events.GoToEvent(url='/sp2/manual/1'),
+                    ),
+                    c.Button(
+                        text='select',
+                        on_click=events.GoToEvent(url='/sp2/select/1'),
+                    ),
                 ],
             ),
         ],

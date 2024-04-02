@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 
 import fastapi
-from fastui import components as c, events as e
+from fastui import components as c, events as e, events
 
 from amherst.front import am_styles
 from amherst.models import managers
@@ -16,7 +16,8 @@ router = fastapi.APIRouter()
 
 async def ship_page(
         manager: managers.BOOKED_MANAGER,
-        alert_dict: pawui_types.AlertDict | None = None
+        alert_dict: pawui_types.AlertDict | None = None,
+        manual_entry=False,
 ) -> list[
     c.AnyComponent]:
     alert_dict = alert_dict or {}
@@ -30,6 +31,7 @@ async def ship_page(
             components=[
                 await left_col(manager),
                 # await right_col(manager),
+                # *((await right_col_manual(manager),) if manual_entry else await right_col_no_manual(manager),),
                 await right_col(manager),
             ],
             class_name='row my-3',
@@ -55,17 +57,58 @@ async def left_col(manager) -> c.Div:
     )
 
 
-async def right_col(manager):
+async def right_col(manager) -> c.Div:
+    return c.Div(
+        class_name='col',
+        components=[
+            c.Form(
+                form_fields=await ship_forms.ship_fields_select(manager.state),
+                submit_url=f'/api/forms/big/{manager.id}',
+
+            ),
+            c.Button(
+                text='manual',
+                on_click=events.GoToEvent(url='/sp2/manual/1'),
+            ),
+            # await manual_entry_modal_div(manager),
+        ]
+    )
+
+
+async def right_col_manual(manager) -> c.Div:
     return c.Div(
         class_name='col',
         components=[
             # await clickme_div(manager.model_dump_json()),
 
             c.Form(
-                form_fields=await ship_forms.big_form_fields(manager.state),
+                form_fields=await ship_forms.ship_fields_manual(manager.state),
                 submit_url=f'/api/forms/big/{manager.id}',
 
             ),
+            await manual_entry_modal_div(manager),
+        ]
+    )
+
+
+async def right_col_no_manual(manager) -> c.Div:
+    return c.Div(
+        class_name='col',
+        components=[
+            # await clickme_div(manager.model_dump_json()),
+
+            c.Form(
+                form_fields=await ship_forms.ship_fields_select(manager.state),
+                submit_url=f'/api/forms/big/{manager.id}',
+
+            ),
+            c.Button(
+                text='Manual Entry',
+                on_click=e.GoToEvent(
+                    url=f'/ship/view_manual/{manager.id}',
+                    query={'manual_entry': True},
+                )
+            )
         ]
     )
 
@@ -87,7 +130,7 @@ async def right_col(manager):
 
 async def address_form_select(manager):
     return c.Form(
-        form_fields=[await ship_forms.address_f_postcode_select_field(manager.state)],
+        form_fields=[await ship_forms.address_select(manager.state)],
         submit_url=f'/api/forms/address_form/{manager.id}',
 
     )
@@ -205,4 +248,31 @@ async def address_chooser(
             for can in manager.state.candidates
         ],
         title='addresses',
+    )
+
+
+async def manual_entry_modal_div(manager: managers.BOOKED_MANAGER) -> c.Div:
+    return c.Div(
+        components=[
+            c.Button(
+                text='Manual Entry',
+                on_click=e.PageEvent(name='manual-entry'),
+                class_name=am_styles.BUTTON,
+            ),
+            c.Modal(
+                title='Manual Entry',
+                body=[
+                    c.ModelForm(
+                        model=ship_forms.AddressForm,
+                        initial=manager.state.address.model_dump(),
+                        submit_url=f'/api/forms/address/{manager.id}',
+                    ),
+                ],
+                footer=[
+                    c.Button(text='Close', on_click=e.PageEvent(name='manual-entry', clear=True)),
+                ],
+                open_trigger=e.PageEvent(name='manual-entry'),
+            ),
+        ],
+        class_name=styles.ROW_STYLE,
     )

@@ -23,40 +23,38 @@ from shipr.ship_ui import forms as ship_forms, states
 router = fastapi.APIRouter()
 
 
-@router.post('/big/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def big_post(
+@router.post('/manual/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def manual_post(
         manager_id: int,
 
         date=fastapi.Form(...),
         boxes=fastapi.Form(...),
         direction=fastapi.Form(...),
-        address=fastapi.Form(None),
         business_name=fastapi.Form(...),
         email=fastapi.Form(...),
         phone=fastapi.Form(...),
         service=fastapi.Form(...),
+
         address_line1=fastapi.Form(...),
         address_line2=fastapi.Form(''),
         address_line3=fastapi.Form(''),
         town=fastapi.Form(...),
         postcode=fastapi.Form(...),
-        # country=fastapi.Form(...),
+        # country=fastapi.Form('GB'),
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
 
 ):
-    if address:
-        address = pf_ext.AddressRecipient.model_validate_json(address)
-    else:
-        address = pf_ext.AddressRecipient(
+    address_choice = pf_ext.AddressRecipient.model_validate(
+        pf_ext.AddressRecipient(
             address_line1=address_line1,
             address_line2=address_line2,
             address_line3=address_line3,
             town=town,
             postcode=postcode,
             country='GB',
-        )
 
-    address = pf_ext.AddressRecipient.model_validate(address)
+        )
+    )
 
     contact = pf_top.Contact(
         business_name=business_name,
@@ -69,9 +67,9 @@ async def big_post(
             boxes=boxes,
             ship_date=date,
             direction=direction,
-            address=address,
+            address=address_choice,
             contact=contact,
-            candidates=pfcom.get_candidates(address.postcode),
+            candidates=pfcom.get_candidates(address_choice.postcode),
             service=service,
 
         )
@@ -85,25 +83,69 @@ async def big_post(
     ]
 
 
-# 
-# @router.post(
-#     '/address/{manager_id}',
-#     response_model=FastUI,
-#     response_model_exclude_none=True
-# )
-# async def address_model_post(
-#         manager_id: int,
-#         form: Annotated[ship_forms.AddressForm, fastui_form(ship_forms.AddressForm)],
-# ):
-#     addy = pf_ext.AddressRecipient.model_validate(form.model_dump())
-#     partial = states.ShipStatePartial(address=addy)
-#     return [
-#         c.FireEvent(
-#             event=e.GoToEvent(
-#                 url=f'/ship/update/{manager_id}/{partial.model_dump_64()}'
-#             )
-#         )
-#     ]
+@router.post('/select/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def select_post(
+        manager_id: int,
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+
+        address=fastapi.Form(None),
+
+        date=fastapi.Form(...),
+        boxes=fastapi.Form(...),
+        direction=fastapi.Form(...),
+        business_name=fastapi.Form(...),
+        email=fastapi.Form(...),
+        phone=fastapi.Form(...),
+        service=fastapi.Form(...),
+
+):
+    address_choice = pf_ext.AddressRecipient.model_validate_json(address)
+
+    contact = pf_top.Contact(
+        business_name=business_name,
+        email_address=email,
+        mobile_phone=phone,
+    )
+
+    state = states.ShipState.model_validate(
+        states.ShipState(
+            boxes=boxes,
+            ship_date=date,
+            direction=direction,
+            address=address_choice,
+            contact=contact,
+            candidates=pfcom.get_candidates(address_choice.postcode),
+            service=service,
+
+        )
+    )
+    return [c.FireEvent(
+        event=e.GoToEvent(
+            url=f'/book/confirm/{manager_id}/{state.model_dump_64()}'
+
+        )
+    )
+    ]
+
+
+@router.post(
+    '/address/{manager_id}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def address_model_post(
+        manager_id: int,
+        form: Annotated[ship_forms.AddressForm, fastui_form(ship_forms.AddressForm)],
+):
+    addy = pf_ext.AddressRecipient.model_validate(form.model_dump())
+    partial = states.ShipStatePartial(address=addy)
+    return [
+        c.FireEvent(
+            event=e.GoToEvent(
+                url=f'/ship/update/{manager_id}/{partial.model_dump_64()}'
+            )
+        )
+    ]
 
 
 @router.post(

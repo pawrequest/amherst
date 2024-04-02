@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-import pathlib
 from contextlib import contextmanager
 
 import httpx
@@ -9,13 +7,13 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 # from dotenv import load_dotenv
 from loguru import logger
-from pycommence.api import csr_context
 
-from amherst import shipper
+from amherst import rec_importer, shipper
+from amherst.models import hire_model, managers
 
 # load_dotenv()
 db_name = 'amherst.db'
-DB_URL = f"sqlite:///{db_name}"
+DB_URL = f'sqlite:///{db_name}'
 
 # DB_URL = 'sqlite:///:memory:'
 CONNECT_ARGS = {'check_same_thread': False}
@@ -51,6 +49,7 @@ def get_pfc_context():
     finally:
         ...
 
+
 async def get_http_client():
     async with httpx.AsyncClient() as client:
         yield client
@@ -70,6 +69,20 @@ def destroy_db(engine=None):
     # db_path = pathlib.Path(db_name)
     # db_path.unlink(missing_ok=True)
 
-def get_hire_cursor():
-    with csr_context('Hire') as cursor:
-        yield cursor
+
+def delete_all_records(model):
+    with sqm.Session(ENGINE) as session:
+        statement = sqm.delete(model)
+        session.execute(statement)
+        session.commit()
+
+
+def prep_db(category, record):
+    pf_shipper = shipper.AmShipper.from_env()
+
+    with sqm.Session(ENGINE) as session:
+        # delete_all_records(managers.BookingManagerDB)
+        item = hire_model.ShipableItem(cmc_table_name=category, record=record)
+        manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)
+        session.add(manager)
+        session.commit()

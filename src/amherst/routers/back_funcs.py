@@ -1,3 +1,4 @@
+import fastapi
 import sqlmodel as sqm
 
 import shipr
@@ -8,10 +9,12 @@ class ManagerNotFound(Exception):
     pass
 
 
-async def get_manager(manager_id: int, session: sqm.Session) -> managers.BookingManagerDB:
+async def get_manager(manager_id: int, session: sqm.Session):
     man_in = session.get(managers.BookingManagerDB, manager_id)
     if not isinstance(man_in, managers.BookingManagerDB):
-        raise ManagerNotFound()
+        # raise ManagerNotFound()
+        raise fastapi.HTTPException(status_code=404, detail='Booking not found')
+
     return man_in
     # return man_in.model_validate(man_in)
 

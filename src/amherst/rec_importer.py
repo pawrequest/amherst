@@ -60,12 +60,10 @@ def initial_state(
 
 # def records_to_managers(
 #         *records: dict[str, str],
-#         model_type: _t.Union[type(hire_model.Hire), type(sale_model.Sale)],
 #         pfcom: shipper.AmShipper
 # ) -> list[managers.BookingManagerDB]:
 #     managers = []
 #     for record in records:
-#         input_mod = model_type(record=record)
 #         input_val = input_mod.model_validate(input_mod)
 #         state = initial_state(input_val, pfcom)
 #         manager_ = managers.BookingManagerDB(hire=input_val, state=state)
@@ -83,8 +81,10 @@ def generic_item_to_manager(
 ) -> managers.BookingManagerDB:
     item = shipable.model_validate(shipable)
     state = initial_state(item, pfcom)
-    manager_ = managers.BookingManagerDB(item=item, state=state)
-    manager = manager_.model_validate(manager_)
+
+    manager = managers.BookingManagerDB.model_validate(
+        managers.BookingManagerDB(item=item, state=state)
+    )
     return manager
 
 # def hire_records_to_managers(

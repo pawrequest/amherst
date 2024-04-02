@@ -564,7 +564,7 @@
             <LEFT>1610</LEFT>
             <HEIGHT>315</HEIGHT>
             <TABINDEX>25</TABINDEX>
-            <TOOLTIPTEXT>The delivery / collection cost to go on the invoice</TOOLTIPTEXT>
+            <TOOLTIPTEXT>The delivery or collection cost to go on the invoice</TOOLTIPTEXT>
             <TOP>3315</TOP>
             <WIDTH>1650</WIDTH>
             <VISIBLE>True</VISIBLE>

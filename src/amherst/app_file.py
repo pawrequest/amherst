@@ -1,19 +1,23 @@
 import contextlib
-import pathlib
 
-import fastapi
-import fastui
+from fastapi import FastAPI, responses
+from fastui import prebuilt_html
 
-from amherst import routers
+from amherst import am_db, routers
 from amherst.front.pages import shipping_page
-from amherst.routers import back_funcs
-from pawdantic.pawui import builders, pawui_types
+from amherst.models import managers
+from suppawt.pawlogger import get_loguru
+from amherst.front.pages.ship_page_2 import router as ship_page_router
+
+logger = get_loguru(profile='local', log_file='amherst.log')
 
 
 @contextlib.asynccontextmanager
-async def lifespan(app_: fastapi.FastAPI):
+async def lifespan(app_: FastAPI):
     try:
         # am_db.create_db()
+        # am_db.delete_all_records(managers.BookingManagerDB)
+
         # with sqm.Session(am_db.ENGINE) as session:
         #     pf_shipper = shipper.AmShipper.from_env()
         #     populate_db_from_cmc(session, pf_shipper)
@@ -22,30 +26,27 @@ async def lifespan(app_: fastapi.FastAPI):
         yield
 
     finally:
-        # am_db.destroy_db()
+        am_db.delete_all_records(managers.BookingManagerDB)
         ...
-        # main_task.cancel()
-        # await asyncio.gather(main_task)
 
 
-BASE_DIR = pathlib.Path(__file__).resolve().parent
-
-app = fastapi.FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan)
 
 app.include_router(routers.ship_router, prefix='/api/ship')
 app.include_router(routers.booking_router, prefix='/api/book')
 app.include_router(routers.forms_router, prefix='/api/forms')
 app.include_router(routers.server_router, prefix='/api/sl')
 app.include_router(shipping_page.router, prefix='/api/sp')
+app.include_router(ship_page_router, prefix='/api/sp2')
 app.include_router(routers.main_router, prefix='/api')
 
 
-@app.get('/robots.txt', response_class=fastapi.responses.PlainTextResponse)
+@app.get('/robots.txt', response_class=responses.PlainTextResponse)
 async def robots_txt() -> str:
     return 'User-agent: *\nAllow: /'
 
 
-@app.get('/favicon.ico', status_code=404, response_class=fastapi.responses.PlainTextResponse)
+@app.get('/favicon.ico', status_code=404, response_class=responses.PlainTextResponse)
 async def favicon_ico() -> str:
     return 'page not found'
 
@@ -62,11 +63,24 @@ async def favicon_ico() -> str:
 
 
 @app.get('/{path:path}')
-async def html_landing() -> fastapi.responses.HTMLResponse:
-    return fastapi.responses.HTMLResponse(fastui.prebuilt_html(title='Amherst'))
+async def html_landing() -> responses.HTMLResponse:
+    return responses.HTMLResponse(prebuilt_html(title='Amherst'))
 
-
-@app.exception_handler(back_funcs.ManagerNotFound)
-async def manager_not_found_exception_handler(request: fastapi.Request, exc: back_funcs.ManagerNotFound):
-    alert_dict: pawui_types.AlertDict = {'BOOKING NOT FOUND': 'ERROR'}
-    return await builders.page_w_alerts(alert_dict=alert_dict, components=[builders.back_link])
+#
+# @app.exception_handler(
+#     back_funcs.ManagerNotFound,
+# )
+# async def manager_not_found_exception_handler(
+#         request: Request,
+#         exc: back_funcs.ManagerNotFound
+# ):
+#     alert_dict: pawui_types.AlertDict = {'BOOKING NOT FOUND': 'ERROR'}
+#     # return await builders.page_w_alerts(
+#     #     alert_dict=alert_dict,
+#     #     components=[builders.back_link(), c.Text(text='error')]
+#     # )
+#     return HTTPException(
+#         status_code=404,
+#         detail='Booking not found',
+#     )
+#
