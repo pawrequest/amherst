@@ -45,7 +45,7 @@ async def left_col(manager) -> c.Div:
         components=[
             await input_address_div(manager),
             # await address_form_select(manager),
-            # await address_from_pc_div(manager),
+            await address_from_pc_div(manager),
             # await boxes_modal_row(manager),
             # await boxes_enum_select(manager.id),
             # await boxes_form(manager),

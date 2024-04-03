@@ -6,9 +6,7 @@ from dotenv import load_dotenv
 from flaskwebgui import FlaskUI, close_application
 
 import pycommence
-from amherst import app_file, am_db
-from amherst.am_db import prep_db
-from amherst.models import managers
+from amherst import am_db, app_file
 
 
 # logger = get_loguru(profile='local', log_file='amherst.log')
@@ -42,7 +40,7 @@ def main(
 
     with pycommence.api.csr_context(category) as csr:
         record = csr.record_by_name(record_name)
-        am_db.prep_db(category, record)
+        am_db.erasedb_add_record(category, record)
 
     try:
         fui = FlaskUI(

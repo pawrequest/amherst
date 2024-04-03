@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
 from contextlib import contextmanager
 
 import httpx
+import pydantic as _p
 import sqlalchemy as sqa
 import sqlmodel as sqm
 # from dotenv import load_dotenv
@@ -11,8 +13,8 @@ from loguru import logger
 from amherst import rec_importer, shipper
 from amherst.models import hire_model, managers
 
-# load_dotenv()
-db_name = 'amherst.db'
+db_name = os.environ.get('DB_LOC')
+# db_name = os.environ.get('DB_LOC', 'amherst.db')
 DB_URL = f'sqlite:///{db_name}'
 
 # DB_URL = 'sqlite:///:memory:'
@@ -70,17 +72,20 @@ def destroy_db(engine=None):
     # db_path.unlink(missing_ok=True)
 
 
-def delete_all_records(model):
+def delete_all_records(model_type: type[_p.BaseModel]):
     with sqm.Session(ENGINE) as session:
-        statement = sqm.delete(model)
+        statement = sqm.delete(model_type)
         session.execute(statement)
         session.commit()
+        logger.info(f'{model_type.__name__} records deleted')
 
 
-def prep_db(category, record):
+def erasedb_add_record(category, record):
     pf_shipper = shipper.AmShipper.from_env()
 
     with sqm.Session(ENGINE) as session:
+        delete_all_records(managers.BookingManagerDB)
+
         # delete_all_records(managers.BookingManagerDB)
         item = hire_model.ShipableItem(cmc_table_name=category, record=record)
         manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)

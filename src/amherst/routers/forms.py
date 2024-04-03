@@ -11,7 +11,7 @@ from loguru import logger
 import shipr
 import shipr.shipr_types
 from amherst import am_db, shipper
-from amherst.front.pages import shipping_page
+from amherst.front.pages import shipping_page, ship_page_2
 from amherst.models import managers
 from amherst.routers import back_funcs
 from amherst.routers.back_funcs import get_manager
@@ -247,13 +247,14 @@ async def postcode_post(
         alertdict: pawui_types.AlertDict = {
             f'INVALID POSTCODE : {form.fetch_address_from_postcode}': 'ERROR'
         }
-        return await shipping_page.ship_page(manager=man_in, alert_dict=alertdict)
+        return await ship_page_2.shipping_page(manager_id=manager_id, session=session, alert_dict=alertdict)
+
+        # return await shipping_page.ship_page(manager=man_in, alert_dict=alertdict)
 
         # return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
 
-    return await shipping_page.address_chooser(
-        manager=man_in,
-    )
+    # return await ship_page_2.shipping_page(manager_id=manager_id, session=session)
+    return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
 
     # return [
     #     c.FireEvent(

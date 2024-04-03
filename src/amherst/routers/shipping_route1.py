@@ -11,7 +11,7 @@ from sqlmodel import Session
 import amherst.routers.back_funcs
 from amherst import am_db
 from amherst.am_db import get_session
-from amherst.front.pages import ship_page_2, shipping_page
+from amherst.front.pages import shipping_page
 from amherst.models import am_shared, managers
 from amherst.routers import back_funcs
 from pawdantic import paw_types
@@ -28,21 +28,25 @@ async def view_shipment(
         session: Session = Depends(get_session),
 ) -> list[c.AnyComponent]:
     logger.info(f'hire route: {manager_id}')
-    return await ship_page_2.shipping_page(manager_id, 'select', session)
+    man_in = await amherst.routers.back_funcs.get_manager(manager_id, session)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
+    if not man_in:
+        raise ValueError(f'manager id {manager_id} not found')
+    return await shipping_page.ship_page(manager=man_out)
 
 
-# @router.get('/view_manual/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-# async def view_shipment_manual(
-#         manager_id: int,
-#         session: Session = Depends(get_session),
-#         manual: bool = False,
-# ) -> list[c.AnyComponent]:
-#     logger.info(f'hire route: {manager_id}')
-#     man_in = await amherst.routers.back_funcs.get_manager(manager_id, session)
-#     man_out = managers.BookingManagerOut.model_validate(man_in)
-#     if not man_in:
-#         raise ValueError(f'manager id {manager_id} not found')
-#     return await shipping_page.ship_page(manager=man_out, manual_entry=manual)
+@router.get('/view_manual/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def view_shipment_manual(
+        manager_id: int,
+        session: Session = Depends(get_session),
+        manual: bool = False,
+) -> list[c.AnyComponent]:
+    logger.info(f'hire route: {manager_id}')
+    man_in = await amherst.routers.back_funcs.get_manager(manager_id, session)
+    man_out = managers.BookingManagerOut.model_validate(man_in)
+    if not man_in:
+        raise ValueError(f'manager id {manager_id} not found')
+    return await shipping_page.ship_page(manager=man_out, manual_entry=manual)
 
 
 # @router.get('/open_hire_sheet/{manager_id}')
