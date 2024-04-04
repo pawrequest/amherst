@@ -45,7 +45,7 @@ class BookingManagerOut(BookingManager, table=False):
     id: int
 
 
-BOOKED_MANAGER = BookingManagerDB | BookingManagerOut
+MANAGER_IN_DB = BookingManagerDB | BookingManagerOut
 
 #
 #

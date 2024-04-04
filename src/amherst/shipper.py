@@ -42,13 +42,20 @@ class AmherstContact(pf_top.Contact):
 
 
 class AmShipper(ELClient):
-    def state_to_collection_request(self, state: ship_ui.ShipState):
+    def state_to_inbound_request(self, state: ship_ui.ShipState):
         ship_req = state_to_amherst_collection(state)
         req = msgs.CreateCollectionRequest(
             authentication=self.config.auth,
             requested_shipment=ship_req
         )
         return req
+
+    def state_to_request(self, state: ship_ui.ShipState):
+        if state.direction == 'in':
+            return self.state_to_inbound_request(state)
+        if state.direction == 'out':
+            return self.state_to_outbound_request(state)
+        raise ValueError('Invalid direction')
 
 
 # def booking_state_to_shipment_complex(state: ship_ui.ShipState) -> pf_top.RequestedShipmentSimple:

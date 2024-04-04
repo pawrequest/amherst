@@ -5,19 +5,19 @@ from pathlib import Path
 import PySimpleGUI as sg
 from office_tools.o_tool import OfficeTools
 
-from office_am.dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
-from office_am.gui import invoice_gui
-from office_am.merge_docs.box_label import box_labels_aio_tmplt
-from office_am.order.invoice import get_inv_temp
-from office_am.order.transact import TransactionContext
-from commence_py import CmcDB
+from pycommence.api import csr_context
+from .dflt import DFLT_HIRE_EMAIL, DFLT_PATHS
+from .gui import invoice_gui
+from .merge_docs.box_label import box_labels_aio_tmplt
+from .order.invoice import get_inv_temp
+from .order.transact import TransactionContext
+
 
 def main(args):
     # ot = OfficeTools.libre() if args.libre else OfficeTools.microsoft()
     ot = OfficeTools.auto_select()
-    db = CmcDB()
-    csr = db.get_cursor('Hire')
-    hire = csr.get_record(args.HIRE_NAME_OFFICE)
+    with csr_context('Hire') as csr:
+        hire = csr.get_record(args.HIRE_NAME_OFFICE)
 
     if args.box:
         box_labels_aio_tmplt(hire)
@@ -72,7 +72,9 @@ def do_all(cmc, temp_file, outfile, hire, ot: OfficeTools):
 
 def check_really_edit(transaction):
     if 'test' not in transaction['Name'].lower():
-        raise ValueError(f"dev safety check - Transaction {transaction['Name']} does not contain 'test'")
+        raise ValueError(
+            f"dev safety check - Transaction {transaction['Name']} does not contain 'test'"
+        )
         # if sg.popup_ok_cancel(f'Log {transaction["Name"]} to CMC?') != 'OK':
         #     return False
     return True
@@ -81,11 +83,11 @@ def check_really_edit(transaction):
 def do_cmc(cmc, table, transaction, outfile):
     package = {'Invoice': outfile}
     if not check_really_edit(transaction):
-            return
+        return
     try:
         cmc.edit_record(table, transaction['Name'], package)
     except CmcError as e:
-        sg.popup_error(f"Failed to log to CMC with error: {e}")
+        sg.popup_error(f'Failed to log to CMC with error: {e}')
     else:
         return True
 
@@ -96,7 +98,7 @@ def do_email(attachment: Path, handler: EmailHandler, email_=DFLT_HIRE_EMAIL):
         handler.send_email(email_)
 
     except EmailError as e:
-        sg.popup_error(f"Email failed with error: {e}")
+        sg.popup_error(f'Email failed with error: {e}')
 
 
 if __name__ == '__main__':
@@ -105,7 +107,11 @@ if __name__ == '__main__':
     parser.add_argument('--print', action='store_true', help='Print the invoice after generating.')
     parser.add_argument('--openfile', action='store_true', help='Open the file.')
     parser.add_argument('--libre', action='store_true', help='Use Free Office tools.')
-    parser.add_argument('--doall', action='store_true', help='save, convert to pdf, print, email, and log to commence.')
+    parser.add_argument(
+        '--doall',
+        action='store_true',
+        help='save, convert to pdf, print, email, and log to commence.'
+    )
     parser.add_argument('--box', action='store_true', help='Send a box label')
 
     args = parser.parse_args()

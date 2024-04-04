@@ -146,7 +146,7 @@ def hire_lineitems_free(df_bands: pd.DataFrame, df_hire: pd.DataFrame, duration:
     return line_items
 
 
-def lines_from_hire(df_bands, df_hire, hire: dict) -> Tuple[list, list]:
+def lines_from_hire(df_bands, df_hire, hire: dict) -> tuple[list, list]:
     duration = hire['Weeks']
     hire_itms = items_dict_from_hire(hire)
     free = {k: v for k, v in hire_itms.items() if k in FIELDS.FREE_ITEMS}

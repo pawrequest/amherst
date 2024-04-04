@@ -30,8 +30,7 @@ dependencies = [
     "docx2pdf",
     "docxtpl",
     "openpyxl",
-    "pandas",
-    "pysimplegui",
+#    "pandas",
     "pywin32",
     "xlrd",
     'pyautogui'

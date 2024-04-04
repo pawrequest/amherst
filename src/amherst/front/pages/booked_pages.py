@@ -14,14 +14,18 @@ async def get_alerty(manager) -> pawui_types.AlertDict | None:
 
 
 async def confirm_book_page(
-        manager: managers.BOOKED_MANAGER,
+        manager: managers.MANAGER_IN_DB,
         alert_dict: pawui_types.AlertDict = None
 ) -> list[
     c.AnyComponent]:
     ret = await builders.page_w_alerts(
         # page_class_name='container-fluid',
         components=[
-            c.Heading(text=f'Booking Confirmation for {manager.item.name}', level=1, class_name='row mx-auto my-5'),
+            c.Heading(
+                text=f'Booking Confirmation for {manager.item.name}',
+                level=1,
+                class_name='row mx-auto my-5'
+            ),
             c.ServerLoad(path=f'/sl/check_state/{manager.id}'),
             await confirm_div(manager),
             await back_div(),
@@ -58,7 +62,7 @@ async def confirm_div(manager):
     )
 
 
-async def booked_page(manager: managers.BOOKED_MANAGER, alert_dict=None) -> list[c.AnyComponent]:
+async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[c.AnyComponent]:
     state_alert_dict = ship_states.state_alert_dict(manager.state.booking_state)
     alert_dict = state_alert_dict.update(alert_dict or {})
 
@@ -71,6 +75,7 @@ async def booked_page(manager: managers.BOOKED_MANAGER, alert_dict=None) -> list
             ),
 
             await print_div(manager),
+            await email_div(manager),
         ],
         title='booking',
         alert_dict=alert_dict,
@@ -80,6 +85,7 @@ async def booked_page(manager: managers.BOOKED_MANAGER, alert_dict=None) -> list
 
 async def print_div(manager):
     return c.Div(
+        class_name='row my-3',
         components=[
             c.Button(
                 text=f'Array and Re/Print Labels for {manager.item.name}',
@@ -92,11 +98,12 @@ async def print_div(manager):
     )
 
 
-async def email_div(manager):
+async def email_div(manager: managers.MANAGER_IN_DB):
     return c.Div(
+        class_name='row my-3',
         components=[
             c.Button(
-                text=f'Email Labels for {manager.item.name}',
+                text=f'Email Labels for {manager.state.contact.business_name} to {manager.state.contact.email_address}',
                 on_click=e.GoToEvent(
                     url=f'/book/email/{manager.id}',
                 ),

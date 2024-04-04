@@ -112,7 +112,7 @@
 #     CLOSED = "Closed"
 #     DELIVERY_CONTACT = "Delivery Contact"
 #     CUSTOMER = "To Customer"
-#     DB_LABEL_PRINTED = "DB label printed"
+#     DB_LABEL_PRINTED = "DB label label_downloaded"
 #     DELIVERY_COST = "Delivery Cost"
 #     DISCOUNT_DESCRIPTION = "Discount Description"
 #     DISCOUNT_PERCENTAGE = "Discount Percentage"

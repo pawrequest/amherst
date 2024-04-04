@@ -4,10 +4,9 @@ from fastapi import FastAPI, responses
 from fastui import prebuilt_html
 
 from amherst import am_db, routers
-from amherst.front.pages import shipping_page
+from amherst.front.pages.ship_page_2 import router as ship_page_router
 from amherst.models import managers
 from suppawt.pawlogger import get_loguru
-from amherst.front.pages.ship_page_2 import router as ship_page_router
 
 logger = get_loguru(profile='local', log_file='amherst.log')
 
@@ -36,7 +35,7 @@ app.include_router(routers.ship_router, prefix='/api/ship')
 app.include_router(routers.booking_router, prefix='/api/book')
 app.include_router(routers.forms_router, prefix='/api/forms')
 app.include_router(routers.server_router, prefix='/api/sl')
-app.include_router(shipping_page.router, prefix='/api/sp')
+# app.include_router(shipping_page.router, prefix='/api/sp')
 app.include_router(ship_page_router, prefix='/api/sp2')
 app.include_router(routers.main_router, prefix='/api')
 

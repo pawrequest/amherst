@@ -40,7 +40,7 @@
 ####
 ####
 
-# async def boxes_modal_row(manager: managers.BOOKED_MANAGER) -> c.Div:
+# async def boxes_modal_row(manager: managers.MANAGER_IN_DB) -> c.Div:
 #     return c.Div(
 #         components=[
 #             c.Button(
@@ -76,7 +76,7 @@
 
 
 #
-# async def manual_entry_modal(manager: managers.BOOKED_MANAGER) -> c.Div:
+# async def manual_entry_modal(manager: managers.MANAGER_IN_DB) -> c.Div:
 #     return c.Div(
 #         components=[
 #             c.Button(

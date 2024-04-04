@@ -31,6 +31,7 @@ async def manual_post(
         boxes=fastapi.Form(...),
         direction=fastapi.Form(...),
         business_name=fastapi.Form(...),
+        contact_name=fastapi.Form(...),
         email=fastapi.Form(...),
         phone=fastapi.Form(...),
         service=fastapi.Form(...),
@@ -58,6 +59,8 @@ async def manual_post(
 
     contact = pf_top.Contact(
         business_name=business_name,
+        contact_name=contact_name,
+
         email_address=email,
         mobile_phone=phone,
     )
@@ -94,6 +97,7 @@ async def select_post(
         boxes=fastapi.Form(...),
         direction=fastapi.Form(...),
         business_name=fastapi.Form(...),
+        contact_name=fastapi.Form(...),
         email=fastapi.Form(...),
         phone=fastapi.Form(...),
         service=fastapi.Form(...),
@@ -103,6 +107,7 @@ async def select_post(
 
     contact = pf_top.Contact(
         business_name=business_name,
+        contact_name=contact_name,
         email_address=email,
         mobile_phone=phone,
     )
