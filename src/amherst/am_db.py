@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import os
 from contextlib import contextmanager
 
@@ -13,22 +14,30 @@ from loguru import logger
 from amherst import rec_importer, shipper
 from amherst.models import hire_model, managers
 
-db_name = os.environ.get('DB_LOC')
+
+# db_name = os.environ.get('DB_LOC')
 # db_name = os.environ.get('DB_LOC', 'amherst.db')
-DB_URL = f'sqlite:///{db_name}'
+# DB_URL = f'sqlite:///{db_name}'
+# logger.info(f'DB_URL: {DB_URL}')
+#
+# # DB_URL = 'sqlite:///:memory:'
+# CONNECT_ARGS = {'check_same_thread': False}
+# ENGINE = sqa.create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
 
-# DB_URL = 'sqlite:///:memory:'
-CONNECT_ARGS = {'check_same_thread': False}
-ENGINE = sqa.create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
+@functools.lru_cache(maxsize=1)
+def get_engine():
+    db_name = os.environ.get('DB_LOC', 'amherst.db')
+    DB_URL = f'sqlite:///{db_name}'
+    # DB_URL = 'sqlite:///:memory:'
+    logger.info(f'DB_URL: {DB_URL}')
 
-
-def engine_config():
-    return {'db_url': DB_URL, 'connect_args': CONNECT_ARGS}
+    CONNECT_ARGS = {'check_same_thread': False}
+    return sqa.create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
 
 
 def get_session(engine=None) -> sqm.Session:
     if engine is None:
-        engine = ENGINE
+        engine = get_engine()
     with sqm.Session(engine) as session:
         yield session
     session.close()
@@ -59,13 +68,13 @@ async def get_http_client():
 
 def create_db(engine=None):
     if engine is None:
-        engine = ENGINE
+        engine = get_engine()
     sqm.SQLModel.metadata.create_all(engine)
 
 
 def destroy_db(engine=None):
     if engine is None:
-        engine = ENGINE
+        engine = get_engine()
     sqm.SQLModel.metadata.drop_all(engine)
 
     # db_path = pathlib.Path(db_name)
@@ -73,7 +82,7 @@ def destroy_db(engine=None):
 
 
 def delete_all_records(model_type: type[_p.BaseModel]):
-    with sqm.Session(ENGINE) as session:
+    with sqm.Session(get_engine()) as session:
         statement = sqm.delete(model_type)
         session.execute(statement)
         session.commit()
@@ -83,7 +92,7 @@ def delete_all_records(model_type: type[_p.BaseModel]):
 def erasedb_add_record(category, record):
     pf_shipper = shipper.AmShipper.from_env()
 
-    with sqm.Session(ENGINE) as session:
+    with sqm.Session(get_engine()) as session:
         delete_all_records(managers.BookingManagerDB)
 
         # delete_all_records(managers.BookingManagerDB)
