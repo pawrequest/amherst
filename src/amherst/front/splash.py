@@ -11,30 +11,24 @@ router = fastapi.APIRouter()
 async def default_route():
     print('main route')
     # return fastapi.responses.RedirectResponse(url='/hire/view/1')
+    return c.FireEvent(event=events.GoToEvent(url='/ship/select/1'))
+    # return c.FireEvent(event=events.GoToEvent(url='/ship_model/zero/1'))
 
-    return await builders.page_w_alerts(
-        # page_class_name='',
-        components=[
-            c.Div(
-                class_name=' row my-5 mx-auto',
-                components=[
-                    c.Button(
-                        text='go',
-                        # on_click=events.GoToEvent(url='/forms_test/login/1'),
-                        on_click=events.GoToEvent(url='/ship_model/minimum/1'),
-                        # on_click=events.GoToEvent(url='/ship/select/1'),
-                        class_name='btn btn-primary h-300px ',
-
-                    ),
-                    # c.Button(
-                    #     text='manual',
-                    #     on_click=events.GoToEvent(url='/ship/manual/1'),
-                    # ),
-                    # c.Button(
-                    #     text='select',
-                    #     on_click=events.GoToEvent(url='/ship/select/1'),
-                    # ),
-                ],
-            ),
-        ],
-    )
+    # return await builders.page_w_alerts(
+    #     # page_class_name='',
+    #     components=[
+    #         c.Div(
+    #             class_name=' row my-5 mx-auto',
+    #             components=[
+    #                 c.Button(
+    #                     text='go',
+    #                     # on_click=events.GoToEvent(url='/forms_test/login/1'),
+    #                     on_click=events.GoToEvent(url='/ship_model/zero/1'),
+    #                     # on_click=events.GoToEvent(url='/ship/select/1'),
+    #                     class_name='btn btn-primary h-300px ',
+    #
+    #                 ),
+    #             ],
+    #         ),
+    #     ],
+    # )

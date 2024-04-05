@@ -69,7 +69,7 @@ async def left_col(manager) -> c.Div:
 
 
 async def right_col(kind, manager) -> c.Div:
-    with sqlmodel.Session(am_db.ENGINE) as session:
+    with sqlmodel.Session(am_db.get_engine()) as session:
         return c.Div(
             class_name='col',
             components=[

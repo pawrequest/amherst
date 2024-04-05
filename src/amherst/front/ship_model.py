@@ -1,6 +1,7 @@
 import typing as _t
 
 import fastapi
+import sqlmodel
 from fastapi import APIRouter
 from fastui import FastUI, components as c, events as e
 from fastui.forms import fastui_form
@@ -16,7 +17,11 @@ router = APIRouter()
 
 
 @router.get('/{kind}/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def forms_view(kind: ModelKind, manager_id: int) -> list[c.AnyComponent]:
+async def forms_view(
+        kind: ModelKind,
+        manager_id: int,
+        session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
+) -> list[c.AnyComponent]:
     return await builders.page_w_alerts(
         components=[
             c.LinkList(
@@ -47,10 +52,18 @@ async def forms_view(kind: ModelKind, manager_id: int) -> list[c.AnyComponent]:
                 # not fstring!!!!!
                 path='/ship_model/get_form/{kind}/{manager_id}',
                 load_trigger=e.PageEvent(name='change-form'),
-                components=await get_form(kind, manager_id),
+                components=await get_form(kind, manager_id, session),
             ),
         ],
     )
+
+
+async def get_initial(manager, form_model) -> dict:
+    update = {
+        k: v for k, v in manager.state.model_dump(exclude_none=True).items()
+        if k in form_model.model_fields
+    }
+    return update
 
 
 @router.get(
@@ -58,14 +71,21 @@ async def forms_view(kind: ModelKind, manager_id: int) -> list[c.AnyComponent]:
     response_model=FastUI,
     response_model_exclude_none=True
 )
-async def get_form(kind: ModelKind, manager_id: int):
+async def get_form(
+        kind: ModelKind,
+        manager_id: int,
+        session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
+):
+    manager = await support.get_manager(manager_id, session)
     logger.debug(f'getting form for {kind}')
     form_model = await support.get_model_form_type(kind)
 
+    model_initial = await get_initial(manager, form_model)
     return [
         c.ModelForm(
             model=form_model,
-            submit_url=f'/api/ship_model/{kind}/{manager_id}'
+            submit_url=f'/api/ship_model/{kind}/{manager_id}',
+            # initial=model_initial,
         )
     ]
 
@@ -79,6 +99,7 @@ async def zero_post(
 
 ):
     print(form)
+    ship_min = pf_top.RequestedShipmentMinimum.model_validate(form.model_dump())
 
     return [c.Text(text='zero post')]
 
