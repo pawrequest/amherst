@@ -3,8 +3,7 @@ import contextlib
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
 
-from amherst import am_db, routers
-from amherst.front.pages.ship_page_2 import router as ship_page_router
+from amherst import am_db, front
 from amherst.models import managers
 from suppawt.pawlogger import get_loguru
 
@@ -31,13 +30,14 @@ async def lifespan(app_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.include_router(routers.ship_router, prefix='/api/ship')
-app.include_router(routers.booking_router, prefix='/api/book')
-app.include_router(routers.forms_router, prefix='/api/forms')
-app.include_router(routers.server_router, prefix='/api/sl')
-# app.include_router(shipping_page.router, prefix='/api/sp')
-app.include_router(ship_page_router, prefix='/api/sp2')
-app.include_router(routers.main_router, prefix='/api')
+app.include_router(front.shipping_router, prefix='/api/ship')
+app.include_router(front.booking_router, prefix='/api/book')
+app.include_router(front.booked_router, prefix='/api/booked')
+app.include_router(front.forms_router, prefix='/api/forms')
+# app.include_router(front.forms_model_router, prefix='/api/forms_model')
+app.include_router(front.ship_model_router, prefix='/api/ship_model')
+app.include_router(front.forms_test_router, prefix='/api/forms_test')
+app.include_router(front.splash_router, prefix='/api')
 
 
 @app.get('/robots.txt', response_class=responses.PlainTextResponse)

@@ -11,10 +11,8 @@ from loguru import logger
 import shipr
 import shipr.shipr_types
 from amherst import am_db, shipper
-from amherst.front.pages import shipping_page, ship_page_2
+from amherst.front import support, ship
 from amherst.models import managers
-from amherst.routers import back_funcs
-from amherst.routers.back_funcs import get_manager
 from pawdantic.pawui import pawui_types
 from shipr import shipr_types
 from shipr.models import pf_ext, pf_top
@@ -35,6 +33,9 @@ async def manual_post(
         email=fastapi.Form(...),
         phone=fastapi.Form(...),
         service=fastapi.Form(...),
+
+        reference=fastapi.Form(''),
+        special_instructions=fastapi.Form(''),
 
         address_line1=fastapi.Form(...),
         address_line2=fastapi.Form(''),
@@ -67,6 +68,8 @@ async def manual_post(
 
     state = states.ShipState.model_validate(
         states.ShipState(
+            reference=reference,
+            special_instructions=special_instructions,
             boxes=boxes,
             ship_date=date,
             direction=direction,
@@ -92,6 +95,9 @@ async def select_post(
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
 
         address=fastapi.Form(None),
+
+        reference=fastapi.Form(''),
+        special_instructions=fastapi.Form(''),
 
         date=fastapi.Form(...),
         boxes=fastapi.Form(...),
@@ -121,6 +127,8 @@ async def select_post(
             contact=contact,
             candidates=pfcom.get_candidates(address_choice.postcode),
             service=service,
+            reference=reference,
+            special_instructions=special_instructions,
 
         )
     )
@@ -163,7 +171,7 @@ async def state_model_post(
         form: Annotated[states.ShipStatePartial, fastui_form(states.ShipStatePartial)],
         session=fastapi.Depends(am_db.get_session),
 ):
-    man_in = await get_manager(manager_id, session)
+    man_in = await support.get_manager(manager_id, session)
     man_in.state = shipr.ShipState.model_validate(
         man_in.state.get_updated(form)
     )
@@ -197,7 +205,7 @@ async def address_form_post(
 
     partial = states.ShipStatePartial.model_validate({'address': address})
 
-    man_out = await back_funcs.update_and_commit(manager_id, partial, session)
+    man_out = await support.update_and_commit(manager_id, partial, session)
     # return responses.RedirectResponse(url=f'/ship/view/{manager_id}', status_code=303)
     # return await shipping_page.ship_page(manager=man_out)
     return [
@@ -209,30 +217,78 @@ async def address_form_post(
     ]
 
 
-@router.post(
-    '/address_form1/{manager_id}',
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
-async def address_form_post1(
-        request: fastapi.Request,
-        manager_id: int,
-        session=fastapi.Depends(am_db.get_session),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
-) -> list[c.AnyComponent]:
-    form = await request.form()
-    address = form.get('address')
-    addy = pf_ext.AddressRecipient.model_validate_json(address)
-    man_in = await back_funcs.get_manager(manager_id, session)
-    man_in.state.address = addy
-    man_in.state.candidates = pfcom.get_candidates(addy.postcode)
-    session.add(man_in)
-    session.commit()
-    return await shipping_page.ship_page(manager=man_in)
+# @router.post(
+#     '/address_form1/{manager_id}',
+#     response_model=FastUI,
+#     response_model_exclude_none=True
+# )
+# async def address_form_post1(
+#         request: fastapi.Request,
+#         manager_id: int,
+#         session=fastapi.Depends(am_db.get_session),
+#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+# ) -> list[c.AnyComponent]:
+#     form = await request.form()
+#     address = form.get('address')
+#     addy = pf_ext.AddressRecipient.model_validate_json(address)
+#     man_in = await support.get_manager(manager_id, session)
+#     man_in.state.address = addy
+#     man_in.state.candidates = pfcom.get_candidates(addy.postcode)
+#     session.add(man_in)
+#     session.commit()
+#     return await ship_page(manager=man_in)
 
 
 async def man_in_to_out(man_in: managers.BookingManagerDB) -> managers.BookingManagerOut:
     return managers.BookingManagerOut.model_validate(man_in)
+
+
+@router.post('/postcode2/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def postcode_post2(
+        manager_id: int,
+        fetch_address_from_postcode=fastapi.Form(...),
+        session=fastapi.Depends(am_db.get_session),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+) -> list[c.AnyComponent]:
+    pc = fetch_address_from_postcode.upper()
+
+    if shipr_types.is_valid_postcode(pc):
+        man_in = await support.get_manager(manager_id, session)
+        man_in.state.candidates = pfcom.get_candidates(fetch_address_from_postcode)
+        session.add(man_in)
+        session.commit()
+        alert_dict = {}
+    else:
+        alert_dict = {f'INVALID POSTCODE : {pc}': 'ERROR'}
+        logger.warning(f'Invalid postcode: {pc}')
+
+    return [
+        c.FireEvent(
+            event=e.GoToEvent(
+                url=f'/ship/view/{manager_id}',
+                # target='_blank',
+            )
+        )
+    ]
+    # return await ship_page_2.shipping_page(
+    #     manager_id=manager_id,
+    #     session=session,
+    #     alert_dict=alert_dict
+    # )
+    # return [
+    #     e.PageEvent(
+    #         name='change-form',
+    #         # push_path=
+    #     )
+    # ]
+
+    # return [
+    #     c.FireEvent(
+    #         event=e.GoToEvent(
+    #             url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
+    #         )
+    #     )
+    # ]
 
 
 @router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
@@ -242,7 +298,7 @@ async def postcode_post(
         session=fastapi.Depends(am_db.get_session),
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
 ) -> list[c.AnyComponent]:
-    man_in = await get_manager(manager_id, session)
+    man_in = await support.get_manager(manager_id, session)
     man_in.state.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
     session.add(man_in)
     session.commit()
@@ -252,7 +308,11 @@ async def postcode_post(
         alertdict: pawui_types.AlertDict = {
             f'INVALID POSTCODE : {form.fetch_address_from_postcode}': 'ERROR'
         }
-        return await ship_page_2.shipping_page(manager_id=manager_id, session=session, alert_dict=alertdict)
+        return await ship.shipping_page(
+            manager_id=manager_id,
+            session=session,
+            alert_dict=alertdict
+        )
 
         # return await shipping_page.ship_page(manager=man_in, alert_dict=alertdict)
 

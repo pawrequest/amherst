@@ -31,6 +31,7 @@ def initial_state(
     state.service = pf_shared.ServiceCode.EXPRESS24
     state.contact = shipable.contact
     state.direction = 'out'
+    state.reference = state.contact.business_name
 
     return shipr.ShipState.model_validate(state.model_dump())
 

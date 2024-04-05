@@ -54,7 +54,7 @@ class AmShipper(ELClient):
         if state.direction == 'in':
             return self.state_to_inbound_request(state)
         if state.direction == 'out':
-            return self.state_to_outbound_request(state)
+            return self.create_outbound_request(state)
         raise ValueError('Invalid direction')
 
 
@@ -85,5 +85,8 @@ def state_to_amherst_collection(state: ship_ui.ShipState) -> models.CollectionMi
         total_number_of_parcels=state.boxes,
         print_own_label=True,
         collection_info=pf_top.collection_info_from_state(state),
+        reference_number1=state.reference,
+        special_instructions1=state.special_instructions,
+
     )
     return col_min.model_validate(col_min)

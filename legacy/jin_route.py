@@ -1,5 +1,3 @@
-import pathlib
-
 from fastapi import APIRouter, Depends, Request, responses
 from fastapi.responses import HTMLResponse
 from sqlmodel import Session
@@ -7,7 +5,7 @@ from starlette.templating import Jinja2Templates
 
 from amherst.am_db import get_session
 from amherst.models import managers
-from amherst.routers.back_funcs import get_manager
+from amherst.front.support import get_manager
 tmpl = r'C:\Users\RYZEN\prdev\workbench\amherst\src\amherst\front\templates'
 router = APIRouter()
 templates = Jinja2Templates(directory=tmpl)

@@ -68,7 +68,7 @@
 #             ),
 #             c.Button(
 #                 text='manual',
-#                 on_click=events.GoToEvent(url='/sp2/manual/1'),
+#                 on_click=events.GoToEvent(url='/ship/manual/1'),
 #             ),
 #             # await manual_entry_modal_div(manager),
 #         ]
@@ -154,25 +154,25 @@
 #     )
 #
 #
-# async def address_from_pc_div(manager) -> c.Div:
-#     return c.Div(
-#         components=[
-#             c.Div(
-#                 components=[
-#
-#                     c.ModelForm(
-#                         model=ship_forms.PostcodeSelect,
-#                         initial={'fetch_address_from_postcode': manager.state.address.postcode},
-#                         submit_url=f'/api/forms/postcode/{manager.id}',
-#                         class_name='row h6',
-#                     ),
-#
-#                 ],
-#                 class_name=am_styles.BUTTON,
-#             )
-#         ],
-#         class_name='row mx-auto',
-#     )
+async def address_from_pc_div(manager) -> c.Div:
+    return c.Div(
+        components=[
+            c.Div(
+                components=[
+
+                    c.ModelForm(
+                        model=ship_forms.PostcodeSelect,
+                        initial={'fetch_address_from_postcode': manager.state.address.postcode},
+                        submit_url=f'/api/forms/postcode/{manager.id}',
+                        class_name='row h6',
+                    ),
+
+                ],
+                class_name=am_styles.BUTTON,
+            )
+        ],
+        class_name='row mx-auto',
+    )
 #
 #
 # async def invoice_div(manager: managers.BookingManagerOut) -> c.Div:

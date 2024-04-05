@@ -20,18 +20,19 @@ async def default_route():
                 components=[
                     c.Button(
                         text='go',
-                        # on_click=events.GoToEvent(url='/ship/view/1'),
-                        on_click=events.GoToEvent(url='/sp2/select/1'),
+                        # on_click=events.GoToEvent(url='/forms_test/login/1'),
+                        on_click=events.GoToEvent(url='/ship_model/minimum/1'),
+                        # on_click=events.GoToEvent(url='/ship/select/1'),
                         class_name='btn btn-primary h-300px ',
 
                     ),
                     # c.Button(
                     #     text='manual',
-                    #     on_click=events.GoToEvent(url='/sp2/manual/1'),
+                    #     on_click=events.GoToEvent(url='/ship/manual/1'),
                     # ),
                     # c.Button(
                     #     text='select',
-                    #     on_click=events.GoToEvent(url='/sp2/select/1'),
+                    #     on_click=events.GoToEvent(url='/ship/select/1'),
                     # ),
                 ],
             ),

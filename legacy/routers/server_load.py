@@ -5,9 +5,9 @@ from sqlmodel import Session
 
 from amherst import am_db
 from amherst.am_db import get_pfc, get_session
-from amherst.front.pages import shipping_page
+from amherst.routers import shipping_page
 from amherst.models import managers
-from amherst.routers.back_funcs import get_manager
+from amherst.front.pages.back_funcs import get_manager
 from amherst.shipper import AmShipper
 from pawdantic.pawui import builders
 
