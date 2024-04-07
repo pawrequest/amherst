@@ -39,7 +39,7 @@ def main(
     am_db.create_db()
 
     with pycommence.api.csr_context(category) as csr:
-        record = csr.get_record(record_name)
+        record = csr.one_record(record_name)
         am_db.erasedb_add_record(category, record)
 
     try:

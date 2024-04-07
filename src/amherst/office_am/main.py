@@ -17,7 +17,7 @@ def main(args):
     # ot = OfficeTools.libre() if args.libre else OfficeTools.microsoft()
     ot = OfficeTools.auto_select()
     with csr_context('Hire') as csr:
-        hire = csr.get_record(args.HIRE_NAME_OFFICE)
+        hire = csr.one_record(args.HIRE_NAME_OFFICE)
 
     if args.box:
         box_labels_aio_tmplt(hire)
