@@ -5,7 +5,8 @@ import pathlib
 from dotenv import load_dotenv
 from flaskwebgui import FlaskUI, close_application
 
-import pycommence
+from pycommence.api import csr_api_handled
+from pycommence.api import csr_handler
 from amherst import am_db, app_file
 
 
@@ -38,8 +39,9 @@ def main(
     load_dotenv(env_loc)
     am_db.create_db()
 
-    with pycommence.api.csr_context(category) as csr:
-        record = csr.one_record(record_name)
+    with csr_api_handled.csr_context(category) as csr:
+        handler = csr_handler.CmcHandler(csr=csr)
+        record = handler.one_record(record_name)
         am_db.erasedb_add_record(category, record)
 
     try:
