@@ -60,7 +60,7 @@ INITIAL_FILTER_ARRAY = types_api.FilterArray(
     }
 )
 
-INITIAL_FILTER_ARRAY2 = types_api.FilterArray().add_filters(
+INITIAL_FILTER_ARRAY2 = types_api.FilterArray().add_replace_filters(
     types_api.CmcFilter(cmc_col='Status', condition='Equal To', value='Booked in'),
     types_api.CmcFilter(
         cmc_col='Send Out Date',
