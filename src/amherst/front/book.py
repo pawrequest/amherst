@@ -1,4 +1,3 @@
-# from __future__ import annotations
 from __future__ import annotations
 
 import datetime as dt
@@ -6,7 +5,9 @@ import os
 
 import fastapi
 import sqlmodel as sqm
-from fastui import FastUI, components as c, events, events as e
+from fastui import FastUI, events
+from fastui import components as c
+from fastui import events as e
 from loguru import logger
 
 import shipr
@@ -24,6 +25,16 @@ async def check_state(
         man_id: int,
         session=fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
+    """HTML DIV with the current state of the manager.
+    
+    Args:
+        man_id (int): The manager's id.
+        session (sqm.Session, optional): The database session - defaults to fastapi.Depends(am_db.get_session).
+    
+    Returns:
+        list(c.Div): A list containing a single DIV element.
+        
+    """
     man_in = await support.get_manager(man_id, session)
     texts = builders.dict_strs_texts(
         man_in.state.model_dump(exclude={'candidates'}),
@@ -51,6 +62,18 @@ async def get_confirmation(
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
+    """Endpoint returning Booking Confirmation Page.
+
+    Args:
+        manager_id (int): The manager's id.
+        state_64 (str): The base64 encoded state.
+        pfcom (shipper.AmShipper, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
+        session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
+
+    Returns:
+        :meth:`~confirm_book_page`: The confirmation page.
+
+    """
     state = states.ShipState.model_validate_64(state_64)
     state.candidates = pfcom.get_candidates(state.address.postcode)
 
@@ -72,6 +95,18 @@ async def do_booking(
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
+    """Endpoint for booking a shipment.
+
+    Args:
+        manager_id (int): The manager's id.
+        pfcom (shipper.AmShipper, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
+        session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
+
+    Returns:
+        :meth:`~amherst.front.booked.booked_page`: The confirmation page.
+
+
+    """
     logger.warning(f'booking_id: {manager_id}')
     man_in = await support.get_manager(manager_id, session)
 
