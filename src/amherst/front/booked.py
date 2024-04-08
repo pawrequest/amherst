@@ -4,6 +4,7 @@ import os
 import pathlib
 
 import fastapi
+import flaskwebgui
 import pdf_tools
 import sqlmodel
 from fastui import FastUI, components as c, events as e
@@ -12,16 +13,26 @@ from loguru import logger
 import shipr
 from amherst import am_db
 from amherst.front import support
+from amherst.front.email_templates import return_label_email
 from amherst.models import managers
 from pawdantic.pawui import builders
 from shipr.ship_ui import states as ship_states
-from suppawt.office_ps.email_handler import Email
 from suppawt.office_ps.ms.outlook_handler import OutlookHandler
 
 router = fastapi.APIRouter()
 
 
 async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[c.AnyComponent]:
+    """Page for post-booking actions.
+
+    Args:
+        manager: The manager object.
+        alert_dict: Dictionary of alerts.
+
+    Returns:
+        FastUI Frontend with buttons for printing and emailing labels.
+
+    """
     state_alert_dict = ship_states.state_alert_dict(manager.state.booking_state)
     alert_dict = state_alert_dict.update(alert_dict or {})
 
@@ -35,6 +46,7 @@ async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[
 
             await print_div(manager),
             await email_div(manager),
+            await close_div(),
         ],
         title='booking',
         alert_dict=alert_dict,
@@ -65,6 +77,21 @@ async def email_div(manager: managers.MANAGER_IN_DB):
                 text=f'Email Labels for {manager.state.contact.business_name} to {manager.state.contact.email_address}',
                 on_click=e.GoToEvent(
                     url=f'/booked/email/{manager.id}',
+                ),
+                class_name='btn btn-lg btn-primary'
+            )
+        ]
+    )
+
+
+async def close_div():
+    return c.Div(
+        class_name='row my-3',
+        components=[
+            c.Button(
+                text='Close Application',
+                on_click=e.GoToEvent(
+                    url='/booked/close_app/',
                 ),
                 class_name='btn btn-lg btn-primary'
             )
@@ -120,6 +147,12 @@ async def email_label(
     return await booked_page(manager=man_in)
 
 
+@router.get('/close_app/', response_model=None, response_model_exclude_none=True)
+async def close_app(
+):
+    flaskwebgui.close_application()
+
+
 @router.get('/print/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
 async def print_label(
         booking_id: int,
@@ -134,12 +167,7 @@ async def print_label(
 
 
 def send_label(state: shipr.ShipState):
-    email = Email(
-        to_address=state.contact.email_address,
-        subject='Radio Hire - Parcelforce Collection Label Attached',
-        body='Please find attached the Parcelforce Collection Label for your Radio Hire',
-        attachment_path=state.booking_state.label_dl_path,
-    )
+    email = return_label_email(state)
     handler = OutlookHandler()
     handler.send_email(email)
 
