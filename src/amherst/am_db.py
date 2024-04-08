@@ -8,27 +8,21 @@ import httpx
 import pydantic as _p
 import sqlalchemy as sqa
 import sqlmodel as sqm
-# from dotenv import load_dotenv
 from loguru import logger
-
 from amherst import rec_importer, shipper
-from amherst.models import hire_model, managers
+from amherst.models import managers, shipable_item
 
-
-# db_name = os.environ.get('DB_LOC')
-# db_name = os.environ.get('DB_LOC', 'amherst.db')
-# DB_URL = f'sqlite:///{db_name}'
-# logger.info(f'DB_URL: {DB_URL}')
-#
-# # DB_URL = 'sqlite:///:memory:'
-# CONNECT_ARGS = {'check_same_thread': False}
-# ENGINE = sqa.create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
 
 @functools.lru_cache(maxsize=1)
 def get_engine():
+    """Get the database engine from the environment variable DB_LOC. If not set, use amherst.db as the default.
+
+    Returns:
+        sqlalchemy.engine: Database engine
+
+    """
     db_name = os.environ.get('DB_LOC', 'amherst.db')
     DB_URL = f'sqlite:///{db_name}'
-    # DB_URL = 'sqlite:///:memory:'
     logger.info(f'DB_URL: {DB_URL}')
 
     CONNECT_ARGS = {'check_same_thread': False}
@@ -93,10 +87,10 @@ def erasedb_add_record(category, record):
     pf_shipper = shipper.AmShipper.from_env()
 
     with sqm.Session(get_engine()) as session:
-        delete_all_records(managers.BookingManagerDB)
+        delete_all_recordsacy(managers.BookingManagerDB)
 
         # delete_all_records(managers.BookingManagerDB)
-        item = hire_model.ShipableItem(cmc_table_name=category, record=record)
+        item = shipable_item.ShipableItem(cmc_table_name=category, record=record)
         manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)
         session.add(manager)
         session.commit()
