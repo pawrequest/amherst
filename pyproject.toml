@@ -14,7 +14,6 @@ requires-python = ">= 3.12"
 dependencies = [
     'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
     'pawdantic[ui, sql]',
-    #    'fastuipr',
     'shipr',
     'pycommence',
     'suppawt',
@@ -30,7 +29,6 @@ dependencies = [
     "docx2pdf",
     "docxtpl",
     "openpyxl",
-#    "pandas",
     "pywin32",
     "xlrd",
     'pyautogui'
@@ -47,6 +45,16 @@ git = [
 
 [tool.rye]
 managed = true
+dev-dependencies = [
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx-autodoc2",
+    "sphinx-rtd-theme",
+    "sphinx-readme",
+    "myst-parser",
+    "sphinx_rtd_dark_mode",
+]
+
 [tool.hatch.metadata]
 allow-direct-references = true
 
