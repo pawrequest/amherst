@@ -9,7 +9,6 @@ import pdf_tools
 import sqlmodel
 from fastui import FastUI, components as c, events as e
 from loguru import logger
-
 import shipr
 from amherst import am_db
 from amherst.front import support
@@ -23,14 +22,14 @@ router = fastapi.APIRouter()
 
 
 async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[c.AnyComponent]:
-    """Page for post-booking actions.
+    """Page for post-booking actions including printing and emailing labels.
 
     Args:
         manager: The manager object.
         alert_dict: Dictionary of alerts.
 
     Returns:
-        FastUI Frontend with buttons for printing and emailing labels.
+        FastUI.Page: The page with the post-booking actions.
 
     """
     state_alert_dict = ship_states.state_alert_dict(manager.state.booking_state)
@@ -55,6 +54,7 @@ async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[
 
 
 async def print_div(manager):
+    """Html Div with button to print labels."""
     return c.Div(
         class_name='row my-3',
         components=[
@@ -70,6 +70,7 @@ async def print_div(manager):
 
 
 async def email_div(manager: managers.MANAGER_IN_DB):
+    """Html Div with button to email labels."""
     return c.Div(
         class_name='row my-3',
         components=[
@@ -85,6 +86,7 @@ async def email_div(manager: managers.MANAGER_IN_DB):
 
 
 async def close_div():
+    """Html Div with button to close the application."""
     return c.Div(
         class_name='row my-3',
         components=[
@@ -99,41 +101,6 @@ async def close_div():
     )
 
 
-# @router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)
-# async def check_state(
-#         man_id: int,
-#         session=fastapi.Depends(am_db.get_session),
-# ) -> list[c.AnyComponent]:
-#     man_in = await back_funcs.get_manager(man_id, session)
-#     texts = builders.dict_strs_texts(
-#         man_in.state.model_dump(exclude={'candidates'}),
-#         with_keys='YES'
-#     )
-#     return [
-#         c.Div(
-#             components=builders.list_of_divs(
-#                 class_name='row my-2 mx-auto',
-#                 components=texts
-#             ),
-#             class_name='row'
-#         )
-#     ]
-
-
-@router.get('/view/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def view_booked(
-        manager_id: int,
-        session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
-    manager = await support.get_manager(manager_id, session)
-    manager_ = managers.BookingManagerOut.model_validate(manager)
-    return await booked_page(manager=manager_)
-    # return await builders.page_w_alerts(
-    #     components=[
-    #         builders.back_link,
-    #     ],
-    # )
-
 
 @router.get('/email/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
 async def email_label(
@@ -141,6 +108,7 @@ async def email_label(
         pfcom=fastapi.Depends(am_db.get_pfc),
         session=fastapi.Depends(am_db.get_session)
 ):
+    """Endpoint to email the label for a booking."""
     logger.warning(f'printing id: {booking_id}')
     man_in = await support.get_manager(booking_id, session)
     send_label(man_in.state)
@@ -150,6 +118,7 @@ async def email_label(
 @router.get('/close_app/', response_model=None, response_model_exclude_none=True)
 async def close_app(
 ):
+    """Endpoint to close the application."""
     flaskwebgui.close_application()
 
 
@@ -158,6 +127,7 @@ async def print_label(
         booking_id: int,
         session=fastapi.Depends(am_db.get_session)
 ):
+    """Endpoint to print the label for a booking."""
     logger.warning(f'printing id: {booking_id}')
     man_in = await support.get_manager(booking_id, session)
     if not man_in.state.booking_state.label_downloaded:
@@ -167,18 +137,28 @@ async def print_label(
 
 
 def send_label(state: shipr.ShipState):
+    """Send the label by email."""
     email = return_label_email(state)
     handler = OutlookHandler()
     handler.send_email(email)
 
 
 def get_named_labelpath(state: shipr.ShipState):
+    """Get a named path (for saving) for the label."""
     pdir = os.environ.get('PARCELFORCE_LABELS_DIR')
     stt = f'Parcelforce Collection Label for {state.contact.business_name} on {state.ship_date}'
     return pathlib.Path(pdir) / f'{stt}.pdf'
 
 
 async def prnt_label(label_path: pathlib.Path) -> None:
+    """Print the labels. Arrays A6 Labels 2 to a A4 page.
+    Uses pdf_tools.array_pdf.convert_many to print the labels.
+
+    Args:
+        label_path: The path to the label.
+
+    """
+
     if not label_path.exists():
         logger.error(f'label_path {label_path} does not exist')
 
