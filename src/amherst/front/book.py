@@ -98,14 +98,14 @@ async def do_booking(
         alert_dict = {str(e): 'ERROR'}
         man_out = managers.BookingManagerOut.model_validate(man_in)
 
-        return await ship.shipping_page(man_out.id, alert_dict=alert_dict)
+        return await ship.shipping_page(man_out.id, session=session, alert_dict=alert_dict)
         # return await shipping_page.hire_page(man_out, alert_dict=alert_dict)
 
 
 async def book_shipment(manager, pfcom):
     req = pfcom.state_to_request(manager.state)
     logger.warning(f'BOOKING ({manager.state.direction.title()}) {manager.item.name}')
-    resp = pfcom.get_shipment_resp(req)
+    resp = pfcom.shipment_req_to_resp(req)
     return req, resp
 
 
