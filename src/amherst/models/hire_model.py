@@ -5,14 +5,14 @@ import pydantic as _p
 import sqlmodel as sqm
 
 from amherst.models import am_shared
-from pycommence import api
+from pycommence.api import types_api
 from shipr.models import base_item, pf_ext, pf_lists, pf_top
 
 
 class ShipableItem(base_item.BaseItem):
     cmc_table_name: str
     record: dict[str, str] = sqm.Field(sa_column=sqm.Column(sqm.JSON))
-    initial_filter_array: _ty.ClassVar[api.FilterArray] = sqm.Field(
+    initial_filter_array: _ty.ClassVar[types_api.FilterArray] = sqm.Field(
         default=am_shared.INITIAL_FILTER_ARRAY2,
         # sa_column=sqm.Column(sqm.JSON)
     )
@@ -40,7 +40,7 @@ class ShipableItem(base_item.BaseItem):
 
         self.boxes = int(self.record.get(fields_enum.BOXES, 1))
         shippy = self.record.get(fields_enum.SEND_OUT_DATE)
-        self.ship_date = api.get_cmc_date(shippy) if shippy else dt.date.today()
+        self.ship_date = types_api.get_cmc_date(shippy) if shippy else dt.date.today()
         phone = self.record.get(fields_enum.DELIVERY_TELEPHONE)
         email = self.record.get(fields_enum.DELIVERY_EMAIL)
         contact_name = self.record.get(fields_enum.DELIVERY_CONTACT)
