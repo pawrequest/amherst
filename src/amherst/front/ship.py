@@ -6,6 +6,7 @@ import sqlmodel
 from fastapi import APIRouter, Depends
 from fastui import FastUI, components as c, events, events as e
 from loguru import logger
+
 from amherst import am_db
 from amherst.front import support
 from amherst.models import am_shared, managers
@@ -82,7 +83,7 @@ async def right_col(kind, manager) -> c.Div:
 async def form_div_sl(kind: FormKind, manager, session):
     match kind:
         case 'manual':
-            button_text = 'Select Address From Postcode'
+            button_text = 'Choose Address From Postcode'
             other_kind = 'select'
         case 'select':
             button_text = 'Manual Address Override'
