@@ -86,7 +86,7 @@ def delete_all_records(model_type: type[_p.BaseModel]):
         statement = sqm.delete(model_type)
         session.execute(statement)
         session.commit()
-        logger.info(f'{model_type.__name__} records deleted')
+        logger.info(f'{model_type.__name__} old records deleted')
 
 
 def erasedb_add_record(category, record):
