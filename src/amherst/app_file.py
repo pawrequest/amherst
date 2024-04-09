@@ -2,6 +2,7 @@ import contextlib
 
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
+from starlette.staticfiles import StaticFiles
 
 from amherst import am_db, front
 from amherst.models import managers
@@ -29,6 +30,7 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.mount('/static', StaticFiles(directory='front/static'), name='static')
 
 app.include_router(front.shipping_router, prefix='/api/ship')
 app.include_router(front.booking_router, prefix='/api/book')
@@ -44,9 +46,10 @@ async def robots_txt() -> str:
     return 'User-agent: *\nAllow: /'
 
 
-@app.get('/favicon.ico', status_code=404, response_class=responses.PlainTextResponse)
-async def favicon_ico() -> str:
-    return 'page not found'
+# @app.get('/favicon.ico', status_code=404, response_class=responses.PlainTextResponse)
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon_ico() -> responses.RedirectResponse:
+    return responses.RedirectResponse(url='/static/favicon.svg')
 
 
 # def populate_db_from_cmc(session: sqm.Session, pfcom):
