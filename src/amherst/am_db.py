@@ -9,8 +9,9 @@ import pydantic as _p
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
+
 from amherst import rec_importer, shipper
-from amherst.models import managers, shipable_item
+from amherst.models import shipable_item
 
 
 @functools.lru_cache(maxsize=1)
@@ -21,12 +22,13 @@ def get_engine() -> sqa.engine.base.Engine:
         sqlalchemy.engine: Database engine
 
     """
-    db_name = os.environ.get('DB_LOC', 'amherst.db')
-    DB_URL = f'sqlite:///{db_name}'
-    logger.info(f'DB_URL: {DB_URL}')
+    debug = not os.environ.get('SHIP_LIVE').lower() == 'true'
 
-    CONNECT_ARGS = {'check_same_thread': False}
-    return sqa.create_engine(DB_URL, echo=False, connect_args=CONNECT_ARGS)
+    db_name = 'test_db' if debug else os.environ.get('DB_LOC', 'amherst.db')
+    db_url = f'sqlite:///{db_name}'
+    logger.info(f'DB_URL: {db_url}')
+    connect_args = {'check_same_thread': False}
+    return sqa.create_engine(db_url, echo=False, connect_args=connect_args)
 
 
 def get_session(engine=None) -> sqm.Session:
@@ -83,12 +85,9 @@ def delete_all_records(model_type: type[_p.BaseModel]):
         logger.info(f'{model_type.__name__} old records deleted')
 
 
-def add_record(category, record):
+def record_to_manager(category, record):
     pf_shipper = shipper.AmShipper.from_env()
-
     with sqm.Session(get_engine()) as session:
-        # delete_all_records(managers.BookingManagerDB)
-
         item = shipable_item.ShipableItem(cmc_table_name=category, record=record)
         manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)
         session.add(manager)

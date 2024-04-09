@@ -5,9 +5,8 @@ import pathlib
 from dotenv import load_dotenv
 from flaskwebgui import FlaskUI, close_application
 
-from pycommence.api import csr_api, csr_handler
 from amherst import am_db, app_file
-
+from pycommence.api import csr_api, csr_handler
 
 # logger = get_loguru(profile='local', log_file='amherst.log')
 
@@ -23,11 +22,10 @@ def parse_arguments():
 def main(
         category: str = None,
         record_name: str = None,
-        env_loc: str = None
+        env_loc: str = None,
 ):
     if not all([category, record_name, env_loc]):
         args = parse_arguments()
-
         category = category or args.category
         record_name = record_name or args.record_name
         env_loc = env_loc or args.env_loc or os.environ.get('AMHERST_ENV')
@@ -41,7 +39,8 @@ def main(
     with csr_api.csr_context(category) as csr:
         handler = csr_handler.CmcHandler(csr=csr)
         record = handler.one_record(record_name)
-        man_id = am_db.add_record(category, record)
+        man_id = am_db.record_to_manager(category, record)
+        am_db.logger.info(f'added booking manager {man_id}')
 
     try:
         fui = FlaskUI(
@@ -51,6 +50,14 @@ def main(
             url_suffix=f'ship/select/{man_id}'
         )
         fui.run()
+    except Exception as e:
+        if "got an unexpected keyword argument 'url_suffix'" in str(e):
+            raise ValueError(
+                'URL_SUFFIX is not compatible with this version of FlaskWebGui'
+                'Please install flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
+            )
+
+        ...
     finally:
         close_application()
 
