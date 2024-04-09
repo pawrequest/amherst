@@ -1,5 +1,4 @@
 import os
-import typing as _t
 
 import fastui
 import sqlmodel
@@ -9,23 +8,40 @@ from loguru import logger
 
 from amherst import am_db
 from amherst.front import support
-from amherst.models import am_shared, managers
+from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
 from shipr.ship_ui import forms as shipforms, states
 
 router = APIRouter()
 
-FormKind: _t.TypeAlias = _t.Literal['manual', 'select']  # noqa: UP040 fastui not support
+
+@router.get('/{kind}/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def shipping_page(
+        manager_id: int,
+        kind: support.FormKind = 'select',
+        session=Depends(am_db.get_session),
+        alert_dict: pawui_types.AlertDict | None = None,
+) -> support.Fui_Page:
+    manager = await support.get_manager(manager_id, session)
+    return await builders.page_w_alerts(
+        alert_dict=alert_dict,
+        components=[
+            await left_col(manager),
+            await right_col(kind, manager),
+        ],
+        title='Forms',
+    )
 
 
 @router.get('/invoice/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def open_invoice(
         manager_id: int,
         session: sqlmodel.Session = Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
+) -> support.Fui_Page:
+    """Endpoint for opening/emailing invoice to the customer."""
     man_in = await support.get_manager(manager_id, session)
+    inv_file = await support.get_invoice_path(man_in)
     man_out = managers.BookingManagerOut.model_validate(man_in)
-    inv_file = man_in.item.record.get(am_shared.HireFields.INVOICE)
 
     try:
         os.startfile(inv_file)
@@ -37,24 +53,6 @@ async def open_invoice(
         )
 
     return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{manager_id}'))]
-
-
-@router.get('/{kind}/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def shipping_page(
-        manager_id: int,
-        kind: FormKind = 'select',
-        session=Depends(am_db.get_session),
-        alert_dict: pawui_types.AlertDict | None = None,
-) -> list[c.AnyComponent]:
-    manager = await support.get_manager(manager_id, session)
-    return await builders.page_w_alerts(
-        alert_dict=alert_dict,
-        components=[
-            await left_col(manager),
-            await right_col(kind, manager),
-        ],
-        title='Forms',
-    )
 
 
 async def left_col(manager) -> c.Div:
@@ -80,7 +78,7 @@ async def right_col(kind, manager) -> c.Div:
         )
 
 
-async def form_div_sl(kind: FormKind, manager, session):
+async def form_div_sl(kind: support.FormKind, manager, session):
     match kind:
         case 'manual':
             button_text = 'Choose Address From Postcode'
@@ -113,7 +111,7 @@ async def form_div_sl(kind: FormKind, manager, session):
     response_model=FastUI,
     response_model_exclude_none=True
 )
-async def get_form(manager_id: int, kind: FormKind, session=Depends(am_db.get_session)):
+async def get_form(manager_id: int, kind: support.FormKind, session=Depends(am_db.get_session)):
     manager = await support.get_manager(manager_id, session)
     match kind:
         case 'manual':
@@ -235,21 +233,6 @@ async def update_shipment(
     updt = states.ShipStatePartial.model_validate_64(update_64)
     man_out = await support.update_and_commit(booking_id, updt, session)
     return await shipping_page(manager=man_out)
-
-    # return await builders.page_w_alerts(
-    #     components=[`
-    #         c.Button(
-    #             text='Back',
-    #             # on_click=c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}')),
-    #             on_click=events.GoToEvent(
-    #                 url=f'/hire/invoice/{manager_id}',
-    #             ),
-    #         )
-    #     ],
-    #     title='back',
-    # )
-
-    # return c.FireEvent(event=events.GoToEvent(url=f'/book/view/{manager_id}'))
 
 
 async def special_instructions_div(manager: managers.MANAGER_IN_DB) -> c.Div:

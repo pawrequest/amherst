@@ -12,10 +12,6 @@ from shipr.models import base_item, pf_ext, pf_lists, pf_top
 class ShipableItem(base_item.BaseItem):
     cmc_table_name: str
     record: dict[str, str] = sqm.Field(sa_column=sqm.Column(sqm.JSON))
-    initial_filter_array: _ty.ClassVar[types_api.FilterArray] = sqm.Field(
-        default=am_shared.INITIAL_FILTER_ARRAY2,
-        # sa_column=sqm.Column(sqm.JSON)
-    )
 
     boxes: int | None = None
     ship_date: dt.date | None = None
@@ -39,8 +35,8 @@ class ShipableItem(base_item.BaseItem):
                 raise ValueError(f'unknown table name: {self.cmc_table_name}')
 
         self.boxes = int(self.record.get(fields_enum.BOXES, 1))
-        shippy = self.record.get(fields_enum.SEND_OUT_DATE)
-        self.ship_date = types_api.get_cmc_date(shippy) if shippy else dt.date.today()
+        ship_date = self.record.get(fields_enum.SEND_OUT_DATE)
+        self.ship_date = types_api.get_cmc_date(ship_date) if ship_date else dt.date.today()
         phone = self.record.get(fields_enum.DELIVERY_TELEPHONE)
         email = self.record.get(fields_enum.DELIVERY_EMAIL)
         contact_name = self.record.get(fields_enum.DELIVERY_CONTACT)
