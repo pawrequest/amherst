@@ -16,7 +16,7 @@ wheels/
 /amherst.db
 /notenv
 /src/amherst/amherst.db
-/docs_out/
-docs_ship_out/
+/docs/docs_out/
+/docs/docs_ship_out/
 *.log
 temp_label.pdf
