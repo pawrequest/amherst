@@ -14,7 +14,7 @@ from amherst.models import managers, shipable_item
 
 
 @functools.lru_cache(maxsize=1)
-def get_engine():
+def get_engine() -> sqa.engine.base.Engine:
     """Get the database engine from the environment variable DB_LOC. If not set, use amherst.db as the default.
 
     Returns:
@@ -83,14 +83,14 @@ def delete_all_records(model_type: type[_p.BaseModel]):
         logger.info(f'{model_type.__name__} old records deleted')
 
 
-def erasedb_add_record(category, record):
+def add_record(category, record):
     pf_shipper = shipper.AmShipper.from_env()
 
     with sqm.Session(get_engine()) as session:
-        delete_all_recordsacy(managers.BookingManagerDB)
-
         # delete_all_records(managers.BookingManagerDB)
+
         item = shipable_item.ShipableItem(cmc_table_name=category, record=record)
         manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)
         session.add(manager)
         session.commit()
+        return manager.id
