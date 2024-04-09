@@ -20,3 +20,5 @@ wheels/
 /docs/docs_ship_out/
 *.log
 temp_label.pdf
+/docs/shipper_out/
+/docs/wiki_out/
