@@ -1,4 +1,4 @@
-project = 'Pycommence'
+project = 'Amherst'
 author = 'PawRequest'
 release = '0.0.1'
 copyright = f'2024, {author}'
@@ -27,4 +27,10 @@ html_baseurl = 'https://amherst.readthedocs.io/en/latest'
 readme_src_files = 'index.rst'
 readme_docs_url_type = 'html'
 add_module_names = False
-autodoc_member_order = 'bysource'
+# autodoc_member_order = 'bysource'
+
+autodoc_default_options = {
+    'members': True,
+    'member-order': 'bysource',
+    'undoc-members': True,
+}

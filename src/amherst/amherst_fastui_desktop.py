@@ -41,17 +41,14 @@ def main(
     with csr_api.csr_context(category) as csr:
         handler = csr_handler.CmcHandler(csr=csr)
         record = handler.one_record(record_name)
-        am_db.erasedb_add_record(category, record)
+        man_id = am_db.add_record(category, record)
 
     try:
         fui = FlaskUI(
             fullscreen=True,
             app=app_file.app,
             server='fastapi',
-            # height=1600,
-            # width=1000,
-            # on_shutdown=lambda: sys.exit(0)
-
+            url_suffix=f'ship/select/{man_id}'
         )
         fui.run()
     finally:

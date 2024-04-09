@@ -53,28 +53,3 @@ def decimal_from_string(v):
         return Decimal(v)
     except ValueError:
         raise ValueError(f'Invalid decimal string: "{v}"')
-
-# def model_with_sub(model, jsonify=False) -> dict | str:
-#     out = {}
-#     for attr, value in model.model_dump().items():
-#         if isinstance(value, BaseModel):
-#             out[attr] = model_with_sub(value)
-#         else:
-#             out[attr] = value
-#     if jsonify:
-#         return json.dumps(out)
-#     return out
-
-
-# HireDatesAm = _t.Annotated[BaseModel, BeforeValidator(amherst_date_val)]
-# MODEL_JSON = dict
-# MODEL_JSON2 = _t.Annotated[BaseModel, PlainSerializer(lambda v: v.model_dump_json())]
-# DateAm = _t.Annotated[date, BeforeValidator(amherst_date_val)]
-# DateMaybe = _t.Annotated[date | None, BeforeValidator(amherst_date_val)]
-# TimeMaybe = _t.Annotated[Optional[time], BeforeValidator(amherst_time_val)]
-# TimeAm = _t.Annotated[time, BeforeValidator(amherst_time_val)]
-# ListComma = _t.Annotated[list, BeforeValidator(list_from_string_comma)]
-# ListNewline = _t.Annotated[list, BeforeValidator(list_from_string_newline)]
-# DecimalAm = _t.Annotated[Decimal, BeforeValidator(decimal_from_string)]
-# Shipable = _t.Union[hire_model.Hire, sale_model.Sale]
-# ShipableType = TypeVar('ShipableType', bound=Shipable)

@@ -8,7 +8,7 @@ from sqlmodel import SQLModel, Session, create_engine
 
 import pycommence
 from amherst import sample_data, shipper
-from amherst.models import hire_model, am_shared
+from amherst.models import shipable_item, am_shared
 
 from amherst.models.am_shared import HireFields
 from shipr.models import pf_top, pf_ext
@@ -121,25 +121,3 @@ def fake_contact() -> pf_top.Contact:
         email_address="notreal@fake.com",
         mobile_phone="1234567890",
     )
-
-# @pytest.fixture
-# def min_shipment_r(fake_address, fake_contact) -> el_msg.RequestedShipmentMinimum:
-#     return el_msg.RequestedShipmentMinimum(
-#         department_id=el_enums.DepartmentEnum.MAIN,
-#         shipment_type=el_enums.DeliveryTypeEnum.DELIVERY,
-#         contract_number=CONTRACT_NO,
-#         service_code=el_enums.ServiceCode.EXPRESS24,
-#         shipping_date=datetime.date(2024, 2, 21),
-#         recipient_contact=fake_contact,
-#         recipient_address=fake_address,
-#         total_number_of_parcels=1,
-#     )
-@pytest.fixture(scope="session")
-def random_hires():
-    hires = [hire_model.Hire.model_validate(
-        hire_model.Hire(
-            record=random.choice(sample_data.hires)
-        )
-    ) for _ in
-        range(20)]
-    return hires

@@ -10,7 +10,6 @@ router = fastapi.APIRouter()
 @router.get('/', response_model=FastUI, response_model_exclude_none=True)
 async def default_route():
     print('main route')
-    # return fastapi.responses.RedirectResponse(url='/hire/view/1')
     return c.FireEvent(event=events.GoToEvent(url='/ship/select/1'))
     # return c.FireEvent(event=events.GoToEvent(url='/ship_model/zero/1'))
 
