@@ -5,11 +5,12 @@ import typing as _t
 
 import fastapi
 import sqlmodel as sqm
+from fastui import components as c
 from loguru import logger
 
 import shipr
 from amherst import shipper
-from amherst.models import managers
+from amherst.models import am_shared, managers
 from shipr.models import pf_top
 
 
@@ -100,3 +101,12 @@ async def get_model_form_type(model_kind: ModelKind):
             return pf_top.CollectionMinimum
         case _:
             raise ValueError(f'Invalid kind {model_kind!r}')
+
+
+async def get_invoice_path(man_in):
+    inv_file = man_in.item.record.get(am_shared.HireFields.INVOICE)
+    return inv_file
+
+
+FormKind: _t.TypeAlias = _t.Literal['manual', 'select']  # noqa: UP040 fastui not support
+type Fui_Page = list[c.AnyComponent]
