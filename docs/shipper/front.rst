@@ -1,6 +1,11 @@
 FrontEnd
 ==============
 
+Shipping Page
+----------------------
+
+.. automodule:: amherst.front.ship
+
 Book Page
 ----------------------
 

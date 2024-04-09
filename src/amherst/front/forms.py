@@ -141,24 +141,24 @@ async def select_post(
     ]
 
 
-@router.post(
-    '/address/{manager_id}',
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
-async def address_model_post(
-        manager_id: int,
-        form: Annotated[ship_forms.AddressForm, fastui_form(ship_forms.AddressForm)],
-):
-    addy = pf_ext.AddressRecipient.model_validate(form.model_dump())
-    partial = states.ShipStatePartial(address=addy)
-    return [
-        c.FireEvent(
-            event=e.GoToEvent(
-                url=f'/ship/update/{manager_id}/{partial.model_dump_64()}'
-            )
-        )
-    ]
+# @router.post(
+#     '/address/{manager_id}',
+#     response_model=FastUI,
+#     response_model_exclude_none=True
+# )
+# async def address_model_post(
+#         manager_id: int,
+#         form: Annotated[ship_forms.AddressForm, fastui_form(ship_forms.AddressForm)],
+# ):
+#     addy = pf_ext.AddressRecipient.model_validate(form.model_dump())
+#     partial = states.ShipStatePartial(address=addy)
+#     return [
+#         c.FireEvent(
+#             event=e.GoToEvent(
+#                 url=f'/ship/update/{manager_id}/{partial.model_dump_64()}'
+#             )
+#         )
+#     ]
 
 
 @router.post(

@@ -1,3 +1,5 @@
+from pawdantic.pawui.pawui_types import AlertDict
+
 project = 'Amherst'
 author = 'PawRequest'
 release = '0.0.1'
@@ -33,4 +35,5 @@ autodoc_default_options = {
     'members': True,
     'member-order': 'bysource',
     'undoc-members': True,
+    # 'imported-members': AlertDict,
 }
