@@ -4,14 +4,18 @@ import fastapi
 import fastui
 import sqlmodel
 from fastapi import APIRouter, Depends
-from fastui import FastUI, class_name as class_name_, components as c, events, events as e
+from fastui import FastUI, events
+from fastui import class_name as class_name_
+from fastui import components as c
+from fastui import events as e
 from loguru import logger
 
 from amherst import am_db
 from amherst.front import support
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
-from shipr.ship_ui import forms as shipforms, states
+from shipr.ship_ui import forms as shipforms
+from shipr.ship_ui import states
 
 router = APIRouter()
 
@@ -38,6 +42,7 @@ async def shipping_page(
         FastUI page (support.Fui_Page): FastUI page
 
     """
+
     manager = await support.get_manager(manager_id, session)
     return await builders.page_w_alerts(
         alert_dict=alert_dict,
@@ -98,7 +103,6 @@ async def left_col(manager) -> c.Div:
         class_name='col col-4 mx-auto',
         components=[
             await input_address_div(manager),
-            await invoice_div(manager),
             # await address_from_pc_div(manager),
 
         ],
@@ -127,7 +131,7 @@ async def right_col(kind, manager) -> c.Div:
         )
 
 
-async def form_div_sl(kind: support.FormKind, manager, session):
+async def form_div_sl(kind: support.FormKind, manager, session) -> c.Div:
     """ Load specified FormKind from server, prepopulated with commence data.
     
     Args:
@@ -154,7 +158,7 @@ async def form_div_sl(kind: support.FormKind, manager, session):
             c.ServerLoad(
                 path=f'/forms/get_form/{manager.id}/{kind}',
                 load_trigger=e.PageEvent(name='change-form'),
-                components=await get_form(manager.id, kind, session),
+                components=[await get_form(manager.id, kind, session)],
             ),
 
             c.Button(
@@ -178,7 +182,7 @@ async def get_form(
         manager_id: int,
         kind: support.FormKind,
         session=Depends(am_db.get_session)
-) -> FormOnly:
+) -> c.Form:
     """Endpoint to get form for shipping page.
     
     Args:
@@ -187,7 +191,7 @@ async def get_form(
         session: sqlmodel session
         
     Returns:
-        Form Element encapsulated in a list
+        c.Form:
     
     """
     manager = await support.get_manager(manager_id, session)
@@ -201,12 +205,10 @@ async def get_form(
         case _:
             raise ValueError(f'Invalid kind {kind!r}')
 
-    return [
-        c.Form(
+    return c.Form(
             form_fields=form_fields,
             submit_url=submit_url,
-        ),
-    ]
+        )
 
 
 async def input_address_div(
@@ -257,7 +259,7 @@ async def address_from_pc_div(manager) -> c.Div:
             c.Form(
                 form_fields=[
                     c.FormFieldInput(
-                        name='fetch_address_from_postcode',
+                        name='Postcode Selector',
                         title='Postcode',
                     ),
                 ],
@@ -266,31 +268,6 @@ async def address_from_pc_div(manager) -> c.Div:
         ],
         class_name='row mx-auto my-3',
     )
-
-
-async def invoice_div(manager: managers.BookingManagerOut) -> c.Div:
-    """Div for opening invoice.
-    
-    Args:
-        manager: Booking Manager
-        
-    Returns:
-        c.Div: Div with button to fire GoToEvent to invoice endpoint
-        
-    """
-    return c.Div(
-        class_name='row mx-auto my-3',
-        components=[
-            c.Button(
-                text='Open Invoice',
-                on_click=e.GoToEvent(
-                    url=f'/ship/invoice/{manager.id}',
-                ),
-
-            )
-        ],
-    )
-
 
 # async def form_select_div():
 #     return c.Div(
@@ -340,8 +317,18 @@ async def update_shipment(
         booking_id: int,
         update_64: str | None = None,
         session: sqlmodel.Session = Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
-    """Endpoint for updating shipment."""
+) -> support.Fui_Page:
+    """Endpoint for updating shipment.
+
+    Args:
+        booking_id: Booking Manager ID
+        update_64: BookingManagerState as base64 encoded json
+        session: sqlmodel session
+
+    Returns:
+        FastUI page
+    """
+    logger.info(f'UPDATE_SHIPMENT {booking_id=}, {update_64=}')
     updt = states.ShipStatePartial.model_validate_64(update_64)
     man_out = await support.update_and_commit(booking_id, updt, session)
     return await shipping_page(manager=man_out)

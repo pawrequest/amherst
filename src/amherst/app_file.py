@@ -1,7 +1,13 @@
 import contextlib
+from collections.abc import Callable
+from secrets import token_urlsafe
+from time import time
 
+import fastapi
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
+from hypercorn.logging import AccessLogAtoms
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.staticfiles import StaticFiles
 
 from amherst import am_db, front
@@ -67,6 +73,7 @@ async def favicon_ico() -> responses.RedirectResponse:
 async def html_landing() -> responses.HTMLResponse:
     return responses.HTMLResponse(prebuilt_html(title='Amherst'))
 
+
 #
 # @app.exception_handler(
 #     back_funcs.ManagerNotFound,
@@ -84,4 +91,55 @@ async def html_landing() -> responses.HTMLResponse:
 #         status_code=404,
 #         detail='Booking not found',
 #     )
+#
+# class LoggingMiddleware:
+#     def __init__(self, app:Callable):
+#         self.app = app
+#
+#     async def __call__(self, request: fastapi.Request, call_next: Callable) -> fastapi.Response:
+#         response = await call_next(request)
+#         logger.info(
+#             f'Request: {request.method} {request.url} - Status code: {response.status_code}'
+#         )
+#         return response
+#
+#
+# app.add_middleware(LoggingMiddleware)
+#
+
+
+#
+# @app.middleware("http")
+# async def add_process_time_header(request: fastapi.Request, call_next):
+#     response = await call_next(request)
+#     logger.info()
+#     return response
+
+#
+# async def log_request_middleware(request: fastapi.Request, call_next: Callable) -> fastapi.Response:
+#     """
+#     Uniquely identify each request and logs its processing time.
+#     """
+#     start_time = time()
+#     request_id: str = token_urlsafe(8)
+#
+#     # keep the same request_id in the context of all subsequent calls to logger
+#     with logger.contextualize(request_id=request_id):
+#         response = await call_next(request)
+#         # final_time = time()
+#         # elapsed = final_time - start_time
+#
+#         # response_dict = {
+#         #     'status': response.status_code,
+#         #     'headers': response.headers.raw,
+#         # }
+#         # atoms = AccessLogAtoms(request, response_dict, final_time)  # type: ignore
+#         logger.info(
+#             request.path_params.get('path'),
+#         )
+#     return response
+#
+#
+# app.add_middleware(BaseHTTPMiddleware, dispatch=log_request_middleware)
+#
 #

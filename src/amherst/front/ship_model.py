@@ -22,6 +22,7 @@ async def forms_view(
         manager_id: int,
         session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
+    """Endpoint returning """
     return await builders.page_w_alerts(
         components=[
             c.LinkList(

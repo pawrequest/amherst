@@ -2,19 +2,39 @@ from __future__ import annotations
 
 import datetime as dt
 import os
+import typing as _t
 
 import fastapi
 import sqlmodel as sqm
+from fastapi import responses
 from fastui import FastUI, components as c, events, events as e
+from fastui.forms import fastui_form
 from loguru import logger
+
 import shipr
 from amherst import am_db, shipper
 from amherst.front import booked, ship, support
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
-from shipr.ship_ui import states
+from shipr.ship_ui import states, states as ship_states
 
 router = fastapi.APIRouter()
+
+
+@router.post('/confirm_post/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def confirm_post(
+        manager_id: int,
+        form: _t.Annotated[
+            ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        session=fastapi.Depends(am_db.get_session),
+
+):
+    update = ship_states.ShipStatePartial.model_validate(form.model_dump())
+    if update.address.postcode:
+        update.candidates = pfcom.get_candidates(update.address.postcode)
+    await support.update_and_commit(manager_id, update, session)
+    return responses.RedirectResponse(url=f'/ship/select/{manager_id}')
 
 
 @router.get(

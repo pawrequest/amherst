@@ -8,15 +8,13 @@ from fastui import FastUI, components as c, events as e
 from fastui.forms import fastui_form
 from loguru import logger
 
-import shipr
-import shipr.shipr_types
 from amherst import am_db, shipper
-from amherst.front import support, ship
+from amherst.front import ship, support
 from amherst.models import managers
 from pawdantic.pawui import pawui_types
 from shipr import shipr_types
 from shipr.models import pf_ext, pf_top
-from shipr.ship_ui import forms as ship_forms, states
+from shipr.ship_ui import forms as ship_forms, states as shipstates
 
 router = fastapi.APIRouter()
 
@@ -66,8 +64,8 @@ async def manual_post(
         mobile_phone=phone,
     )
 
-    state = states.ShipState.model_validate(
-        states.ShipState(
+    state = shipstates.ShipState.model_validate(
+        shipstates.ShipState(
             reference=reference,
             special_instructions=special_instructions,
             boxes=boxes,
@@ -118,8 +116,8 @@ async def select_post(
         mobile_phone=phone,
     )
 
-    state = states.ShipState.model_validate(
-        states.ShipState(
+    state = shipstates.ShipState.model_validate(
+        shipstates.ShipState(
             boxes=boxes,
             ship_date=date,
             direction=direction,
@@ -132,6 +130,7 @@ async def select_post(
 
         )
     )
+
     return [c.FireEvent(
         event=e.GoToEvent(
             url=f'/book/confirm/{manager_id}/{state.model_dump_64()}'
@@ -168,11 +167,11 @@ async def select_post(
 )
 async def state_model_post(
         manager_id: int,
-        form: Annotated[states.ShipStatePartial, fastui_form(states.ShipStatePartial)],
+        form: Annotated[shipstates.ShipStatePartial, fastui_form(shipstates.ShipStatePartial)],
         session=fastapi.Depends(am_db.get_session),
 ):
     man_in = await support.get_manager(manager_id, session)
-    man_in.state = shipr.ShipState.model_validate(
+    man_in.state = shipstates.ShipState.model_validate(
         man_in.state.get_updated(form)
     )
 
@@ -202,12 +201,8 @@ async def address_form_post(
     form = await request.form()
     address_ = json.loads(form.get('address'))
     address = pf_ext.AddressRecipient.model_validate(address_)
-
-    partial = states.ShipStatePartial.model_validate({'address': address})
-
-    man_out = await support.update_and_commit(manager_id, partial, session)
-    # return responses.RedirectResponse(url=f'/ship/view/{manager_id}', status_code=303)
-    # return await shipping_page.ship_page(manager=man_out)
+    partial = shipstates.ShipStatePartial.model_validate({'address': address})
+    await support.update_and_commit(manager_id, partial, session)
     return [
         c.FireEvent(
             event=e.GoToEvent(
@@ -215,28 +210,6 @@ async def address_form_post(
             )
         )
     ]
-
-
-# @router.post(
-#     '/address_form1/{manager_id}',
-#     response_model=FastUI,
-#     response_model_exclude_none=True
-# )
-# async def address_form_post1(
-#         request: fastapi.Request,
-#         manager_id: int,
-#         session=fastapi.Depends(am_db.get_session),
-#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
-# ) -> list[c.AnyComponent]:
-#     form = await request.form()
-#     address = form.get('address')
-#     addy = pf_ext.AddressRecipient.model_validate_json(address)
-#     man_in = await support.get_manager(manager_id, session)
-#     man_in.state.address = addy
-#     man_in.state.candidates = pfcom.get_candidates(addy.postcode)
-#     session.add(man_in)
-#     session.commit()
-#     return await ship_page(manager=man_in)
 
 
 async def man_in_to_out(man_in: managers.BookingManagerDB) -> managers.BookingManagerOut:

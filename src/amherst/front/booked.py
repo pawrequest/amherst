@@ -6,13 +6,12 @@ import pathlib
 import fastapi
 import flaskwebgui
 import pdf_tools
-import sqlmodel
 from fastui import FastUI, components as c, events as e
 from loguru import logger
+
 import shipr
 from amherst import am_db
-from amherst.front import support
-from amherst.front.email_templates import return_label_email
+from amherst.front import email_templates, support
 from amherst.models import managers
 from pawdantic.pawui import builders
 from shipr.ship_ui import states as ship_states
@@ -44,7 +43,9 @@ async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[
             ),
 
             await print_div(manager),
-            await email_div(manager),
+            await email_label_div(manager),
+            await email_invoice_div(manager),
+            await open_invoice_div(manager),
             await close_div(),
         ],
         title='booking',
@@ -69,7 +70,7 @@ async def print_div(manager):
     )
 
 
-async def email_div(manager: managers.MANAGER_IN_DB):
+async def email_label_div(manager: managers.MANAGER_IN_DB):
     """Html Div with button to email labels."""
     return c.Div(
         class_name='row my-3',
@@ -77,7 +78,23 @@ async def email_div(manager: managers.MANAGER_IN_DB):
             c.Button(
                 text=f'Email Labels for {manager.state.contact.business_name} to {manager.state.contact.email_address}',
                 on_click=e.GoToEvent(
-                    url=f'/booked/email/{manager.id}',
+                    url=f'/booked/email_label/{manager.id}',
+                ),
+                class_name='btn btn-lg btn-primary'
+            )
+        ]
+    )
+
+
+async def email_invoice_div(manager: managers.MANAGER_IN_DB):
+    """Html Div with button to email labels."""
+    return c.Div(
+        class_name='row my-3',
+        components=[
+            c.Button(
+                text=f'Email Invoice for {manager.state.contact.business_name} to {manager.state.contact.email_address}',
+                on_click=e.GoToEvent(
+                    url=f'/booked/email_invoice/{manager.id}',
                 ),
                 class_name='btn btn-lg btn-primary'
             )
@@ -101,8 +118,7 @@ async def close_div():
     )
 
 
-
-@router.get('/email/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.get('/email_label/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
 async def email_label(
         booking_id: int,
         pfcom=fastapi.Depends(am_db.get_pfc),
@@ -112,6 +128,17 @@ async def email_label(
     logger.warning(f'printing id: {booking_id}')
     man_in = await support.get_manager(booking_id, session)
     send_label(man_in.state)
+    return await booked_page(manager=man_in)
+
+
+@router.get('/email_invoice/{booking_id}', response_model=FastUI, response_model_exclude_none=True)
+async def email_invoice(
+        booking_id: int,
+        session=fastapi.Depends(am_db.get_session)
+):
+    """Endpoint to email the invoice for a booking."""
+    man_in = await support.get_manager(booking_id, session)
+    await send_invoice(man_in)
     return await booked_page(manager=man_in)
 
 
@@ -138,7 +165,14 @@ async def print_label(
 
 def send_label(state: shipr.ShipState):
     """Send the label by email."""
-    email = return_label_email(state)
+    email = email_templates.return_label_email(state)
+    handler = OutlookHandler()
+    handler.send_email(email)
+
+
+async def send_invoice(manager: managers.BookingManagerOut):
+    """Send invoice by email."""
+    email = await email_templates.invoice_email(manager)
     handler = OutlookHandler()
     handler.send_email(email)
 
@@ -163,3 +197,27 @@ async def prnt_label(label_path: pathlib.Path) -> None:
         logger.error(f'label_path {label_path} does not exist')
 
     pdf_tools.array_pdf.convert_many(label_path, print_files=True)
+
+
+async def open_invoice_div(manager: managers.BookingManagerOut) -> c.Div:
+    """Div for opening invoice.
+
+    Args:
+        manager: Booking Manager
+
+    Returns:
+        c.Div: Div with button to fire GoToEvent to invoice endpoint
+
+    """
+    return c.Div(
+        class_name='row mx-auto my-3',
+        components=[
+            c.Button(
+                text='Open Invoice',
+                on_click=e.GoToEvent(
+                    url=f'/ship/invoice/{manager.id}',
+                ),
+
+            )
+        ],
+    )

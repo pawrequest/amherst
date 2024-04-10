@@ -32,7 +32,8 @@ dependencies = [
     "openpyxl",
     "pywin32",
     "xlrd",
-    'pyautogui'
+    'pyautogui',
+    'hypercorn',
 ]
 [project.optional-dependencies]
 dev = [
