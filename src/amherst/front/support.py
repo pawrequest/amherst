@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import os
+import pathlib
 import time
 import typing as _t
 
 import fastapi
+import pdf_tools
 import sqlmodel as sqm
 from fastui import components as c
 from loguru import logger
@@ -104,9 +107,40 @@ async def get_model_form_type(model_kind: ModelKind):
 
 
 async def get_invoice_path(man_in):
-    inv_file = man_in.item.record.get(am_shared.HireFields.INVOICE)
-    return inv_file
+    return man_in.item.record.get(am_shared.HireFields.INVOICE)
+
+
+async def get_invoice_num(invoice_path: pathlib.Path):
+    return str(invoice_path).split('\\')[-1].split('.')[0]
+
+
+async def get_missing(manager: managers.BookingManagerDB) -> list[str]:
+    if not manager.item.cmc_table_name == 'Hire':
+        raise ValueError('missing kit only for hire')
+    return manager.item.record.get(am_shared.HireFields.MISSING_KIT).splitlines()
 
 
 FormKind: _t.TypeAlias = _t.Literal['manual', 'select']  # noqa: UP040 fastui not support
 type Fui_Page = list[c.AnyComponent]
+
+
+def get_named_labelpath(state: shipr.ShipState):
+    """Get a named path (for saving) for the label."""
+    pdir = os.environ.get('PARCELFORCE_LABELS_DIR')
+    label_name = f'Parcelforce Collection Label for {state.contact.business_name} on {state.ship_date}'
+    return pathlib.Path(pdir) / f'{label_name}.pdf'
+
+
+async def prnt_label(label_path: pathlib.Path) -> None:
+    """Print the labels. Arrays A6 Labels 2 to a A4 page.
+    Uses pdf_tools.array_pdf.convert_many to print the labels.
+
+    Args:
+        label_path: The path to the label.
+
+    """
+
+    if not label_path.exists():
+        logger.error(f'label_path {label_path} does not exist')
+
+    pdf_tools.array_pdf.convert_many(label_path, print_files=True)

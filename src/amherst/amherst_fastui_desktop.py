@@ -38,9 +38,18 @@ def main(
 
     with csr_api.csr_context(category) as csr:
         handler = csr_handler.CmcHandler(csr=csr)
-        record = handler.one_record(record_name)
-        man_id = am_db.record_to_manager(category, record)
-        am_db.logger.info(f'added booking manager {man_id}')
+
+    record = handler.one_record(record_name)
+    man_id = am_db.record_to_manager(category, record)
+    am_db.logger.info(f'added booking manager {man_id}')
+
+    # if manager.item.cmc_table_name in ['Sale', 'Customer']:
+    #     invoice_email = manager.item.record.get(manager.item.fields_enum.INVOICE_EMAIL)
+    # elif manager.item.cmc_table_name == 'Hire':
+    #     with csr_api.csr_context('Customer') as csr:
+    #         handler = csr_handler.CmcHandler(csr=csr)
+    #         record = handler.one_record(manager.item.fields_enum.CUSTOMER)
+    #         invoice_email = record.get(manager.item.fields_enum.INVOICE_EMAIL)
 
     try:
         fui = FlaskUI(

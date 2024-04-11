@@ -11,7 +11,7 @@ from fastui import events as e
 from loguru import logger
 
 from amherst import am_db
-from amherst.front import support
+from amherst.front import support, booked
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
 from shipr.ship_ui import forms as shipforms
@@ -103,6 +103,10 @@ async def left_col(manager) -> c.Div:
         class_name='col col-4 mx-auto',
         components=[
             await input_address_div(manager),
+            # await booked.email_invoice_div(manager),
+            # await booked.open_invoice_div(manager),
+            # await booked.email_missing_div(manager),
+            # await booked.generic_email_div(manager),
             # await address_from_pc_div(manager),
 
         ],

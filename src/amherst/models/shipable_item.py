@@ -1,16 +1,25 @@
 import datetime as dt
-import typing as _ty
+import typing as _t
 
 import pydantic as _p
+import pythoncom
 import sqlmodel as sqm
 
 from amherst.models import am_shared
-from pycommence.api import types_api
+from pycommence.api import csr_api, csr_handler, types_api
 from shipr.models import base_item, pf_ext, pf_lists, pf_top
+
+enum_map = {
+    'Hire': am_shared.HireFields,
+    'Sale': am_shared.SaleFields,
+    'Customer': am_shared.CustomerFields,
+}
+
+AmherstFieldsEnum = am_shared.HireFields | am_shared.SaleFields | am_shared.CustomerFields
 
 
 class ShipableItem(base_item.BaseItem):
-    cmc_table_name: str
+    cmc_table_name: _t.Literal['Hire', 'Sale', 'Customer']
     record: dict[str, str] = sqm.Field(sa_column=sqm.Column(sqm.JSON))
 
     boxes: int | None = None
@@ -18,30 +27,36 @@ class ShipableItem(base_item.BaseItem):
     name: str | None = None
     input_address: pf_ext.AddressRecipient | None = None
     contact: pf_top.Contact | None = None
+    fields_enum: type[AmherstFieldsEnum] = _p.Field(default=None, exclude=True)
+    customer_record: dict[str, str] | None = None
 
     @_p.model_validator(mode='after')
     def get_values(self):
+        self.fields_enum = enum_map.get(self.cmc_table_name)
+
         match self.cmc_table_name:
-            case 'Hire':
-                fields_enum = am_shared.HireFields
+            case 'Hire' | 'Sale':
                 business_name = self.record.get(am_shared.HireFields.CUSTOMER)
-            case 'Sale':
-                fields_enum = am_shared.SaleFields
-                business_name = self.record.get(am_shared.HireFields.CUSTOMER)
+                try:
+                    pythoncom.CoInitialize()
+                    csr2 = csr_api.get_csr('Customer')
+                    handler = csr_handler.CmcHandler(csr=csr2)
+                    self.customer_record = handler.one_record(business_name)
+                finally:
+                    pythoncom.CoUninitialize()
             case 'Customer':
-                fields_enum = am_shared.CustomerFields
                 business_name = self.record.get(am_shared.CustomerFields.NAME)
             case _:
                 raise ValueError(f'unknown table name: {self.cmc_table_name}')
 
-        self.boxes = int(self.record.get(fields_enum.BOXES, 1))
-        ship_date = self.record.get(fields_enum.SEND_OUT_DATE)
+        self.boxes = int(self.record.get(self.fields_enum.BOXES, 1))
+        ship_date = self.record.get(self.fields_enum.SEND_OUT_DATE)
         self.ship_date = types_api.get_cmc_date(ship_date) if ship_date else dt.date.today()
-        phone = self.record.get(fields_enum.DELIVERY_TELEPHONE)
-        email = self.record.get(fields_enum.DELIVERY_EMAIL)
-        contact_name = self.record.get(fields_enum.DELIVERY_CONTACT)
-        address_str = self.record.get(fields_enum.DELIVERY_ADDRESS)
-        postcode = self.record.get(fields_enum.DELIVERY_POSTCODE)
+        phone = self.record.get(self.fields_enum.DELIVERY_TELEPHONE)
+        email = self.record.get(self.fields_enum.DELIVERY_EMAIL)
+        contact_name = self.record.get(self.fields_enum.DELIVERY_CONTACT)
+        address_str = self.record.get(self.fields_enum.DELIVERY_ADDRESS)
+        postcode = self.record.get(self.fields_enum.DELIVERY_POSTCODE)
 
         self.contact = pf_top.Contact(
             business_name=business_name,
