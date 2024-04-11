@@ -2,17 +2,17 @@ from __future__ import annotations
 
 import fastapi
 import flaskwebgui
-import pydantic as _p
-from fastui import FastUI, components as c, events as e
+from fastui import FastUI
+from fastui import components as c
+from fastui import events as e
 from loguru import logger
 
 from amherst import am_db
+from amherst.front import generic_emailer as ge
 from amherst.front import support
-from amherst.front.generic_emailer import send_invoice, send_label, send_missing
 from amherst.front.support import prnt_label
 from amherst.models import managers
 from pawdantic.pawui import builders
-from pycommence.api import csr_api, csr_handler
 from shipr.ship_ui import states as ship_states
 
 router = fastapi.APIRouter()
@@ -165,7 +165,7 @@ async def email_label(
     """Endpoint to email the label for a booking."""
     logger.warning(f'printing id: {booking_id}')
     man_in = await support.get_manager(booking_id, session)
-    send_label(man_in.state)
+    ge.send_label(man_in.state)
     return await booked_page(manager=man_in)
 
 
@@ -176,7 +176,7 @@ async def email_invoice(
 ):
     """Endpoint to email the invoice for a booking."""
     man_in = await support.get_manager(booking_id, session)
-    await send_invoice(man_in)
+    await ge.send_invoice(man_in)
     return await booked_page(manager=man_in)
 
 
@@ -188,7 +188,7 @@ async def email_missing(
     """Endpoint to email the missing items for a booking
     """
     man_in = await support.get_manager(booking_id, session)
-    await send_missing(man_in)
+    await ge.send_missing(man_in)
     return await booked_page(manager=man_in)
 
 
@@ -212,41 +212,11 @@ async def print_label(
     await prnt_label(man_in.state.booking_state.label_dl_path)
     return await booked_page(manager=man_in)
 
-#
-# class EmailModelForm(_p.BaseModel):
-#     invoice: bool
-#     label: bool
-#     missing_kit: bool
-#     recipient: list[str]
-#
-#
-# def get_email_model_form(manager: managers.MANAGER_IN_DB):
-#     if manager.item.cmc_table_name in ['Sale', 'Customer']:
-#         invoice_email = manager.item.record.get(manager.item.fields_enum.INVOICE_EMAIL)
-#     elif manager.item.cmc_table_name == 'Hire':
-#         with csr_api.csr_context('Customer') as csr:
-#             handler = csr_handler.CmcHandler(csr=csr)
-#             record = handler.one_record(manager.item.fields_enum.CUSTOMER)
-#             invoice_email = record.get(manager.item.fields_enum.INVOICE_EMAIL)
-#
-#     class emform(EmailModelForm):
-#         recipient = [manager.state.contact.email_address, invoice_email],
-#
-#     return emform
-#
-#
-# async def generic_email_form(manager: managers.MANAGER_IN_DB):
-#     return c.ModelForm(
-#         model=get_email_model_form(manager),
-#         submit_url=f'/booked/generic_email/{manager.id}',
-#         initial={'recipient': manager.state.contact.email_address},
-#     )
-#
-#
-# async def generic_email_div(manager: managers.MANAGER_IN_DB):
-#     return c.Div(
-#         class_name='row my-3',
-#         components=[
-#             await generic_email_form(manager)
-#         ]
-#     )
+
+async def generic_email_div(manager: managers.MANAGER_IN_DB):
+    return c.Div(
+        class_name='row my-3',
+        components=[
+            ge.get_email_form(manager)
+        ]
+    )

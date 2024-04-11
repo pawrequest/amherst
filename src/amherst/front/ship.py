@@ -106,7 +106,7 @@ async def left_col(manager) -> c.Div:
             # await booked.email_invoice_div(manager),
             # await booked.open_invoice_div(manager),
             # await booked.email_missing_div(manager),
-            # await booked.generic_email_div(manager),
+            await booked.generic_email_div(manager),
             # await address_from_pc_div(manager),
 
         ],

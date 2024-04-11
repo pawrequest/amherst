@@ -1,13 +1,7 @@
 import contextlib
-from collections.abc import Callable
-from secrets import token_urlsafe
-from time import time
 
-import fastapi
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
-from hypercorn.logging import AccessLogAtoms
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.staticfiles import StaticFiles
 
 from amherst import am_db, front
@@ -44,7 +38,7 @@ app.include_router(front.booked_router, prefix='/api/booked')
 app.include_router(front.forms_router, prefix='/api/forms')
 app.include_router(front.ship_model_router, prefix='/api/ship_model')
 app.include_router(front.forms_test_router, prefix='/api/forms_test')
-app.include_router(front.splash_router, prefix='/api')
+app.include_router(front.email_router, prefix='/api/email')
 
 
 @app.get('/robots.txt', response_class=responses.PlainTextResponse)
@@ -72,7 +66,6 @@ async def favicon_ico() -> responses.RedirectResponse:
 @app.get('/{path:path}')
 async def html_landing() -> responses.HTMLResponse:
     return responses.HTMLResponse(prebuilt_html(title='Amherst'))
-
 
 #
 # @app.exception_handler(

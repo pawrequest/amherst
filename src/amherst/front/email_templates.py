@@ -1,20 +1,11 @@
 from __future__ import annotations
 
 from amherst.front import support
+from amherst.front.support import state_notification_labels_str
 from amherst.models import managers
 from pawdantic import paw_strings
-from shipr.models import pf_shared
 from shipr.ship_ui import states
-from suppawt.office_ps.email_handler import Email
-
-
-def state_notification_labels_str(state: states.ShipState):
-    indent = ' ' * 4
-    lines = [
-        f'{indent}{pf_shared.notification_label_map[notification]} - {state_notification_contact_detail(state, notification)}'
-        for notification in state.contact.notifications.notification_type
-    ]
-    return '\n'.join(lines)
+from suppawt.office_ps import email_handler as eh
 
 
 # def state_notification_labels_str(state: states.ShipState):
@@ -24,28 +15,19 @@ def state_notification_labels_str(state: states.ShipState):
 #     return ret_str
 
 
-def state_notification_contact_detail(state: states.ShipState, notification: str):
-    if 'EMAIL' in notification or notification == 'DELIVERYNOTIFICATION':
-        return state.contact.email_address
-    elif 'SMS' in notification:
-        return state.contact.mobile_phone
-    else:
-        raise ValueError('Invalid notification type')
-
-
 def return_label_email(state):
-    return Email(
+    return eh.EmailMultipleAttachments(
         to_address=state.contact.email_address,
         subject='Radio Hire - Parcelforce Collection Label Attached',
         body=return_body(state),
-        attachment_path=state.booking_state.label_dl_path,
+        attachment_paths=[state.booking_state.label_dl_path],
     )
 
 
-async def invoice_email(manager: managers.MANAGER_IN_DB) -> Email:
+async def invoice_email(manager: managers.MANAGER_IN_DB) -> eh.Email:
     inv_file = await support.get_invoice_path(manager)
     inv_num = inv_file.split('\\')[-1].split('.')[0]
-    return Email(
+    return eh.Email(
         to_address=manager.state.contact.email_address,
         subject=f'Radio Hire - Invoice {inv_num} Attached',
         body=invoice_body(),

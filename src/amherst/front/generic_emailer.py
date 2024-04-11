@@ -3,17 +3,36 @@ from __future__ import annotations
 import pathlib
 import typing as _t
 
+import fastapi
+from fastui import FastUI, components as c, forms as fastui_forms
+
 import shipr
-from amherst.front import support, email_templates
-from amherst.models import managers
-from suppawt.office_ps import email_handler
-from suppawt.office_ps.ms.outlook_handler import OutlookHandler
+from amherst import am_db
+from amherst.front import email_templates, support
+from amherst.models import am_shared, managers
+from shipr.ship_ui import states
+from suppawt.office_ps import email_handler as eh
+from suppawt.office_ps.ms import outlook_handler as oh
+
+router = fastapi.APIRouter()
 
 greeting = 'Hi,\n\nThanks for choosing to hire from Amherst.'
 
 invoice_body = 'Please find your invoice attached.'
 
 goodbye = 'If you have any queries please let us know.\nKind Regards,\nAmherst Enterprises'
+
+
+def label_body(state: states.ShipState):
+    return (
+        'Please find a pre-paid parcelforce label attached – it needs to be printed and attached to the box.'
+        'Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!'
+        'Collection is booked for {paw_strings.date_string(state.ship_date)}, we are unable to give precise timings, however you should receive notifications at the contact details below:'
+        f'{support.state_notification_labels_str(state)}'
+        'If for any reason the courier is missed you can drop the labelled box at any uk postoffice.'
+        'Any issues please let us know'
+        'Kind Regards\nAmherst Enterprises'
+    )
 
 
 def missing_kit_body(missing: _t.Sequence[str]):
@@ -28,124 +47,159 @@ def missing_kit_body(missing: _t.Sequence[str]):
     )
 
 
-def write_body(invoice: pathlib.Path = None, missing: _t.Sequence[str] = None):
+def compose_body(
+        invoice: pathlib.Path = None,
+        label_path: pathlib.Path | None = None,
+        missing: _t.Sequence[str] = None
+):
     body_parts = [greeting]
     if invoice:
         body_parts.append(invoice_body)
     if missing:
         body_parts.append(missing_kit_body(missing))
+    if label_path:
+        body_parts.append('Please find your shipping label attached.')
     body_parts.append(goodbye)
     return '\n\n'.join(body_parts)
 
 
 async def generic_email(
-        recipient: str,
+        recipients: _t.Sequence[str],
         invoice: pathlib.Path = None,
         missing: _t.Sequence[str] = None,
         label_path: pathlib.Path = None,
-) -> email_handler.Email:
+) -> eh.EmailMultipleAttachments:
     if not any([invoice, missing, label_path]):
         raise ValueError('No email type specified')
-    return email_handler.Email(
-        to_address=recipient,
-        subject=await subject(invoice, missing is not None, label_path is not None),
-        body=write_body(invoice, missing),
-        attachment_path=invoice if invoice else None,
+    addresses = '; '.join(recipients)
+    return eh.EmailMultipleAttachments(
+        to_address=addresses,
+        subject=await subject(invoice, missing, label_path),
+        body=compose_body(invoice, missing),
+        attachment_paths=[x for x in [invoice, label_path] if x],
     )
 
 
-async def subject(invoice: pathlib.Path, missing: bool, label: bool):
+async def subject(
+        invoice: pathlib.Path = None,
+        missing: _t.Sequence = None,
+        label: pathlib.Path = None
+):
     invoice_num = await support.get_invoice_num(invoice) if invoice else None
 
-    return f'Radio Hire - {f"Invoice {invoice_num} Attached" if invoice else ""} {"Missing Kit" if missing else ""} {"Shipping Label Attached" if label else ""}'.strip()
-
-#
-# def write_body(invoice: pathlib.Path = None, missing: _t.Sequence[str] = None):
-#     return f"""{greeting}
-#     {invoice_body if invoice else ''}
-#     {missing_kit_body(missing) if missing else ''}
-#     {goodbye}
-#     """
-#
-#
-# def get_email(
-#         recipient: str,
-#         invoice: pathlib.Path = None,
-#         missing: _t.Sequence[str] = None
-# ) -> email_handler.Email:
-#     if not any([invoice, missing]):
-#         raise ValueError('No email type specified')
-#     return email_handler.Email(
-#         to_address=recipient,
-#         subject=f'Radio Hire - {"Invoice Attached" if invoice else ''} {"Missing Kit" if missing else ''}',
-#         body=write_body(invoice, missing),
-#         attachment_path=invoice if invoice else None,
-#     )
+    return (f'Radio Hire - '
+            f'{f"Invoice {invoice_num} Attached" if invoice else ""} '
+            f'{"Missing Kit" if missing else ""} '
+            f'{"Shipping Label Attached" if label else ""}'
+            ).strip()
 
 
-# greeting = """Hi,
-#
-#     Thanks for choosing to hire from Amherst.
-# """
-#
-# invoice_body = """ Please find attached the invoice for your recent hire from Amherst. """
-#
-# goodbye = """If you have any queries please let us know.
-#     Kind Regards
-#     Amherst Enterprises
-# """
-
-
-#
-# def missing_kit_body(missing: _t.Sequence[str]):
-#     return f"""Thanks for returning the hired equipment - I hope it worked well for your event.
-#
-#     Unfortunately the return was missing the following items - can you please look/check with colleagues to see if they can be recovered - otherwise i'll draw up an invoice for replacement.
-#     Kind regards,
-#     the Amherst team
-#
-#     MISSING KIT:
-#     {'\n'.join([_ for _ in missing])}
-#
-#     (If you have already discussed missing items with us please disregard this automatically generated email)
-# """
-async def send_generic(manager: managers.MANAGER_IN_DB, invoice:bool = False, missing:bool = False, label:bool=False):
+async def send_generic(
+        recipients: _t.Sequence[str],
+        manager: managers.MANAGER_IN_DB,
+        invoice: bool = False,
+        missing: bool = False,
+        label: bool = False
+):
     if not any([invoice, missing, label]):
         raise ValueError('No email type specified')
-    if invoice:
-        invoice_path = await support.get_invoice_path(manager)
-    if missing:
-        missing = await support.get_missing(manager)
+    invoice_path = await support.get_invoice_path(manager) if invoice else None
+    missing = await support.get_missing(manager) if missing else None
+    label_path = None
     if label:
         if not manager.state.booking_state.label_downloaded:
             raise ValueError('label not downloaded')
         label_path = manager.state.booking_state.label_dl_path
-    email = await generic_emailer.generic_email()
+
+    email = await generic_email(
+        recipients=recipients,
+        invoice=invoice_path,
+        missing=missing,
+        label_path=label_path,
+    )
+    handler = oh.OutlookHandlerMultipleAttachments()
+    handler.send_email(email)
 
 
 def send_label(state: shipr.ShipState):
     """Send the label by email."""
     email = email_templates.return_label_email(state)
-    handler = OutlookHandler()
+    handler = oh.OutlookHandler()
     handler.send_email(email)
 
 
 async def send_missing(manager: managers.MANAGER_IN_DB):
     missing = await support.get_missing(manager)
-    email = await generic_emailer.generic_email(
-        recipient=manager.state.contact.email_address,
+    email = await generic_email(
+        recipients=[manager.state.contact.email_address],
         missing=missing
     )
-    handler = OutlookHandler()
+    handler = oh.OutlookHandlerMultipleAttachments()
     handler.send_email(email)
 
 
 async def send_invoice(manager: managers.BookingManagerOut):
     """Send invoice by email."""
     # email = await email_templates.invoice_email(manager)
-    email = await generic_emailer.generic_email(
-        recipient=manager.state.contact.email_address,
+    email = await generic_email(
+        recipients=[manager.state.contact.email_address],
         invoice=await support.get_invoice_path(manager)
     )
-    handler = OutlookHandler()
+    handler = oh.OutlookHandlerMultipleAttachments()
     handler.send_email(email)
+
+
+def get_email_options(manager: managers.MANAGER_IN_DB):
+    addr_dict = {
+        manager.state.contact.email_address: 'delivery',
+        manager.item.customer_record.get(am_shared.CustomerFields.INVOICE_EMAIL): 'invoice',
+        manager.item.customer_record.get(am_shared.CustomerFields.ACCOUNTS_EMAIL): 'accounts',
+    }
+    return [fastui_forms.SelectOption(value=k, label=v)
+            for k, v in addr_dict.items() if k
+            ]
+
+
+def get_email_form(manager: managers.MANAGER_IN_DB):
+    return c.Form(
+        form_fields=[
+            c.FormFieldBoolean(
+                name='invoice',
+                title='invoice',
+            ),
+            c.FormFieldBoolean(
+                name='label',
+                title='label',
+            ),
+            c.FormFieldBoolean(
+                name='missing_kit',
+                title='missing kit',
+            ),
+
+            c.FormFieldSelect(
+                name='recipients',
+                title='recipients',
+                multiple=True,
+                options=get_email_options(manager),
+            ),
+        ],
+        submit_url=f'/api/email/{manager.id}',
+    )
+
+
+@router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def email_post(
+        manager_id: int,
+        recipients: list[str],
+        session=fastapi.Depends(am_db.get_session),
+        invoice: bool = False,
+        label: bool = False,
+        missing_kit: bool = False,
+):
+    await send_generic(
+        recipients=recipients,
+        manager=managers.MANAGER_IN_DB.get(manager_id, session),
+        invoice=invoice,
+        label=label,
+        missing=missing_kit,
+    )

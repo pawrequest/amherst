@@ -36,16 +36,15 @@ class ShipableItem(base_item.BaseItem):
 
         match self.cmc_table_name:
             case 'Hire' | 'Sale':
-                business_name = self.record.get(am_shared.HireFields.CUSTOMER)
-                try:
-                    pythoncom.CoInitialize()
-                    csr2 = csr_api.get_csr('Customer')
-                    handler = csr_handler.CmcHandler(csr=csr2)
-                    self.customer_record = handler.one_record(business_name)
-                finally:
-                    pythoncom.CoUninitialize()
+                business_name = self.record.get(self.fields_enum.CUSTOMER)
+                if not self.customer_record:
+                    with csr_api.csr_context('Customer') as csr2:
+                        handler = csr_handler.CmcHandler(csr=csr2)
+                        self.customer_record = handler.one_record(business_name)
+
             case 'Customer':
                 business_name = self.record.get(am_shared.CustomerFields.NAME)
+                self.customer_record = self.record
             case _:
                 raise ValueError(f'unknown table name: {self.cmc_table_name}')
 

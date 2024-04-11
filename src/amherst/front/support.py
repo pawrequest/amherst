@@ -14,7 +14,8 @@ from loguru import logger
 import shipr
 from amherst import shipper
 from amherst.models import am_shared, managers
-from shipr.models import pf_top
+from shipr.models import pf_top, pf_shared
+from shipr.ship_ui import states
 
 
 class ManagerNotFound(Exception):
@@ -144,3 +145,21 @@ async def prnt_label(label_path: pathlib.Path) -> None:
         logger.error(f'label_path {label_path} does not exist')
 
     pdf_tools.array_pdf.convert_many(label_path, print_files=True)
+
+
+def state_notification_labels_str(state: states.ShipState):
+    indent = ' ' * 4
+    lines = [
+        f'{indent}{pf_shared.notification_label_map[notification]} - {state_notification_contact_detail(state, notification)}'
+        for notification in state.contact.notifications.notification_type
+    ]
+    return '\n'.join(lines)
+
+
+def state_notification_contact_detail(state: states.ShipState, notification: str):
+    if 'EMAIL' in notification or notification == 'DELIVERYNOTIFICATION':
+        return state.contact.email_address
+    elif 'SMS' in notification:
+        return state.contact.mobile_phone
+    else:
+        raise ValueError('Invalid notification type')
