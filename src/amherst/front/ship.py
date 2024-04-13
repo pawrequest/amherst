@@ -4,18 +4,14 @@ import fastapi
 import fastui
 import sqlmodel
 from fastapi import APIRouter, Depends
-from fastui import FastUI, events
-from fastui import class_name as class_name_
-from fastui import components as c
-from fastui import events as e
+from fastui import FastUI, class_name as class_name_, components as c, events, events as e
 from loguru import logger
 
 from amherst import am_db
-from amherst.front import support, booked
+from amherst.front import booked, support
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
-from shipr.ship_ui import forms as shipforms
-from shipr.ship_ui import states
+from shipr.ship_ui import forms as shipforms, states
 
 router = APIRouter()
 
@@ -44,6 +40,10 @@ async def shipping_page(
     """
 
     manager = await support.get_manager(manager_id, session)
+    if sm := manager.item.record.get(manager.item.fields_enum.SEND_METHOD):
+        if 'parcelforce' not in sm.lower():
+            alert = {'Commence Send Method not include "parcelforce"': 'WARNING'}
+            alert_dict = {alert | alert_dict} if alert_dict else alert
     return await builders.page_w_alerts(
         alert_dict=alert_dict,
         components=[
@@ -210,9 +210,9 @@ async def get_form(
             raise ValueError(f'Invalid kind {kind!r}')
 
     return c.Form(
-            form_fields=form_fields,
-            submit_url=submit_url,
-        )
+        form_fields=form_fields,
+        submit_url=submit_url,
+    )
 
 
 async def input_address_div(
@@ -272,6 +272,7 @@ async def address_from_pc_div(manager) -> c.Div:
         ],
         class_name='row mx-auto my-3',
     )
+
 
 # async def form_select_div():
 #     return c.Div(

@@ -15,6 +15,7 @@ dependencies = [
     'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
     'pawdantic[ui, sql]',
+    'pydantic_settings',
     'shipr',
     'pycommence',
     'suppawt',
@@ -27,13 +28,12 @@ dependencies = [
     'uvicorn[standard]',
     'python-dotenv',
     'httpx',
-    "docx2pdf",
-    "docxtpl",
-    "openpyxl",
+#    "docx2pdf",
+#    "docxtpl",
+#    "openpyxl",
     "pywin32",
-    "xlrd",
-    'pyautogui',
-    'hypercorn',
+#    "xlrd",
+#    'pyautogui',
 ]
 [project.optional-dependencies]
 dev = [
