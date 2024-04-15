@@ -96,7 +96,7 @@ async def zero_post(
         manager_id: int,
         form: _t.Annotated[
             pf_top.RequestedShipmentZero, fastui_form(pf_top.RequestedShipmentZero)],
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 
 ):
     print(form)
@@ -110,7 +110,7 @@ async def minimum_post(
         manager_id: int,
         form: _t.Annotated[
             pf_top.RequestedShipmentMinimum, fastui_form(pf_top.RequestedShipmentMinimum)],
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 
 ):
     print(form)
@@ -123,7 +123,7 @@ async def simple_post(
         manager_id: int,
         form: _t.Annotated[
             pf_top.RequestedShipmentSimple, fastui_form(pf_top.RequestedShipmentSimple)],
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 
 ):
     print(form)

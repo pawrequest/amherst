@@ -23,7 +23,7 @@ from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
 import pycommence
-from amherst import am_db, app_file
+from amherst import am_db, app_file, am_types
 
 
 def parse_arguments():
@@ -33,13 +33,13 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-def main(category: str, record_name: str):
+def main(category: am_types.AmherstTableName, record_name: str):
     am_db.create_db()
 
     py_cmc = pycommence.PyCommence.from_table_name(table_name=category)
     record = py_cmc.one_record(record_name)
     man_id = am_db.record_to_manager(category, record)
-    logger.info(f'added booking {man_id}')
+    logger.info(f'added booking manager #{man_id}')
     try:
         fui = FlaskUI(
             fullscreen=True,

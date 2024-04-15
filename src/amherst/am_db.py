@@ -10,21 +10,15 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
 
-from amherst import rec_importer, shipper, am_config, am_types
+from amherst import am_config, am_types, rec_importer, shipper
 from amherst.models import shipable_item
 from shipr import pf_config
 
 
 @functools.lru_cache(maxsize=1)
 def get_engine() -> sqa.engine.base.Engine:
-    """Get the database engine from the environment variable DB_LOC. If not set, use amherst.db as the default.
-
-    Returns:
-        sqlalchemy.engine: Database engine
-
-    """
-    pf_sett = pf_config.PFSettings()
-    am_sett = am_config.AmSettings()
+    pf_sett = pf_config.PF_SETTINGS
+    am_sett = am_config.AM_SETTINGS
 
     db_name = f'{str(am_sett.db_loc)}{'' if pf_sett.ship_live else "_test"}'
     db_url = f'sqlite:///{db_name}'
@@ -41,17 +35,17 @@ def get_session(engine=None) -> sqm.Session:
     session.close()
 
 
-def get_pfc():
+def get_el_client():
     try:
-        return shipper.AmShipper.from_p_settings()
+        return shipper.AmShipper.from_pyd()
     except Exception as e:
         logger.error(f'get_pfc: {e}')
 
 
 @contextmanager
-def get_pfc_context():
+def el_context():
     try:
-        pfc_instance = shipper.AmShipper.from_p_settings()
+        pfc_instance = shipper.AmShipper.from_pyd()
         yield pfc_instance
     except Exception as e:
         logger.error(f'get_pfc: {e}')
@@ -101,7 +95,7 @@ def record_to_manager(category: am_types.AmherstTableName, record) -> int:
     Returns:
         int: Manager id
     """
-    pf_shipper = shipper.AmShipper.from_p_settings()
+    pf_shipper = shipper.AmShipper.from_pyd()
     with sqm.Session(get_engine()) as session:
         item = shipable_item.ShipableItem(cmc_table_name=category, record=record)
         manager = rec_importer.item_to_manager(item, pfcom=pf_shipper)

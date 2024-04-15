@@ -26,7 +26,7 @@ async def confirm_post(
         manager_id: int,
         form: _t.Annotated[
             ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
         session=fastapi.Depends(am_db.get_session),
 
 ):
@@ -45,7 +45,7 @@ async def confirm_post(
 async def get_confirmation(
         manager_id: int,
         state_64: str,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint returning Booking Confirmation Page.
@@ -109,7 +109,7 @@ async def confirm_book_page(
 )
 async def do_booking(
         manager_id: int,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint for booking a shipment.
