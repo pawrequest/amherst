@@ -14,4 +14,4 @@ class AmSettings(BaseSettings):
     model_config = SettingsConfigDict(env_ignore_empty=True, env_file=os.getenv('AM_ENV'))
 
 
-am_settings = AmSettings()
+AM_SETTINGS = AmSettings()
