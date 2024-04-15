@@ -1,14 +1,17 @@
 import contextlib
+from pathlib import Path
 
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
 from starlette.staticfiles import StaticFiles
 
-from amherst import am_db, front
+from amherst import am_config, am_db, front
 from amherst.models import managers
 from suppawt.pawlogger import get_loguru
 
-logger = get_loguru(profile='local', log_file='amherst.log')
+BASE_DIR = Path(__file__).resolve().parent
+sett = am_config.AmSettings()
+logger = get_loguru(profile='local', log_file=BASE_DIR / 'amherst.log')
 
 
 @contextlib.asynccontextmanager
@@ -29,8 +32,10 @@ async def lifespan(app_: FastAPI):
         ...
 
 
+static_path = BASE_DIR / 'front' / 'static'
+
 app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory='front/static'), name='static')
+app.mount('/static', StaticFiles(directory=str(static_path)), name='static')
 
 app.include_router(front.shipping_router, prefix='/api/ship')
 app.include_router(front.booking_router, prefix='/api/book')

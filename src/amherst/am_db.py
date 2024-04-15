@@ -10,8 +10,9 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
 
-from amherst import rec_importer, shipper
+from amherst import rec_importer, shipper, am_config, am_types
 from amherst.models import shipable_item
+from shipr import pf_config
 
 
 @functools.lru_cache(maxsize=1)
@@ -22,9 +23,10 @@ def get_engine() -> sqa.engine.base.Engine:
         sqlalchemy.engine: Database engine
 
     """
-    debug = not os.environ.get('SHIP_LIVE').lower() == 'true'
+    pf_sett = pf_config.PFSettings()
+    am_sett = am_config.AmSettings()
 
-    db_name = 'test_db' if debug else os.environ.get('DB_LOC', 'amherst.db')
+    db_name = f'{str(am_sett.db_loc)}{'' if pf_sett.ship_live else "_test"}'
     db_url = f'sqlite:///{db_name}'
     logger.info(f'DB_URL: {db_url}')
     connect_args = {'check_same_thread': False}
@@ -85,11 +87,24 @@ def delete_all_records(model_type: type[_p.BaseModel]):
         logger.info(f'{model_type.__name__} old records deleted')
 
 
-def record_to_manager(category, record):
+def record_to_manager(category: am_types.AmherstTableName, record) -> int:
+    """Add Commence data to the database.
+
+    Convert a record from a Commence table to a :class:shipable_item.ShipableItem
+    Add item to a new :class:managers.BookingManagerDB
+    Commit manager to sql.
+
+    Args:
+        category (str): Commence table name
+        record (dict): Commence record
+
+    Returns:
+        int: Manager id
+    """
     pf_shipper = shipper.AmShipper.from_env()
     with sqm.Session(get_engine()) as session:
         item = shipable_item.ShipableItem(cmc_table_name=category, record=record)
-        manager = rec_importer.generic_item_to_manager(item, pfcom=pf_shipper)
+        manager = rec_importer.item_to_manager(item, pfcom=pf_shipper)
         session.add(manager)
         session.commit()
         return manager.id

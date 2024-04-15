@@ -40,10 +40,11 @@ async def shipping_page(
     """
 
     manager = await support.get_manager(manager_id, session)
-    if sm := manager.item.record.get(manager.item.fields_enum.SEND_METHOD):
-        if 'parcelforce' not in sm.lower():
-            alert = {'Commence Send Method not include "parcelforce"': 'WARNING'}
-            alert_dict = {alert | alert_dict} if alert_dict else alert
+    if send_method_column := getattr(manager.item.fields_enum, 'SEND_METHOD', None):
+        if sm := manager.item.record.get(send_method_column):
+            if 'parcelforce' not in sm.lower():
+                alert = {'Commence Send Method not include "parcelforce"': 'WARNING'}
+                alert_dict = {alert | alert_dict} if alert_dict else alert
     return await builders.page_w_alerts(
         alert_dict=alert_dict,
         components=[

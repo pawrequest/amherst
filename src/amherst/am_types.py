@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import typing as _t
 from datetime import datetime
 from decimal import Decimal
+
+from amherst.models import am_shared
 
 
 def amherst_date_val(v):
@@ -53,3 +56,7 @@ def decimal_from_string(v):
         return Decimal(v)
     except ValueError:
         raise ValueError(f'Invalid decimal string: "{v}"')
+
+
+AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
+AmherstFieldsEnumType = am_shared.HireFields | am_shared.SaleFields | am_shared.CustomerFields
