@@ -69,7 +69,7 @@ def test_session():
 
 @pytest.fixture
 def pfcom():
-    return shipper.ELClient.from_env()
+    return shipper.ELClient.from_p_settings()
 
 
 @pytest.fixture

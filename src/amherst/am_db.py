@@ -43,7 +43,7 @@ def get_session(engine=None) -> sqm.Session:
 
 def get_pfc():
     try:
-        return shipper.AmShipper.from_env()
+        return shipper.AmShipper.from_p_settings()
     except Exception as e:
         logger.error(f'get_pfc: {e}')
 
@@ -51,7 +51,7 @@ def get_pfc():
 @contextmanager
 def get_pfc_context():
     try:
-        pfc_instance = shipper.AmShipper.from_env()
+        pfc_instance = shipper.AmShipper.from_p_settings()
         yield pfc_instance
     except Exception as e:
         logger.error(f'get_pfc: {e}')
@@ -101,7 +101,7 @@ def record_to_manager(category: am_types.AmherstTableName, record) -> int:
     Returns:
         int: Manager id
     """
-    pf_shipper = shipper.AmShipper.from_env()
+    pf_shipper = shipper.AmShipper.from_p_settings()
     with sqm.Session(get_engine()) as session:
         item = shipable_item.ShipableItem(cmc_table_name=category, record=record)
         manager = rec_importer.item_to_manager(item, pfcom=pf_shipper)
