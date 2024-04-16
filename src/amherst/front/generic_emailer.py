@@ -8,7 +8,6 @@ from fastui import FastUI
 from fastui import components as c
 from fastui import forms as fastui_forms
 
-from amherst import am_db
 from amherst.front import support
 from amherst.models import am_shared, managers
 from shipr.ship_ui import states
@@ -21,19 +20,21 @@ router = fastapi.APIRouter()
 @router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def email_post(
         manager_id: int,
-        recipients: list[str],
-        session=fastapi.Depends(am_db.get_session),
-        invoice: bool = False,
-        label: bool = False,
-        missing_kit: bool = False,
+        invoice: bool = fastapi.Form(False),
+        recipients=fastapi.Form(...),
+        label=fastapi.Form(False),
+        missing_kit=fastapi.Form(False),
+        # session=fastapi.Depends(am_db.get_session),
 ):
-    await send_generic(
-        recipients=recipients,
-        manager=managers.MANAGER_IN_DB.get(manager_id, session),
-        invoice=invoice,
-        label=label,
-        missing=missing_kit,
-    )
+    ...
+    return [c.Text(text='email sent. no not really but i could have')]
+    # await send_generic(
+    #     recipients=recipients,
+    #     manager=managers.MANAGER_IN_DB.get(manager_id, session),
+    #     invoice=invoice,
+    #     label=label,
+    #     missing=missing_kit,
+    # )
 
 
 def get_email_form(manager: managers.MANAGER_IN_DB):
