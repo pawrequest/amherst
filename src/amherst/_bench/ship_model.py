@@ -7,9 +7,10 @@ from fastui import FastUI, components as c, events as e
 from fastui.forms import fastui_form
 from loguru import logger
 
+import amherst._bench.benched_types
 from amherst import am_db, shipper
 from amherst.front import support
-from amherst.front.support import ModelKind
+from amherst._bench.benched_types import ModelKind
 from pawdantic.pawui import builders
 from shipr.models import pf_top
 
@@ -79,7 +80,7 @@ async def get_form(
 ):
     manager = await support.get_manager(manager_id, session)
     logger.debug(f'getting form for {kind}')
-    form_model = await support.get_model_form_type(kind)
+    form_model = await amherst._bench.benched_types.get_model_form_type(kind)
 
     model_initial = await get_initial(manager, form_model)
     return [

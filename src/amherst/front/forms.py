@@ -219,26 +219,24 @@ async def man_in_to_out(man_in: managers.BookingManagerDB) -> managers.BookingMa
 @router.post('/postcode2/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def postcode_post2(
         manager_id: int,
-        fetch_address_from_postcode=fastapi.Form(...),
+        postcode: str = fastapi.Form(...),
         session=fastapi.Depends(am_db.get_session),
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 ) -> list[c.AnyComponent]:
-    pc = fetch_address_from_postcode.upper()
-
-    if shipr_types.is_valid_postcode(pc):
+    if shipr_types.is_valid_postcode(postcode):
         man_in = await support.get_manager(manager_id, session)
-        man_in.state.candidates = pfcom.get_candidates(fetch_address_from_postcode)
+        man_in.state.candidates = pfcom.get_candidates(postcode)
         session.add(man_in)
         session.commit()
         alert_dict = {}
     else:
-        alert_dict = {f'INVALID POSTCODE : {pc}': 'ERROR'}
-        logger.warning(f'Invalid postcode: {pc}')
+        alert_dict = {f'INVALID POSTCODE : {postcode}': 'ERROR'}
+        logger.warning(f'Invalid postcode: {postcode}')
 
     return [
         c.FireEvent(
             event=e.GoToEvent(
-                url=f'/ship/view/{manager_id}',
+                url=f'/ship/select/{manager_id}',
                 # target='_blank',
             )
         )

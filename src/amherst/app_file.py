@@ -1,6 +1,7 @@
 import contextlib
 from pathlib import Path
 
+import flaskwebgui
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
 from starlette.staticfiles import StaticFiles
@@ -42,6 +43,14 @@ app.include_router(front.booking_router, prefix='/api/book')
 app.include_router(front.booked_router, prefix='/api/booked')
 app.include_router(front.forms_router, prefix='/api/forms')
 app.include_router(front.email_router, prefix='/api/email')
+app.include_router(front.shared_router, prefix='/api/email')
+
+
+@app.get('/close_app/', response_model=None, response_model_exclude_none=True)
+async def close_app(
+):
+    """Endpoint to close the application."""
+    flaskwebgui.close_application()
 
 
 @app.get('/robots.txt', response_class=responses.PlainTextResponse)

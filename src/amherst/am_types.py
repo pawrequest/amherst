@@ -60,3 +60,5 @@ def decimal_from_string(v):
 
 AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
 AmherstFieldsEnumType = am_shared.HireFields | am_shared.SaleFields | am_shared.CustomerFields
+type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
+
