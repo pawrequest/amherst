@@ -2,14 +2,11 @@ from __future__ import annotations
 
 import fastapi
 import flaskwebgui
-from fastui import FastUI
-from fastui import components as c
-from fastui import events as e
+from fastui import FastUI, components as c, events as e
 from loguru import logger
 
 from amherst import am_db
-from amherst.front import generic_emailer as ge
-from amherst.front import support
+from amherst.front import generic_emailer as ge, support
 from amherst.front.support import prnt_label
 from amherst.models import managers
 from pawdantic.pawui import builders
@@ -165,7 +162,7 @@ async def email_label(
     """Endpoint to email the label for a booking."""
     logger.warning(f'printing id: {booking_id}')
     man_in = await support.get_manager(booking_id, session)
-    ge.send_label(man_in.state)
+    await ge.send_label(man_in.state)
     return await booked_page(manager=man_in)
 
 
@@ -188,8 +185,12 @@ async def email_missing(
     """Endpoint to email the missing items for a booking
     """
     man_in = await support.get_manager(booking_id, session)
-    await ge.send_missing(man_in)
-    return await booked_page(manager=man_in)
+    if man_in.item.cmc_table_name == 'Hire':
+        await ge.send_missing(man_in)
+        alert_dict = {}
+    else:
+        alert_dict = {'Missing Kit Email': 'Only available for Hire bookings.'}
+    return await booked_page(manager=man_in, alert_dict=alert_dict)
 
 
 @router.get('/close_app/', response_model=None, response_model_exclude_none=True)

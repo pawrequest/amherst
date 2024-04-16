@@ -41,8 +41,6 @@ app.include_router(front.shipping_router, prefix='/api/ship')
 app.include_router(front.booking_router, prefix='/api/book')
 app.include_router(front.booked_router, prefix='/api/booked')
 app.include_router(front.forms_router, prefix='/api/forms')
-app.include_router(front.ship_model_router, prefix='/api/ship_model')
-app.include_router(front.forms_test_router, prefix='/api/forms_test')
 app.include_router(front.email_router, prefix='/api/email')
 
 

@@ -4,14 +4,18 @@ import fastapi
 import fastui
 import sqlmodel
 from fastapi import APIRouter, Depends
-from fastui import FastUI, class_name as class_name_, components as c, events, events as e
+from fastui import FastUI, events
+from fastui import class_name as class_name_
+from fastui import components as c
+from fastui import events as e
 from loguru import logger
 
 from amherst import am_db
 from amherst.front import booked, support
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
-from shipr.ship_ui import forms as shipforms, states
+from shipr.ship_ui import forms as shipforms
+from shipr.ship_ui import states
 
 router = APIRouter()
 

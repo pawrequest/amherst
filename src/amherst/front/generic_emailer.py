@@ -4,17 +4,64 @@ import pathlib
 import typing as _t
 
 import fastapi
-from fastui import FastUI, components as c, forms as fastui_forms
+from fastui import FastUI
+from fastui import components as c
+from fastui import forms as fastui_forms
 
-import shipr
 from amherst import am_db
-from amherst.front import email_templates, support
+from amherst.front import support
 from amherst.models import am_shared, managers
 from shipr.ship_ui import states
 from suppawt.office_ps import email_handler as eh
 from suppawt.office_ps.ms import outlook_handler as oh
 
 router = fastapi.APIRouter()
+
+
+@router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def email_post(
+        manager_id: int,
+        recipients: list[str],
+        session=fastapi.Depends(am_db.get_session),
+        invoice: bool = False,
+        label: bool = False,
+        missing_kit: bool = False,
+):
+    await send_generic(
+        recipients=recipients,
+        manager=managers.MANAGER_IN_DB.get(manager_id, session),
+        invoice=invoice,
+        label=label,
+        missing=missing_kit,
+    )
+
+
+def get_email_form(manager: managers.MANAGER_IN_DB):
+    return c.Form(
+        form_fields=[
+            c.FormFieldBoolean(
+                name='invoice',
+                title='invoice',
+            ),
+            c.FormFieldBoolean(
+                name='label',
+                title='label',
+            ),
+            c.FormFieldBoolean(
+                name='missing_kit',
+                title='missing kit',
+            ),
+
+            c.FormFieldSelect(
+                name='recipients',
+                title='recipients',
+                multiple=True,
+                options=get_email_options(manager),
+            ),
+        ],
+        submit_url=f'/api/email/{manager.id}',
+    )
+
 
 greeting = 'Hi,\n\nThanks for choosing to hire from Amherst.'
 
@@ -69,6 +116,17 @@ async def generic_email(
         missing: _t.Sequence[str] = None,
         label_path: pathlib.Path = None,
 ) -> eh.EmailMultipleAttachments:
+    """Get an Email object for sending an invoice, missing kit request, or shipping-label.
+    
+    Args:
+        recipients: List of email addresses.
+        invoice: Path to the invoice.
+        missing: List of missing kit items.
+        label_path: Path to the shipping label.
+        
+    Returns:
+        EmailMultipleAttachments: The email object.
+    """
     if not any([invoice, missing, label_path]):
         raise ValueError('No email type specified')
     addresses = '; '.join(recipients)
@@ -121,11 +179,21 @@ async def send_generic(
     handler.send_email(email)
 
 
-def send_label(state: shipr.ShipState):
+async def send_label(manager: managers.MANAGER_IN_DB):
     """Send the label by email."""
-    email = email_templates.return_label_email(state)
-    handler = oh.OutlookHandler()
+    email = await generic_email(
+        recipients=[manager.state.contact.email_address],
+        label_path=manager.state.booking_state.label_dl_path
+    )
+    handler = oh.OutlookHandlerMultipleAttachments()
     handler.send_email(email)
+
+
+# def send_label1(state: shipr.ShipState):
+#     """Send the label by email."""
+#     email = email_templates.return_label_email(state)
+#     handler = oh.OutlookHandler()
+#     handler.send_email(email)
 
 
 async def send_missing(manager: managers.MANAGER_IN_DB):
@@ -150,56 +218,14 @@ async def send_invoice(manager: managers.BookingManagerOut):
 
 
 def get_email_options(manager: managers.MANAGER_IN_DB):
+    del_add = manager.state.contact.email_address
+    inv_add = manager.item.customer_record.get(am_shared.CustomerFields.INVOICE_EMAIL)
+    accounts = manager.item.customer_record.get(am_shared.CustomerFields.ACCOUNTS_EMAIL)
     addr_dict = {
-        manager.state.contact.email_address: 'delivery',
-        manager.item.customer_record.get(am_shared.CustomerFields.INVOICE_EMAIL): 'invoice',
-        manager.item.customer_record.get(am_shared.CustomerFields.ACCOUNTS_EMAIL): 'accounts',
+        del_add: f'delivery ({del_add})',
+        inv_add: f'invoice ({inv_add})',
+        accounts: f'accounts ({accounts})',
     }
     return [fastui_forms.SelectOption(value=k, label=v)
             for k, v in addr_dict.items() if k
             ]
-
-
-def get_email_form(manager: managers.MANAGER_IN_DB):
-    return c.Form(
-        form_fields=[
-            c.FormFieldBoolean(
-                name='invoice',
-                title='invoice',
-            ),
-            c.FormFieldBoolean(
-                name='label',
-                title='label',
-            ),
-            c.FormFieldBoolean(
-                name='missing_kit',
-                title='missing kit',
-            ),
-
-            c.FormFieldSelect(
-                name='recipients',
-                title='recipients',
-                multiple=True,
-                options=get_email_options(manager),
-            ),
-        ],
-        submit_url=f'/api/email/{manager.id}',
-    )
-
-
-@router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def email_post(
-        manager_id: int,
-        recipients: list[str],
-        session=fastapi.Depends(am_db.get_session),
-        invoice: bool = False,
-        label: bool = False,
-        missing_kit: bool = False,
-):
-    await send_generic(
-        recipients=recipients,
-        manager=managers.MANAGER_IN_DB.get(manager_id, session),
-        invoice=invoice,
-        label=label,
-        missing=missing_kit,
-    )

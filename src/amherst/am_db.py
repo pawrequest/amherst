@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import os
 from contextlib import contextmanager
 
 import httpx
