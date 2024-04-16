@@ -56,15 +56,15 @@ async def shipping_page(
 
 async def left_col(manager: managers.MANAGER_IN_DB) -> c.Div:
     """Left column of shipping page.
-    Displays data direct from commence for cross-reference
-    and button for opening invoice.
+    Displays:
+        - data direct from commence for cross-reference
+        - options to send email to customer with invoice or missing kit query
     
     Args:
         manager: Booking Manager
         
     Returns:
         c.Div: Left column div
-        
     """
     return c.Div(
         class_name='col col-4 mx-auto',
