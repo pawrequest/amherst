@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 from fastui import FastUI, class_name as class_name_, components as c, events, events as e
 from loguru import logger
 
+import amherst.front.generic_emailer
 from amherst import am_db
 from amherst.front import booked, support
 from amherst.models import managers
@@ -106,7 +107,7 @@ async def left_col(manager) -> c.Div:
             # await booked.email_invoice_div(manager),
             # await booked.open_invoice_div(manager),
             # await booked.email_missing_div(manager),
-            await booked.generic_email_div(manager),
+            await amherst.front.generic_emailer.generic_email_div(manager),
             # await address_from_pc_div(manager),
 
         ],

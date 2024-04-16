@@ -3,15 +3,15 @@ from __future__ import annotations
 from enum import Enum, StrEnum
 from typing import Literal
 
-from pycommence.api import types_api
+from pycommence import pycmc_types
 
-SALE_CUSTOMERS = types_api.Connection(
+SALE_CUSTOMERS = pycmc_types.Connection(
     name='SaleCustomers',
     to_table='Customers',
     from_table='Sale',
 )
 
-HIRE_CUSTOMERS = types_api.Connection(
+HIRE_CUSTOMERS = pycmc_types.Connection(
     name='HireCustomers',
     to_table='Customers',
     from_table='Hire',
@@ -45,14 +45,14 @@ class HireStatusEnum(StrEnum):
     SOLD = 'Sold To Customer'
 
 
-INITIAL_FILTER_ARRAY = types_api.FilterArray(
+INITIAL_FILTER_ARRAY = pycmc_types.FilterArray(
     filters={
-        1: types_api.CmcFilter(
+        1: pycmc_types.CmcFilter(
             cmc_col='Status',
             condition='Equal To',
             value='Booked in',
         ),
-        2: types_api.CmcFilter(
+        2: pycmc_types.CmcFilter(
             cmc_col='Send Out Date',
             condition='After',
             value='2023-01-01',
@@ -60,9 +60,9 @@ INITIAL_FILTER_ARRAY = types_api.FilterArray(
     }
 )
 
-INITIAL_FILTER_ARRAY2 = types_api.FilterArray().add_replace_filters(
-    types_api.CmcFilter(cmc_col='Status', condition='Equal To', value='Booked in'),
-    types_api.CmcFilter(
+INITIAL_FILTER_ARRAY2 = pycmc_types.FilterArray().add_replace_filters(
+    pycmc_types.CmcFilter(cmc_col='Status', condition='Equal To', value='Booked in'),
+    pycmc_types.CmcFilter(
         cmc_col='Send Out Date',
         condition='After',
         value='2023-01-01',

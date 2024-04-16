@@ -5,8 +5,9 @@ import pathlib
 from dotenv import load_dotenv
 from flaskwebgui import FlaskUI, close_application
 
+import pycommence
 from amherst import am_db, app_file
-from pycommence.api import csr_api, csr_handler
+from pycommence import cursor
 
 # logger = get_loguru(profile='local', log_file='amherst.log')
 
@@ -36,10 +37,10 @@ def main(
     load_dotenv(env_loc)
     am_db.create_db()
 
-    with csr_api.csr_context(category) as csr:
-        handler = csr_handler.CmcHandler(csr=csr)
+    with cursor.csr_context(category) as csr:
+        pycmc = pycommence.PyCommence(csr=csr)
 
-    record = handler.one_record(record_name)
+    record = pycmc.one_record(record_name)
     man_id = am_db.record_to_manager(category, record)
     am_db.logger.info(f'added booking manager {man_id}')
 

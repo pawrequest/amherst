@@ -505,3 +505,23 @@ async def full_post(
         session=fastapi.Depends(am_db.get_session),
 ):
     ...
+
+
+@router.post('/email/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+async def email_post(
+        manager_id: int,
+        invoice: bool = fastapi.Form(False),
+        recipients=fastapi.Form(...),
+        label=fastapi.Form(False),
+        missing_kit=fastapi.Form(False),
+        # session=fastapi.Depends(am_db.get_session),
+):
+    ...
+    return [c.Text(text='email sent')]
+    # await send_generic(
+    #     recipients=recipients,
+    #     manager=managers.MANAGER_IN_DB.get(manager_id, session),
+    #     invoice=invoice,
+    #     label=label,
+    #     missing=missing_kit,
+    # )

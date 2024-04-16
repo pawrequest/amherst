@@ -5,8 +5,9 @@ import pydantic as _p
 import pythoncom
 import sqlmodel as sqm
 
+import pycommence
 from amherst.models import am_shared
-from pycommence.api import csr_api, csr_handler, types_api
+from pycommence import cursor, pycmc_types
 from shipr.models import base_item, pf_ext, pf_lists, pf_top
 
 enum_map = {
@@ -38,9 +39,9 @@ class ShipableItem(base_item.BaseItem):
             case 'Hire' | 'Sale':
                 business_name = self.record.get(self.fields_enum.CUSTOMER)
                 if not self.customer_record:
-                    with csr_api.csr_context('Customer') as csr2:
-                        handler = csr_handler.CmcHandler(csr=csr2)
-                        self.customer_record = handler.one_record(business_name)
+                    with cursor.csr_context('Customer') as csr2:
+                        pycmc = pycommence.PyCommence(csr=csr2)
+                        self.customer_record = pycmc.one_record(business_name)
 
             case 'Customer':
                 business_name = self.record.get(am_shared.CustomerFields.NAME)
@@ -50,7 +51,7 @@ class ShipableItem(base_item.BaseItem):
 
         self.boxes = int(self.record.get(self.fields_enum.BOXES, 1))
         ship_date = self.record.get(self.fields_enum.SEND_OUT_DATE)
-        self.ship_date = types_api.get_cmc_date(ship_date) if ship_date else dt.date.today()
+        self.ship_date = pycmc_types.get_cmc_date(ship_date) if ship_date else dt.date.today()
         phone = self.record.get(self.fields_enum.DELIVERY_TELEPHONE)
         email = self.record.get(self.fields_enum.DELIVERY_EMAIL)
         contact_name = self.record.get(self.fields_enum.DELIVERY_CONTACT)

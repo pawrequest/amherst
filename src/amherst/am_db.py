@@ -22,7 +22,7 @@ def get_engine() -> sqa.engine.base.Engine:
         sqlalchemy.engine: Database engine
 
     """
-    debug = not os.environ.get('SHIP_LIVE').lower() == 'true'
+    debug = not os.environ.get('SHIP_LIVE', 'False').lower() == 'true'
 
     db_name = 'test_db' if debug else os.environ.get('DB_LOC', 'amherst.db')
     db_url = f'sqlite:///{db_name}'

@@ -162,6 +162,7 @@ def get_email_options(manager: managers.MANAGER_IN_DB):
 
 def get_email_form(manager: managers.MANAGER_IN_DB):
     return c.Form(
+        submit_url=f'/api/forms/email/{manager.id}',
         form_fields=[
             c.FormFieldBoolean(
                 name='invoice',
@@ -183,23 +184,13 @@ def get_email_form(manager: managers.MANAGER_IN_DB):
                 options=get_email_options(manager),
             ),
         ],
-        submit_url=f'/api/email/{manager.id}',
     )
 
 
-@router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def email_post(
-        manager_id: int,
-        recipients: list[str],
-        session=fastapi.Depends(am_db.get_session),
-        invoice: bool = False,
-        label: bool = False,
-        missing_kit: bool = False,
-):
-    await send_generic(
-        recipients=recipients,
-        manager=managers.MANAGER_IN_DB.get(manager_id, session),
-        invoice=invoice,
-        label=label,
-        missing=missing_kit,
+async def generic_email_div(manager: managers.MANAGER_IN_DB):
+    return c.Div(
+        class_name='row my-3',
+        components=[
+            get_email_form(manager)
+        ]
     )

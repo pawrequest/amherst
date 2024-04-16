@@ -213,10 +213,3 @@ async def print_label(
     return await booked_page(manager=man_in)
 
 
-async def generic_email_div(manager: managers.MANAGER_IN_DB):
-    return c.Div(
-        class_name='row my-3',
-        components=[
-            ge.get_email_form(manager)
-        ]
-    )
