@@ -157,6 +157,7 @@ class CustomerFields(str, Enum):
     INVOICE_POSTCODE = 'Invoice Postcode'
     INVOICE_TELEPHONE = 'Invoice Telephone'
     ACCOUNTS_EMAIL = 'Accounts Email'
+    PRIMARY_EMAIL = 'Email'
 
 
 class SaleFields(str, Enum):

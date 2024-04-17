@@ -28,7 +28,7 @@ async def email_post(
         missing_kit=fastapi.Form(False),
         session=fastapi.Depends(am_db.get_session),
 ):
-    logger.warning(f'{recipients=}')
+    logger.info(f'email {recipients=}')
     alert_dict = {}
     manager = await support.get_manager(manager_id, session)
 
@@ -36,23 +36,22 @@ async def email_post(
         if not manager.state.booking_state.label_downloaded:
             alert_dict = {'Label Email': 'Label not downloaded'}
             return [c.Text(text=str(alert_dict))]
+    try:
+        email = await generic_email(
+            recipients=recipients,
+            manager=manager,
+            invoice=invoice,
+            missing=missing_kit,
+            label=label,
 
-    if not any([invoice, missing_kit, label]):
-        alert_dict['No Email Type Specified'] = 'Error'
+        )
+    except ValueError as e:
+        alert_dict = {'Email Error': str(e)}
         return [c.Text(text=str(alert_dict))]
-
-    email = await generic_email(
-        recipients=recipients,
-        manager=manager,
-        invoice=invoice,
-        missing=missing_kit,
-        label=label,
-
-    )
     handler = oh.OutlookHandlerMultipleAttachments()
     handler.create_open_email(email)
 
-    return [c.Text(text='Email sent')]
+    return [c.Text(text='Email created and opened')]
 
 
 class EmailChoiceBoolean(c.FormFieldBoolean):
@@ -117,11 +116,9 @@ def compose_body(
         missing_kit: bool = False,
         label: bool = False,
 ):
-    if not any([invoice, missing_kit, label]):
-        raise ValueError('No email type specified')
     missing_strs = item.record.get(
         am_shared.HireFields.MISSING_KIT
-    ).splitlines() if missing_kit else None
+    ).splitlines() if missing_kit else []
     return f"""{GREETING}
 {INVOICE_BODY if invoice else ""}
 {missing_kit_body(missing_strs) if missing_kit else ""}
@@ -149,30 +146,54 @@ async def generic_email(
     Returns:
         EmailMultipleAttachments: The email object.
     """
-    if not any([invoice, missing, label]):
-        raise ValueError('No email type specified')
+    if manager.item.cmc_table_name == 'Customer':
+        if invoice:
+            raise ValueError("Customers don't have invoices")
+        if missing:
+            raise ValueError("Customers don't have missing kit")
 
-    label_path = manager.state.booking_state.label_dl_path if label else None
+    invoice_pdf_path = None
+    invoice_num = None
+    label_path = None
 
     addresses = '; '.join(recipients)
-    invoice_path = manager.item.record.get(manager.item.fields_enum.INVOICE) if invoice else None
+    if invoice:
+        invoice_loc = manager.item.record.get(manager.item.fields_enum.INVOICE) if invoice else None
+        invoice_pdf_path = pathlib.Path(invoice_loc).with_suffix('.pdf')
+        invoice_num = invoice_pdf_path.stem
+
+    if label:
+        try:
+            label_path = manager.state.booking_state.label_dl_path
+        except AttributeError:
+            raise ValueError('Label not downloaded')
+
     return eh.EmailMultipleAttachments(
         to_address=addresses,
-        subject=await subject(invoice_path, missing, label),
+        subject=await subject(invoice_num, missing, label),
         body=compose_body(manager.state, manager.item, invoice, missing, label),
-        attachment_paths=[x for x in [invoice_path, label_path] if x],
+        attachment_paths=[x for x in [invoice_pdf_path, label_path] if x],
     )
 
 
 def get_email_options(manager: managers.MANAGER_IN_DB):
-    del_add = manager.state.contact.email_address
-    inv_add = manager.item.customer_record.get(am_shared.CustomerFields.INVOICE_EMAIL)
-    accounts = manager.item.customer_record.get(am_shared.CustomerFields.ACCOUNTS_EMAIL)
+    irec = manager.item.record
+    crec = manager.item.customer_record
+
+    state_delivery = manager.state.contact.email_address
+    sale_invoice = irec.get(am_shared.SaleFields.INVOICE_EMAIL)
+    cust_invoice = crec.get(am_shared.CustomerFields.INVOICE_EMAIL)
+    cust_accounts = crec.get(am_shared.CustomerFields.ACCOUNTS_EMAIL)
+    cust_primary = crec.get(am_shared.CustomerFields.PRIMARY_EMAIL)
+
     addr_dict = {
-        del_add: f'delivery ({del_add})',
-        inv_add: f'invoice ({inv_add})',
-        accounts: f'accounts ({accounts})',
+        state_delivery: f'from current state ({state_delivery})',
+        sale_invoice: f'sale invoice ({sale_invoice})',
+        cust_invoice: f'customer invoice ({cust_invoice})',
+        cust_accounts: f'accounts ({cust_accounts})',
+        cust_primary: f'customer primary ({cust_primary})',
     }
+
     return [fastui_forms.SelectOption(value=k, label=v)
             for k, v in addr_dict.items() if k
             ]
@@ -218,14 +239,12 @@ def get_email_options(manager: managers.MANAGER_IN_DB):
 
 
 async def subject(
-        invoice_path: pathlib.Path = None,
+        invoice_num: str = None,
         missing: bool = None,
         label: bool = False
 ):
-    invoice_num = await support.invoice_num_f_path(invoice_path) if invoice_path else None
-
     return (f'Radio Hire - '
-            f'{f"Invoice {invoice_num} Attached" if invoice_path else ""} '
+            f'{f"Invoice {invoice_num} Attached" if invoice_num else ""} '
             f'{"Missing Kit" if missing else ""} '
             f'{"Shipping Label Attached" if label else ""}'
             ).strip()

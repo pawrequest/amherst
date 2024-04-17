@@ -1,4 +1,5 @@
 import contextlib
+import sys
 from pathlib import Path
 
 import flaskwebgui
@@ -10,9 +11,15 @@ from amherst import am_config, am_db, front
 from amherst.models import managers
 from suppawt.pawlogger import get_loguru
 
-BASE_DIR = Path(__file__).resolve().parent
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # noinspection PyProtectedMember
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    BASE_DIR = Path(__file__).resolve().parent
+
 sett = am_config.AmSettings()
 logger = get_loguru(profile='local', log_file=BASE_DIR / 'amherst.log')
+logger.info(f'BASE_DIR is {BASE_DIR}')
 
 
 @contextlib.asynccontextmanager

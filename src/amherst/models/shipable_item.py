@@ -59,6 +59,7 @@ class ShipableItem(base_item.BaseItem):
             case 'Customer':
                 business_name = self.record.get(am_shared.CustomerFields.NAME)
                 self.customer_record = self.record
+
             case _:
                 raise ValueError(f'unknown table name: {self.cmc_table_name}')
 
@@ -66,10 +67,14 @@ class ShipableItem(base_item.BaseItem):
         ship_date = self.record.get(self.fields_enum.SEND_OUT_DATE)
         self.ship_date = pycmc_types.get_cmc_date(ship_date) if ship_date else dt.date.today()
         phone = self.record.get(self.fields_enum.DELIVERY_TELEPHONE)
-        email = self.record.get(self.fields_enum.DELIVERY_EMAIL)
+        email = (self.record.get(self.fields_enum.DELIVERY_EMAIL)
+                 or self.customer_record.get(self.fields_enum.PRIMARY_EMAIL))
         contact_name = self.record.get(self.fields_enum.DELIVERY_CONTACT)
-        address_str = self.record.get(self.fields_enum.DELIVERY_ADDRESS)
         postcode = self.record.get(self.fields_enum.DELIVERY_POSTCODE)
+        address_str = (self.record.get(self.fields_enum.DELIVERY_ADDRESS)
+                       or self.customer_record.get(am_shared.CustomerFields.DELIVERY_ADDRESS)
+                       or self.customer_record.get(am_shared.CustomerFields.INVOICE_ADDRESS)
+                       )
 
         self.contact = pf_top.Contact(
             business_name=business_name,
