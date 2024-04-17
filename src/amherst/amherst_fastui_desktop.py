@@ -1,10 +1,29 @@
+"""
+Wrap FastAPI app in FlaskWebGUI for desktop application.
+Use `Paw Request fork <https://github.com/pawrequest/flaskwebgui>`_ for URL_SUFFIX to dynamically set loading page to the retrieved record
+
+Environment variables:
+    AM_ENV: Path to environment file defining:
+        - sql database location
+        - log file location
+        - parcelforce labels directory
+    SHIP_ENV: Path to environment file defining:
+        - parcelforce account numbers
+        - parcelforce contract numbers
+        - parcelforce username and password
+        - parcelforce wsdl
+        - parcelforce endpoint
+        - parcelforce binding
+        - parcelforce live status
+
+"""
 import argparse
-import os
-import pathlib
 
-from dotenv import load_dotenv
 from flaskwebgui import FlaskUI, close_application
+from loguru import logger
 
+import pycommence
+from amherst import am_db, app_file, am_types
 import pycommence
 from amherst import am_db, app_file
 from pycommence import cursor
@@ -16,42 +35,16 @@ def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=str)
     arg_parser.add_argument('record_name', type=str)
-    arg_parser.add_argument('env_loc', type=str, nargs='?', default=None)
     return arg_parser.parse_args()
 
 
-def main(
-        category: str = None,
-        record_name: str = None,
-        env_loc: str = None,
-):
-    if not all([category, record_name, env_loc]):
-        args = parse_arguments()
-        category = category or args.category
-        record_name = record_name or args.record_name
-        env_loc = env_loc or args.env_loc or os.environ.get('AMHERST_ENV')
-        env_path = pathlib.Path(env_loc)
-        if not env_path.resolve().exists():
-            raise FileNotFoundError(f'Environment file not found at {env_loc}')
-
-    load_dotenv(env_loc)
+def main(category: am_types.AmherstTableName, record_name: str):
     am_db.create_db()
 
-    with cursor.csr_context(category) as csr:
-        pycmc = pycommence.PyCommence(csr=csr)
-
-    record = pycmc.one_record(record_name)
+    py_cmc = pycommence.PyCommence.from_table_name(table_name=category)
+    record = py_cmc.one_record(record_name)
     man_id = am_db.record_to_manager(category, record)
-    am_db.logger.info(f'added booking manager {man_id}')
-
-    # if manager.item.cmc_table_name in ['Sale', 'Customer']:
-    #     invoice_email = manager.item.record.get(manager.item.fields_enum.INVOICE_EMAIL)
-    # elif manager.item.cmc_table_name == 'Hire':
-    #     with csr_api.csr_context('Customer') as csr:
-    #         handler = csr_handler.CmcHandler(csr=csr)
-    #         record = handler.one_record(manager.item.fields_enum.CUSTOMER)
-    #         invoice_email = record.get(manager.item.fields_enum.INVOICE_EMAIL)
-
+    logger.info(f'added booking manager #{man_id}')
     try:
         fui = FlaskUI(
             fullscreen=True,
@@ -62,16 +55,14 @@ def main(
         fui.run()
     except Exception as e:
         if "got an unexpected keyword argument 'url_suffix'" in str(e):
-            raise ValueError(
-                'URL_SUFFIX is not compatible with this version of FlaskWebGui'
-                'Please install flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
-            )
-
-        ...
+            msg = ('URL_SUFFIX is not compatible with this version of FlaskWebGui'
+                   'Install PawRequest/flaskwebgui from  @ git+https://github.com/pawrequest/flaskwebgui')
+            logger.exception(msg)
+            raise ValueError(msg)
     finally:
         close_application()
 
 
 if __name__ == '__main__':
     args = parse_arguments()
-    main(args.category, args.record_name, args.env_loc)
+    main(args.category, args.record_name)

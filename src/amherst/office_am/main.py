@@ -95,7 +95,7 @@ def do_cmc(cmc, table, transaction, outfile):
 def do_email(attachment: Path, handler: EmailHandler, email_=DFLT_HIRE_EMAIL):
     email_.attachment_path = attachment
     try:
-        handler.send_email(email_)
+        handler.create_open_email(email_)
 
     except EmailError as e:
         sg.popup_error(f'Email failed with error: {e}')

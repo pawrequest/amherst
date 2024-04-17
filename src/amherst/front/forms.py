@@ -41,7 +41,7 @@ async def manual_post(
         town=fastapi.Form(...),
         postcode=fastapi.Form(...),
         # country=fastapi.Form('GB'),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 
 ):
     address_choice = pf_ext.AddressRecipient.model_validate(
@@ -90,7 +90,7 @@ async def manual_post(
 @router.post('/select/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def select_post(
         manager_id: int,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 
         address=fastapi.Form(None),
 
@@ -219,26 +219,24 @@ async def man_in_to_out(man_in: managers.BookingManagerDB) -> managers.BookingMa
 @router.post('/postcode2/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def postcode_post2(
         manager_id: int,
-        fetch_address_from_postcode=fastapi.Form(...),
+        postcode: str = fastapi.Form(...),
         session=fastapi.Depends(am_db.get_session),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 ) -> list[c.AnyComponent]:
-    pc = fetch_address_from_postcode.upper()
-
-    if shipr_types.is_valid_postcode(pc):
+    if shipr_types.is_valid_postcode(postcode):
         man_in = await support.get_manager(manager_id, session)
-        man_in.state.candidates = pfcom.get_candidates(fetch_address_from_postcode)
+        man_in.state.candidates = pfcom.get_candidates(postcode)
         session.add(man_in)
         session.commit()
         alert_dict = {}
     else:
-        alert_dict = {f'INVALID POSTCODE : {pc}': 'ERROR'}
-        logger.warning(f'Invalid postcode: {pc}')
+        alert_dict = {f'INVALID POSTCODE : {postcode}': 'ERROR'}
+        logger.warning(f'Invalid postcode: {postcode}')
 
     return [
         c.FireEvent(
             event=e.GoToEvent(
-                url=f'/ship/view/{manager_id}',
+                url=f'/ship/select/{manager_id}',
                 # target='_blank',
             )
         )
@@ -269,7 +267,7 @@ async def postcode_post(
         manager_id: int,
         form: Annotated[ship_forms.PostcodeSelect, fastui_form(ship_forms.PostcodeSelect)],
         session=fastapi.Depends(am_db.get_session),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 ) -> list[c.AnyComponent]:
     man_in = await support.get_manager(manager_id, session)
     man_in.state.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
@@ -501,7 +499,7 @@ async def postcode_post(
 async def full_post(
         form: Annotated[ship_forms.FullForm, fastui_form(ship_forms.FullForm)],
         manager_id: int,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
         session=fastapi.Depends(am_db.get_session),
 ):
     ...

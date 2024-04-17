@@ -1,14 +1,25 @@
 import contextlib
+import sys
+from pathlib import Path
 
+import flaskwebgui
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
 from starlette.staticfiles import StaticFiles
 
-from amherst import am_db, front
+from amherst import am_config, am_db, front
 from amherst.models import managers
 from suppawt.pawlogger import get_loguru
 
-logger = get_loguru(profile='local', log_file='amherst.log')
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # noinspection PyProtectedMember
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    BASE_DIR = Path(__file__).resolve().parent
+
+sett = am_config.AmSettings()
+logger = get_loguru(profile='local', log_file=BASE_DIR / 'amherst.log')
+logger.info(f'BASE_DIR is {BASE_DIR}')
 
 
 @contextlib.asynccontextmanager
@@ -29,16 +40,24 @@ async def lifespan(app_: FastAPI):
         ...
 
 
+static_path = BASE_DIR / 'front' / 'static'
+
 app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory='front/static'), name='static')
+app.mount('/static', StaticFiles(directory=str(static_path)), name='static')
 
 app.include_router(front.shipping_router, prefix='/api/ship')
 app.include_router(front.booking_router, prefix='/api/book')
 app.include_router(front.booked_router, prefix='/api/booked')
 app.include_router(front.forms_router, prefix='/api/forms')
-app.include_router(front.ship_model_router, prefix='/api/ship_model')
-app.include_router(front.forms_test_router, prefix='/api/forms_test')
 app.include_router(front.email_router, prefix='/api/email')
+app.include_router(front.shared_router, prefix='/api/email')
+
+
+@app.get('/close_app/', response_model=None, response_model_exclude_none=True)
+async def close_app(
+):
+    """Endpoint to close the application."""
+    flaskwebgui.close_application()
 
 
 @app.get('/robots.txt', response_class=responses.PlainTextResponse)

@@ -35,7 +35,7 @@ def initial_state(
     return shipr.ShipState.model_validate(state.model_dump())
 
 
-def generic_item_to_manager(
+def item_to_manager(
         shipable: shipable_item.ShipableItem,
         pfcom: shipper.AmShipper,
 ) -> managers.BookingManagerDB:

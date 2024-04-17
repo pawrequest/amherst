@@ -2,10 +2,12 @@
 
 
 a = Analysis(
-    ['src\\amherst\\amherst_fastui_app.py'],
+    ['src/amherst/amherst_fastui_desktop.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+         ('src/amherst/front/static', 'front/static'),
+],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -21,7 +23,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='amherst_fastui_app',
+    name='amherst_fastui_desktop',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -1,40 +1,25 @@
+"""
+Pages and Endpoints for Booking Shipments.
+"""
 from __future__ import annotations
-
 import datetime as dt
 import os
-import typing as _t
 
 import fastapi
 import sqlmodel as sqm
-from fastapi import responses
 from fastui import FastUI, components as c, events, events as e
-from fastui.forms import fastui_form
 from loguru import logger
 
 import shipr
 from amherst import am_db, shipper
 from amherst.front import booked, ship, support
+from amherst.front.support import update_manager_state
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
-from shipr.ship_ui import states, states as ship_states
+from shipr.ship_ui import states as ship_states
+
 
 router = fastapi.APIRouter()
-
-
-@router.post('/confirm_post/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def confirm_post(
-        manager_id: int,
-        form: _t.Annotated[
-            ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
-        session=fastapi.Depends(am_db.get_session),
-
-):
-    update = ship_states.ShipStatePartial.model_validate(form.model_dump())
-    if update.address.postcode:
-        update.candidates = pfcom.get_candidates(update.address.postcode)
-    await support.update_and_commit(manager_id, update, session)
-    return responses.RedirectResponse(url=f'/ship/select/{manager_id}')
 
 
 @router.get(
@@ -42,13 +27,13 @@ async def confirm_post(
     response_model=FastUI,
     response_model_exclude_none=True
 )
-async def get_confirmation(
+async def confirm_or_back(
         manager_id: int,
         state_64: str,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
-    """Endpoint returning Booking Confirmation Page.
+    """Endpoint to submit state and return 'Confirm or Back' page.
 
     Args:
         manager_id (int): BookingManager id.
@@ -60,23 +45,20 @@ async def get_confirmation(
         c.Page: :meth:`~confirm_book_page`
 
     """
-    state = states.ShipState.model_validate_64(state_64)
+    state = ship_states.ShipState.model_validate_64(state_64)
     state.candidates = pfcom.get_candidates(state.address.postcode)
 
-    man_in = await support.get_manager(manager_id, session)
-    man_in.state = state
-    session.add(man_in)
-    session.commit()
-    session.refresh(man_in)
-    return await confirm_book_page(man_in)
+    man_in = await update_manager_state(manager_id, session, state)
+    return await confirm_or_back_page(man_in)
 
 
-async def confirm_book_page(
+async def confirm_or_back_page(
         manager: managers.MANAGER_IN_DB,
         alert_dict: pawui_types.AlertDict = None
-) -> list[
-    c.AnyComponent]:
-    """Confirmation page.
+) -> list[c.AnyComponent]:
+    """Confirm or Back page.
+    
+    Display the current state and buttons to proceed with booking or go back.
 
     Args:
         manager (managers.MANAGER_IN_DB): The manager object.
@@ -95,7 +77,7 @@ async def confirm_book_page(
             ),
             c.ServerLoad(path=f'/book/check_state/{manager.id}'),
             await confirm_div(manager),
-            await back_div(),
+            await back_div(manager.id),
         ],
         title='booking',
         alert_dict=alert_dict,
@@ -109,7 +91,7 @@ async def confirm_book_page(
 )
 async def do_booking(
         manager_id: int,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint for booking a shipment.
@@ -120,7 +102,6 @@ async def do_booking(
         session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
 
     Returns:
-        c.Page:
         - :meth:`~amherst.front.booked.booked_page`: Post-Booking Page on success.
         - :meth:`~amherst.front.ship.shipping_page`: Shipping Page on failure, which may include alerts.
 
@@ -210,6 +191,9 @@ async def process_shipment(
 ):
     """Process the shipment.
 
+    Update the manager with the booking state and wait for the label to download.
+    Open the label file in OS default pdf handler.
+
     Args:
         manager (managers.BookingManagerDB): The manager object.
         pfcom (shipper.AmShipper): :class:`~shipper.AmShipper` object.
@@ -219,20 +203,23 @@ async def process_shipment(
     Returns:
         managers.BookingManagerDB: The manager object.
 
+    Raises:
+        shipr.ExpressLinkError: If the shipment is not completed.
+
     """
     if not resp.completed_shipment_info:
-        raise shipr.ExpressLinkError(str(states.response_alert_dict(resp)))
+        raise shipr.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
 
-    booked_state = states.BookingState.model_validate(dict(request=req, response=resp))
+    booked_state = ship_states.BookingState.model_validate(dict(request=req, response=resp))
     new_ship_state = manager.state.model_copy(update={'booking_state': booked_state})
     val_ship_state = shipr.ShipState.model_validate(new_ship_state)
-    await support.wait_label2(val_ship_state, pfcom)
+    await support.wait_label(val_ship_state, pfcom)
     os.startfile(val_ship_state.booking_state.label_dl_path)
     manager.state = val_ship_state
     return manager
 
 
-async def back_div():
+async def back_div(manager_id: int):
     """Back button."""
     return c.Div(
         class_name='row my-3',
@@ -240,7 +227,7 @@ async def back_div():
             c.Button(
                 class_name='row btn btn-lg btn-primary',
                 text='Back',
-                on_click=events.GoToEvent(url='/ship/select/1'),
+                on_click=events.GoToEvent(url=f'/ship/select/{manager_id}'),
             )
         ]
     )
@@ -258,3 +245,20 @@ async def confirm_div(manager):
             )
         ]
     )
+
+# unused? 
+# @router.post('/confirm_post/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def confirm_post(
+#         manager_id: int,
+#         form: _t.Annotated[
+#             ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
+#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+#         session=fastapi.Depends(am_db.get_session),
+# 
+# ):
+#     """Endpoint for posting confirmation form."""
+#     update = ship_states.ShipStatePartial.model_validate(form.model_dump())
+#     if update.address.postcode:
+#         update.candidates = pfcom.get_candidates(update.address.postcode)
+#     await support.update_and_commit(manager_id, update, session)
+#     return responses.RedirectResponse(url=f'/ship/select/{manager_id}')

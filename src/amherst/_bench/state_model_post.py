@@ -17,7 +17,7 @@ async def state_post(
         manager_id: int,
         form: _t.Annotated[
             ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_pfc),
+        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
         session=fastapi.Depends(am_db.get_session),
 
 ):
