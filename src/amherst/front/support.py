@@ -10,12 +10,12 @@ import sqlmodel as sqm
 from fastui import components as c
 from loguru import logger
 
-import shipr
+import shipaw
 from amherst import am_config, shipper
 from amherst.models import am_shared, managers
 from amherst.models.shipable_item import ShipableItem
-from shipr.models import pf_shared
-from shipr.ship_ui import states
+from shipaw.models import pf_shared
+from shipaw.ship_ui import states
 
 
 class ManagerNotFound(Exception):
@@ -32,7 +32,7 @@ async def get_manager(manager_id: int, session: sqm.Session):
 
 async def update_state(man_in, updt):
     updated_state_ = man_in.state.get_updated(updt)
-    updated_state = shipr.ShipState.model_validate(updated_state_)
+    updated_state = shipaw.ShipState.model_validate(updated_state_)
     man_in.state = updated_state
     return man_in
 
@@ -40,7 +40,7 @@ async def update_state(man_in, updt):
 async def update_and_commit(manager_id, partial, session) -> managers.BookingManagerOut:
     man_in = await get_manager(manager_id, session)
     updated_state_ = man_in.state.get_updated(partial)
-    updated_state = shipr.ShipState.model_validate(updated_state_)
+    updated_state = shipaw.ShipState.model_validate(updated_state_)
     man_in.state = updated_state
     session.add(man_in)
     session.commit()
@@ -49,7 +49,7 @@ async def update_and_commit(manager_id, partial, session) -> managers.BookingMan
     return man_out
 
 
-async def wait_label(state: shipr.ShipState, pfcom: shipper.AmShipper) -> bool:
+async def wait_label(state: shipaw.ShipState, pfcom: shipper.AmShipper) -> bool:
     label_path = pfcom.get_label(
         ship_num=state.booking_state.shipment_num(),
         dl_path=state.named_label_path if state.direction == 'in' else None,
@@ -87,7 +87,7 @@ FormKind: _t.TypeAlias = _t.Literal['manual', 'select']  # noqa: UP040 fastui no
 type Fui_Page = list[c.AnyComponent]
 
 
-def get_named_labelpath(state: shipr.ShipState):
+def get_named_labelpath(state: shipaw.ShipState):
     """Get a unique path (for saving) for the label."""
     sett = am_config.AmSettings()
     pdir = sett.parcelforce_labels_dir

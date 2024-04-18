@@ -11,7 +11,7 @@ from amherst.front import shared
 from amherst.front.support import get_manager_label_path, prnt_label_arrayed
 from amherst.models import managers
 from pawdantic.pawui import builders
-from shipr.ship_ui import states as ship_states
+from shipaw.ship_ui import states as ship_states
 
 router = fastapi.APIRouter()
 

@@ -7,7 +7,7 @@ from amherst.front import shared, support
 from amherst import am_db
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
-from shipr.ship_ui import forms as shipforms
+from shipaw.ship_ui import forms as shipforms
 
 router = APIRouter()
 

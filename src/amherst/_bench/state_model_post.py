@@ -7,7 +7,7 @@ from fastui.forms import fastui_form
 
 from amherst import am_db, shipper
 from amherst.front import support
-from shipr.ship_ui import states as ship_states
+from shipaw.ship_ui import states as ship_states
 
 router = APIRouter()
 

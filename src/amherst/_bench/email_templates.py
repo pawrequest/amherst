@@ -4,7 +4,7 @@ from amherst.front import support
 from amherst.front.support import state_notification_labels_str
 from amherst.models import managers
 from pawdantic import paw_strings
-from shipr.ship_ui import states
+from shipaw.ship_ui import states
 from suppawt.office_ps import email_handler as eh
 
 

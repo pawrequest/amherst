@@ -4,7 +4,7 @@ import typing as _t
 
 from loguru import logger
 
-from shipr.models import pf_top
+from shipaw.models import pf_top
 
 ModelKind: _t.TypeAlias = _t.Literal['zero', 'minimum', 'simple', 'collect']  # noqa: UP040
 valid_model_kinds = _t.get_args(ModelKind)

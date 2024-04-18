@@ -8,7 +8,7 @@ import pycommence
 from amherst.am_types import AmherstFieldsEnumType, AmherstTableName
 from amherst.models import am_shared
 from pycommence import pycmc_types
-from shipr.models import base_item, pf_ext, pf_lists, pf_top
+from shipaw.models import base_item, pf_ext, pf_lists, pf_top
 
 
 # enum_map = {

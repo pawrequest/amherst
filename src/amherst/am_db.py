@@ -12,7 +12,7 @@ from loguru import logger
 
 from amherst import am_config, am_types, rec_importer, shipper
 from amherst.models import shipable_item
-from shipr import pf_config
+from shipaw import pf_config
 
 
 @functools.lru_cache(maxsize=1)

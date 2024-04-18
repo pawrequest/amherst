@@ -12,7 +12,7 @@ from amherst.front import support
 from amherst.models import am_shared, managers
 from amherst.models.shipable_item import ShipableItem
 from pawdantic import paw_strings
-from shipr.ship_ui import states
+from shipaw.ship_ui import states
 from suppawt.office_ps import email_handler as eh
 from suppawt.office_ps.ms import outlook_handler as oh
 
@@ -210,7 +210,7 @@ def get_email_options(manager: managers.MANAGER_IN_DB):
 #     handler.create_open_email(email)
 
 
-# def send_label1(state: shipr.ShipState):
+# def send_label1(state: shipaw.ShipState):
 #     """Send the label by email."""
 #     email = email_templates.return_label_email(state)
 #     handler = oh.OutlookHandler()

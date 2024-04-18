@@ -1,16 +1,16 @@
 from loguru import logger
-import shipr
+import shipaw
 from amherst import shipper
 from amherst.models import managers, shipable_item
-from shipr import shipr_types as s_types
-from shipr.models import pf_ext, pf_shared
+from shipaw import shipaw_types as s_types
+from shipaw.models import pf_ext, pf_shared
 
 
 def initial_state(
         shipable: shipable_item.ShipableItem,
         pfcom: shipper.ELClient,
-) -> shipr.ShipState:
-    state = shipr.ShipStatePartial()
+) -> shipaw.ShipState:
+    state = shipaw.ShipStatePartial()
     try:
         state.address = pfcom.choose_address(shipable.input_address)
         state.candidates = pfcom.get_candidates(shipable.input_address.postcode)
@@ -32,7 +32,7 @@ def initial_state(
     state.direction = 'out'
     state.reference = state.contact.business_name
 
-    return shipr.ShipState.model_validate(state.model_dump())
+    return shipaw.ShipState.model_validate(state.model_dump())
 
 
 def item_to_manager(

@@ -12,7 +12,7 @@ from amherst import am_db, shipper
 from amherst.front import support
 from amherst._bench.benched_types import ModelKind
 from pawdantic.pawui import builders
-from shipr.models import pf_top
+from shipaw.models import pf_top
 
 router = APIRouter()
 

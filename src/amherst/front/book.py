@@ -10,13 +10,13 @@ import sqlmodel as sqm
 from fastui import FastUI, components as c, events, events as e
 from loguru import logger
 
-import shipr
+import shipaw
 from amherst import am_db, shipper
 from amherst.front import booked, ship, support
 from amherst.front.support import update_manager_state
 from amherst.models import managers
 from pawdantic.pawui import builders, pawui_types
-from shipr.ship_ui import states as ship_states
+from shipaw.ship_ui import states as ship_states
 
 
 router = fastapi.APIRouter()
@@ -118,7 +118,7 @@ async def do_booking(
         if man_in.state.direction == 'in':
             tod = dt.date.today()
             if man_in.state.ship_date <= tod:
-                raise shipr.ExpressLinkError('CAN NOT COLLECT TODAY')
+                raise shipaw.ExpressLinkError('CAN NOT COLLECT TODAY')
 
         req, resp = await book_shipment(man_in, pfcom)
         processed_manager = await process_shipment(man_in, pfcom, req, resp)
@@ -128,7 +128,7 @@ async def do_booking(
         man_out = managers.BookingManagerOut.model_validate(processed_manager)
         return await booked.booked_page(manager=man_out)
 
-    except shipr.ExpressLinkError as err:
+    except shipaw.ExpressLinkError as err:
         alert_dict = {str(err): 'ERROR'}
         man_out = managers.BookingManagerOut.model_validate(man_in)
 
@@ -204,15 +204,15 @@ async def process_shipment(
         managers.BookingManagerDB: The manager object.
 
     Raises:
-        shipr.ExpressLinkError: If the shipment is not completed.
+        shipaw.ExpressLinkError: If the shipment is not completed.
 
     """
     if not resp.completed_shipment_info:
-        raise shipr.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
+        raise shipaw.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
 
     booked_state = ship_states.BookingState.model_validate(dict(request=req, response=resp))
     new_ship_state = manager.state.model_copy(update={'booking_state': booked_state})
-    val_ship_state = shipr.ShipState.model_validate(new_ship_state)
+    val_ship_state = shipaw.ShipState.model_validate(new_ship_state)
     await support.wait_label(val_ship_state, pfcom)
     os.startfile(val_ship_state.booking_state.label_dl_path)
     manager.state = val_ship_state

@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import os
 
-from shipr import ELClient, msgs, ship_ui
-from shipr.models import pf_ext, pf_lists, pf_shared, pf_top
+from shipaw import ELClient, msgs, ship_ui
+from shipaw.models import pf_ext, pf_lists, pf_shared, pf_top
 
 
 class HomeAddress(pf_ext.BaseAddress):

@@ -12,9 +12,9 @@ from amherst import am_db, shipper
 from amherst.front import ship, support
 from amherst.models import managers
 from pawdantic.pawui import pawui_types
-from shipr import shipr_types
-from shipr.models import pf_ext, pf_top
-from shipr.ship_ui import forms as ship_forms, states as shipstates
+from shipaw import shipaw_types
+from shipaw.models import pf_ext, pf_top
+from shipaw.ship_ui import forms as ship_forms, states as shipstates
 
 router = fastapi.APIRouter()
 
@@ -223,7 +223,7 @@ async def postcode_post2(
         session=fastapi.Depends(am_db.get_session),
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 ) -> list[c.AnyComponent]:
-    if shipr_types.is_valid_postcode(postcode):
+    if shipaw_types.is_valid_postcode(postcode):
         man_in = await support.get_manager(manager_id, session)
         man_in.state.candidates = pfcom.get_candidates(postcode)
         session.add(man_in)
@@ -274,7 +274,7 @@ async def postcode_post(
     session.add(man_in)
     session.commit()
 
-    if not shipr_types.is_valid_postcode(form.fetch_address_from_postcode):
+    if not shipaw_types.is_valid_postcode(form.fetch_address_from_postcode):
         logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
         alertdict: pawui_types.AlertDict = {
             f'INVALID POSTCODE : {form.fetch_address_from_postcode}': 'ERROR'
@@ -324,7 +324,7 @@ async def postcode_post(
 #         session=fastapi.Depends(am_db.get_session),
 # ) -> list[c.AnyComponent]:
 #     man_in = await get_manager(manager_id, session)
-#     contact = shipr.models.Contact.model_validate(form.model_dump())
+#     contact = shipaw.models.Contact.model_validate(form.model_dump())
 #     man_in.state.contact = contact
 #     session.add(man_in)
 #     session.commit()
@@ -370,13 +370,13 @@ async def postcode_post(
 #         session=fastapi.Depends(am_db.get_session),
 # ):
 #     man_in = await get_manager(manager_id, session)
-#     contact = shipr.models.Contact(
+#     contact = shipaw.models.Contact(
 #         business_name=form.business_name,
 #         email_address=form.email_address,
 #         mobile_phone=form.mobile_phone,
 #         contact_name=form.contact_name,
 #     )
-#     address = shipr.models.AddressRecipient(
+#     address = shipaw.models.AddressRecipient(
 #         address_line1=form.address_line1,
 #         address_line2=form.address_line2,
 #         address_line3=form.address_line3,
@@ -447,7 +447,7 @@ async def postcode_post(
 #         ship_date=form.ship_date,
 #         direction=form.direction.value,
 #         contact=pf_top.Contact.model_validate(
-#             shipr.models.Contact(
+#             shipaw.models.Contact(
 #                 business_name=form.business_name,
 #                 email_address=form.email_address,
 #                 mobile_phone=form.mobile_phone,
@@ -455,7 +455,7 @@ async def postcode_post(
 #             )
 #         ),
 #         address=pf_ext.AddressRecipient.model_validate(
-#             shipr.models.AddressRecipient(
+#             shipaw.models.AddressRecipient(
 #                 address_line1=form.address_line1,
 #                 address_line2=form.address_line2,
 #                 address_line3=form.address_line3,
@@ -482,7 +482,7 @@ async def postcode_post(
 #         session=fastapi.Depends(am_db.get_session),
 # ) -> list[c.AnyComponent]:
 #     man_in = await get_manager(manager_id, session)
-#     address = shipr.models.AddressRecipient.model_validate(form.model_dump())
+#     address = shipaw.models.AddressRecipient.model_validate(form.model_dump())
 #     man_in.state.address = address
 #     session.add(man_in)
 #     session.commit()
