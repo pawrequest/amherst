@@ -25,4 +25,4 @@ temp_label.pdf
 
 /src/amherst/test_db
 /src/amherst/amherst.db_test
-/docs_ship_out/
+docs/build/
