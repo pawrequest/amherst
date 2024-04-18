@@ -17,7 +17,7 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
 else:
     BASE_DIR = Path(__file__).resolve().parent
 
-sett = am_config.AmSettings()
+sett = am_config.AM_SETTINGS
 logger = get_loguru(profile='local', log_file=BASE_DIR / 'amherst.log')
 logger.info(f'BASE_DIR is {BASE_DIR}')
 
@@ -50,13 +50,14 @@ app.include_router(front.booking_router, prefix='/api/book')
 app.include_router(front.booked_router, prefix='/api/booked')
 app.include_router(front.forms_router, prefix='/api/forms')
 app.include_router(front.email_router, prefix='/api/email')
-app.include_router(front.shared_router, prefix='/api/email')
+app.include_router(front.shared_router, prefix='/api/shared')
 
 
-@app.get('/close_app/', response_model=None, response_model_exclude_none=True)
+@app.get('/api/close_app/', response_model=None, response_model_exclude_none=True)
 async def close_app(
 ):
     """Endpoint to close the application."""
+    logger.warning('Closing application')
     flaskwebgui.close_application()
 
 

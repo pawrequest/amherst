@@ -21,12 +21,10 @@ import argparse
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
+import pycommence
 
-import pycommence
-from amherst import am_db, app_file, am_types
-import pycommence
-from amherst import am_db, app_file
-from pycommence import cursor
+from amherst import am_db, am_types, app_file
+
 
 # logger = get_loguru(profile='local', log_file='amherst.log')
 

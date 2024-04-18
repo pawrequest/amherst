@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import os
 from contextlib import contextmanager
 
 import httpx
@@ -9,10 +8,10 @@ import pydantic as _p
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
+from shipaw import pf_config
 
 from amherst import am_config, am_types, rec_importer, shipper
 from amherst.models import shipable_item
-from shipaw import pf_config
 
 
 @functools.lru_cache(maxsize=1)
@@ -20,8 +19,16 @@ def get_engine() -> sqa.engine.base.Engine:
     pf_sett = pf_config.PF_SETTINGS
     am_sett = am_config.AM_SETTINGS
 
-    db_name = f'{str(am_sett.db_loc)}{'' if pf_sett.ship_live else "_test"}'
-    db_url = f'sqlite:///{db_name}'
+    # db_name = f'{str(am_sett.db_loc)}{'' if pf_sett.ship_live else "_test"}'
+    # db_url = f'sqlite:///{db_name}'
+
+    db_name = am_sett.db_loc.with_name(
+        f"{am_sett.db_loc.stem}{'_test' if not pf_sett.ship_live else ''}{am_sett.db_loc.suffix}"
+    )
+    db_url = f"sqlite:///{db_name.as_posix()}"
+    if not db_name.exists():
+        db_name.touch()
+
     logger.info(f'DB_URL: {db_url}')
     connect_args = {'check_same_thread': False}
     return sqa.create_engine(db_url, echo=False, connect_args=connect_args)
@@ -37,7 +44,7 @@ def get_session(engine=None) -> sqm.Session:
 
 def get_el_client():
     try:
-        return shipper.AmShipper.from_pyd()
+        return shipper.AmShipper.from_pyd(settings=pf_config.PF_SETTINGS)
     except Exception as e:
         logger.error(f'get_pfc: {e}')
 

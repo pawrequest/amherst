@@ -2,6 +2,7 @@ import fastapi
 import sqlmodel
 from fastapi import APIRouter, Depends
 from fastui import FastUI, class_name as class_name_, components as c, events, events as e
+from shipaw import pf_config
 
 from amherst.front import shared, support
 from amherst import am_db
@@ -34,6 +35,9 @@ async def shipping_page(
         FastUI page (support.Fui_Page): FastUI page
 
     """
+    pf_sett = pf_config.PF_SETTINGS
+    bg_col = ' bg-light' if pf_sett.ship_live else ' bg-warning'
+    page_style = f'container{bg_col}'
 
     manager = await support.get_manager(manager_id, session)
     if send_method_column := getattr(manager.item.fields_enum, 'SEND_METHOD', None):
@@ -42,6 +46,7 @@ async def shipping_page(
                 alert = {'Commence Send Method not include "parcelforce"': 'WARNING'}
                 alert_dict = alert | alert_dict if alert_dict else alert
     return await builders.page_w_alerts(
+        page_class_name=page_style,
         alert_dict=alert_dict,
         components=[
             await left_col(manager),
@@ -71,6 +76,7 @@ async def left_col(manager: managers.MANAGER_IN_DB) -> c.Div:
         components=[
             await input_address_div(manager),
             await shared.email_div(manager, ['invoice', 'missing_kit']),
+            await shared.close_div(),
             # await address_from_pc_div(manager),
         ],
     )
