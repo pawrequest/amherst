@@ -12,12 +12,9 @@ wheels/
 /.idea
 /.idea/
 .env
-/docs/_build/
+/docs/build/
 /amherst.db
-/notenv
 /src/amherst/amherst.db
-/docs/docs_out/
-/docs/docs_ship_out/
 *.log
 temp_label.pdf
 /docs/shipper_out/
@@ -25,4 +22,3 @@ temp_label.pdf
 
 /src/amherst/test_db
 /src/amherst/amherst.db_test
-docs/build/
