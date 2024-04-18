@@ -1,5 +1,6 @@
-git+https://github.com/pawrequest/pycommence
-git+https://github.com/pawrequest/fastuipr
-git+https://github.com/pawrequest/shipr
 git+https://github.com/pawrequest/flaskwebgui
+git+https://github.com/pawrequest/pycommence
 git+https://github.com/pawrequest/pdf_tools
+git+https://github.com/pawrequest/shipaw
+git+https://github.com/pawrequest/pawdantic
+git+https://github.com/pawrequest/suppawt

@@ -1,3 +1,1 @@
--e file:///C:/Users/Giles/prdev/amdev/fastuipr
--e file:///C:/Users/Giles/prdev/amdev/shipr
--e file:///C:/Users/Giles/prdev/amherst
+-e .

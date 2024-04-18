@@ -1,9 +1,12 @@
-git+https://github.com/pawrequest/flaskwebgui
-suppawt[fast]
-pydantic
+email-validator
 fastapi
+git+https://github.com/pawrequest/flaskwebgui
+httpx
+pydantic-extra-types
+pydantic[email]
+pydantic_settings
 pypdf
+python-dotenv
+pywin32
 sqlmodel
 uvicorn[standard]
-python-dotenv
-httpx

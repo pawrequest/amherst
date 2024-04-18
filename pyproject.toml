@@ -12,13 +12,14 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
-    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
-    'pawdantic[ui, sql]',
+    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
+    'shipaw @ git+https://github.com/pawrequest/shipaw',
+    'pawdantic[ui, sql] @ git+https://github.com/pawrequest/pawdantic',
+    'suppawt @ git+https://github.com/pawrequest/suppawt',
+
     'pydantic_settings',
-    'shipr',
-    'pycommence',
-    'suppawt',
     'pydantic[email]',
     'email-validator',
     'pydantic-extra-types',
@@ -28,13 +29,9 @@ dependencies = [
     'uvicorn[standard]',
     'python-dotenv',
     'httpx',
-#    "docx2pdf",
-#    "docxtpl",
-#    "openpyxl",
     "pywin32",
-#    "xlrd",
-#    'pyautogui',
 ]
+
 [project.optional-dependencies]
 dev = [
     'pyinstaller',
@@ -46,7 +43,7 @@ git = [
     'suppawt @ git+https://github.com/pawrequest/suppawt', ]
 
 [tool.rye]
-managed = true
+managed = false
 dev-dependencies = [
     "sphinx",
     "sphinx-autodoc-typehints",

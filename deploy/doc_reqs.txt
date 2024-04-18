@@ -1,0 +1,7 @@
+sphinx
+sphinx-autodoc-typehints
+sphinx-autodoc2
+sphinx-rtd-theme
+sphinx-readme
+myst-parser
+sphinx_rtd_dark_mode
