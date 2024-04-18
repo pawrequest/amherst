@@ -2,7 +2,7 @@ from loguru import logger
 import shipaw
 from amherst import shipper
 from amherst.models import managers, shipable_item
-from shipaw import shipaw_types as s_types
+from shipaw import ship_types as s_types
 from shipaw.models import pf_ext, pf_shared
 
 

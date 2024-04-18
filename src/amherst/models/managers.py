@@ -4,7 +4,7 @@ import datetime as dt
 
 import sqlmodel as sqm
 
-from shipaw import shipaw_types as s_types
+from shipaw import ship_types as s_types
 from shipaw.ship_ui import states
 from . import shipable_item
 

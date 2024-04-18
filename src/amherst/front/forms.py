@@ -12,7 +12,7 @@ from amherst import am_db, shipper
 from amherst.front import ship, support
 from amherst.models import managers
 from pawdantic.pawui import pawui_types
-from shipaw import shipaw_types
+from shipaw import ship_types
 from shipaw.models import pf_ext, pf_top
 from shipaw.ship_ui import forms as ship_forms, states as shipstates
 
@@ -223,7 +223,7 @@ async def postcode_post2(
         session=fastapi.Depends(am_db.get_session),
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 ) -> list[c.AnyComponent]:
-    if shipaw_types.is_valid_postcode(postcode):
+    if ship_types.is_valid_postcode(postcode):
         man_in = await support.get_manager(manager_id, session)
         man_in.state.candidates = pfcom.get_candidates(postcode)
         session.add(man_in)
@@ -274,7 +274,7 @@ async def postcode_post(
     session.add(man_in)
     session.commit()
 
-    if not shipaw_types.is_valid_postcode(form.fetch_address_from_postcode):
+    if not ship_types.is_valid_postcode(form.fetch_address_from_postcode):
         logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
         alertdict: pawui_types.AlertDict = {
             f'INVALID POSTCODE : {form.fetch_address_from_postcode}': 'ERROR'

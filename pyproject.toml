@@ -36,9 +36,16 @@ dependencies = [
 dev = [
     'pyinstaller',
     "pytest",
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx-autodoc2",
+    "sphinx-rtd-theme",
+    "sphinx-readme",
+    "myst-parser",
+    "sphinx_rtd_dark_mode",
 ]
 git = [
-    'shipr @ git+https://github.com/pawrequest/shipr',
+    'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
     'suppawt @ git+https://github.com/pawrequest/suppawt', ]
 
