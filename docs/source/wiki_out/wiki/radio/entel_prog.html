@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Programming Entel Fleets &mdash; Amherst  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Entel Demo Features" href="entel_demo_fleet.html" />
+    <link rel="prev" title="Entel DX 485 Guide" href="entel_guide.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Amherst
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../procedures/proc.html">Amherst Procedures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../shipping/ship.html">Shipping Services</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="rad.html">Radios</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="entel_guide.html">Entel DX 485 Guide</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Programming Entel Fleets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prepare-fleet-file">Prepare Fleet File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configure-pools">Configure Pools</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#rf-channel-pool">RF Channel pool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#contacts-pool">Contacts Pool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#emergency-pool">Emergency pool</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#zones">Zones</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#configure-first-radio">Configure First Radio</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#channel-preset-tab">Channel Preset Tab</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#general-info-tab">General Info Tab</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#button-layout-tab">Button Layout Tab</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#contact-list-tab">Contact List Tab</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#add-more-radios-to-fleet">Add More Radios To Fleet.</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#write-data-to-radios">Write Data To Radios</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="entel_demo_fleet.html">Entel Demo Features</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../office/bt.html">BT Cloud VOIP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../instructions/inst.html">Miscellaneous Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paul/pal.html">Paul’s Tools</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Amherst</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="rad.html">Radios</a></li>
+      <li class="breadcrumb-item active">Programming Entel Fleets</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/wiki/radio/entel_prog.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="programming-entel-fleets">
+<h1>Programming Entel Fleets<a class="headerlink" href="#programming-entel-fleets" title="Link to this heading"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>The DEFAULT24.efl <code class="docutils literal notranslate"><span class="pre">Fleet</span></code> has been preconfigured with our default settings and has one DX482 and one DX485 pre-populated.</p>
+<p>For simple 482-only jobs it will be enough to load the default fleet and begin programming the existing 482 profile to all radios.</p>
+<p>For jobs involving 485s or custom settings we will save the default fleet with a new name and make edits</p>
+<ul class="simple">
+<li><p>Load DEFAULT24.efl from <a href="file://///amherstmain/radio%20programming/data%20files/Entel">Entel Fleets Dir</a></p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="prepare-fleet-file">
+<h2>Prepare Fleet File<a class="headerlink" href="#prepare-fleet-file" title="Link to this heading"></a></h2>
+<p><strong>if only using DX482s, and all settings are default / no emergency:</strong></p>
+<ul class="simple">
+<li><p>skip to <a class="reference internal" href="#prog-target"><span class="std std-ref">Write Data To Radios</span></a> (program each radio with the only profile)</p></li>
+</ul>
+<p><strong>if only using one of 482s or 485s:</strong></p>
+<ul class="simple">
+<li><p>delete the unused radio-type</p></li>
+</ul>
+<p><strong>if using 485, or need emergency / custom settings:</strong></p>
+<ul class="simple">
+<li><p>save with new name</p></li>
+<li><p>continue through all sections</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="configure-pools">
+<h2>Configure Pools<a class="headerlink" href="#configure-pools" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Pools</span></code> are top-level organisers. They determine what is available to the <code class="docutils literal notranslate"><span class="pre">Zones</span></code> we will allocate to specific radios.
+You can not eg manually add channels to a radio without first adding to the <code class="docutils literal notranslate"><span class="pre">Channels</span> <span class="pre">Pool</span></code></p>
+<section id="rf-channel-pool">
+<h3>RF Channel pool<a class="headerlink" href="#rf-channel-pool" title="Link to this heading"></a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">Channel</span></code> is a combination of <em>Alias</em>, <em>Frequency</em>, <em>Colour Code</em>, etc</p>
+<ul class="simple">
+<li><p>Check / set channel data for every <code class="docutils literal notranslate"><span class="pre">Channel</span></code> you may need</p></li>
+<li><p>‘Assign selected channel to all zones if appropriate</p></li>
+</ul>
+</section>
+<section id="contacts-pool">
+<h3>Contacts Pool<a class="headerlink" href="#contacts-pool" title="Link to this heading"></a></h3>
+<p>A <code class="docutils literal notranslate"><span class="pre">Contact</span></code> is an <code class="docutils literal notranslate"><span class="pre">Individual</span></code> or <code class="docutils literal notranslate"><span class="pre">Group</span></code>, and has a <em>Name</em>, <em>Ident</em>, and (unused) <em>Calltype</em>
+We will make a contact for each user and each group of users.</p>
+<p>For each <code class="docutils literal notranslate"><span class="pre">Group</span></code> and <code class="docutils literal notranslate"><span class="pre">Individual</span></code> in the fleet:</p>
+<ul class="simple">
+<li><p>Set <em>Name</em> and (automated) <em>Ident</em></p></li>
+<li><p>‘Assign to all Zones’ if appropriate</p></li>
+</ul>
+</section>
+<section id="emergency-pool">
+<h3>Emergency pool<a class="headerlink" href="#emergency-pool" title="Link to this heading"></a></h3>
+<p>add emergency profiles for each configuration you want available in the <code class="docutils literal notranslate"><span class="pre">Zones</span></code>, eg ManDown / LoneWorker / Panic Alarm</p>
+</section>
+<section id="zones">
+<h3>Zones<a class="headerlink" href="#zones" title="Link to this heading"></a></h3>
+<p>Create a zone for each collection of RX groups (if multiple groups)
+eg, with groups All, ADMIN, and USER, we create zones same name.</p>
+<p>ALL zone would have radios not in any group and only receive calls made to ALL.
+ADMIN zone has ALL and ADMIN rx groups
+USER zone has ALL and USER rx groups</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="configure-first-radio">
+<h2>Configure First Radio<a class="headerlink" href="#configure-first-radio" title="Link to this heading"></a></h2>
+<p>Double click existing radio in pane on left of screen to configure it as a base to clone from</p>
+<section id="channel-preset-tab">
+<h3>Channel Preset Tab<a class="headerlink" href="#channel-preset-tab" title="Link to this heading"></a></h3>
+<p>Activate required zone/s for the individual radio
+For each channel in the Zone check that
+- frequencies are correct
+- (default) tx contact is correct i.e ‘all’ for simple fleets, or subgroup if complex ones.
+- rx group - The <code class="docutils literal notranslate"><span class="pre">Group</span></code> the radio is listening to
+- tx emergency - emergency profile or None</p>
+</section>
+<section id="general-info-tab">
+<h3>General Info Tab<a class="headerlink" href="#general-info-tab" title="Link to this heading"></a></h3>
+<p>Contact pool should match with a username - click ‘Use as radio alias’ if neccessary<br />
+Set boot zone - this is the default zone the radio boots into.</p>
+</section>
+<section id="button-layout-tab">
+<h3>Button Layout Tab<a class="headerlink" href="#button-layout-tab" title="Link to this heading"></a></h3>
+<p>Configure buttons.
+standard is to use orange button on top (long-press) for emergency on
+and blue button on side (long-press) for emergency off</p>
+</section>
+<section id="contact-list-tab">
+<h3>Contact List Tab<a class="headerlink" href="#contact-list-tab" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>check all groups and users have been added to the radio</p></li>
+<li><p>clone all user and all groups to all radios</p></li>
+</ul>
+<p><strong>IDIOT CHECK EVERYTHING NOW because now we clone it loads of times…</strong></p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="add-more-radios-to-fleet">
+<h2>Add More Radios To Fleet.<a class="headerlink" href="#add-more-radios-to-fleet" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>fleet -&gt; add radio, clone closest matching existing unit</p></li>
+<li><p>if same zone/group settings for all radios then click ‘use radio alias’</p></li>
+<li><p>if complex fleet create a base-radio with required Zones configured for each group</p></li>
+<li><p>repeat until all radios added</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+<section id="write-data-to-radios">
+<span id="prog-target"></span><h2>Write Data To Radios<a class="headerlink" href="#write-data-to-radios" title="Link to this heading"></a></h2>
+<p>programming window (utilites -&gt; programming window)</p>
+<ul class="simple">
+<li><p>connect a radio</p></li>
+<li><p>check / upgrade firmware if required</p></li>
+<li><p>select a personality from the drop down and hit write</p></li>
+<li><p>ignore wrong-serial warning</p></li>
+<li><p>ignore firmware-version warning (probably)</p></li>
+</ul>
+<p><strong>PUT THE ACC-PORT COVER BACK ON!!!!</strong></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="entel_guide.html" class="btn btn-neutral float-left" title="Entel DX 485 Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="entel_demo_fleet.html" class="btn btn-neutral float-right" title="Entel Demo Features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Paul Rush.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
