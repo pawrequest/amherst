@@ -1,10 +1,7 @@
-import datetime
-from abc import ABC
-
 import pycommence
-import pydantic as _p
 import pytest
-from pydantic import AliasChoices, ConfigDict, Field
+
+from amherst.models.shipable_item import ShipableRecord
 
 type OrDict[T] = T | dict[str, T]
 
@@ -19,21 +16,8 @@ home_data = {
 def test_smth(key, name):
     py_com = pycommence.PyCommence.from_table_name(key)
     record = py_com.one_record(name)
+    record['cmc_table_name'] = key
     val = ShipableRecord.model_validate(record)
     ...
 
 
-class ShipableRecord(_p.BaseModel, ABC):
-    model_config = ConfigDict(
-        extra='ignore',
-    )
-    name: str = Field(..., alias='Name')
-    customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
-    send_out_date: str = Field(datetime.date.today(), alias='Send Out Date')
-    boxes: int = Field(1, alias='Boxes')
-    contact: str = Field(..., validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact'))
-    business: str = Field(..., validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer'))
-    telephone: str = Field(..., validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone'))
-    email: str = Field(..., validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
-    address: str = Field(..., validation_alias=AliasChoices('Delivery Address', 'Deliv Address'))
-    postcode: str = Field(..., validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))

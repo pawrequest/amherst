@@ -1,37 +1,22 @@
 from __future__ import annotations
 
 import functools
-from contextlib import contextmanager
 
 import httpx
-import pydantic as _p
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
-from shipaw import pf_config
 
-from amherst import am_config, am_types, rec_importer, shipper
-from amherst.models import shipable_item
+from amherst import am_config, rec_importer, shipper
+from amherst.models import shipable_item, managers
+from amherst.rec_importer import initial_state
 
 
 @functools.lru_cache(maxsize=1)
 def get_engine() -> sqa.engine.base.Engine:
-    pf_sett = pf_config.PF_SETTINGS
     am_sett = am_config.AM_SETTINGS
-
-    # db_name = f'{str(am_sett.db_loc)}{'' if pf_sett.ship_live else "_test"}'
-    # db_url = f'sqlite:///{db_name}'
-
-    db_name = am_sett.db_loc.with_name(
-        f"{am_sett.db_loc.stem}{'_test' if not pf_sett.ship_live else ''}{am_sett.db_loc.suffix}"
-    )
-    db_url = f"sqlite:///{db_name.as_posix()}"
-    if not db_name.exists():
-        db_name.touch()
-
-    logger.info(f'DB_URL: {db_url}')
-    connect_args = {'check_same_thread': False}
-    return sqa.create_engine(db_url, echo=False, connect_args=connect_args)
+    connect_args = {"check_same_thread": False}
+    return sqa.create_engine(am_sett.db_url, echo=False, connect_args=connect_args)
 
 
 def get_session(engine=None) -> sqm.Session:
@@ -44,20 +29,10 @@ def get_session(engine=None) -> sqm.Session:
 
 def get_el_client():
     try:
-        return shipper.AmShipper.from_pyd(settings=pf_config.PF_SETTINGS)
+        return shipper.AmShipper()
     except Exception as e:
-        logger.error(f'get_pfc: {e}')
-
-
-@contextmanager
-def el_context():
-    try:
-        pfc_instance = shipper.AmShipper.from_pyd()
-        yield pfc_instance
-    except Exception as e:
-        logger.error(f'get_pfc: {e}')
-    finally:
-        ...
+        logger.error(f"get_pfc: {e}")
+        raise
 
 
 async def get_http_client():
@@ -71,41 +46,10 @@ def create_db(engine=None):
     sqm.SQLModel.metadata.create_all(engine)
 
 
-def destroy_db(engine=None):
-    if engine is None:
-        engine = get_engine()
-    sqm.SQLModel.metadata.drop_all(engine)
-
-    # db_path = pathlib.Path(db_name)
-    # db_path.unlink(missing_ok=True)
-
-
-def delete_all_records(model_type: type[_p.BaseModel]):
+def record_to_manager(ship_rec: shipable_item.ShipableRecord) -> int:
     with sqm.Session(get_engine()) as session:
-        statement = sqm.delete(model_type)
-        session.execute(statement)
-        session.commit()
-        logger.info(f'{model_type.__name__} old records deleted')
-
-
-def record_to_manager(category: am_types.AmherstTableName, record) -> int:
-    """Add Commence data to the database.
-
-    Convert a record from a Commence table to a :class:shipable_item.ShipableItem
-    Add item to a new :class:managers.BookingManagerDB
-    Commit manager to sql.
-
-    Args:
-        category (str): Commence table name
-        record (dict): Commence record
-
-    Returns:
-        int: Manager id
-    """
-    pf_shipper = shipper.AmShipper.from_pyd()
-    with sqm.Session(get_engine()) as session:
-        item = shipable_item.ShipableItem(cmc_table_name=category, record=record)
-        manager = rec_importer.item_to_manager(item, pfcom=pf_shipper)
+        manager = managers.BookingManagerDB(record=ship_rec, state=initial_state(ship_rec))
+        manager = manager.model_validate(manager)
         session.add(manager)
         session.commit()
         return manager.id

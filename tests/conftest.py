@@ -1,9 +1,8 @@
 # from dotenv import load_dotenv
 import pytest
+from shipaw import ELClient, pf_config
 from sqlmodel import SQLModel, Session, create_engine
 from shipaw.models import pf_ext, pf_top
-
-from amherst import shipper
 
 # from . import monkey as el_types
 
@@ -34,9 +33,17 @@ def test_session():
 
 ## ExpressLink
 
+
 @pytest.fixture
-def pfcom():
-    return shipper.ELClient.from_pyd()
+def sett():
+    settings = pf_config.sandbox_settings()
+    pf_config.PFSandboxSettings.model_validate(settings, from_attributes=True)
+    yield settings
+
+
+@pytest.fixture
+def el_client(sett):
+    yield ELClient(settings=sett)
 
 
 @pytest.fixture

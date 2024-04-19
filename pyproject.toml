@@ -14,11 +14,11 @@ requires-python = ">= 3.12"
 dependencies = [
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
+    'pawdf @ git+https://github.com/pawrequest/pawdf',
     'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pawdantic[ui, sql] @ git+https://github.com/pawrequest/pawdantic',
     'suppawt @ git+https://github.com/pawrequest/suppawt',
-    'pydantic_settings',
+    'pydantic-settings',
     'pydantic[email]',
     'email-validator',
     'pydantic-extra-types',

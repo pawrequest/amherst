@@ -10,7 +10,7 @@ from loguru import logger
 from amherst import am_db, am_types
 from amherst.front import support
 from amherst.models import am_shared, managers
-from amherst.models.shipable_item import ShipableItem
+from amherst.models.shipable_item import ShipableItem, ShipableRecord
 from pawdantic import paw_strings
 from shipaw.ship_ui import states
 from suppawt.office_ps import email_handler as eh
@@ -111,14 +111,12 @@ MISSING KIT:
 
 def compose_body(
         state: states.ShipState = None,
-        item: ShipableItem = None,
+        item: ShipableRecord = None,
         invoice: bool = False,
         missing_kit: bool = False,
         label: bool = False,
 ):
-    missing_strs = item.record.get(
-        am_shared.HireFields.MISSING_KIT
-    ).splitlines() if missing_kit else []
+    missing_strs = item.MISSING_KIT.splitlines() if missing_kit else []
     return f"""{GREETING}
 {INVOICE_BODY if invoice else ""}
 {missing_kit_body(missing_strs) if missing_kit else ""}
@@ -146,7 +144,7 @@ async def generic_email(
     Returns:
         EmailMultipleAttachments: The email object.
     """
-    if manager.item.cmc_table_name == 'Customer':
+    if manager.record.cmc_table_name == 'Customer':
         if invoice:
             raise ValueError("Customers don't have invoices")
         if missing:
@@ -158,8 +156,7 @@ async def generic_email(
 
     addresses = '; '.join(recipients)
     if invoice:
-        invoice_loc = manager.item.record.get(manager.item.fields_enum.INVOICE) if invoice else None
-        invoice_pdf_path = pathlib.Path(invoice_loc).with_suffix('.pdf')
+        invoice_pdf_path = manager.record.invoice.with_suffix('.pdf')
         invoice_num = invoice_pdf_path.stem
 
     if label:
@@ -171,27 +168,19 @@ async def generic_email(
     return eh.EmailMultipleAttachments(
         to_address=addresses,
         subject=await subject(invoice_num, missing, label),
-        body=compose_body(manager.state, manager.item, invoice, missing, label),
+        body=compose_body(manager.state, manager.record, invoice, missing, label),
         attachment_paths=[x for x in [invoice_pdf_path, label_path] if x],
     )
 
 
 def get_email_options(manager: managers.MANAGER_IN_DB):
-    irec = manager.item.record
-    crec = manager.item.customer_record
+    # irec = manager.record
+    # crec = manager.item.customer_record
 
     state_delivery = manager.state.contact.email_address
-    sale_invoice = irec.get(am_shared.SaleFields.INVOICE_EMAIL)
-    cust_invoice = crec.get(am_shared.CustomerFields.INVOICE_EMAIL)
-    cust_accounts = crec.get(am_shared.CustomerFields.ACCOUNTS_EMAIL)
-    cust_primary = crec.get(am_shared.CustomerFields.PRIMARY_EMAIL)
 
     addr_dict = {
         state_delivery: f'from current state ({state_delivery})',
-        sale_invoice: f'sale invoice ({sale_invoice})',
-        cust_invoice: f'customer invoice ({cust_invoice})',
-        cust_accounts: f'accounts ({cust_accounts})',
-        cust_primary: f'customer primary ({cust_primary})',
     }
 
     return [fastui_forms.SelectOption(value=k, label=v)

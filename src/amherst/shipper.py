@@ -35,7 +35,7 @@ class AmShipper(ELClient):
     def state_to_inbound_request(self, state: ship_ui.ShipState):
         ship_req = state_to_inbound_shipment(state)
         req = msgs.CreateCollectionRequest(
-            authentication=self.config.auth,
+            authentication=self.settings.auth,
             requested_shipment=ship_req
         )
         return req

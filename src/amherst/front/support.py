@@ -5,7 +5,7 @@ import time
 import typing as _t
 
 import fastapi
-import pdf_tools
+import pawdf
 import sqlmodel as sqm
 from fastui import components as c
 from loguru import logger
@@ -96,7 +96,7 @@ def get_named_labelpath(state: shipaw.ShipState):
 
 async def prnt_label_arrayed(label_path: pathlib.Path) -> None:
     """Print the labels. Arrays A6 Labels 2 to a A4 page.
-    Uses pdf_tools.array_pdf.convert_many to print the labels.
+    Uses pawdf.array_pdf.convert_many to print the labels.
 
     Args:
         label_path: The path to the label.
@@ -106,7 +106,7 @@ async def prnt_label_arrayed(label_path: pathlib.Path) -> None:
     if not label_path.exists():
         logger.error(f'label_path {label_path} does not exist')
 
-    pdf_tools.array_pdf.convert_many(label_path, print_files=True)
+    pawdf.array_pdf.convert_many(label_path, print_files=True)
 
 
 def state_notification_labels_str(state: states.ShipState):

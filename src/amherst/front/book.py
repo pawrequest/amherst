@@ -71,7 +71,7 @@ async def confirm_or_back_page(
     return await builders.page_w_alerts(
         components=[
             c.Heading(
-                text=f'Booking Confirmation for {manager.item.name}',
+                text=f'Booking Confirmation for {manager.record.name}',
                 level=1,
                 class_name='row mx-auto my-5'
             ),
@@ -178,7 +178,7 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
 
     """
     req = pfcom.state_to_request(manager.state)
-    logger.warning(f'BOOKING ({manager.state.direction.title()}) {manager.item.name}')
+    logger.warning(f'BOOKING ({manager.state.direction.title()}) {manager.record.name}')
     resp = pfcom.shipment_req_to_resp(req)
     return req, resp
 

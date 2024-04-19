@@ -24,9 +24,7 @@ from loguru import logger
 import pycommence
 
 from amherst import am_db, am_types, app_file
-
-
-# logger = get_loguru(profile='local', log_file='amherst.log')
+from amherst.models import shipable_item
 
 
 def parse_arguments():
@@ -41,7 +39,14 @@ def main(category: am_types.AmherstTableName, record_name: str):
 
     py_cmc = pycommence.PyCommence.from_table_name(table_name=category)
     record = py_cmc.one_record(record_name)
-    man_id = am_db.record_to_manager(category, record)
+    record['cmc_table_name'] = category
+    try:
+        shiprec = shipable_item.ShipableRecord(**record)
+    except Exception as e:
+        logger.exception(f"Error creating ShipableRecord: {e}")
+        raise ValueError(f"Error creating ShipableRecord: {e}")
+
+    man_id = am_db.record_to_manager(shiprec)
     logger.info(f'added booking manager #{man_id}')
     try:
         fui = FlaskUI(

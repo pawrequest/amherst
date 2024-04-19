@@ -25,13 +25,12 @@ def return_label_email(state):
 
 
 async def invoice_email(manager: managers.MANAGER_IN_DB) -> eh.Email:
-    inv_file = await support.get_invoice_path(manager.item)
-    inv_num = inv_file.split('\\')[-1].split('.')[0]
+    inv_num = manager.record.invoice.stem
     return eh.Email(
         to_address=manager.state.contact.email_address,
         subject=f'Radio Hire - Invoice {inv_num} Attached',
         body=invoice_body(),
-        attachment_path=inv_file,
+        attachment_path=manager.record.invoice,
     )
 
 
