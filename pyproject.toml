@@ -65,6 +65,10 @@ allow-direct-references = true
 
 [tool.ruff]
 line-length = 120
+extend-select = ["Q", "RUF100", "UP", "I"]
+flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
+format.quote-style = "single"
+
 #[tool.hatch.build.targets.wheel]
 #packages = [
 #    "amherst",
