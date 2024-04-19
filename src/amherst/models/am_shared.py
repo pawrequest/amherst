@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from abc import ABC
 from enum import Enum, StrEnum
 from typing import Literal
 
+import pydantic as _p
 from pycommence import pycmc_types
 
 SALE_CUSTOMERS = pycmc_types.Connection(
@@ -158,6 +160,7 @@ class CustomerFields(str, Enum):
     INVOICE_TELEPHONE = 'Invoice Telephone'
     ACCOUNTS_EMAIL = 'Accounts Email'
     PRIMARY_EMAIL = 'Email'
+    CUSTOMER = 'Name'
 
 
 class SaleFields(str, Enum):
