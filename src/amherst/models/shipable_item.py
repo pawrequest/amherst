@@ -3,12 +3,13 @@ import datetime as dt
 import pydantic as _p
 import sqlmodel as sqm
 from loguru import logger
-
 import pycommence
-from amherst.am_types import AmherstFieldsEnumType, AmherstTableName
-from amherst.models import am_shared
+from shipaw import ShipStatePartial
 from pycommence import pycmc_types
 from shipaw.models import base_item, pf_ext, pf_lists, pf_top
+
+from amherst.am_types import AmherstFieldsEnumType, AmherstTableName
+from amherst.models import am_shared
 
 
 # enum_map = {
@@ -48,27 +49,21 @@ class ShipableItem(base_item.BaseItem):
     @_p.model_validator(mode='after')
     def get_values(self):
         self.fields_enum = self.fields_enum or getattr(am_shared, self.cmc_table_name + 'Fields')
-
-        match self.cmc_table_name:
-            case 'Hire' | 'Sale':
-                business_name = self.record.get(self.fields_enum.CUSTOMER)
-                self.customer_record = self.customer_record or get_customer_record(
-                    customer=business_name
-                )
-
-            case 'Customer':
-                business_name = self.record.get(am_shared.CustomerFields.NAME)
-                self.customer_record = self.record
-
-            case _:
-                raise ValueError(f'unknown table name: {self.cmc_table_name}')
+        if self.cmc_table_name == 'Customer':
+            self.customer_record = self.record
+            business_name = self.record.get(self.fields_enum.NAME)
+        else:
+            business_name = self.record.get(self.fields_enum.CUSTOMER)
+            self.customer_record = get_customer_record(customer=business_name)
 
         self.boxes = int(self.record.get(self.fields_enum.BOXES, 1))
         ship_date = self.record.get(self.fields_enum.SEND_OUT_DATE)
         self.ship_date = pycmc_types.get_cmc_date(ship_date) if ship_date else dt.date.today()
         phone = self.record.get(self.fields_enum.DELIVERY_TELEPHONE)
         email = (self.record.get(self.fields_enum.DELIVERY_EMAIL)
-                 or self.customer_record.get(self.fields_enum.PRIMARY_EMAIL))
+                 or self.customer_record.get(
+                    self.fields_enum.PRIMARY_EMAIL
+                ) or r'EMAIL_NOT_FOUND@FILLMEIN.COM')
         contact_name = self.record.get(self.fields_enum.DELIVERY_CONTACT)
         postcode = self.record.get(self.fields_enum.DELIVERY_POSTCODE)
         address_str = (self.record.get(self.fields_enum.DELIVERY_ADDRESS)
@@ -95,6 +90,43 @@ class ShipableItem(base_item.BaseItem):
         return self
 
 
+def record_to_state(record: dict[str, str], cmc_table_name) -> ShipStatePartial:
+    fields_enum = getattr(am_shared, cmc_table_name + 'Fields')
+    state = ShipStatePartial()
+
+    business_name = record.get(fields_enum.CUSTOMER)
+    ship_date = record.get(fields_enum.SEND_OUT_DATE)
+    phone = record.get(fields_enum.DELIVERY_TELEPHONE)
+    email = get_email(fields_enum, record)
+    contact_name = record.get(fields_enum.DELIVERY_CONTACT)
+    postcode = record.get(fields_enum.DELIVERY_POSTCODE)
+    address_str = (record.get(fields_enum.DELIVERY_ADDRESS))
+
+    state.ship_date = pycmc_types.get_cmc_date(ship_date) if ship_date else dt.date.today()
+    state.boxes = int(record.get(fields_enum.BOXES, 1))
+    state.contact = pf_top.Contact(
+        business_name=business_name,
+        email_address=email,
+        mobile_phone=phone,
+        contact_name=contact_name,
+        notifications=pf_lists.RecipientNotifications.standard_recip(),
+    )
+    state.input_address = pf_ext.AddressRecipient(
+        **am_shared.addr_lines_dict_am(
+            address_str
+        ),
+        town='',
+        postcode=postcode,
+    ) if address_str else None
+
+    return state
+
+
+def get_email(fields_enum, record):
+    return (record.get(fields_enum.DELIVERY_EMAIL)
+            or record.get(fields_enum.PRIMARY_EMAIL) or r'EMAIL_NOT_FOUND@FILLMEIN.COM')
+
+
 class ShipableRecor(ShipableItem):
     ...
 
@@ -102,9 +134,6 @@ class ShipableRecor(ShipableItem):
 def get_customer_record(customer: str) -> dict[str, str]:
     """Get a customer record from `:class:PyCommence`"""
     logger.debug(f'Getting customer record for {customer}')
-    logger.warning('not initialising comtypes what say ye thread gods?')
-    # comtypes.CoInitialize()
     py_cmc = pycommence.PyCommence.from_table_name(table_name='Customer')
     rec = py_cmc.one_record(customer)
-    # comtypes.CoUninitialize()
     return rec
