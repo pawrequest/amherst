@@ -11,7 +11,6 @@ settings = am_config.AmSettings()
 static_path = settings.base_dir / 'front' / 'static'
 
 
-
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:

@@ -11,6 +11,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from suppawt.pawlogger import get_loguru
 
 AM_ENV = os.getenv("AM_ENV")
+if not Path(AM_ENV).exists():
+    raise ValueError(f"AM_ENV .env file doies not exist: {AM_ENV}")
 
 
 def get_root():
@@ -33,7 +35,6 @@ def set_base_dir(v, values):
 class AmSettings(BaseSettings):
     """Set by env file at location specified by AM_ENV."""
 
-    parcelforce_labels_dir: Path
     db_loc: Path
     log_file: Path
     base_dir: _t.Annotated[Path, _p.BeforeValidator(set_base_dir)] = None
