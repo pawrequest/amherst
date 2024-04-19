@@ -2,20 +2,20 @@ from __future__ import annotations
 
 import pathlib
 import time
-import typing as _t
 
 import fastapi
 import pawdf
 import sqlmodel as sqm
 from fastui import components as c
 from loguru import logger
-
 import shipaw
-from amherst import am_config, shipper
-from amherst.models import am_shared, managers
-from amherst.models.shipable_item import ShipableItem
+from shipaw import pf_config
 from shipaw.models import pf_shared
 from shipaw.ship_ui import states
+
+from amherst import shipper
+from amherst.models import am_shared, managers
+from amherst.models.shipable_item import ShipableItem
 
 
 class ManagerNotFound(Exception):
@@ -88,8 +88,8 @@ type Fui_Page = list[c.AnyComponent]
 
 def get_named_labelpath(state: shipaw.ShipState):
     """Get a unique path (for saving) for the label."""
-    sett = am_config.AmSettings()
-    pdir = sett.parcelforce_labels_dir
+    sett = pf_config.PF_SETTINGS
+    pdir = sett.label_dir
     label_name = f'Parcelforce Collection Label for {state.contact.business_name} on {state.ship_date}'
     return pdir / f'{label_name}.pdf'
 
