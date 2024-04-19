@@ -94,7 +94,11 @@ async def form_div(kind: ship_types.FormKind, manager, session) -> c.Div:
         class_name="col col-8 mx-auto",
         inner_class_name="row my-3",
         components=[
-            await server_load_form(kind, manager, session),
+            c.ServerLoad(
+                path=f"/forms/get_form/{manager.id}/{kind}",
+                load_trigger=e.PageEvent(name="change-form"),
+                components=[await get_form(manager.id, kind, session)],
+            ),
             await swap_form_button(kind, manager.id),
         ],
     )
@@ -118,12 +122,12 @@ async def swap_form_button(kind, manager_id: int):
     )
 
 
-async def server_load_form(kind, manager, session):
-    return c.ServerLoad(
-        path=f"/forms/get_form/{manager.id}/{kind}",
-        load_trigger=e.PageEvent(name="change-form"),
-        components=[await get_form(manager.id, kind, session)],
-    )
+# async def server_load_form(kind, manager, session):
+#     return c.ServerLoad(
+#         path=f"/forms/get_form/{manager.id}/{kind}",
+#         load_trigger=e.PageEvent(name="change-form"),
+#         components=[await get_form(manager.id, kind, session)],
+#     )
 
 
 @router.get(
@@ -148,9 +152,8 @@ async def get_form(
 
     """
     manager = await support.get_manager(manager_id, session)
-    form_fields = await get_form_fields(kind, manager.state)
     return c.Form(
-        form_fields=form_fields,
+        form_fields=await get_form_fields(kind, manager.state),
         submit_url=f"/api/forms/{kind}/{manager_id}",
     )
 
