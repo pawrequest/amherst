@@ -1,26 +1,12 @@
-import os
-import random
-from pathlib import Path
-
 # from dotenv import load_dotenv
 import pytest
 from sqlmodel import SQLModel, Session, create_engine
+from shipaw.models import pf_ext, pf_top
 
-import pycommence
-from amherst import sample_data, shipper
-from amherst.models import shipable_item, am_shared
-
-from amherst.models.am_shared import HireFields
-from shipr.models import pf_top, pf_ext
+from amherst import shipper
 
 # from . import monkey as el_types
 
-ENV_FILE = Path(r"C:\Users\RYZEN\prdev\amdev\.env").resolve()
-if not ENV_FILE.is_file():
-    raise FileNotFoundError(f"File not found: {ENV_FILE}")
-
-# load_dotenv(ENV_FILE)
-CONTRACT_NO = os.environ.get("PF_CONT_NUM_1")
 ...
 
 SALE_NAME_OFFICE = "Test - 18/08/2023 ref 450"
@@ -34,25 +20,6 @@ HIRE_NAME_ENCODED = "UG9ydHNtb3V0aCBQcmlkZSAtIDAyLzA3LzIwMjQgcmVmIDIwMzU5"
 
 
 ### COMMENCE
-
-
-@pytest.fixture
-def hire_csr():
-    with pycommence.api.csr_context("Hire") as csr:
-        yield csr
-
-
-@pytest.fixture
-def sale_csr():
-    with pycommence.api.csr_context("Sale") as csr:
-        yield csr
-
-
-@pytest.fixture(scope="session")
-def random_hire_record():
-    rec = random.choice(sample_data.hires)
-    return rec
-
 
 
 ### FASTAPI
@@ -70,24 +37,6 @@ def test_session():
 @pytest.fixture
 def pfcom():
     return shipper.ELClient.from_pyd()
-
-
-@pytest.fixture
-def random_contact(random_hire_record) -> pf_top.Contact:
-    return pf_top.Contact(
-        business_name=random_hire_record.get(am_shared.HireFields.CUSTOMER),
-        email_address=random_hire_record.get(am_shared.HireFields.DELIVERY_EMAIL),
-        mobile_phone=random_hire_record.get(am_shared.HireFields.DELIVERY_TELEPHONE),
-    )
-
-
-@pytest.fixture
-def random_address(random_hire_record) -> pf_ext.AddressRecipient:
-    return pf_ext.AddressRecipient(
-        address_line1=random_hire_record.get(HireFields.DELIVERY_ADDRESS),
-        town='',
-        postcode=random_hire_record.get(HireFields.DELIVERY_POSTCODE)
-    )
 
 
 @pytest.fixture
