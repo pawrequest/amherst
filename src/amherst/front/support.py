@@ -83,7 +83,6 @@ async def get_missing(item: ShipableItem) -> list[str]:
     return item.record.get(am_shared.HireFields.MISSING_KIT).splitlines()
 
 
-FormKind: _t.TypeAlias = _t.Literal['manual', 'select']  # noqa: UP040 fastui not support
 type Fui_Page = list[c.AnyComponent]
 
 
