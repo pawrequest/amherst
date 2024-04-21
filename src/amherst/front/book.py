@@ -179,7 +179,7 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
     """
     req = pfcom.state_to_request(manager.state)
     logger.warning(f'BOOKING ({manager.state.direction.title()}) {manager.record.name}')
-    resp = pfcom.shipment_req_to_resp(req)
+    resp = pfcom.send_shipment_request(req)
     return req, resp
 
 
