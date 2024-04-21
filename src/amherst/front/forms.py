@@ -7,14 +7,15 @@ import fastapi
 from fastui import FastUI, components as c, events as e
 from fastui.forms import fastui_form
 from loguru import logger
-
-from amherst import am_db, shipper
-from amherst.front import ship, support
-from amherst.models import managers
 from pawdantic.pawui import pawui_types
+
 from shipaw import ship_types
 from shipaw.models import pf_ext, pf_top
 from shipaw.ship_ui import forms as ship_forms, states as shipstates
+from amherst import am_db, shipper
+from amherst.front import ship, support
+from amherst.front.support import addr_class_f_direction
+from amherst.models import managers
 
 router = fastapi.APIRouter()
 
@@ -44,16 +45,14 @@ async def manual_post(
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 
 ):
-    address_choice = pf_ext.AddressRecipient.model_validate(
-        pf_ext.AddressRecipient(
-            address_line1=address_line1,
-            address_line2=address_line2,
-            address_line3=address_line3,
-            town=town,
-            postcode=postcode,
-            country='GB',
-
-        )
+    addr_class = await addr_class_f_direction(direction)
+    address_choice = addr_class(
+        address_line1=address_line1,
+        address_line2=address_line2,
+        address_line3=address_line3,
+        town=town,
+        postcode=postcode,
+        country='GB',
     )
 
     contact = pf_top.Contact(
@@ -198,9 +197,12 @@ async def address_form_post(
         manager_id: int,
         session=fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
+    manager = await support.get_manager(manager_id, session)
     form = await request.form()
     address_ = json.loads(form.get('address'))
-    address = pf_ext.AddressRecipient.model_validate(address_)
+    addr_class = await addr_class_f_direction(manager.state.direction)
+
+    address = addr_class(address_)
     partial = shipstates.ShipStatePartial.model_validate({'address': address})
     await support.update_and_commit(manager_id, partial, session)
     return [
@@ -495,14 +497,14 @@ async def postcode_post(
 #     ]
 
 
-@router.post('/full/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def full_post(
-        form: Annotated[ship_forms.FullForm, fastui_form(ship_forms.FullForm)],
-        manager_id: int,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
-        session=fastapi.Depends(am_db.get_session),
-):
-    ...
+# @router.post('/full/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def full_post(
+#         form: Annotated[ship_forms.FullForm, fastui_form(ship_forms.FullForm)],
+#         manager_id: int,
+#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+#         session=fastapi.Depends(am_db.get_session),
+# ):
+#     ...
 
 
 @router.post('/email/{manager_id}', response_model=FastUI, response_model_exclude_none=True)

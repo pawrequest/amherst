@@ -13,11 +13,11 @@ readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
-    'pycommence @ git+https://github.com/pawrequest/pycommence',
     'pawdf @ git+https://github.com/pawrequest/pawdf',
-    'shipaw @ git+https://github.com/pawrequest/shipaw',
-    'pawdantic[ui, sql] @ git+https://github.com/pawrequest/pawdantic',
+    'pawdantic @ git+https://github.com/pawrequest/pawdantic',
     'suppawt @ git+https://github.com/pawrequest/suppawt',
+    'shipaw',
+    'pycommence',
     'pydantic-settings',
     'pydantic[email]',
     'email-validator',
@@ -43,13 +43,13 @@ dev = [
     "myst-parser",
     "sphinx_rtd_dark_mode",
 ]
-git = [
+from-git = [
     'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'suppawt @ git+https://github.com/pawrequest/suppawt', ]
+]
 
 [tool.rye]
-managed = false
+managed = true
 dev-dependencies = [
     "sphinx",
     "sphinx-autodoc-typehints",
@@ -65,7 +65,7 @@ allow-direct-references = true
 
 [tool.ruff]
 line-length = 120
-extend-select = ["Q", "RUF100", "UP", "I"]
+extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 

@@ -1,32 +1,32 @@
 from __future__ import annotations
 
-import pathlib
 import typing as _t
 
 import fastapi
 from fastui import FastUI, components as c, forms as fastui_forms
 from loguru import logger
+from pawdantic import paw_strings
+from suppawt.office_ps import email_handler as eh
+from suppawt.office_ps.email_handler import EmailError
+from suppawt.office_ps.ms import outlook_handler as oh
 
 from amherst import am_db, am_types
 from amherst.front import support
-from amherst.models import am_shared, managers
-from amherst.models.shipable_item import ShipableItem, ShipableRecord
-from pawdantic import paw_strings
+from amherst.models import managers
+from amherst.models.shipable_item import ShipableRecord
 from shipaw.ship_ui import states
-from suppawt.office_ps import email_handler as eh
-from suppawt.office_ps.ms import outlook_handler as oh
 
 router = fastapi.APIRouter()
 
 
 @router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def email_post(
-        manager_id: int,
-        recipients: list = fastapi.Form(...),
-        invoice: bool = fastapi.Form(False),
-        label=fastapi.Form(False),
-        missing_kit=fastapi.Form(False),
-        session=fastapi.Depends(am_db.get_session),
+    manager_id: int,
+    recipients: list = fastapi.Form(...),
+    invoice: bool = fastapi.Form(False),
+    label=fastapi.Form(False),
+    missing_kit=fastapi.Form(False),
+    session=fastapi.Depends(am_db.get_session),
 ):
     logger.info(f'email {recipients=}')
     alert_dict = {}
@@ -34,7 +34,7 @@ async def email_post(
 
     if label:
         if not manager.state.booking_state.label_downloaded:
-            alert_dict = {'Label Email': 'Label not downloaded'}
+            alert_dict = {'Label not downloaded': 'Error'}
             return [c.Text(text=str(alert_dict))]
     try:
         email = await generic_email(
@@ -43,19 +43,25 @@ async def email_post(
             invoice=invoice,
             missing=missing_kit,
             label=label,
-
         )
     except ValueError as e:
-        alert_dict = {'Email Error': str(e)}
+        alert_dict = {'': str(e)}
         return [c.Text(text=str(alert_dict))]
-    handler = oh.OutlookHandlerMultipleAttachments()
-    handler.create_open_email(email)
-
+    try:
+        handler = oh.OutlookHandlerMultipleAttachments()
+        handler.create_open_email(email)
+    except EmailError as e:
+        msg = 'Error sending email'
+        if '-2147221005' in e.args:
+            msg = f'{msg} - Outlook not open'
+        alert_dict = {f'{msg} {e}': 'Error'}
+        return [c.Text(text=str(alert_dict))]
     return [c.Text(text='Email created and opened')]
 
 
 class EmailChoiceBoolean(c.FormFieldBoolean):
     """FastUI form field Boolean for email choices."""
+
     name: am_types.EmailChoices
 
 
@@ -110,11 +116,11 @@ MISSING KIT:
 
 
 def compose_body(
-        state: states.ShipState = None,
-        item: ShipableRecord = None,
-        invoice: bool = False,
-        missing_kit: bool = False,
-        label: bool = False,
+    state: states.ShipState = None,
+    item: ShipableRecord = None,
+    invoice: bool = False,
+    missing_kit: bool = False,
+    label: bool = False,
 ):
     missing_strs = item.MISSING_KIT.splitlines() if missing_kit else []
     return f"""{GREETING}
@@ -126,14 +132,14 @@ def compose_body(
 
 
 async def generic_email(
-        recipients: list[str],
-        manager: managers.MANAGER_IN_DB = None,
-        label: bool = False,
-        missing: bool = False,
-        invoice: bool = False,
+    recipients: list[str],
+    manager: managers.MANAGER_IN_DB = None,
+    label: bool = False,
+    missing: bool = False,
+    invoice: bool = False,
 ) -> eh.EmailMultipleAttachments:
     """Get an Email object for sending an invoice, missing kit request, or shipping-label.
-    
+
     Args:
         recipients: List of email addresses.
         manager: The manager object.
@@ -183,9 +189,7 @@ def get_email_options(manager: managers.MANAGER_IN_DB):
         state_delivery: f'from current state ({state_delivery})',
     }
 
-    return [fastui_forms.SelectOption(value=k, label=v)
-            for k, v in addr_dict.items() if k
-            ]
+    return [fastui_forms.SelectOption(value=k, label=v) for k, v in addr_dict.items() if k]
 
 
 # async def send_label(manager: managers.MANAGER_IN_DB):
@@ -227,13 +231,10 @@ def get_email_options(manager: managers.MANAGER_IN_DB):
 #     handler.create_open_email(email)
 
 
-async def subject(
-        invoice_num: str = None,
-        missing: bool = None,
-        label: bool = False
-):
-    return (f'Radio Hire - '
-            f'{f"Invoice {invoice_num} Attached" if invoice_num else ""} '
-            f'{"Missing Kit" if missing else ""} '
-            f'{"Shipping Label Attached" if label else ""}'
-            ).strip()
+async def subject(invoice_num: str = None, missing: bool = None, label: bool = False):
+    return (
+        f'Radio Hire - '
+        f'{f"Invoice {invoice_num} Attached" if invoice_num else ""} '
+        f'{"Missing Kit" if missing else ""} '
+        f'{"Shipping Label Attached" if label else ""}'
+    ).strip()

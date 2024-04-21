@@ -10,11 +10,11 @@ import pydantic as _p
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from suppawt.pawlogger import get_loguru
 
-AM_ENV = os.getenv("AM_ENV")
+AM_ENV = os.getenv('AM_ENV')
 
 
 def get_root():
-    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         # noinspection PyProtectedMember
         return Path(sys._MEIPASS)
     else:
@@ -23,7 +23,7 @@ def get_root():
 
 def set_base_dir(v, values):
     if v is None:
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
             # noinspection PyProtectedMember
             return Path(sys._MEIPASS)
         else:
@@ -37,13 +37,13 @@ class AmSettings(BaseSettings):
     db_loc: Path
     log_file: Path
     base_dir: _t.Annotated[Path, _p.BeforeValidator(set_base_dir)] = None
-    data_dir: Path = Path(__file__).parent / "_data"
+    data_dir: Path = Path(__file__).parent / '_data'
 
     @cached_property
     def db_url(self):
-        return f"sqlite:///{self.db_loc.as_posix()}"
+        return f'sqlite:///{self.db_loc.as_posix()}'
 
-    @_p.field_validator("db_loc", "log_file", mode="after")
+    @_p.field_validator('db_loc', 'log_file', mode='after')
     def path_exists(cls, v, values):
         if not v.parent.exists():
             v.parent.mkdir(parents=True, exist_ok=True)
@@ -55,6 +55,6 @@ class AmSettings(BaseSettings):
 
 
 AM_SETTINGS = AmSettings()
-logger = get_loguru(log_file=AM_SETTINGS.log_file, profile="local")
+logger = get_loguru(log_file=AM_SETTINGS.log_file, profile='local')
 
-logger.info('\n' + '\n'.join([f"{k.upper()} = {v}" for k, v in AM_SETTINGS.model_dump().items()]))
+logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in AM_SETTINGS.model_dump().items()]))

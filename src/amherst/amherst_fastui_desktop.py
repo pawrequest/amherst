@@ -21,8 +21,8 @@ import argparse
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
-import pycommence
 
+import pycommence
 from amherst import am_db, am_types, app_file
 from amherst.models import shipable_item
 
@@ -43,23 +43,20 @@ def main(category: am_types.AmherstTableName, record_name: str):
     try:
         shiprec = shipable_item.ShipableRecord(**record)
     except Exception as e:
-        logger.exception(f"Error creating ShipableRecord: {e}")
-        raise ValueError(f"Error creating ShipableRecord: {e}")
+        logger.exception(f'Error creating ShipableRecord: {e}')
+        raise ValueError(f'Error creating ShipableRecord: {e}')
 
     man_id = am_db.record_to_manager(shiprec)
     logger.info(f'added booking manager #{man_id}')
     try:
-        fui = FlaskUI(
-            fullscreen=True,
-            app=app_file.app,
-            server='fastapi',
-            url_suffix=f'ship/select/{man_id}'
-        )
+        fui = FlaskUI(fullscreen=True, app=app_file.app, server='fastapi', url_suffix=f'ship/select/{man_id}')
         fui.run()
     except Exception as e:
         if "got an unexpected keyword argument 'url_suffix'" in str(e):
-            msg = ('URL_SUFFIX is not compatible with this version of FlaskWebGui'
-                   'Install PawRequest/flaskwebgui from  @ git+https://github.com/pawrequest/flaskwebgui')
+            msg = (
+                'URL_SUFFIX is not compatible with this version of FlaskWebGui'
+                'Install PawRequest/flaskwebgui from  @ git+https://github.com/pawrequest/flaskwebgui'
+            )
             logger.exception(msg)
             raise ValueError(msg)
     finally:

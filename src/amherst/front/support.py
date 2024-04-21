@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pathlib
 import time
-import typing as _t
 
 import fastapi
 import pawdf
@@ -11,10 +10,10 @@ from fastui import components as c
 from loguru import logger
 
 import shipaw
-from amherst import am_config, shipper
+from amherst import shipper
 from amherst.models import am_shared, managers
-from amherst.models.shipable_item import ShipableItem
-from shipaw.models import pf_shared
+from amherst.models.shipable_item import ShipableItem, ShipableRecord
+from shipaw.models import pf_ext, pf_shared
 from shipaw.ship_ui import states
 
 
@@ -67,14 +66,10 @@ async def wait_label(state: shipaw.ShipState, pfcom: shipper.AmShipper) -> bool:
         raise ValueError(f'file not created after 20 seconds {label_path=}')
 
 
-async def get_invoice_path(item: ShipableItem):
-    if item.cmc_table_name == 'Customer':
+async def get_invoice_path(record: ShipableRecord) -> pathlib.Path | None:
+    if record.cmc_table_name == 'Customer':
         raise ValueError('invoice not for customer')
-    return item.record.get(item.fields_enum.INVOICE)
-
-
-async def invoice_num_f_path(invoice_path: pathlib.Path):
-    return str(invoice_path).split('\\')[-1].split('.')[0]
+    return record.invoice
 
 
 async def get_missing(item: ShipableItem) -> list[str]:
@@ -84,14 +79,6 @@ async def get_missing(item: ShipableItem) -> list[str]:
 
 
 type Fui_Page = list[c.AnyComponent]
-
-
-def get_named_labelpath(state: shipaw.ShipState):
-    """Get a unique path (for saving) for the label."""
-    sett = am_config.AmSettings()
-    pdir = sett.parcelforce_labels_dir
-    label_name = f'Parcelforce Collection Label for {state.contact.business_name} on {state.ship_date}'
-    return pdir / f'{label_name}.pdf'
 
 
 async def prnt_label_arrayed(label_path: pathlib.Path) -> None:
@@ -138,3 +125,7 @@ async def update_manager_state(manager_id, session, state):
     session.commit()
     session.refresh(man_in)
     return man_in
+
+
+async def addr_class_f_direction(direction):
+    return pf_ext.AddressRecipient if direction == 'out' else pf_ext.AddressCollection
