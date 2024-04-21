@@ -9,12 +9,13 @@ import sqlmodel as sqm
 from fastui import components as c
 from loguru import logger
 
-import shipaw
-from amherst import shipper
-from amherst.models import am_shared, managers
 from amherst.models.shipable_item import ShipableItem, ShipableRecord
 from shipaw.models import pf_ext, pf_shared
+import shipaw
+from shipaw import pf_config
 from shipaw.ship_ui import states
+from amherst import shipper
+from amherst.models import am_shared, managers
 
 
 class ManagerNotFound(Exception):
@@ -79,6 +80,14 @@ async def get_missing(item: ShipableItem) -> list[str]:
 
 
 type Fui_Page = list[c.AnyComponent]
+
+
+def get_named_labelpath(state: shipaw.ShipState):
+    """Get a unique path (for saving) for the label."""
+    sett = pf_config.PF_SETTINGS
+    pdir = sett.label_dir
+    label_name = f'Parcelforce Collection Label for {state.contact.business_name} on {state.ship_date}'
+    return pdir / f'{label_name}.pdf'
 
 
 async def prnt_label_arrayed(label_path: pathlib.Path) -> None:

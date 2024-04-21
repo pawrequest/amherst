@@ -7,8 +7,8 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
 
-from amherst import am_config, rec_importer, shipper
-from amherst.models import shipable_item, managers
+from amherst import am_config, shipper
+from amherst.models import managers, shipable_item
 from amherst.rec_importer import initial_state
 
 

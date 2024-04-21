@@ -15,10 +15,10 @@ router = APIRouter()
 
 @router.get("/{kind}/{manager_id}", response_model=FastUI, response_model_exclude_none=True)
 async def shipping_page(
-    manager_id: int,
-    kind: ship_types.FormKind = "select",
-    session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
-    alert_dict: pawui_types.AlertDict | None = None,
+        manager_id: int,
+        kind: ship_types.FormKind = "select",
+        session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
+        alert_dict: pawui_types.AlertDict | None = None,
 ) -> support.Fui_Page:
     """Endpoint for shipping page.
 
@@ -94,7 +94,11 @@ async def form_div(kind: ship_types.FormKind, manager, session) -> c.Div:
         class_name="col col-8 mx-auto",
         inner_class_name="row my-3",
         components=[
-            await server_load_form(kind, manager, session),
+            c.ServerLoad(
+                path=f"/forms/get_form/{manager.id}/{kind}",
+                load_trigger=e.PageEvent(name="change-form"),
+                components=[await get_form(manager.id, kind, session)],
+            ),
             await swap_form_button(kind, manager.id),
         ],
     )
@@ -118,16 +122,24 @@ async def swap_form_button(kind, manager_id: int):
     )
 
 
-async def server_load_form(kind, manager, session):
-    return c.ServerLoad(
-        path=f"/forms/get_form/{manager.id}/{kind}",
-        load_trigger=e.PageEvent(name="change-form"),
-        components=[await get_form(manager.id, kind, session)],
-    )
+# async def server_load_form(kind, manager, session):
+#     return c.ServerLoad(
+#         path=f"/forms/get_form/{manager.id}/{kind}",
+#         load_trigger=e.PageEvent(name="change-form"),
+#         components=[await get_form(manager.id, kind, session)],
+#     )
 
 
-@router.get("/get_form/{manager_id}/{kind}", response_model=FastUI, response_model_exclude_none=True)
-async def get_form(manager_id: int, kind: ship_types.FormKind, session=Depends(am_db.get_session)) -> c.Form:
+@router.get(
+    "/get_form/{manager_id}/{kind}",
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def get_form(
+        manager_id: int,
+        kind: ship_types.FormKind,
+        session=Depends(am_db.get_session)
+) -> c.Form:
     """Endpoint to get form for shipping page.
 
     Args:
@@ -140,15 +152,16 @@ async def get_form(manager_id: int, kind: ship_types.FormKind, session=Depends(a
 
     """
     manager = await support.get_manager(manager_id, session)
-    form_fields = await get_form_fields(kind, manager.state)
     return c.Form(
-        form_fields=form_fields,
+        form_fields=await get_form_fields(kind, manager.state),
         submit_url=f"/api/forms/{kind}/{manager_id}",
     )
 
 
 async def input_address_div(
-    manager, class_name: class_name_.ClassName = "row", inner_class_name: class_name_.ClassName = "row"
+        manager,
+        class_name: class_name_.ClassName = "row",
+        inner_class_name: class_name_.ClassName = "row"
 ) -> c.Div:
     """Div for displaying commence data.
 
@@ -168,7 +181,10 @@ async def input_address_div(
                 class_name=inner_class_name,
                 components=[
                     *builders.dict_strs_texts(manager.record.contact.model_dump(), title="Contact"),
-                    *builders.dict_strs_texts(manager.record.input_address.model_dump(), title="Address"),
+                    *builders.dict_strs_texts(
+                        manager.record.input_address.model_dump(),
+                        title="Address"
+                    ),
                 ],
             ),
         ],
@@ -199,7 +215,6 @@ async def address_from_pc_div(manager) -> c.Div:
         ],
         class_name="row mx-auto my-3",
     )
-
 
 # @router.get(
 #     '/update/{booking_id}/{update_64}',
