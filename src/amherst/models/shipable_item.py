@@ -1,18 +1,17 @@
 import datetime
 import datetime as dt
 import typing as _t
-from abc import ABC
 from pathlib import Path
 
 import pydantic as _p
 import sqlmodel as sqm
 from loguru import logger
-from pydantic import AliasChoices, ConfigDict, Field
+from pydantic import AliasChoices, Field
 
 import pycommence
 from pycommence import pycmc_types
 from shipaw import ShipStatePartial, ship_types
-from shipaw.models import base_item, pf_ext, pf_lists, pf_top
+from shipaw.models import base_item, pf_ext, pf_lists, pf_top, shipable
 from shipaw.ship_ui.states import ShipStateExtra
 from amherst.am_types import AmherstFieldsEnumType, AmherstTableName
 from amherst.models import am_shared
@@ -143,16 +142,10 @@ def get_customer_record(customer: str) -> dict[str, str]:
 CMC_SHIP_DATE2 = _t.Annotated[ship_types.SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]
 
 
-class ShipableRecord(_p.BaseModel, ABC):
-    model_config = ConfigDict(
-        extra='ignore',
-        populate_by_name=True,
-    )
-    cmc_table_name: AmherstTableName
-    name: str = Field(..., alias='Name')
+class ShipableRecord(shipable.Shipable):
+    cmc_table_name: AmherstTableName = Field(..., alias='Cmc Table Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
     ship_date: CMC_SHIP_DATE2 = Field(datetime.date.today(), alias='Send Out Date')
-    boxes: int = Field(1, alias='Boxes')
     delivery_contact: str = Field(..., validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact'))
     delivery_business: str = Field(
         ..., validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
@@ -170,7 +163,7 @@ class ShipableRecord(_p.BaseModel, ABC):
         return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
     @property
-    def input_address(self):
+    def address(self):
         return pf_ext.AddressRecipient(
             **am_shared.addr_lines_dict_am(self.address_str),
             town='',
