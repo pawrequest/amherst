@@ -2,11 +2,11 @@
 
 
 a = Analysis(
-    ['src/amherst/amherst_fastui_desktop.py'],
+    ['../src/amherst/amherst_fastui_desktop.py'],
     pathex=[],
     binaries=[],
     datas=[
-         ('src/amherst/front/static', 'front/static'),
+         ('../src/amherst/front/static', 'front/static'),
 ],
     hiddenimports=[],
     hookspath=[],

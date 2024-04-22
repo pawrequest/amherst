@@ -34,7 +34,7 @@ async def open_invoice(
 
     """
     man_in = await support.get_manager(manager_id, session)
-    inv_file = await support.get_invoice_path(man_in.item)
+    inv_file = await support.get_invoice_path(man_in.record)
     man_out = managers.BookingManagerOut.model_validate(man_in)
 
     try:

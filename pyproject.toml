@@ -13,12 +13,12 @@ readme = "README.md"
 requires-python = ">= 3.12"
 dependencies = [
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
-    'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'pdf_tools @ git+https://github.com/pawrequest/pdf_tools',
-    'shipaw @ git+https://github.com/pawrequest/shipaw',
-    'pawdantic[ui, sql] @ git+https://github.com/pawrequest/pawdantic',
+    'pawdf @ git+https://github.com/pawrequest/pawdf',
+    'pawdantic @ git+https://github.com/pawrequest/pawdantic',
     'suppawt @ git+https://github.com/pawrequest/suppawt',
-    'pydantic_settings',
+    'shipaw',
+    'pycommence',
+    'pydantic-settings',
     'pydantic[email]',
     'email-validator',
     'pydantic-extra-types',
@@ -43,13 +43,13 @@ dev = [
     "myst-parser",
     "sphinx_rtd_dark_mode",
 ]
-git = [
+from-git = [
     'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'suppawt @ git+https://github.com/pawrequest/suppawt', ]
+]
 
 [tool.rye]
-managed = false
+managed = true
 dev-dependencies = [
     "sphinx",
     "sphinx-autodoc-typehints",
@@ -65,6 +65,10 @@ allow-direct-references = true
 
 [tool.ruff]
 line-length = 120
+extend-select = ["Q", "RUF100", "UP"]
+flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
+format.quote-style = "single"
+
 #[tool.hatch.build.targets.wheel]
 #packages = [
 #    "amherst",

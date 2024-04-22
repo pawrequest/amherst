@@ -1,30 +1,25 @@
 from __future__ import annotations
 
-import datetime as dt
-
 import sqlmodel as sqm
-
 from shipaw import ship_types as s_types
 from shipaw.ship_ui import states
+
 from . import shipable_item
 
 
 class BookingManager(sqm.SQLModel):
     state: states.ShipState
-    item: shipable_item.ShipableItem
-    booking_date: dt.date
+    record: shipable_item.ShipableRecord
 
 
 class BookingManagerDB(BookingManager, table=True):
     """subclass and set table = true"""
+
     id: int | None = sqm.Field(primary_key=True)
-    state: states.ShipState = sqm.Field(
-        sa_column=sqm.Column(s_types.GenericJSONType(states.ShipState))
+    state: states.ShipState = sqm.Field(sa_column=sqm.Column(s_types.GenericJSONType(states.ShipState)))
+    record: shipable_item.ShipableRecord = sqm.Field(
+        sa_column=sqm.Column(s_types.GenericJSONType(shipable_item.ShipableRecord))
     )
-    item: shipable_item.ShipableItem = sqm.Field(
-        sa_column=sqm.Column(s_types.GenericJSONType(shipable_item.ShipableItem))
-    )
-    booking_date: dt.date = sqm.Field(default_factory=dt.date.today)
 
 
 class BookingManagerOut(BookingManager, table=False):
@@ -32,4 +27,3 @@ class BookingManagerOut(BookingManager, table=False):
 
 
 MANAGER_IN_DB = BookingManagerDB | BookingManagerOut
-

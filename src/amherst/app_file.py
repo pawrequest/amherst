@@ -1,46 +1,27 @@
 import contextlib
-import sys
-from pathlib import Path
 
 import flaskwebgui
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
 from starlette.staticfiles import StaticFiles
 
-from amherst import am_config, am_db, front
-from amherst.models import managers
-from suppawt.pawlogger import get_loguru
+from amherst import am_config, front
 
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    # noinspection PyProtectedMember
-    BASE_DIR = Path(sys._MEIPASS)
-else:
-    BASE_DIR = Path(__file__).resolve().parent
-
-sett = am_config.AM_SETTINGS
-logger = get_loguru(profile='local', log_file=BASE_DIR / 'amherst.log')
-logger.info(f'BASE_DIR is {BASE_DIR}')
+settings = am_config.AmSettings()
+static_path = settings.base_dir / 'front' / 'static'
 
 
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
-        # am_db.create_db()
-        # am_db.delete_all_records(managers.BookingManagerDB)
-
         # with sqm.Session(am_db.ENGINE) as session:
         #     pf_shipper = shipper.AmShipper.from_env()
         #     populate_db_from_cmc(session, pf_shipper)
-
-        # logger.info('tables created')
         yield
 
     finally:
-        am_db.delete_all_records(managers.BookingManagerDB)
         ...
 
-
-static_path = BASE_DIR / 'front' / 'static'
 
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(static_path)), name='static')
@@ -57,7 +38,7 @@ app.include_router(front.shared_router, prefix='/api/shared')
 async def close_app(
 ):
     """Endpoint to close the application."""
-    logger.warning('Closing application')
+    am_config.logger.warning('Closing application')
     flaskwebgui.close_application()
 
 
