@@ -2,6 +2,7 @@
 Pages and Endpoints for Booking Shipments.
 """
 from __future__ import annotations
+
 import datetime as dt
 import os
 
@@ -9,29 +10,24 @@ import fastapi
 import sqlmodel as sqm
 from fastui import FastUI, components as c, events, events as e
 from loguru import logger
+from pawdantic.pawui import builders, pawui_types
 
 import shipaw
 from amherst import am_db, shipper
 from amherst.front import booked, ship, support
 from amherst.front.support import update_manager_state
 from amherst.models import managers
-from pawdantic.pawui import builders, pawui_types
 from shipaw.ship_ui import states as ship_states
-
 
 router = fastapi.APIRouter()
 
 
-@router.get(
-    '/confirm/{manager_id}/{state_64}',
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
+@router.get('/confirm/{manager_id}/{state_64}', response_model=FastUI, response_model_exclude_none=True)
 async def confirm_or_back(
-        manager_id: int,
-        state_64: str,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
-        session: sqm.Session = fastapi.Depends(am_db.get_session),
+    manager_id: int,
+    state_64: str,
+    pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+    session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint to submit state and return 'Confirm or Back' page.
 
@@ -53,11 +49,10 @@ async def confirm_or_back(
 
 
 async def confirm_or_back_page(
-        manager: managers.MANAGER_IN_DB,
-        alert_dict: pawui_types.AlertDict = None
+    manager: managers.MANAGER_IN_DB, alert_dict: pawui_types.AlertDict = None
 ) -> list[c.AnyComponent]:
     """Confirm or Back page.
-    
+
     Display the current state and buttons to proceed with booking or go back.
 
     Args:
@@ -70,11 +65,7 @@ async def confirm_or_back_page(
     """
     return await builders.page_w_alerts(
         components=[
-            c.Heading(
-                text=f'Booking Confirmation for {manager.record.name}',
-                level=1,
-                class_name='row mx-auto my-5'
-            ),
+            c.Heading(text=f'Booking Confirmation for {manager.record.name}', level=1, class_name='row mx-auto my-5'),
             c.ServerLoad(path=f'/book/check_state/{manager.id}'),
             await confirm_div(manager),
             await back_div(manager.id),
@@ -84,15 +75,11 @@ async def confirm_or_back_page(
     )
 
 
-@router.get(
-    '/go_book/{manager_id}',
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
+@router.get('/go_book/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def do_booking(
-        manager_id: int,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
-        session: sqm.Session = fastapi.Depends(am_db.get_session),
+    manager_id: int,
+    pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+    session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint for booking a shipment.
 
@@ -137,8 +124,8 @@ async def do_booking(
 
 @router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)
 async def check_state(
-        man_id: int,
-        session=fastapi.Depends(am_db.get_session),
+    man_id: int,
+    session=fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Html Div with the current state of the manager.
 
@@ -151,19 +138,8 @@ async def check_state(
 
     """
     man_in = await support.get_manager(man_id, session)
-    texts = builders.dict_strs_texts(
-        man_in.state.model_dump(exclude={'candidates'}),
-        with_keys='YES'
-    )
-    return [
-        c.Div(
-            components=builders.list_of_divs(
-                class_name='row my-2 mx-auto',
-                components=texts
-            ),
-            class_name='row'
-        )
-    ]
+    texts = builders.dict_strs_texts(man_in.state.model_dump(exclude={'candidates'}), with_keys='YES')
+    return [c.Div(components=builders.list_of_divs(class_name='row my-2 mx-auto', components=texts), class_name='row')]
 
 
 async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShipper):
@@ -184,10 +160,10 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
 
 
 async def process_shipment(
-        manager: managers.BookingManagerDB,
-        pfcom: shipper.AmShipper,
-        req,
-        resp,
+    manager: managers.BookingManagerDB,
+    pfcom: shipper.AmShipper,
+    req,
+    resp,
 ):
     """Process the shipment.
 
@@ -207,10 +183,12 @@ async def process_shipment(
         shipaw.ExpressLinkError: If the shipment is not completed.
 
     """
-    if not resp.completed_shipment_info:
-        raise shipaw.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
-
     booked_state = ship_states.BookingState.model_validate(dict(request=req, response=resp))
+    if alt := booked_state.alert_dict:
+        raise shipaw.ExpressLinkError(str(alt))
+        # if not resp.completed_shipment_info:
+        # raise shipaw.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
+
     new_ship_state = manager.state.model_copy(update={'booking_state': booked_state})
     val_ship_state = shipaw.ShipState.model_validate(new_ship_state)
     await support.wait_label(val_ship_state, pfcom)
@@ -229,7 +207,7 @@ async def back_div(manager_id: int):
                 text='Back',
                 on_click=events.GoToEvent(url=f'/ship/select/{manager_id}'),
             )
-        ]
+        ],
     )
 
 
@@ -241,12 +219,13 @@ async def confirm_div(manager):
             c.Button(
                 text='Confirm Booking',
                 on_click=e.GoToEvent(url=f'/book/go_book/{manager.id}'),
-                class_name='row btn btn-lg btn-primary'
+                class_name='row btn btn-lg btn-primary',
             )
-        ]
+        ],
     )
 
-# unused? 
+
+# unused?
 # @router.post('/confirm_post/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 # async def confirm_post(
 #         manager_id: int,
@@ -254,7 +233,7 @@ async def confirm_div(manager):
 #             ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
 #         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 #         session=fastapi.Depends(am_db.get_session),
-# 
+#
 # ):
 #     """Endpoint for posting confirmation form."""
 #     update = ship_states.ShipStatePartial.model_validate(form.model_dump())
