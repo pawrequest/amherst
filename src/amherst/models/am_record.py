@@ -9,10 +9,10 @@ from loguru import logger
 from pydantic import AliasChoices, ConfigDict, Field
 
 import pycommence
-import shipaw.models.shipable
 from shipaw import ELClient
-from shipaw.models import pf_ext, pf_lists, pf_top, shipable
+from shipaw.models import pf_ext, pf_lists, pf_top
 from amherst.am_types import AmherstTableName, CMC_SHIP_DATE2
+from shipaw.ship_ui import states
 
 
 def get_email(fields_enum, record):
@@ -75,10 +75,10 @@ class AmherstRecord(_p.BaseModel):
         return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
     @cached_property
-    def initial_state(self) -> shipaw.ShipState:
+    def initial_state(self) -> states.ShipState:
         el_client = ELClient()
         chosen, candidates = el_client.choose_address(self.input_address)
-        return shipaw.ShipState(
+        return states.ShipState(
             contact=self.contact,
             address=chosen,
             ship_date=self.send_date,
