@@ -27,7 +27,7 @@ def return_label_email(state):
 async def invoice_email(manager: managers.MANAGER_IN_DB) -> eh.Email:
     inv_num = manager.record.invoice.stem
     return eh.Email(
-        to_address=manager.state.contact.email_address,
+        to_address=manager.shipment.contact.email_address,
         subject=f'Radio Hire - Invoice {inv_num} Attached',
         body=invoice_body(),
         attachment_path=manager.record.invoice,
@@ -47,7 +47,7 @@ def invoice_body():
     """
 
 
-def return_body(state: states.ShipState):
+def return_body(state: states.Shipment):
     return f"""Hi,
     
     Thanks for choosing to hire from Amherst, please find a pre-paid parcelforce label attached – it needs to be printed and attached to the box.

@@ -26,7 +26,7 @@ async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[
         FastUI.Page: The page with the post-booking actions.
 
     """
-    state_alert_dict = ship_states.state_alert_dict(manager.state.booking_state)
+    state_alert_dict = ship_states.state_alert_dict(manager.shipment.booking_state)
     alert_dict = state_alert_dict.update(alert_dict or {})
 
     ret = await builders.page_w_alerts(
@@ -64,7 +64,7 @@ async def print_label(booking_id: int, session=fastapi.Depends(am_db.get_session
     """Endpoint to print the label for a booking."""
     logger.warning(f"printing id: {booking_id}")
     man_in = await support.get_manager(booking_id, session)
-    if label := man_in.state.booking_state.label_dl_path:
+    if label := man_in.shipment.booking_state.label_dl_path:
         await prnt_label_arrayed(label)
         return await booked_page(manager=man_in)
     raise ValueError("label not downloaded")

@@ -63,8 +63,8 @@ async def manual_post(
         mobile_phone=phone,
     )
 
-    state = shipstates.ShipState.model_validate(
-        shipstates.ShipState(
+    state = shipstates.Shipment.model_validate(
+        shipstates.Shipment(
             reference=reference,
             special_instructions=special_instructions,
             boxes=boxes,
@@ -116,8 +116,8 @@ async def select_post(
             mobile_phone=phone,
         )
 
-        state = shipstates.ShipState.model_validate(
-            shipstates.ShipState(
+        state = shipstates.Shipment.model_validate(
+            shipstates.Shipment(
                 boxes=boxes,
                 ship_date=date,
                 direction=direction,
@@ -174,8 +174,8 @@ async def state_model_post(
         session=fastapi.Depends(am_db.get_session),
 ):
     man_in = await support.get_manager(manager_id, session)
-    man_in.state = shipstates.ShipState.model_validate(
-        man_in.state.get_updated(form)
+    man_in.shipment = shipstates.Shipment.model_validate(
+        man_in.shipment.get_updated(form)
     )
 
     session.add(man_in)
@@ -204,7 +204,7 @@ async def address_form_post(
     manager = await support.get_manager(manager_id, session)
     form = await request.form()
     address_ = json.loads(form.get('address'))
-    addr_class = await addr_class_f_direction(manager.state.direction)
+    addr_class = await addr_class_f_direction(manager.shipment.direction)
 
     address = addr_class(address_)
     partial = shipstates.ShipStatePartial.model_validate({'address': address})
@@ -231,7 +231,7 @@ async def postcode_post2(
 ) -> list[c.AnyComponent]:
     if ship_types.is_valid_postcode(postcode):
         man_in = await support.get_manager(manager_id, session)
-        man_in.state.candidates = pfcom.get_candidates(postcode)
+        man_in.shipment.candidates = pfcom.get_candidates(postcode)
         session.add(man_in)
         session.commit()
         alert_dict = {}
@@ -276,7 +276,7 @@ async def postcode_post(
         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
 ) -> list[c.AnyComponent]:
     man_in = await support.get_manager(manager_id, session)
-    man_in.state.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
+    man_in.shipment.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
     session.add(man_in)
     session.commit()
 

@@ -41,7 +41,7 @@ async def confirm_or_back(
         c.Page: :meth:`~confirm_book_page`
 
     """
-    state = ship_states.ShipState.model_validate_64(state_64)
+    state = ship_states.Shipment.model_validate_64(state_64)
     state.candidates = pfcom.get_candidates(state.address.postcode)
 
     man_in = await update_manager_state(manager_id, session, state)
@@ -96,15 +96,15 @@ async def do_booking(
     logger.warning(f'booking_id: {manager_id}')
     man_in = await support.get_manager(manager_id, session)
 
-    if man_in.state.booking_state is not None:
+    if man_in.shipment.booking_state is not None:
         logger.error(f'booking {manager_id} already booked')
         alert_dict = {'ALREADY BOOKED': 'ERROR'}
         return await booked.booked_page(manager=man_in, alert_dict=alert_dict)
 
     try:
-        if man_in.state.direction == 'in':
+        if man_in.shipment.direction == 'in':
             tod = dt.date.today()
-            if man_in.state.ship_date <= tod:
+            if man_in.shipment.ship_date <= tod:
                 raise shipaw.ExpressLinkError('CAN NOT COLLECT TODAY')
 
         req, resp = await book_shipment(man_in, pfcom)
@@ -138,7 +138,7 @@ async def check_state(
 
     """
     man_in = await support.get_manager(man_id, session)
-    texts = builders.dict_strs_texts(man_in.state.model_dump(exclude={'candidates'}), with_keys='YES')
+    texts = builders.dict_strs_texts(man_in.shipment.model_dump(exclude={'candidates'}), with_keys='YES')
     return [c.Div(components=builders.list_of_divs(class_name='row my-2 mx-auto', components=texts), class_name='row')]
 
 
@@ -153,8 +153,8 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
         tuple: The request and response objects.
 
     """
-    req = pfcom.state_to_request(manager.state)
-    logger.warning(f'BOOKING ({manager.state.direction.title()}) {manager.record.name}')
+    req = pfcom.state_to_request(manager.shipment)
+    logger.warning(f'BOOKING ({manager.shipment.direction.title()}) {manager.record.name}')
     resp = pfcom.send_shipment_request(req)
     return req, resp
 
@@ -184,11 +184,11 @@ async def process_shipment(manager: managers.BookingManagerDB, pfcom: shipper.Am
         # if not resp.completed_shipment_info:
         # raise shipaw.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
 
-    new_ship_state = manager.state.model_copy(update={'booking_state': booked_state})
-    val_ship_state = shipaw.ShipState.model_validate(new_ship_state)
+    new_ship_state = manager.shipment.model_copy(update={'booking_state': booked_state})
+    val_ship_state = shipaw.Shipment.model_validate(new_ship_state)
     await support.wait_label(val_ship_state, pfcom)
     os.startfile(val_ship_state.booking_state.label_dl_path)
-    manager.state = val_ship_state
+    manager.shipment = val_ship_state
     return manager
 
 

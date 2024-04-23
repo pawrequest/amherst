@@ -31,17 +31,17 @@ async def get_manager(manager_id: int, session: sqm.Session):
 
 
 async def update_state(man_in, updt):
-    updated_state_ = man_in.state.get_updated(updt)
-    updated_state = shipaw.ShipState.model_validate(updated_state_)
-    man_in.state = updated_state
+    updated_state_ = man_in.shipment.get_updated(updt)
+    updated_state = shipaw.Shipment.model_validate(updated_state_)
+    man_in.shipment = updated_state
     return man_in
 
 
 async def update_and_commit(manager_id, partial, session) -> managers.BookingManagerOut:
     man_in = await get_manager(manager_id, session)
-    updated_state_ = man_in.state.get_updated(partial)
-    updated_state = shipaw.ShipState.model_validate(updated_state_)
-    man_in.state = updated_state
+    updated_state_ = man_in.shipment.get_updated(partial)
+    updated_state = shipaw.Shipment.model_validate(updated_state_)
+    man_in.shipment = updated_state
     session.add(man_in)
     session.commit()
     man_out = managers.BookingManagerOut.model_validate(man_in)
@@ -49,7 +49,7 @@ async def update_and_commit(manager_id, partial, session) -> managers.BookingMan
     return man_out
 
 
-async def wait_label(state: shipaw.ShipState, pfcom: shipper.AmShipper) -> bool:
+async def wait_label(state: shipaw.Shipment, pfcom: shipper.AmShipper) -> bool:
     label_path = pfcom.get_label(
         ship_num=state.booking_state.shipment_num(),
         dl_path=state.named_label_path if state.direction == 'in' else None,
@@ -83,7 +83,7 @@ async def get_missing(record: AmherstRecord) -> list[str]:
 type Fui_Page = list[c.AnyComponent]
 
 
-def get_named_labelpath(state: shipaw.ShipState):
+def get_named_labelpath(state: shipaw.Shipment):
     """Get a unique path (for saving) for the label."""
     sett = pf_config.PF_SETTINGS
     pdir = sett.label_dir
@@ -106,7 +106,7 @@ async def prnt_label_arrayed(label_path: pathlib.Path) -> None:
     pawdf.array_pdf.convert_many(label_path, print_files=True)
 
 
-def state_notification_labels_str(state: states.ShipState):
+def state_notification_labels_str(state: states.Shipment):
     indent = ' ' * 4
     lines = [
         f'{indent}{pf_shared.notification_label_map[notification]} - {state_notification_contact_detail(state, notification)}'
@@ -115,7 +115,7 @@ def state_notification_labels_str(state: states.ShipState):
     return '\n'.join(lines)
 
 
-def state_notification_contact_detail(state: states.ShipState, notification: str):
+def state_notification_contact_detail(state: states.Shipment, notification: str):
     if 'EMAIL' in notification or notification == 'DELIVERYNOTIFICATION':
         return state.contact.email_address
     elif 'SMS' in notification:
@@ -125,12 +125,12 @@ def state_notification_contact_detail(state: states.ShipState, notification: str
 
 
 async def get_manager_label_path(man_in):
-    return man_in.state.booking_state.label_dl_path
+    return man_in.shipment.booking_state.label_dl_path
 
 
 async def update_manager_state(manager_id, session, state):
     man_in = await get_manager(manager_id, session)
-    man_in.state = state
+    man_in.shipment = state
     session.add(man_in)
     session.commit()
     session.refresh(man_in)

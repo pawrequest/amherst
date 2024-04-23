@@ -75,10 +75,10 @@ class AmherstRecord(_p.BaseModel):
         return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
     @cached_property
-    def initial_state(self) -> states.ShipState:
+    def initial_state(self) -> states.Shipment:
         el_client = ELClient()
         chosen, candidates = el_client.choose_address(self.input_address)
-        return states.ShipState(
+        return states.Shipment(
             contact=self.contact,
             address=chosen,
             ship_date=self.send_date,

@@ -158,7 +158,7 @@ async def get_form(
     """
     manager = await support.get_manager(manager_id, session)
     return c.Form(
-        form_fields=await get_form_fields(kind, manager.state),
+        form_fields=await get_form_fields(kind, manager.shipment),
         submit_url=f"/api/forms/{kind}/{manager_id}",
     )
 

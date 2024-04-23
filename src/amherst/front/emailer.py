@@ -33,7 +33,7 @@ async def email_post(
     manager = await support.get_manager(manager_id, session)
 
     if label:
-        if not manager.state.booking_state.label_downloaded:
+        if not manager.shipment.booking_state.label_downloaded:
             alert_dict = {'Label not downloaded': 'Error'}
             return [c.Text(text=str(alert_dict))]
     try:
@@ -89,7 +89,7 @@ INVOICE_BODY = 'Please find your invoice attached.\n'
 GOODBYE = 'If you have any queries please let us know.\n\nKind Regards,\nAmherst Enterprises'
 
 
-def label_body(state: states.ShipState):
+def label_body(state: states.Shipment):
     return f"""Please find a pre-paid parcelforce label attached – it needs to be printed and attached to the box.
 Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!'
 Collection is booked for {paw_strings.date_string(state.ship_date)}, we are unable to give precise timings, however you should receive notifications at the contact details below:'
@@ -116,7 +116,7 @@ MISSING KIT:
 
 
 def compose_body(
-    state: states.ShipState = None,
+    state: states.Shipment = None,
     item: AmherstRecord = None,
     invoice: bool = False,
     missing_kit: bool = False,
@@ -183,7 +183,7 @@ def get_email_options(manager: managers.MANAGER_IN_DB):
     # irec = manager.record
     # crec = manager.item.customer_record
 
-    state_delivery = manager.state.contact.email_address
+    state_delivery = manager.shipment.contact.email_address
 
     addr_dict = {
         state_delivery: f'from current state ({state_delivery})',

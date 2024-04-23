@@ -48,7 +48,7 @@ def create_db(engine=None):
 
 def record_to_manager(ship_rec: AmherstRecord) -> int:
     with sqm.Session(get_engine()) as session:
-        manager = managers.BookingManagerDB(record=ship_rec, state=ship_rec.initial_state)
+        manager = managers.BookingManagerDB(record=ship_rec, shipment=ship_rec.initial_state)
         manager = manager.model_validate(manager)
         session.add(manager)
         session.commit()

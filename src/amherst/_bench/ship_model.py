@@ -62,7 +62,7 @@ async def forms_view(
 
 async def get_initial(manager, form_model) -> dict:
     update = {
-        k: v for k, v in manager.state.model_dump(exclude_none=True).items()
+        k: v for k, v in manager.shipment.model_dump(exclude_none=True).items()
         if k in form_model.model_fields
     }
     return update

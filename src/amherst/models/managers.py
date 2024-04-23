@@ -8,7 +8,7 @@ from .am_record import AmherstRecord
 
 
 class BookingManager(sqm.SQLModel):
-    state: states.ShipState
+    shipment: states.Shipment
     record: AmherstRecord
 
 
@@ -16,7 +16,7 @@ class BookingManagerDB(BookingManager, table=True):
     """subclass and set table = true"""
 
     id: int | None = sqm.Field(primary_key=True)
-    state: states.ShipState = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(states.ShipState)))
+    shipment: states.Shipment = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(states.Shipment)))
     record: AmherstRecord = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(AmherstRecord)))
 
 
