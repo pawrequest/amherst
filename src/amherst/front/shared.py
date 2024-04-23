@@ -11,15 +11,15 @@ from loguru import logger
 from amherst import am_db, am_types
 from amherst.front import emailer, support
 from amherst.front.ship import shipping_page
-from amherst.models import shipment_record
+from amherst.models.shipment_record import ShipmentRecordInDB, ShipmentRecordOut
 
 router = fastapi.APIRouter()
 
 
 @router.get('/invoice/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def open_invoice(
-        manager_id: int,
-        session: sqlmodel.Session = Depends(am_db.get_session),
+    manager_id: int,
+    session: sqlmodel.Session = Depends(am_db.get_session),
 ) -> support.Fui_Page:
     """Endpoint for opening invoice.
 
@@ -35,21 +35,18 @@ async def open_invoice(
     """
     man_in = await support.get_manager(manager_id, session)
     inv_file = await support.get_invoice_path(man_in.record)
-    man_out = managers.ShipmentRecordOut.model_validate(man_in)
+    man_out = ShipmentRecordOut.model_validate(man_in)
 
     try:
         os.startfile(inv_file)
     except (FileNotFoundError, TypeError):
         logger.error(f'Invoice file not found: {inv_file}')
-        return await shipping_page.ship_page(
-            manager=man_out,
-            alert_dict={'INVOICE NOT FOUND': 'WARNING'}
-        )
+        return await shipping_page.ship_page(manager=man_out, alert_dict={'INVOICE NOT FOUND': 'WARNING'})
 
     return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{manager_id}'))]
 
 
-async def invoice_div(manager: managers.ShipmentRecordOut) -> c.Div:
+async def invoice_div(manager: ShipmentRecordOut) -> c.Div:
     """Div for opening invoice.
 
     Args:
@@ -67,19 +64,13 @@ async def invoice_div(manager: managers.ShipmentRecordOut) -> c.Div:
                 on_click=e.GoToEvent(
                     url=f'/shared/invoice/{manager.id}',
                 ),
-
             )
         ],
     )
 
 
-async def email_div(manager: managers.ShipmentRecordInDB, choices: list[am_types.EmailChoices]):
-    return c.Div(
-        class_name='row my-3',
-        components=[
-            emailer.get_email_form(manager, choices)
-        ]
-    )
+async def email_div(manager: ShipmentRecordInDB, choices: list[am_types.EmailChoices]):
+    return c.Div(class_name='row my-3', components=[emailer.get_email_form(manager, choices)])
 
 
 async def close_div():
@@ -92,7 +83,7 @@ async def close_div():
                 on_click=e.GoToEvent(
                     url='/close_app/',
                 ),
-                class_name='btn btn-lg btn-primary'
+                class_name='btn btn-lg btn-primary',
             )
-        ]
+        ],
     )
