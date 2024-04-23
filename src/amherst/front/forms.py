@@ -218,8 +218,8 @@ async def address_form_post(
     ]
 
 
-async def man_in_to_out(man_in: managers.BookingManagerDB) -> managers.BookingManagerOut:
-    return managers.BookingManagerOut.model_validate(man_in)
+async def man_in_to_out(man_in: managers.ShipmentRecordDB) -> managers.ShipmentRecordOut:
+    return managers.ShipmentRecordOut.model_validate(man_in)
 
 
 @router.post('/postcode2/{manager_id}', response_model=FastUI, response_model_exclude_none=True)

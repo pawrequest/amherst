@@ -23,8 +23,8 @@ class ManagerNotFound(Exception):
 
 
 async def get_manager(manager_id: int, session: sqm.Session):
-    man_in = session.get(managers.BookingManagerDB, manager_id)
-    if not isinstance(man_in, managers.BookingManagerDB):
+    man_in = session.get(managers.ShipmentRecordDB, manager_id)
+    if not isinstance(man_in, managers.ShipmentRecordDB):
         raise fastapi.HTTPException(status_code=404, detail='Booking not found')
 
     return man_in
@@ -37,14 +37,14 @@ async def update_state(man_in, updt):
     return man_in
 
 
-async def update_and_commit(manager_id, partial, session) -> managers.BookingManagerOut:
+async def update_and_commit(manager_id, partial, session) -> managers.ShipmentRecordOut:
     man_in = await get_manager(manager_id, session)
     updated_state_ = man_in.shipment.get_updated(partial)
     updated_state = shipaw.Shipment.model_validate(updated_state_)
     man_in.shipment = updated_state
     session.add(man_in)
     session.commit()
-    man_out = managers.BookingManagerOut.model_validate(man_in)
+    man_out = managers.ShipmentRecordOut.model_validate(man_in)
 
     return man_out
 

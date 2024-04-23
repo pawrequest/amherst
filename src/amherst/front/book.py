@@ -112,12 +112,12 @@ async def do_booking(
 
         session.add(processed_manager)
         session.commit()
-        man_out = managers.BookingManagerOut.model_validate(processed_manager)
+        man_out = managers.ShipmentRecordOut.model_validate(processed_manager)
         return await booked.booked_page(manager=man_out)
 
     except Exception as err:
         alert_dict = {str(err): 'ERROR'}
-        man_out = managers.BookingManagerOut.model_validate(man_in)
+        man_out = managers.ShipmentRecordOut.model_validate(man_in)
 
         return await ship.shipping_page(man_out.id, session=session, alert_dict=alert_dict)
 
@@ -146,7 +146,7 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
     """Book a shipment.
 
     Args:
-        manager (managers.BookingManagerDB): The :class:`~managers.MANAGER_IN_DB` object.
+        manager (managers.ShipmentRecordDB): The :class:`~managers.MANAGER_IN_DB` object.
         pfcom (shipper.AmShipper): :class:`~shipper.AmShipper` object.
 
     Returns:
@@ -159,20 +159,20 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
     return req, resp
 
 
-async def process_shipment(manager: managers.BookingManagerDB, pfcom: shipper.AmShipper, req, resp):
+async def process_shipment(manager: managers.ShipmentRecordDB, pfcom: shipper.AmShipper, req, resp):
     """Process the shipment.
 
     Update the manager with the booking state and wait for the label to download.
     Open the label file in OS default pdf handler.
 
     Args:
-        manager (managers.BookingManagerDB): The manager object.
+        manager (managers.ShipmentRecordDB): The manager object.
         pfcom (shipper.AmShipper): :class:`~shipper.AmShipper` object.
         req: The request object.
         resp: The response object.
 
     Returns:
-        managers.BookingManagerDB: The manager object.
+        managers.ShipmentRecordDB: The manager object.
 
     Raises:
         shipaw.ExpressLinkError: If the shipment is not completed.

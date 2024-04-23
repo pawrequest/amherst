@@ -7,12 +7,12 @@ from shipaw.ship_ui import states
 from .am_record import AmherstRecord
 
 
-class BookingManager(sqm.SQLModel):
+class ShipmentRecord(sqm.SQLModel):
     shipment: states.Shipment
     record: AmherstRecord
 
 
-class BookingManagerDB(BookingManager, table=True):
+class ShipmentRecordDB(ShipmentRecord, table=True):
     """subclass and set table = true"""
 
     id: int | None = sqm.Field(primary_key=True)
@@ -20,8 +20,8 @@ class BookingManagerDB(BookingManager, table=True):
     record: AmherstRecord = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(AmherstRecord)))
 
 
-class BookingManagerOut(BookingManager, table=False):
+class ShipmentRecordOut(ShipmentRecord, table=False):
     id: int
 
 
-MANAGER_IN_DB = BookingManagerDB | BookingManagerOut
+MANAGER_IN_DB = ShipmentRecordDB | ShipmentRecordOut

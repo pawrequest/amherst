@@ -35,7 +35,7 @@ async def open_invoice(
     """
     man_in = await support.get_manager(manager_id, session)
     inv_file = await support.get_invoice_path(man_in.record)
-    man_out = managers.BookingManagerOut.model_validate(man_in)
+    man_out = managers.ShipmentRecordOut.model_validate(man_in)
 
     try:
         os.startfile(inv_file)
@@ -49,7 +49,7 @@ async def open_invoice(
     return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{manager_id}'))]
 
 
-async def invoice_div(manager: managers.BookingManagerOut) -> c.Div:
+async def invoice_div(manager: managers.ShipmentRecordOut) -> c.Div:
     """Div for opening invoice.
 
     Args:
