@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 from functools import cached_property
 from pathlib import Path
@@ -53,7 +55,7 @@ class AmherstRecord(_p.BaseModel):
     @cached_property
     def input_address(self):
         return pf_ext.AddressRecipient(
-            **shipable.addr_lines_dict_am(self.address_str),
+            **addr_lines_dict_am(self.address_str),
             town='',
             postcode=self.postcode,
         )
@@ -85,3 +87,12 @@ class AmherstRecord(_p.BaseModel):
             reference=self.delivery_business,
             # special_instructions='',
         )
+
+
+def addr_lines_dict_am(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
