@@ -24,7 +24,7 @@ from loguru import logger
 
 import pycommence
 from amherst import am_db, am_types, app_file
-from amherst.models import shipable_item
+from amherst.models.am_record import AmherstRecord
 
 
 def parse_arguments():
@@ -41,7 +41,8 @@ def main(category: am_types.AmherstTableName, record_name: str):
     record = py_cmc.one_record(record_name)
     record['cmc_table_name'] = category
     try:
-        shiprec = shipable_item.ShipableRecord(**record)
+        shiprec = AmherstRecord(**record)
+        shiprec = shiprec.model_validate(shiprec)
     except Exception as e:
         logger.exception(f'Error creating ShipableRecord: {e}')
         raise ValueError(f'Error creating ShipableRecord: {e}')

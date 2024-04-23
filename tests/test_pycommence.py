@@ -1,6 +1,6 @@
 import pytest
 
-from amherst.models.shipable_item import ShipableRecord
+from amherst.models.am_record import AmherstRecord
 from pycommence.cursor import get_csr
 from pycommence.pycmc_types import CmcError
 from pycommence import PyCommence
@@ -24,4 +24,4 @@ def test_get_records_by_field(pycmc: PyCommence):
     assert res[0]['firstName'] == 'Jeff'
 
 def test_shipable(hire_record):
-    shipa = ShipableRecord.model_validate(hire_record)
+    shipa = AmherstRecord.model_validate(hire_record)

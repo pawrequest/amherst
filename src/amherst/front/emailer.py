@@ -13,7 +13,7 @@ from suppawt.office_ps.ms import outlook_handler as oh
 from amherst import am_db, am_types
 from amherst.front import support
 from amherst.models import managers
-from amherst.models.shipable_item import ShipableRecord
+from amherst.models.am_record import AmherstRecord
 from shipaw.ship_ui import states
 
 router = fastapi.APIRouter()
@@ -117,7 +117,7 @@ MISSING KIT:
 
 def compose_body(
     state: states.ShipState = None,
-    item: ShipableRecord = None,
+    item: AmherstRecord = None,
     invoice: bool = False,
     missing_kit: bool = False,
     label: bool = False,

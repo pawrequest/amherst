@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from abc import ABC
 from enum import Enum, StrEnum
 from typing import Literal
 
-import pydantic as _p
 from pycommence import pycmc_types
 
 SALE_CUSTOMERS = pycmc_types.Connection(
@@ -199,10 +197,3 @@ class SaleFields(str, Enum):
     INVOICE_TELEPHONE = 'Invoice Telephone'
 
 
-def addr_lines_dict_am(address: str) -> dict[str, str]:
-    addr_lines = address.splitlines()
-    if len(addr_lines) < 3:
-        addr_lines.extend([''] * (3 - len(addr_lines)))
-    elif len(addr_lines) > 3:
-        addr_lines[2] = ','.join(addr_lines[2:])
-    return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}

@@ -128,7 +128,7 @@ async def do_booking(
         man_out = managers.BookingManagerOut.model_validate(processed_manager)
         return await booked.booked_page(manager=man_out)
 
-    except shipaw.ExpressLinkError as err:
+    except Exception as err:
         alert_dict = {str(err): 'ERROR'}
         man_out = managers.BookingManagerOut.model_validate(man_in)
 

@@ -9,13 +9,13 @@ import sqlmodel as sqm
 from fastui import components as c
 from loguru import logger
 
-from amherst.models.shipable_item import ShipableItem, ShipableRecord
+from amherst.models.am_record import AmherstRecord
 from shipaw.models import pf_ext, pf_shared
 import shipaw
 from shipaw import pf_config
 from shipaw.ship_ui import states
 from amherst import shipper
-from amherst.models import am_shared, managers
+from amherst.models import managers
 
 
 class ManagerNotFound(Exception):
@@ -67,16 +67,17 @@ async def wait_label(state: shipaw.ShipState, pfcom: shipper.AmShipper) -> bool:
         raise ValueError(f'file not created after 20 seconds {label_path=}')
 
 
-async def get_invoice_path(record: ShipableRecord) -> pathlib.Path | None:
+async def get_invoice_path(record: AmherstRecord) -> pathlib.Path | None:
     if record.cmc_table_name == 'Customer':
         raise ValueError('invoice not for customer')
+
     return record.invoice
 
 
-async def get_missing(item: ShipableItem) -> list[str]:
-    if not item.cmc_table_name == 'Hire':
+async def get_missing(record: AmherstRecord) -> list[str]:
+    if not record.cmc_table_name == 'Hire':
         raise ValueError('missing kit only for hire')
-    return item.record.get(am_shared.HireFields.MISSING_KIT).splitlines()
+    return record.missing_kit
 
 
 type Fui_Page = list[c.AnyComponent]

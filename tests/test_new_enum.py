@@ -1,7 +1,7 @@
 import pycommence
 import pytest
 
-from amherst.models.shipable_item import ShipableRecord
+from amherst.models.am_record import AmherstRecord
 
 type OrDict[T] = T | dict[str, T]
 
@@ -17,7 +17,7 @@ def test_smth(key, name):
     py_com = pycommence.PyCommence.from_table_name(key)
     record = py_com.one_record(name)
     record['cmc_table_name'] = key
-    val = ShipableRecord.model_validate(record)
+    val = AmherstRecord.model_validate(record)
     ...
 
 

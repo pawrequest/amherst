@@ -4,7 +4,7 @@ import json
 from typing import Annotated
 
 import fastapi
-from fastui import FastUI, components as c, events as e
+from fastui import FastUI, components as c, events as e, events
 from fastui.forms import fastui_form
 from loguru import logger
 from pawdantic.pawui import pawui_types
@@ -106,37 +106,41 @@ async def select_post(
         service=fastapi.Form(...),
 
 ):
-    address_choice = pf_ext.AddressRecipient.model_validate_json(address)
+    try:
+        address_choice = pf_ext.AddressRecipient.model_validate_json(address)
 
-    contact = pf_top.Contact(
-        business_name=business_name,
-        contact_name=contact_name,
-        email_address=email,
-        mobile_phone=phone,
-    )
-
-    state = shipstates.ShipState.model_validate(
-        shipstates.ShipState(
-            boxes=boxes,
-            ship_date=date,
-            direction=direction,
-            address=address_choice,
-            contact=contact,
-            candidates=pfcom.get_candidates(address_choice.postcode),
-            service=service,
-            reference=reference,
-            special_instructions=special_instructions,
-
+        contact = pf_top.Contact(
+            business_name=business_name,
+            contact_name=contact_name,
+            email_address=email,
+            mobile_phone=phone,
         )
-    )
 
-    return [c.FireEvent(
-        event=e.GoToEvent(
-            url=f'/book/confirm/{manager_id}/{state.model_dump_64()}'
+        state = shipstates.ShipState.model_validate(
+            shipstates.ShipState(
+                boxes=boxes,
+                ship_date=date,
+                direction=direction,
+                address=address_choice,
+                contact=contact,
+                candidates=pfcom.get_candidates(address_choice.postcode),
+                service=service,
+                reference=reference,
+                special_instructions=special_instructions,
 
+            )
         )
-    )
-    ]
+
+        return [c.FireEvent(
+            event=events.GoToEvent(
+                url=f'/book/confirm/{manager_id}/{state.model_dump_64()}'
+
+            )
+        )
+        ]
+    except Exception as e:
+        logger.error(e)
+        return [c.Paragraph(text=str(e)), c.Paragraph(text='Please refresh the page and try again')]
 
 
 # @router.post(

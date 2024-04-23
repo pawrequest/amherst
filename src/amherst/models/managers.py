@@ -1,25 +1,23 @@
 from __future__ import annotations
 
 import sqlmodel as sqm
+
 from shipaw import ship_types as s_types
 from shipaw.ship_ui import states
-
-from . import shipable_item
+from .am_record import AmherstRecord
 
 
 class BookingManager(sqm.SQLModel):
     state: states.ShipState
-    record: shipable_item.ShipableRecord
+    record: AmherstRecord
 
 
 class BookingManagerDB(BookingManager, table=True):
     """subclass and set table = true"""
 
     id: int | None = sqm.Field(primary_key=True)
-    state: states.ShipState = sqm.Field(sa_column=sqm.Column(s_types.GenericJSONType(states.ShipState)))
-    record: shipable_item.ShipableRecord = sqm.Field(
-        sa_column=sqm.Column(s_types.GenericJSONType(shipable_item.ShipableRecord))
-    )
+    state: states.ShipState = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(states.ShipState)))
+    record: AmherstRecord = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(AmherstRecord)))
 
 
 class BookingManagerOut(BookingManager, table=False):

@@ -4,7 +4,11 @@ import typing as _t
 from datetime import datetime
 from decimal import Decimal
 
+import pydantic as _p
+
 from amherst.models import am_shared
+from pycommence import pycmc_types
+from shipaw import ship_types
 
 
 def amherst_date_val(v):
@@ -62,3 +66,4 @@ AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
 AmherstFieldsEnumType = am_shared.HireFields | am_shared.SaleFields | am_shared.CustomerFields
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
+CMC_SHIP_DATE2 = _t.Annotated[ship_types.SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]

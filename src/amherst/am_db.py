@@ -8,14 +8,14 @@ import sqlmodel as sqm
 from loguru import logger
 
 from amherst import am_config, shipper
-from amherst.models import managers, shipable_item
-from amherst.rec_importer import initial_state
+from amherst.models import managers
+from amherst.models.am_record import AmherstRecord
 
 
 @functools.lru_cache(maxsize=1)
 def get_engine() -> sqa.engine.base.Engine:
     am_sett = am_config.AM_SETTINGS
-    connect_args = {"check_same_thread": False}
+    connect_args = {'check_same_thread': False}
     return sqa.create_engine(am_sett.db_url, echo=False, connect_args=connect_args)
 
 
@@ -31,7 +31,7 @@ def get_el_client():
     try:
         return shipper.AmShipper()
     except Exception as e:
-        logger.error(f"get_pfc: {e}")
+        logger.error(f'get_pfc: {e}')
         raise
 
 
@@ -46,9 +46,9 @@ def create_db(engine=None):
     sqm.SQLModel.metadata.create_all(engine)
 
 
-def record_to_manager(ship_rec: shipable_item.ShipableRecord) -> int:
+def record_to_manager(ship_rec: AmherstRecord) -> int:
     with sqm.Session(get_engine()) as session:
-        manager = managers.BookingManagerDB(record=ship_rec, state=initial_state(ship_rec))
+        manager = managers.BookingManagerDB(record=ship_rec, state=ship_rec.initial_state)
         manager = manager.model_validate(manager)
         session.add(manager)
         session.commit()
