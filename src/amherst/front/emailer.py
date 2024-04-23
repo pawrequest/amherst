@@ -12,8 +12,8 @@ from suppawt.office_ps.ms import outlook_handler as oh
 
 from amherst import am_db, am_types
 from amherst.front import support
-from amherst.models import managers
 from amherst.models.am_record import AmherstRecord
+from amherst.models.shipment_record import ShipmentRecordInDB
 from shipaw.ship_ui import states
 
 router = fastapi.APIRouter()
@@ -65,7 +65,7 @@ class EmailChoiceBoolean(c.FormFieldBoolean):
     name: am_types.EmailChoices
 
 
-def get_email_form(manager: managers.MANAGER_IN_DB, choices: list[am_types.EmailChoices]):
+def get_email_form(manager: ShipmentRecordInDB, choices: list[am_types.EmailChoices]):
     bool_fields = [EmailChoiceBoolean(name=k, title=k.title()) for k in choices]
 
     return c.Form(
@@ -133,7 +133,7 @@ def compose_body(
 
 async def generic_email(
     recipients: list[str],
-    manager: managers.MANAGER_IN_DB = None,
+    manager: ShipmentRecordInDB = None,
     label: bool = False,
     missing: bool = False,
     invoice: bool = False,
@@ -179,7 +179,7 @@ async def generic_email(
     )
 
 
-def get_email_options(manager: managers.MANAGER_IN_DB):
+def get_email_options(manager: ShipmentRecordInDB):
     # irec = manager.record
     # crec = manager.item.customer_record
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import typing as _t
 from functools import cached_property
 from pathlib import Path
 
@@ -9,26 +10,11 @@ from loguru import logger
 from pydantic import AliasChoices, ConfigDict, Field
 
 import pycommence
-from shipaw import ELClient
+from pycommence import pycmc_types
+from shipaw import ELClient, ship_types
 from shipaw.models import pf_ext, pf_lists, pf_top
-from amherst.am_types import AmherstTableName, CMC_SHIP_DATE2
 from shipaw.ship_ui import states
 
-
-def get_email(fields_enum, record):
-    return (
-        record.get(fields_enum.DELIVERY_EMAIL)
-        or record.get(fields_enum.PRIMARY_EMAIL)
-        or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
-    )
-
-
-def get_customer_record(customer: str) -> dict[str, str]:
-    """Get a customer record from `:class:PyCommence`"""
-    logger.debug(f'Getting customer record for {customer}')
-    py_cmc = pycommence.PyCommence.from_table_name(table_name='Customer')
-    rec = py_cmc.one_record(customer)
-    return rec
 
 
 class AmherstRecord(_p.BaseModel):
@@ -96,3 +82,22 @@ def addr_lines_dict_am(address: str) -> dict[str, str]:
     elif len(addr_lines) > 3:
         addr_lines[2] = ','.join(addr_lines[2:])
     return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
+
+def get_email(fields_enum, record):
+    return (
+        record.get(fields_enum.DELIVERY_EMAIL)
+        or record.get(fields_enum.PRIMARY_EMAIL)
+        or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
+    )
+
+
+def get_customer_record(customer: str) -> dict[str, str]:
+    """Get a customer record from `:class:PyCommence`"""
+    logger.debug(f'Getting customer record for {customer}')
+    py_cmc = pycommence.PyCommence.from_table_name(table_name='Customer')
+    rec = py_cmc.one_record(customer)
+    return rec
+
+
+AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
+CMC_SHIP_DATE2 = _t.Annotated[ship_types.SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]

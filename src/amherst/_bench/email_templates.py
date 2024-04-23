@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from amherst.front import support
 from amherst.front.support import state_notification_labels_str
-from amherst.models import managers
+from amherst.models import shipment_record
 from pawdantic import paw_strings
 from shipaw.ship_ui import states
 from suppawt.office_ps import email_handler as eh
@@ -24,7 +24,7 @@ def return_label_email(state):
     )
 
 
-async def invoice_email(manager: managers.MANAGER_IN_DB) -> eh.Email:
+async def invoice_email(manager: managers.ShipmentRecordInDB) -> eh.Email:
     inv_num = manager.record.invoice.stem
     return eh.Email(
         to_address=manager.shipment.contact.email_address,

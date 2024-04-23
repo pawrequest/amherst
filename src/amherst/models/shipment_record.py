@@ -24,4 +24,4 @@ class ShipmentRecordOut(ShipmentRecord, table=False):
     id: int
 
 
-MANAGER_IN_DB = ShipmentRecordDB | ShipmentRecordOut
+ShipmentRecordInDB = ShipmentRecordDB | ShipmentRecordOut

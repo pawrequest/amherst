@@ -11,7 +11,7 @@ from loguru import logger
 from amherst import am_db, am_types
 from amherst.front import emailer, support
 from amherst.front.ship import shipping_page
-from amherst.models import managers
+from amherst.models import shipment_record
 
 router = fastapi.APIRouter()
 
@@ -73,7 +73,7 @@ async def invoice_div(manager: managers.ShipmentRecordOut) -> c.Div:
     )
 
 
-async def email_div(manager: managers.MANAGER_IN_DB, choices: list[am_types.EmailChoices]):
+async def email_div(manager: managers.ShipmentRecordInDB, choices: list[am_types.EmailChoices]):
     return c.Div(
         class_name='row my-3',
         components=[

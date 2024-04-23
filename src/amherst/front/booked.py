@@ -10,12 +10,12 @@ from shipaw.ship_ui import states as ship_states
 from amherst import am_db
 from amherst.front import shared, support
 from amherst.front.support import prnt_label_arrayed
-from amherst.models import managers
+from amherst.models import shipment_record
 
 router = fastapi.APIRouter()
 
 
-async def booked_page(manager: managers.MANAGER_IN_DB, alert_dict=None) -> list[c.AnyComponent]:
+async def booked_page(manager: managers.ShipmentRecordInDB, alert_dict=None) -> list[c.AnyComponent]:
     """Page for post-booking actions including printing and emailing labels.
 
     Args:

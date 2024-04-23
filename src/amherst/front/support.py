@@ -10,12 +10,11 @@ from fastui import components as c
 from loguru import logger
 
 from amherst.models.am_record import AmherstRecord
+from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
 from shipaw.models import pf_ext, pf_shared
 import shipaw
-from shipaw import pf_config
+from shipaw import pf_config, ELClient
 from shipaw.ship_ui import states
-from amherst import shipper
-from amherst.models import managers
 
 
 class ManagerNotFound(Exception):
@@ -23,8 +22,8 @@ class ManagerNotFound(Exception):
 
 
 async def get_manager(manager_id: int, session: sqm.Session):
-    man_in = session.get(managers.ShipmentRecordDB, manager_id)
-    if not isinstance(man_in, managers.ShipmentRecordDB):
+    man_in = session.get(ShipmentRecordDB, manager_id)
+    if not isinstance(man_in, ShipmentRecordDB):
         raise fastapi.HTTPException(status_code=404, detail='Booking not found')
 
     return man_in
@@ -37,20 +36,20 @@ async def update_state(man_in, updt):
     return man_in
 
 
-async def update_and_commit(manager_id, partial, session) -> managers.ShipmentRecordOut:
+async def update_and_commit(manager_id, partial, session) -> ShipmentRecordOut:
     man_in = await get_manager(manager_id, session)
     updated_state_ = man_in.shipment.get_updated(partial)
     updated_state = shipaw.Shipment.model_validate(updated_state_)
     man_in.shipment = updated_state
     session.add(man_in)
     session.commit()
-    man_out = managers.ShipmentRecordOut.model_validate(man_in)
+    man_out = ShipmentRecordOut.model_validate(man_in)
 
     return man_out
 
 
-async def wait_label(state: shipaw.Shipment, pfcom: shipper.AmShipper) -> bool:
-    label_path = pfcom.get_label(
+async def wait_label(state: shipaw.Shipment, el_client: ELClient) -> bool:
+    label_path = el_client.get_label(
         ship_num=state.booking_state.shipment_num(),
         dl_path=state.named_label_path if state.direction == 'in' else None,
     ).resolve()

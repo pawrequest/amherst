@@ -22,6 +22,7 @@ import argparse
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
+import amherst.models.am_record
 import pycommence
 from amherst import am_db, am_types, app_file
 from amherst.models.am_record import AmherstRecord
@@ -34,7 +35,7 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-def main(category: am_types.AmherstTableName, record_name: str):
+def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
     am_db.create_db()
 
     py_cmc = pycommence.PyCommence.from_table_name(table_name=category)

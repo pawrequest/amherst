@@ -15,7 +15,7 @@ from shipaw.ship_ui import forms as ship_forms, states as shipstates
 from amherst import am_db, shipper
 from amherst.front import ship, support
 from amherst.front.support import addr_class_f_direction
-from amherst.models import managers
+from amherst.models import shipment_record
 
 router = fastapi.APIRouter()
 

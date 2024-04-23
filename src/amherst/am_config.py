@@ -11,17 +11,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from suppawt.pawlogger import get_loguru
 
 AM_ENV = os.getenv('AM_ENV')
-AM_ENV = os.getenv('AM_ENV')
 if not Path(AM_ENV).exists():
     raise ValueError(f'AM_ENV .env file doies not exist: {AM_ENV}')
-
-
-def get_root():
-    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-        # noinspection PyProtectedMember
-        return Path(sys._MEIPASS)
-    else:
-        return Path(__file__).resolve().parent
 
 
 def set_base_dir(v, values):

@@ -16,7 +16,7 @@ import shipaw
 from amherst import am_db, shipper
 from amherst.front import booked, ship, support
 from amherst.front.support import update_manager_state
-from amherst.models import managers
+from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordInDB, ShipmentRecordOut
 from shipaw.ship_ui import states as ship_states
 
 router = fastapi.APIRouter()
@@ -49,7 +49,7 @@ async def confirm_or_back(
 
 
 async def confirm_or_back_page(
-    manager: managers.MANAGER_IN_DB, alert_dict: pawui_types.AlertDict = None
+    manager: ShipmentRecordInDB, alert_dict: pawui_types.AlertDict = None
 ) -> list[c.AnyComponent]:
     """Confirm or Back page.
 
@@ -112,12 +112,12 @@ async def do_booking(
 
         session.add(processed_manager)
         session.commit()
-        man_out = managers.ShipmentRecordOut.model_validate(processed_manager)
+        man_out = ShipmentRecordOut.model_validate(processed_manager)
         return await booked.booked_page(manager=man_out)
 
     except Exception as err:
         alert_dict = {str(err): 'ERROR'}
-        man_out = managers.ShipmentRecordOut.model_validate(man_in)
+        man_out = ShipmentRecordOut.model_validate(man_in)
 
         return await ship.shipping_page(man_out.id, session=session, alert_dict=alert_dict)
 
@@ -142,11 +142,11 @@ async def check_state(
     return [c.Div(components=builders.list_of_divs(class_name='row my-2 mx-auto', components=texts), class_name='row')]
 
 
-async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShipper):
+async def book_shipment(manager: ShipmentRecordOut, pfcom: shipper.AmShipper):
     """Book a shipment.
 
     Args:
-        manager (managers.ShipmentRecordDB): The :class:`~managers.MANAGER_IN_DB` object.
+        manager (shipment_record.ShipmentRecordDB): The :class:`~managers.MANAGER_IN_DB` object.
         pfcom (shipper.AmShipper): :class:`~shipper.AmShipper` object.
 
     Returns:
@@ -159,14 +159,14 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
     return req, resp
 
 
-async def process_shipment(manager: managers.ShipmentRecordDB, pfcom: shipper.AmShipper, req, resp):
+async def process_shipment(manager: ShipmentRecordDB, pfcom: shipper.AmShipper, req, resp):
     """Process the shipment.
 
     Update the manager with the booking state and wait for the label to download.
     Open the label file in OS default pdf handler.
 
     Args:
-        manager (managers.ShipmentRecordDB): The manager object.
+        manager (shipment_record.ShipmentRecordDB): The manager object.
         pfcom (shipper.AmShipper): :class:`~shipper.AmShipper` object.
         req: The request object.
         resp: The response object.
