@@ -159,12 +159,7 @@ async def book_shipment(manager: managers.MANAGER_IN_DB, pfcom: shipper.AmShippe
     return req, resp
 
 
-async def process_shipment(
-    manager: managers.BookingManagerDB,
-    pfcom: shipper.AmShipper,
-    req,
-    resp,
-):
+async def process_shipment(manager: managers.BookingManagerDB, pfcom: shipper.AmShipper, req, resp):
     """Process the shipment.
 
     Update the manager with the booking state and wait for the label to download.
@@ -184,7 +179,7 @@ async def process_shipment(
 
     """
     booked_state = ship_states.BookingState.model_validate(dict(request=req, response=resp))
-    if alt := booked_state.alert_dict:
+    if alt := booked_state.alerts:
         raise shipaw.ExpressLinkError(str(alt))
         # if not resp.completed_shipment_info:
         # raise shipaw.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
