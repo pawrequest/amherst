@@ -9,6 +9,7 @@ from fastui.forms import fastui_form
 from loguru import logger
 from pawdantic.pawui import pawui_types
 
+from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
 from shipaw import ship_types
 from shipaw.models import pf_ext, pf_top
 from shipaw.ship_ui import forms as ship_forms, states as shipstates
@@ -218,35 +219,35 @@ async def address_form_post(
     ]
 
 
-async def man_in_to_out(man_in: managers.ShipmentRecordDB) -> managers.ShipmentRecordOut:
-    return managers.ShipmentRecordOut.model_validate(man_in)
+# async def man_in_to_out(man_in: ShipmentRecordDB) -> ShipmentRecordOut:
+#     return ShipmentRecordOut.model_validate(man_in)
 
 
-@router.post('/postcode2/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def postcode_post2(
-        manager_id: int,
-        postcode: str = fastapi.Form(...),
-        session=fastapi.Depends(am_db.get_session),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
-) -> list[c.AnyComponent]:
-    if ship_types.is_valid_postcode(postcode):
-        man_in = await support.get_manager(manager_id, session)
-        man_in.shipment.candidates = pfcom.get_candidates(postcode)
-        session.add(man_in)
-        session.commit()
-        alert_dict = {}
-    else:
-        alert_dict = {f'INVALID POSTCODE : {postcode}': 'ERROR'}
-        logger.warning(f'Invalid postcode: {postcode}')
-
-    return [
-        c.FireEvent(
-            event=e.GoToEvent(
-                url=f'/ship/select/{manager_id}',
-                # target='_blank',
-            )
-        )
-    ]
+# @router.post('/postcode2/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def postcode_post2(
+#         manager_id: int,
+#         postcode: str = fastapi.Form(...),
+#         session=fastapi.Depends(am_db.get_session),
+#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+# ) -> list[c.AnyComponent]:
+#     if ship_types.is_valid_postcode(postcode):
+#         man_in = await support.get_manager(manager_id, session)
+#         man_in.shipment.candidates = pfcom.get_candidates(postcode)
+#         session.add(man_in)
+#         session.commit()
+#         alert_dict = {}
+#     else:
+#         alert_dict = {f'INVALID POSTCODE : {postcode}': 'ERROR'}
+#         logger.warning(f'Invalid postcode: {postcode}')
+#
+#     return [
+#         c.FireEvent(
+#             event=e.GoToEvent(
+#                 url=f'/ship/select/{manager_id}',
+#                 # target='_blank',
+#             )
+#         )
+#     ]
     # return await ship_page_2.shipping_page(
     #     manager_id=manager_id,
     #     session=session,
@@ -529,3 +530,18 @@ async def email_post(
     #     label=label,
     #     missing=missing_kit,
     # )
+
+
+async def get_model_form_type(model_kind: FormKind):
+    logger.debug(f'getting model form type for {model_kind}')
+    match model_kind:
+        case 'zero':
+            return pf_top.RequestedShipmentZero
+        case 'minimum':
+            return pf_top.RequestedShipmentMinimum
+        case 'simple':
+            return pf_top.RequestedShipmentSimple
+        case 'collect':
+            return pf_top.CollectionMinimum
+        case _:
+            raise ValueError(f'Invalid kind {model_kind!r}')

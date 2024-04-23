@@ -1,24 +1,24 @@
-from __future__ import annotations
+from __future__ import annotations, annotations
 
-import pathlib
 import time
+import typing as _t
+import pathlib
 
 import fastapi
 import pawdf
-import sqlmodel as sqm
 from fastui import components as c
 from loguru import logger
+import sqlmodel as sqm
 
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
 from shipaw.models import pf_ext, pf_shared
 import shipaw
-from shipaw import pf_config, ELClient
+from shipaw import ELClient, pf_config
 from shipaw.ship_ui import states
 
-
-class ManagerNotFound(Exception):
-    pass
+type Fui_Page = list[c.AnyComponent]
+type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 
 async def get_manager(manager_id: int, session: sqm.Session):
@@ -77,9 +77,6 @@ async def get_missing(record: AmherstRecord) -> list[str]:
     if not record.cmc_table_name == 'Hire':
         raise ValueError('missing kit only for hire')
     return record.missing_kit
-
-
-type Fui_Page = list[c.AnyComponent]
 
 
 def get_named_labelpath(state: shipaw.Shipment):

@@ -7,7 +7,6 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
 
-from amherst import am_config, shipper
 from amherst.am_config import AM_SETTINGS
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordDB

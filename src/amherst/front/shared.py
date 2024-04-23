@@ -1,6 +1,7 @@
-from __future__ import annotations
+from __future__ import annotations, annotations
 
 import os
+import typing as _t
 
 import fastapi
 import sqlmodel
@@ -69,7 +70,7 @@ async def invoice_div(manager: ShipmentRecordOut) -> c.Div:
     )
 
 
-async def email_div(manager: ShipmentRecordInDB, choices: list[am_types.EmailChoices]):
+async def email_div(manager: ShipmentRecordInDB, choices: list[EmailChoices]):
     return c.Div(class_name='row my-3', components=[emailer.get_email_form(manager, choices)])
 
 

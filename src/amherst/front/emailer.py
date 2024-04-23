@@ -10,12 +10,12 @@ from suppawt.office_ps import email_handler as eh
 from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms import outlook_handler as oh
 
-from amherst import am_db, am_types
+from amherst import am_db
 from amherst.front import support
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordInDB
 from shipaw.ship_ui import states
-
+from amherst.front.support import EmailChoices
 router = fastapi.APIRouter()
 
 
@@ -62,10 +62,10 @@ async def email_post(
 class EmailChoiceBoolean(c.FormFieldBoolean):
     """FastUI form field Boolean for email choices."""
 
-    name: am_types.EmailChoices
+    name: EmailChoices
 
 
-def get_email_form(manager: ShipmentRecordInDB, choices: list[am_types.EmailChoices]):
+def get_email_form(manager: ShipmentRecordInDB, choices: list[EmailChoices]):
     bool_fields = [EmailChoiceBoolean(name=k, title=k.title()) for k in choices]
 
     return c.Form(
