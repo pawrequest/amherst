@@ -15,7 +15,7 @@ static_path = settings.base_dir / 'front' / 'static'
 async def lifespan(app_: FastAPI):
     try:
         # with sqm.Session(am_db.ENGINE) as session:
-        #     pf_shipper = shipper.AmShipper.from_env()
+        #     pf_shipper = ELClient()
         #     populate_db_from_cmc(session, pf_shipper)
         yield
 

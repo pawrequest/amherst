@@ -13,7 +13,9 @@ from loguru import logger
 from pawdantic.pawui import builders, pawui_types
 
 import shipaw
-from amherst import am_db, shipper
+from shipaw import ELClient
+
+from amherst import am_db
 from amherst.front import booked, ship, support
 from amherst.front.support import update_manager_state
 from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordInDB, ShipmentRecordOut
@@ -26,7 +28,7 @@ router = fastapi.APIRouter()
 async def confirm_or_back(
     manager_id: int,
     state_64: str,
-    pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+    pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
     session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint to submit state and return 'Confirm or Back' page.
@@ -34,7 +36,7 @@ async def confirm_or_back(
     Args:
         manager_id (int): BookingManager id.
         state_64 (str): State as Base64 encoded JSON.
-        pfcom (shipper.AmShipper, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
+        pfcom (ELClient, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
         session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
 
     Returns:
@@ -78,14 +80,14 @@ async def confirm_or_back_page(
 @router.get('/go_book/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def do_booking(
     manager_id: int,
-    pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+    pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
     session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint for booking a shipment.
 
     Args:
         manager_id (int): The manager's id.
-        pfcom (shipper.AmShipper, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
+        pfcom (ELClient, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
         session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
 
     Returns:
@@ -142,12 +144,12 @@ async def check_state(
     return [c.Div(components=builders.list_of_divs(class_name='row my-2 mx-auto', components=texts), class_name='row')]
 
 
-async def book_shipment(manager: ShipmentRecordOut, pfcom: shipper.AmShipper):
+async def book_shipment(manager: ShipmentRecordOut, pfcom: ELClient):
     """Book a shipment.
 
     Args:
         manager (shipment_record.ShipmentRecordDB): The :class:`~managers.MANAGER_IN_DB` object.
-        pfcom (shipper.AmShipper): :class:`~shipper.AmShipper` object.
+        pfcom (ELClient): :class:`~ELClient` object.
 
     Returns:
         tuple: The request and response objects.
@@ -159,7 +161,7 @@ async def book_shipment(manager: ShipmentRecordOut, pfcom: shipper.AmShipper):
     return req, resp
 
 
-async def process_shipment(manager: ShipmentRecordDB, pfcom: shipper.AmShipper, req, resp):
+async def process_shipment(manager: ShipmentRecordDB, pfcom: ELClient, req, resp):
     """Process the shipment.
 
     Update the manager with the booking state and wait for the label to download.
@@ -167,7 +169,7 @@ async def process_shipment(manager: ShipmentRecordDB, pfcom: shipper.AmShipper, 
 
     Args:
         manager (shipment_record.ShipmentRecordDB): The manager object.
-        pfcom (shipper.AmShipper): :class:`~shipper.AmShipper` object.
+        pfcom (ELClient): :class:`~ELClient` object.
         req: The request object.
         resp: The response object.
 
@@ -226,7 +228,7 @@ async def confirm_div(manager):
 #         manager_id: int,
 #         form: _t.Annotated[
 #             ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
-#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+#         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
 #         session=fastapi.Depends(am_db.get_session),
 #
 # ):

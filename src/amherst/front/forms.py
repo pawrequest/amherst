@@ -13,7 +13,7 @@ from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
 from shipaw import ship_types
 from shipaw.models import pf_ext, pf_top
 from shipaw.ship_ui import forms as ship_forms, states as shipstates
-from amherst import am_db, shipper
+from amherst import am_db
 from amherst.front import ship, support
 from amherst.front.support import addr_class_f_direction
 from amherst.models import shipment_record
@@ -43,7 +43,7 @@ async def manual_post(
         town=fastapi.Form(...),
         postcode=fastapi.Form(...),
         # country=fastapi.Form('GB'),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
 
 ):
     addr_class = await addr_class_f_direction(direction)
@@ -90,7 +90,7 @@ async def manual_post(
 @router.post('/select/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def select_post(
         manager_id: int,
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
 
         address=fastapi.Form(None),
 
@@ -228,7 +228,7 @@ async def address_form_post(
 #         manager_id: int,
 #         postcode: str = fastapi.Form(...),
 #         session=fastapi.Depends(am_db.get_session),
-#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+#         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
 # ) -> list[c.AnyComponent]:
 #     if ship_types.is_valid_postcode(postcode):
 #         man_in = await support.get_manager(manager_id, session)
@@ -274,7 +274,7 @@ async def postcode_post(
         manager_id: int,
         form: Annotated[ship_forms.PostcodeSelect, fastui_form(ship_forms.PostcodeSelect)],
         session=fastapi.Depends(am_db.get_session),
-        pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
 ) -> list[c.AnyComponent]:
     man_in = await support.get_manager(manager_id, session)
     man_in.shipment.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
@@ -506,7 +506,7 @@ async def postcode_post(
 # async def full_post(
 #         form: Annotated[ship_forms.FullForm, fastui_form(ship_forms.FullForm)],
 #         manager_id: int,
-#         pfcom: shipper.AmShipper = fastapi.Depends(am_db.get_el_client),
+#         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
 #         session=fastapi.Depends(am_db.get_session),
 # ):
 #     ...
