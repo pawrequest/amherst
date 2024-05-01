@@ -11,25 +11,29 @@ import sqlmodel as sqm
 from fastui import FastUI, components as c, events, events as e
 from loguru import logger
 from pawdantic.pawui import builders, pawui_types
-
 import shipaw
+from pycommence import PyCommence
 from shipaw import ELClient
+from shipaw.ship_ui import states as ship_states
 
 from amherst import am_db
 from amherst.front import booked, ship, support
 from amherst.front.support import update_manager_state
 from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordInDB, ShipmentRecordOut
-from shipaw.ship_ui import states as ship_states
 
 router = fastapi.APIRouter()
 
 
-@router.get('/confirm/{manager_id}/{state_64}', response_model=FastUI, response_model_exclude_none=True)
+@router.get(
+    '/confirm/{manager_id}/{state_64}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
 async def confirm_or_back(
-    manager_id: int,
-    state_64: str,
-    pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
-    session: sqm.Session = fastapi.Depends(am_db.get_session),
+        manager_id: int,
+        state_64: str,
+        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
+        session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint to submit state and return 'Confirm or Back' page.
 
@@ -51,7 +55,7 @@ async def confirm_or_back(
 
 
 async def confirm_or_back_page(
-    manager: ShipmentRecordInDB, alert_dict: pawui_types.AlertDict = None
+        manager: ShipmentRecordInDB, alert_dict: pawui_types.AlertDict = None
 ) -> list[c.AnyComponent]:
     """Confirm or Back page.
 
@@ -67,7 +71,11 @@ async def confirm_or_back_page(
     """
     return await builders.page_w_alerts(
         components=[
-            c.Heading(text=f'Booking Confirmation for {manager.record.name}', level=1, class_name='row mx-auto my-5'),
+            c.Heading(
+                text=f'Booking Confirmation for {manager.record.name}',
+                level=1,
+                class_name='row mx-auto my-5'
+            ),
             c.ServerLoad(path=f'/book/check_state/{manager.id}'),
             await confirm_div(manager),
             await back_div(manager.id),
@@ -77,11 +85,26 @@ async def confirm_or_back_page(
     )
 
 
+def record_tracking(man_in):
+    tracking_number = man_in.resp.shipment_num
+    category = man_in.record.cmc_table_name
+    record_name = man_in.record.name
+    direction = man_in.shipment.direction
+
+    py_cmc = PyCommence.from_table_name(table_name=category)
+    existing_tracking = man_in.record.tracking_in if direction == 'in' else man_in.record.tracking_out
+    tracking = '\n'.join([existing_tracking, tracking_number]) if existing_tracking else tracking_number
+
+    tracking_field = 'Tracking Inbound' if direction == 'in' else 'Tracking Outbound'
+    py_cmc.edit_record(record_name, {tracking_field: tracking})
+    logger.info(f'Updated {tracking_field} for {record_name} to {tracking}')
+
+
 @router.get('/go_book/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def do_booking(
-    manager_id: int,
-    pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
-    session: sqm.Session = fastapi.Depends(am_db.get_session),
+        manager_id: int,
+        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
+        session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint for booking a shipment.
 
@@ -107,10 +130,11 @@ async def do_booking(
         if man_in.shipment.direction == 'in':
             tod = dt.date.today()
             if man_in.shipment.ship_date <= tod:
-                raise shipaw.ExpressLinkError('CAN NOT COLLECT TODAY')
+                raise ValueError('CAN NOT COLLECT TODAY')
 
         req, resp = await book_shipment(man_in, pfcom)
         processed_manager = await process_shipment(man_in, pfcom, req, resp)
+        record_tracking(man_in)
 
         session.add(processed_manager)
         session.commit()
@@ -126,8 +150,8 @@ async def do_booking(
 
 @router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)
 async def check_state(
-    man_id: int,
-    session=fastapi.Depends(am_db.get_session),
+        man_id: int,
+        session=fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Html Div with the current state of the manager.
 
@@ -140,8 +164,14 @@ async def check_state(
 
     """
     man_in = await support.get_manager(man_id, session)
-    texts = builders.dict_strs_texts(man_in.shipment.model_dump(exclude={'candidates'}), with_keys='YES')
-    return [c.Div(components=builders.list_of_divs(class_name='row my-2 mx-auto', components=texts), class_name='row')]
+    texts = builders.dict_strs_texts(
+        man_in.shipment.model_dump(exclude={'candidates'}),
+        with_keys='YES'
+    )
+    return [c.Div(
+        components=builders.list_of_divs(class_name='row my-2 mx-auto', components=texts),
+        class_name='row'
+    )]
 
 
 async def book_shipment(manager: ShipmentRecordOut, pfcom: ELClient):
@@ -220,7 +250,6 @@ async def confirm_div(manager):
             )
         ],
     )
-
 
 # unused?
 # @router.post('/confirm_post/{manager_id}', response_model=FastUI, response_model_exclude_none=True)

@@ -8,13 +8,11 @@ from pathlib import Path
 import pydantic as _p
 from loguru import logger
 from pydantic import AliasChoices, ConfigDict, Field
-
 import pycommence
 from pycommence import pycmc_types
 from shipaw import ELClient, ship_types
 from shipaw.models import pf_ext, pf_lists, pf_top
 from shipaw.ship_ui import states
-
 
 
 class AmherstRecord(_p.BaseModel):
@@ -25,18 +23,32 @@ class AmherstRecord(_p.BaseModel):
     name: str = _p.Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
     send_date: CMC_SHIP_DATE2 = Field(datetime.date.today(), alias='Send Out Date')
-    delivery_contact: str = Field(..., validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact'))
+    delivery_contact: str = Field(
+        ...,
+        validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
+    )
     delivery_business: str = Field(
         ..., validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
     )
-    telephone: str = Field(..., validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone'))
-    email: _p.EmailStr = Field(..., validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
-    address_str: str = Field(..., validation_alias=AliasChoices('Delivery Address', 'Deliv Address'))
+    telephone: str = Field(
+        ...,
+        validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
+    )
+    email: _p.EmailStr = Field(
+        ...,
+        validation_alias=AliasChoices('Delivery Email', 'Deliv Email')
+    )
+    address_str: str = Field(
+        ...,
+        validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
+    )
     postcode: str = Field(..., validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
     send_method: str = Field('', validation_alias=AliasChoices('Send Method', 'Delivery Method'))
     invoice: Path | None = Field(None, validation_alias=AliasChoices('Invoice', 'Invoice Path'))
     missing_kit_str: str | None = Field(None, alias='Missing Kit')
     boxes: int = Field(1, alias='Boxes')
+    tracking_in: str | None = Field(None, alias='Tracking Inbound')
+    tracking_out: str | None = Field(None, alias='Tracking Outbound')
 
     @cached_property
     def input_address(self):
@@ -83,11 +95,12 @@ def addr_lines_dict_am(address: str) -> dict[str, str]:
         addr_lines[2] = ','.join(addr_lines[2:])
     return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
 
+
 def get_email(fields_enum, record):
     return (
-        record.get(fields_enum.DELIVERY_EMAIL)
-        or record.get(fields_enum.PRIMARY_EMAIL)
-        or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
+            record.get(fields_enum.DELIVERY_EMAIL)
+            or record.get(fields_enum.PRIMARY_EMAIL)
+            or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
     )
 
 
@@ -100,4 +113,5 @@ def get_customer_record(customer: str) -> dict[str, str]:
 
 
 AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
-CMC_SHIP_DATE2 = _t.Annotated[ship_types.SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]
+CMC_SHIP_DATE2 = _t.Annotated[
+    ship_types.SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]
