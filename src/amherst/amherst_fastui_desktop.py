@@ -60,7 +60,7 @@ def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
                 'Install PawRequest/flaskwebgui from  @ git+https://github.com/pawrequest/flaskwebgui'
             )
             logger.exception(msg)
-            raise ValueError(msg)
+            raise ImportError(msg)
     finally:
         close_application()
 
