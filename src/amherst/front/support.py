@@ -21,7 +21,7 @@ type Fui_Page = list[c.AnyComponent]
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 
-async def get_manager(manager_id: int, session: sqm.Session):
+async def get_manager(manager_id: int, session: sqm.Session) -> ShipmentRecordDB:
     man_in = session.get(ShipmentRecordDB, manager_id)
     if not isinstance(man_in, ShipmentRecordDB):
         raise fastapi.HTTPException(status_code=404, detail='Booking not found')
