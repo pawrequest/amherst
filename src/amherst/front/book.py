@@ -93,16 +93,22 @@ def record_tracking(man_in: ShipmentRecordInDB):
 
     py_cmc = PyCommence.from_table_name(table_name=category)
     tracking_field = 'Tracking Inbound' if direction == 'in' else 'Tracking Outbound'
+    tracking_link_field = 'Track Inbound' if direction == 'in' else 'Track Outbound'
 
     pf_url = 'https://www.parcelforce.com/track-trace?trackNumber='
 
     existing_tracking = man_in.record.tracking_in if direction == 'in' else man_in.record.tracking_out
-    tracking = ','.join([existing_tracking, tracking_number]) if existing_tracking else tracking_number
+    tracking = ','.join(
+        [existing_tracking, tracking_number]
+    ) if existing_tracking else tracking_number
 
     tracking_link = pf_url + tracking_number
 
-    py_cmc.edit_record(record_name, {tracking_field: tracking, 'Track Outbound': tracking_link})
-    logger.info(f'Updated {tracking_field} for {record_name} to {tracking}')
+    py_cmc.edit_record(
+        record_name,
+        {tracking_field: tracking, tracking_link_field: tracking_link, 'DB label printed': True}
+    )
+    logger.info(f'Updated {tracking_field} for {record_name} to {tracking}\nand {tracking_link_field} to {tracking_link}')
 
 
 @router.get('/go_book/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
