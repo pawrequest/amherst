@@ -8,10 +8,10 @@ from shipaw.ship_ui import states
 from suppawt.office_ps import email_handler as eh
 
 
-# def state_notification_labels_str(state: states.ShipState):
+# def state_notification_labels_str(shipment: states.ShipState):
 #     ret_str = ''
-#     for notification in state.contact.notifications.notification_type:
-#         ret_str += f'{pf_shared.notification_label_map[notification]} - {state_notification_contact_detail(state, notification)}\n'
+#     for notification in shipment.contact.notifications.notification_type:
+#         ret_str += f'{pf_shared.notification_label_map[notification]} - {state_notification_contact_detail(shipment, notification)}\n'
 #     return ret_str
 
 

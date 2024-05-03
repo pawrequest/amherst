@@ -9,24 +9,25 @@ from pawdantic import paw_strings
 from suppawt.office_ps import email_handler as eh
 from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms import outlook_handler as oh
+from shipaw.ship_ui import states
 
 from amherst import am_db
 from amherst.front import support
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordInDB
-from shipaw.ship_ui import states
 from amherst.front.support import EmailChoices
+
 router = fastapi.APIRouter()
 
 
 @router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def email_post(
-    manager_id: int,
-    recipients: list = fastapi.Form(...),
-    invoice: bool = fastapi.Form(False),
-    label=fastapi.Form(False),
-    missing_kit=fastapi.Form(False),
-    session=fastapi.Depends(am_db.get_session),
+        manager_id: int,
+        recipients: list = fastapi.Form(...),
+        invoice: bool = fastapi.Form(False),
+        label=fastapi.Form(False),
+        missing_kit=fastapi.Form(False),
+        session=fastapi.Depends(am_db.get_session),
 ):
     logger.info(f'email {recipients=}')
     alert_dict = {}
@@ -92,12 +93,16 @@ GOODBYE = 'If you have any queries please let us know.\n\nKind Regards,\nAmherst
 def label_body(state: states.Shipment):
     return f"""Please find a pre-paid parcelforce label attached – it needs to be printed and attached to the box.
 Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!'
-Collection is booked for {paw_strings.date_string(state.ship_date)}, we are unable to give precise timings, however you should receive notifications at the contact details below:'
+{collection_str(state) if state.direction == 'in' else ''}
+"""
 
-{support.state_notification_labels_str(state)}
+
+def collection_str(shipment: states.Shipment):
+    return f"""Collection is booked for {paw_strings.date_string(shipment.ship_date)}, 
+we are unable to give precise timings, however you should receive notifications at the contact details below:'
+{support.state_notification_labels_str(shipment)}
 
 If for any reason the courier is missed you can drop the labelled box at any uk postoffice.
-
 """
 
 
@@ -116,11 +121,11 @@ MISSING KIT:
 
 
 def compose_body(
-    state: states.Shipment = None,
-    item: AmherstRecord = None,
-    invoice: bool = False,
-    missing_kit: bool = False,
-    label: bool = False,
+        state: states.Shipment = None,
+        item: AmherstRecord = None,
+        invoice: bool = False,
+        missing_kit: bool = False,
+        label: bool = False,
 ):
     missing_strs = item.MISSING_KIT.splitlines() if missing_kit else []
     return f"""{GREETING}
@@ -132,11 +137,11 @@ def compose_body(
 
 
 async def generic_email(
-    recipients: list[str],
-    manager: ShipmentRecordInDB = None,
-    label: bool = False,
-    missing: bool = False,
-    invoice: bool = False,
+        recipients: list[str],
+        manager: ShipmentRecordInDB = None,
+        label: bool = False,
+        missing: bool = False,
+        invoice: bool = False,
 ) -> eh.EmailMultipleAttachments:
     """Get an Email object for sending an invoice, missing kit request, or shipping-label.
 
@@ -167,14 +172,14 @@ async def generic_email(
 
     if label:
         try:
-            label_path = manager.state.booking_state.label_dl_path
+            label_path = manager.shipment.booking_state.label_dl_path
         except AttributeError:
             raise ValueError('Label not downloaded')
 
     return eh.EmailMultipleAttachments(
         to_address=addresses,
         subject=await subject(invoice_num, missing, label),
-        body=compose_body(manager.state, manager.record, invoice, missing, label),
+        body=compose_body(manager.shipment, manager.record, invoice, missing, label),
         attachment_paths=[x for x in [invoice_pdf_path, label_path] if x],
     )
 
@@ -195,7 +200,7 @@ def get_email_options(manager: ShipmentRecordInDB):
 # async def send_label(manager: managers.MANAGER_IN_DB):
 #     """Send the label by email."""
 #     email = await generic_email(
-#         recipients=[manager.state.contact.email_address],
+#         recipients=[manager.shipment.contact.email_address],
 #         manager=manager,
 #         label=True,
 #     )
@@ -203,17 +208,17 @@ def get_email_options(manager: ShipmentRecordInDB):
 #     handler.create_open_email(email)
 
 
-# def send_label1(state: shipaw.ShipState):
+# def send_label1(shipment: shipaw.ShipState):
 #     """Send the label by email."""
-#     email = email_templates.return_label_email(state)
+#     email = email_templates.return_label_email(shipment)
 #     handler = oh.OutlookHandler()
 #     handler.send_email(email)
 
 
 # async def send_missing(manager: managers.MANAGER_IN_DB):
 #     email = await generic_email(
-#         recipients=[manager.state.contact.email_address],
-#         state=manager.state,
+#         recipients=[manager.shipment.contact.email_address],
+#         shipment=manager.shipment,
 #         item=manager.item,
 #     )
 #     handler = oh.OutlookHandlerMultipleAttachments()
@@ -224,7 +229,7 @@ def get_email_options(manager: ShipmentRecordInDB):
 #     """Send invoice by email."""
 #     # email = await email_templates.invoice_email(manager)
 #     email = await generic_email(
-#         recipients=[manager.state.contact.email_address],
+#         recipients=[manager.shipment.contact.email_address],
 #         invoice=await support.get_invoice_path(manager.item)
 #     )
 #     handler = oh.OutlookHandlerMultipleAttachments()

@@ -9,13 +9,13 @@ import pawdf
 from fastui import components as c
 from loguru import logger
 import sqlmodel as sqm
-
-from amherst.models.am_record import AmherstRecord
-from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
 from shipaw.models import pf_ext, pf_shared
 import shipaw
 from shipaw import ELClient, pf_config
 from shipaw.ship_ui import states
+
+from amherst.models.am_record import AmherstRecord
+from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
 
 type Fui_Page = list[c.AnyComponent]
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
@@ -51,7 +51,7 @@ async def update_and_commit(manager_id, partial, session) -> ShipmentRecordOut:
 async def wait_label(state: shipaw.Shipment, el_client: ELClient) -> bool:
     label_path = el_client.get_label(
         ship_num=state.booking_state.shipment_num(),
-        dl_path=state.named_label_path if state.direction == 'in' else None,
+        dl_path=None if state.direction == 'out' else state.named_label_path,
     ).resolve()
 
     for i in range(20):
@@ -81,7 +81,7 @@ async def get_missing(record: AmherstRecord) -> list[str]:
 
 def get_named_labelpath(state: shipaw.Shipment):
     """Get a unique path (for saving) for the label."""
-    sett = pf_config.PF_SETTINGS
+    sett = pf_config.pf_sett()
     pdir = sett.label_dir
     label_name = f'Parcelforce Collection Label for {state.contact.business_name} on {state.ship_date}'
     return pdir / f'{label_name}.pdf'

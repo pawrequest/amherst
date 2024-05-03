@@ -332,13 +332,13 @@ async def postcode_post(
 # ) -> list[c.AnyComponent]:
 #     man_in = await get_manager(manager_id, session)
 #     contact = shipaw.models.Contact.model_validate(form.model_dump())
-#     man_in.state.contact = contact
+#     man_in.shipment.contact = contact
 #     session.add(man_in)
 #     session.commit()
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64(contact=contact)}'
+#                 url=f'/ship/update/{manager_id}/{man_in.shipment.update_dump_64(contact=contact)}'
 #             ),
 #         )
 #     ]
@@ -396,7 +396,7 @@ async def postcode_post(
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64_dict(address=address, contact=contact)}'
+#                 url=f'/ship/update/{manager_id}/{man_in.shipment.update_dump_64_dict(address=address, contact=contact)}'
 #             ),
 #         )
 #     ]
@@ -432,7 +432,7 @@ async def postcode_post(
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64_dict(update={**form_data})}'
+#                 url=f'/ship/update/{manager_id}/{man_in.shipment.update_dump_64_dict(update={**form_data})}'
 #             ),
 #         )
 #     ]
@@ -477,7 +477,7 @@ async def postcode_post(
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64_dict(update={**form_data})}'
+#                 url=f'/ship/update/{manager_id}/{man_in.shipment.update_dump_64_dict(update={**form_data})}'
 #             ),
 #         )
 #     ]
@@ -490,13 +490,13 @@ async def postcode_post(
 # ) -> list[c.AnyComponent]:
 #     man_in = await get_manager(manager_id, session)
 #     address = shipaw.models.AddressRecipient.model_validate(form.model_dump())
-#     man_in.state.address = address
+#     man_in.shipment.address = address
 #     session.add(man_in)
 #     session.commit()
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/ship/update/{manager_id}/{man_in.state.update_dump_64(address=address)}'
+#                 url=f'/ship/update/{manager_id}/{man_in.shipment.update_dump_64(address=address)}'
 #             ),
 #         )
 #     ]

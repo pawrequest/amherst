@@ -3,10 +3,10 @@ import sqlmodel
 from fastapi import APIRouter, Depends
 from fastui import FastUI, class_name as class_name_, components as c, events, events as e
 from pawdantic.pawui import builders, pawui_types
-
-from amherst.models.shipment_record import ShipmentRecord
 from shipaw import pf_config, ship_types
 from shipaw.ship_ui.forms import get_form_fields
+
+from amherst.models.shipment_record import ShipmentRecord
 from amherst.front import shared, support
 from amherst import am_db
 
@@ -15,10 +15,10 @@ router = APIRouter()
 
 @router.get('/{kind}/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def shipping_page(
-    manager_id: int,
-    kind: ship_types.FormKind = 'select',
-    session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
-    alert_dict: pawui_types.AlertDict | None = None,
+        manager_id: int,
+        kind: ship_types.FormKind = 'select',
+        session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
+        alert_dict: pawui_types.AlertDict | None = None,
 ) -> support.Fui_Page:
     """Endpoint for shipping page.
 
@@ -35,7 +35,8 @@ async def shipping_page(
         FastUI page (support.Fui_Page): FastUI page
 
     """
-    pf_sett = pf_config.PF_SETTINGS
+    pf_sett = pf_config.pf_sett()
+
     bg_col = ' bg-light' if pf_sett.ship_live else ' bg-warning'
     page_style = f'container{bg_col}'
 
@@ -48,7 +49,7 @@ async def shipping_page(
         alert_dict=alert_dict,
         components=[
             await left_col(manager),
-            c.Div(class_name='col', components=[await form_div(kind, manager, session)]),
+            c.Div(class_name='col', components=[await form_div(kind, manager.id, session)]),
         ],
         title='Forms',
     )
@@ -77,12 +78,20 @@ async def left_col(manager: ShipmentRecord) -> c.Div:
     )
 
 
-async def form_div(kind: ship_types.FormKind, manager, session) -> c.Div:
+async def dropoff_button(manager_id):
+    return c.Button(
+        text='Dropoff',
+        class_name='col col-4 my-3 btn btn-primary',
+        on_click=events.GoToEvent(url=f'/dropoff/{manager_id}'),
+    )
+
+
+async def form_div(kind: ship_types.FormKind, manager_id: int, session) -> c.Div:
     """Load prepopulated form.
 
     Args:
         kind: Form kind - 'manual' or 'select'
-        manager: Booking Manager
+        manager_id: Booking Manager ID
         session: sqlmodel session
 
     Returns:
@@ -95,11 +104,12 @@ async def form_div(kind: ship_types.FormKind, manager, session) -> c.Div:
         inner_class_name='row my-3',
         components=[
             c.ServerLoad(
-                path=f'/forms/get_form/{manager.id}/{kind}',
+                path=f'/forms/get_form/{manager_id}/{kind}',
                 load_trigger=e.PageEvent(name='change-form'),
-                components=[await get_form(manager.id, kind, session)],
+                components=[await get_form(manager_id, kind, session)],
             ),
-            await swap_form_button(kind, manager.id),
+            # await dropoff_button(manager_id),
+            await swap_form_button(kind, manager_id),
         ],
     )
 
@@ -130,8 +140,16 @@ async def swap_form_button(kind, manager_id: int):
 #     )
 
 
-@router.get('/get_form/{manager_id}/{kind}', response_model=FastUI, response_model_exclude_none=True)
-async def get_form(manager_id: int, kind: ship_types.FormKind, session=Depends(am_db.get_session)) -> c.Form:
+@router.get(
+    '/get_form/{manager_id}/{kind}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
+async def get_form(
+        manager_id: int,
+        kind: ship_types.FormKind,
+        session=Depends(am_db.get_session)
+) -> c.Form:
     """Endpoint to get form for shipping page.
 
     Args:
@@ -151,7 +169,9 @@ async def get_form(manager_id: int, kind: ship_types.FormKind, session=Depends(a
 
 
 async def input_address_div(
-    manager, class_name: class_name_.ClassName = 'row', inner_class_name: class_name_.ClassName = 'row'
+        manager,
+        class_name: class_name_.ClassName = 'row',
+        inner_class_name: class_name_.ClassName = 'row'
 ) -> c.Div:
     """Div for displaying commence data.
 
@@ -171,7 +191,10 @@ async def input_address_div(
                 class_name=inner_class_name,
                 components=[
                     *builders.dict_strs_texts(manager.record.contact.model_dump(), title='Contact'),
-                    *builders.dict_strs_texts(manager.record.input_address.model_dump(), title='Address'),
+                    *builders.dict_strs_texts(
+                        manager.record.input_address.model_dump(),
+                        title='Address'
+                    ),
                 ],
             ),
         ],
@@ -202,7 +225,6 @@ async def address_from_pc_div(manager) -> c.Div:
         ],
         class_name='row mx-auto my-3',
     )
-
 
 # @router.get(
 #     '/update/{booking_id}/{update_64}',

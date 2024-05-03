@@ -35,7 +35,7 @@ async def confirm_or_back(
         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
-    """Endpoint to submit state and return 'Confirm or Back' page.
+    """Endpoint to submit shipment and return 'Confirm or Back' page.
 
     Args:
         manager_id (int): BookingManager id.
@@ -59,7 +59,7 @@ async def confirm_or_back_page(
 ) -> list[c.AnyComponent]:
     """Confirm or Back page.
 
-    Display the current state and buttons to proceed with booking or go back.
+    Display the current shipment and buttons to proceed with booking or go back.
 
     Args:
         manager (managers.MANAGER_IN_DB): The manager object.
@@ -108,7 +108,9 @@ def record_tracking(man_in: ShipmentRecordInDB):
         record_name,
         {tracking_field: tracking, tracking_link_field: tracking_link, 'DB label printed': True}
     )
-    logger.info(f'Updated {tracking_field} for {record_name} to {tracking}\nand {tracking_link_field} to {tracking_link}')
+    logger.info(
+        f'Updated {tracking_field} for {record_name} to {tracking}\nand {tracking_link_field} to {tracking_link}'
+    )
 
 
 @router.get('/go_book/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
@@ -129,6 +131,7 @@ async def do_booking(
         - :meth:`~amherst.front.ship.shipping_page`: Shipping Page on failure, which may include alerts.
 
     """
+
     logger.warning(f'booking_id: {manager_id}')
     man_in = await support.get_manager(manager_id, session)
 
@@ -145,8 +148,8 @@ async def do_booking(
 
         req, resp = await book_shipment(man_in, pfcom)
         processed_manager = await process_shipment(man_in, pfcom, req, resp)
-        if man_in.record.cmc_table_name == 'Hire':
-            record_tracking(man_in)
+        # if man_in.record.cmc_table_name == 'Hire':
+        #     record_tracking(man_in)
 
         session.add(processed_manager)
         session.commit()
@@ -165,14 +168,14 @@ async def check_state(
         man_id: int,
         session=fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
-    """Html Div with the current state of the manager.
+    """Html Div with the current shipment of the manager.
 
     Args:
         man_id (int): The BookingManger id.
         session (sqm.Session, optional): The database session - defaults to fastapi.Depends(am_db.get_session).
 
     Returns:
-        list(c.Div): A list containing a single DIV with each attribute of state as a text element.
+        list(c.Div): A list containing a single DIV with each attribute of shipment as a text element.
 
     """
     man_in = await support.get_manager(man_id, session)
@@ -206,7 +209,7 @@ async def book_shipment(manager: ShipmentRecordInDB, pfcom: ELClient):
 async def process_shipment(manager: ShipmentRecordDB, pfcom: ELClient, req, resp):
     """Process the shipment.
 
-    Update the manager with the booking state and wait for the label to download.
+    Update the manager with the booking shipment and wait for the label to download.
     Open the label file in OS default pdf handler.
 
     Args:

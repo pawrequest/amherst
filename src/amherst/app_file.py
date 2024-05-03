@@ -1,6 +1,7 @@
 import contextlib
 
 import flaskwebgui
+import pythoncom
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
 from starlette.staticfiles import StaticFiles
@@ -14,12 +15,15 @@ static_path = settings.base_dir / 'front' / 'static'
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
+        # pythoncom.CoInitialize()
         # with sqm.Session(am_db.ENGINE) as session:
         #     pf_shipper = ELClient()
         #     populate_db_from_cmc(session, pf_shipper)
         yield
 
     finally:
+        # pythoncom.CoUninitialize()
+
         ...
 
 
