@@ -6,6 +6,7 @@ from functools import cached_property
 from pathlib import Path
 
 import pydantic as _p
+from comtypes import CoInitialize, CoUninitialize
 from loguru import logger
 from pydantic import AliasChoices, ConfigDict, Field
 import pycommence
@@ -49,6 +50,10 @@ class AmherstRecord(_p.BaseModel):
     boxes: int = Field(1, alias='Boxes')
     tracking_in: str | None = Field(None, alias='Tracking Inbound')
     tracking_out: str | None = Field(None, alias='Tracking Outbound')
+
+    @cached_property
+    def customer_record(self) -> dict[str, str]:
+        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(self.customer)
 
     @cached_property
     def input_address(self):
@@ -106,9 +111,11 @@ def get_email(fields_enum, record):
 
 def get_customer_record(customer: str) -> dict[str, str]:
     """Get a customer record from `:class:PyCommence`"""
+    CoInitialize()
     logger.debug(f'Getting customer record for {customer}')
     py_cmc = pycommence.PyCommence.from_table_name(table_name='Customer')
     rec = py_cmc.one_record(customer)
+    CoUninitialize()
     return rec
 
 

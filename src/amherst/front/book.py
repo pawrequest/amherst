@@ -85,31 +85,26 @@ async def confirm_or_back_page(
     )
 
 
-def record_tracking(man_in: ShipmentRecordInDB):
+async def record_tracking(man_in: ShipmentRecordInDB):
     tracking_number = man_in.shipment.booking_state.response.shipment_num
-    category = man_in.record.cmc_table_name
+    if category := man_in.record.cmc_table_name == 'Customer':
+        logger.error('CANT LOG TO CUSTOMER')
+        return
     record_name = man_in.record.name
     direction = man_in.shipment.direction
 
     py_cmc = PyCommence.from_table_name(table_name=category)
-    tracking_field = 'Tracking Inbound' if direction == 'in' else 'Tracking Outbound'
     tracking_link_field = 'Track Inbound' if direction == 'in' else 'Track Outbound'
 
     pf_url = 'https://www.parcelforce.com/track-trace?trackNumber='
 
-    existing_tracking = man_in.record.tracking_in if direction == 'in' else man_in.record.tracking_out
-    tracking = ','.join(
-        [existing_tracking, tracking_number]
-    ) if existing_tracking else tracking_number
-
     tracking_link = pf_url + tracking_number
-
     py_cmc.edit_record(
         record_name,
-        {tracking_field: tracking, tracking_link_field: tracking_link, 'DB label printed': True}
+        {tracking_link_field: tracking_link, 'DB label printed': True}
     )
     logger.info(
-        f'Updated {tracking_field} for {record_name} to {tracking}\nand {tracking_link_field} to {tracking_link}'
+        f'Updated "{record_name}" {tracking_link_field} to {tracking_link}'
     )
 
 
@@ -234,6 +229,7 @@ async def process_shipment(manager: ShipmentRecordDB, pfcom: ELClient, req, resp
     new_ship_state = manager.shipment.model_copy(update={'booking_state': booked_state})
     val_ship_state = shipaw.Shipment.model_validate(new_ship_state)
     await support.wait_label(val_ship_state, pfcom)
+    await record_tracking(manager)
     os.startfile(val_ship_state.booking_state.label_dl_path)
     manager.shipment = val_ship_state
     return manager

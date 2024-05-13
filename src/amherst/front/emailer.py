@@ -12,6 +12,7 @@ from suppawt.office_ps.ms import outlook_handler as oh
 from shipaw.ship_ui import states
 
 from amherst import am_db
+from amherst._bench.am_shared import CustomerFields, SaleFields
 from amherst.front import support
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordInDB
@@ -189,9 +190,20 @@ def get_email_options(manager: ShipmentRecordInDB):
     # crec = manager.item.customer_record
 
     state_delivery = manager.shipment.contact.email_address
+    record_delivery = manager.record.email
+
+    customer_accounts = manager.record.customer_record.get(CustomerFields.ACCOUNTS_EMAIL)
+    customer_primary = manager.record.customer_record.get(CustomerFields.PRIMARY_EMAIL)
+    customer_default_del = manager.record.customer_record.get(CustomerFields.DELIVERY_EMAIL)
+    customer_invoice = manager.record.customer_record.get(CustomerFields.INVOICE_EMAIL)
 
     addr_dict = {
-        state_delivery: f'from current state ({state_delivery})',
+        state_delivery: f'from shipper ({state_delivery})',
+        customer_accounts: f'customer accounts ({customer_accounts})',
+        customer_primary: f'customer primary ({customer_primary})',
+        customer_default_del: f'customer default delivery ({customer_default_del})',
+        customer_invoice: f'customer invoice ({customer_invoice})',
+        record_delivery: f'record delivery ({record_delivery})',
     }
 
     return [fastui_forms.SelectOption(value=k, label=v) for k, v in addr_dict.items() if k]

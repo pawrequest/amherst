@@ -10,7 +10,7 @@ from loguru import logger
 from pawdantic.pawui import pawui_types
 
 from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
-from shipaw import ship_types
+from shipaw import ship_types, ELClient
 from shipaw.models import pf_ext, pf_top
 from shipaw.ship_ui import forms as ship_forms, states as shipstates
 from amherst import am_db
