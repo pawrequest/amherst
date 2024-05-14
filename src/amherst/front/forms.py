@@ -4,6 +4,7 @@ import json
 from typing import Annotated
 
 import fastapi
+from combadge.core.errors import BackendError
 from fastui import FastUI, components as c, events
 from fastui.forms import fastui_form
 from loguru import logger
@@ -138,9 +139,10 @@ async def select_post(
             )
         )
         ]
-    except ConnectTimeoutError as e:
-        logger.exception(f'Connection Timed Out:\n{e}')
-        return [c.Paragraph(text=str(e)), c.Paragraph(text='Please refresh the page and try again')]
+    except (ConnectTimeoutError, BackendError) as e:
+        msg = f'Error: {e.__class__.__name__}. Connection Likely Timed Out.\n{str(e)}'
+        logger.exception(msg)
+        return [c.Paragraph(text=msg), c.Paragraph(text='Please refresh the page and try again')]
     except Exception as e:
         logger.error(e)
         return [c.Paragraph(text=str(e)), c.Paragraph(text='Please refresh the page and try again')]
