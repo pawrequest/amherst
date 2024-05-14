@@ -73,7 +73,7 @@ async def confirm_or_back_page(
     return await builders.page_w_alerts(
         components=[
             c.Heading(
-                text=f'Booking Confirmation for {manager.record.name}',
+                text=f'Confirm details for {manager.record.name}',
                 level=1,
                 class_name='row mx-auto my-5'
             ),
