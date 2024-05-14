@@ -8,6 +8,7 @@ import os
 
 import fastapi
 import sqlmodel as sqm
+from comtypes import CoInitialize, CoUninitialize
 from fastui import FastUI, components as c, events, events as e
 from loguru import logger
 from pawdantic.pawui import builders, pawui_types
@@ -85,19 +86,30 @@ async def confirm_or_back_page(
     )
 
 
-async def record_tracking(man_in: ShipmentRecordInDB):
-    tracking_number = man_in.shipment.booking_state.response.shipment_num
-    if category := man_in.record.cmc_table_name == 'Customer':
-        logger.error('CANT LOG TO CUSTOMER')
-        return
-    record_name = man_in.record.name
-    direction = man_in.shipment.direction
+def record_tracking(man_in: ShipmentRecordInDB):
+    CoInitialize()
 
+    try:
+        tracking_number = man_in.shipment.booking_state.response.shipment_num
+        category = man_in.record.cmc_table_name
+        if category == 'Customer':
+            logger.error('CANT LOG TO CUSTOMER')
+            return
+        record_name = man_in.record.name
+        direction = man_in.shipment.direction
+        do_record_tracking(category, direction, record_name, tracking_number)
+
+    except Exception as exce:
+        logger.error(f'Failed to record tracking for {man_in.record.name} due to:\n{exce}')
+
+    finally:
+        CoUninitialize()
+
+
+def do_record_tracking(category, direction, record_name, tracking_number):
     py_cmc = PyCommence.from_table_name(table_name=category)
     tracking_link_field = 'Track Inbound' if direction == 'in' else 'Track Outbound'
-
     pf_url = 'https://www.parcelforce.com/track-trace?trackNumber='
-
     tracking_link = pf_url + tracking_number
     py_cmc.edit_record(
         record_name,
@@ -126,6 +138,7 @@ async def do_booking(
         - :meth:`~amherst.front.ship.shipping_page`: Shipping Page on failure, which may include alerts.
 
     """
+    CoInitialize()
 
     logger.warning(f'booking_id: {manager_id}')
     man_in = await support.get_manager(manager_id, session)
@@ -143,8 +156,7 @@ async def do_booking(
 
         req, resp = await book_shipment(man_in, pfcom)
         processed_manager = await process_shipment(man_in, pfcom, req, resp)
-        # if man_in.record.cmc_table_name == 'Hire':
-        #     record_tracking(man_in)
+        # record_tracking(man_in)
 
         session.add(processed_manager)
         session.commit()
@@ -156,6 +168,8 @@ async def do_booking(
         man_out = ShipmentRecordOut.model_validate(man_in)
 
         return await ship.shipping_page(man_out.id, session=session, alert_dict=alert_dict)
+    finally:
+        CoUninitialize()
 
 
 @router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)
@@ -229,7 +243,6 @@ async def process_shipment(manager: ShipmentRecordDB, pfcom: ELClient, req, resp
     new_ship_state = manager.shipment.model_copy(update={'booking_state': booked_state})
     val_ship_state = shipaw.Shipment.model_validate(new_ship_state)
     await support.wait_label(val_ship_state, pfcom)
-    await record_tracking(manager)
     os.startfile(val_ship_state.booking_state.label_dl_path)
     manager.shipment = val_ship_state
     return manager

@@ -19,6 +19,7 @@ Environment variables:
 """
 import argparse
 
+from combadge.core.errors import BackendError
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
@@ -50,6 +51,7 @@ def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
 
     man_id = am_db.record_to_manager(shiprec)
     logger.info(f'added booking manager #{man_id}')
+
     try:
         fui = FlaskUI(fullscreen=True, app=app_file.app, server='fastapi', url_suffix=f'ship/select/{man_id}')
         fui.run()

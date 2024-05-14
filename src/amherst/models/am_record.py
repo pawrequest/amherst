@@ -6,6 +6,7 @@ from functools import cached_property
 from pathlib import Path
 
 import pydantic as _p
+from combadge.core.errors import BackendError
 from comtypes import CoInitialize, CoUninitialize
 from loguru import logger
 from pydantic import AliasChoices, ConfigDict, Field
@@ -48,8 +49,8 @@ class AmherstRecord(_p.BaseModel):
     invoice: Path | None = Field(None, validation_alias=AliasChoices('Invoice', 'Invoice Path'))
     missing_kit_str: str | None = Field(None, alias='Missing Kit')
     boxes: int = Field(1, alias='Boxes')
-    tracking_in: str | None = Field(None, alias='Tracking Inbound')
-    tracking_out: str | None = Field(None, alias='Tracking Outbound')
+    track_in: str | None = Field(None, alias='Track Inbound')
+    track_out: str | None = Field(None, alias='Track Outbound')
 
     @cached_property
     def customer_record(self) -> dict[str, str]:
@@ -79,17 +80,20 @@ class AmherstRecord(_p.BaseModel):
 
     @cached_property
     def initial_state(self) -> states.Shipment:
-        el_client = ELClient()
-        chosen, candidates = el_client.choose_address(self.input_address)
-        return states.Shipment(
-            contact=self.contact,
-            address=chosen,
-            ship_date=self.send_date,
-            boxes=self.boxes,
-            candidates=candidates,
-            reference=self.delivery_business,
-            # special_instructions='',
-        )
+        try:
+            el_client = ELClient()
+            chosen, candidates = el_client.choose_address(self.input_address)
+            return states.Shipment(
+                contact=self.contact,
+                address=chosen,
+                ship_date=self.send_date,
+                boxes=self.boxes,
+                candidates=candidates,
+                reference=self.delivery_business,
+                # special_instructions='',
+            )
+        except BackendError:
+            logger.exception(f'Zeep Backend Error prevents retrieving initial state for {self.name}')
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:

@@ -4,19 +4,18 @@ import json
 from typing import Annotated
 
 import fastapi
-from fastui import FastUI, components as c, events as e, events
+from fastui import FastUI, components as c, events
 from fastui.forms import fastui_form
 from loguru import logger
-from pawdantic.pawui import pawui_types
-
-from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
-from shipaw import ship_types, ELClient
+from shipaw.ship_types import FormKind
+from urllib3.exceptions import ConnectTimeoutError
+from shipaw import ELClient
 from shipaw.models import pf_ext, pf_top
-from shipaw.ship_ui import forms as ship_forms, states as shipstates
+from shipaw.ship_ui import states as shipstates
+
 from amherst import am_db
-from amherst.front import ship, support
+from amherst.front import support
 from amherst.front.support import addr_class_f_direction
-from amherst.models import shipment_record
 
 router = fastapi.APIRouter()
 
@@ -79,7 +78,7 @@ async def manual_post(
         )
     )
     return [c.FireEvent(
-        event=e.GoToEvent(
+        event=events.GoToEvent(
             url=f'/book/confirm/{manager_id}/{state.model_dump_64()}'
 
         )
@@ -139,6 +138,9 @@ async def select_post(
             )
         )
         ]
+    except ConnectTimeoutError as e:
+        logger.exception(f'Connection Timed Out:\n{e}')
+        return [c.Paragraph(text=str(e)), c.Paragraph(text='Please refresh the page and try again')]
     except Exception as e:
         logger.error(e)
         return [c.Paragraph(text=str(e)), c.Paragraph(text='Please refresh the page and try again')]
@@ -185,7 +187,7 @@ async def state_model_post(
 
     return [
         c.FireEvent(
-            event=e.GoToEvent(
+            event=events.GoToEvent(
                 url=f'/ship/view/{manager_id}'
             )
         )
@@ -212,7 +214,7 @@ async def address_form_post(
     await support.update_and_commit(manager_id, partial, session)
     return [
         c.FireEvent(
-            event=e.GoToEvent(
+            event=events.GoToEvent(
                 url=f'/ship/view/{manager_id}'
             )
         )
@@ -248,65 +250,65 @@ async def address_form_post(
 #             )
 #         )
 #     ]
-    # return await ship_page_2.shipping_page(
-    #     manager_id=manager_id,
-    #     session=session,
-    #     alert_dict=alert_dict
-    # )
-    # return [
-    #     e.PageEvent(
-    #         name='change-form',
-    #         # push_path=
-    #     )
-    # ]
+# return await ship_page_2.shipping_page(
+#     manager_id=manager_id,
+#     session=session,
+#     alert_dict=alert_dict
+# )
+# return [
+#     e.PageEvent(
+#         name='change-form',
+#         # push_path=
+#     )
+# ]
 
-    # return [
-    #     c.FireEvent(
-    #         event=e.GoToEvent(
-    #             url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
-    #         )
-    #     )
-    # ]
+# return [
+#     c.FireEvent(
+#         event=e.GoToEvent(
+#             url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
+#         )
+#     )
+# ]
 
 
-@router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def postcode_post(
-        manager_id: int,
-        form: Annotated[ship_forms.PostcodeSelect, fastui_form(ship_forms.PostcodeSelect)],
-        session=fastapi.Depends(am_db.get_session),
-        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
-) -> list[c.AnyComponent]:
-    man_in = await support.get_manager(manager_id, session)
-    man_in.shipment.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
-    session.add(man_in)
-    session.commit()
-
-    if not ship_types.is_valid_postcode(form.fetch_address_from_postcode):
-        logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
-        alertdict: pawui_types.AlertDict = {
-            f'INVALID POSTCODE : {form.fetch_address_from_postcode}': 'ERROR'
-        }
-        return await ship.shipping_page(
-            manager_id=manager_id,
-            session=session,
-            alert_dict=alertdict
-        )
-
-        # return await shipping_page.ship_page(manager=man_in, alert_dict=alertdict)
-
-        # return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
-
-    # return await ship_page_2.shipping_page(manager_id=manager_id, session=session)
-    return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
-
-    # return [
-    #     c.FireEvent(
-    #         event=e.GoToEvent(
-    #             url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
-    #         )
-    #     )
-    # ]
-
+# @router.post('/postcode/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# async def postcode_post(
+#         manager_id: int,
+#         form: Annotated[ship_forms.PostcodeSelect, fastui_form(ship_forms.PostcodeSelect)],
+#         session=fastapi.Depends(am_db.get_session),
+#         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
+# ) -> list[c.AnyComponent]:
+#     man_in = await support.get_manager(manager_id, session)
+#     man_in.shipment.candidates = pfcom.get_candidates(form.fetch_address_from_postcode)
+#     session.add(man_in)
+#     session.commit()
+#
+#     if not ship_types.is_valid_postcode(form.fetch_address_from_postcode):
+#         logger.warning(f'Invalid postcode: {form.fetch_address_from_postcode}')
+#         alertdict: pawui_types.AlertDict = {
+#             f'INVALID POSTCODE : {form.fetch_address_from_postcode}': 'ERROR'
+#         }
+#         return await ship.shipping_page(
+#             manager_id=manager_id,
+#             session=session,
+#             alert_dict=alertdict
+#         )
+#
+#         # return await shipping_page.ship_page(manager=man_in, alert_dict=alertdict)
+#
+#         # return [c.FireEvent(event=e.GoToEvent(url=f'/ship/view/{manager_id}'))]
+#
+#     # return await ship_page_2.shipping_page(manager_id=manager_id, session=session)
+#     return [c.FireEvent(event=events.GoToEvent(url=f'/ship/view/{manager_id}'))]
+#
+#     # return [
+#     #     c.FireEvent(
+#     #         event=e.GoToEvent(
+#     #             url=f'/sl/pcneighbours/{manager_id}/{form.fetch_address_from_postcode}'
+#     #         )
+#     #     )
+#     # ]
+#
 
 # @router.post('/boxes/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 # async def boxes_post(
