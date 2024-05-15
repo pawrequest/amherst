@@ -1,26 +1,43 @@
 from __future__ import annotations, annotations
 
+import base64
 import os
-import typing as _t
+from urllib.parse import unquote_plus
 
-import fastapi
 import sqlmodel
-from fastapi import Depends
+from fastapi import APIRouter, Depends
 from fastui import FastUI, components as c, events, events as e
 from loguru import logger
+from pawdantic.pawui import builders
 
-from amherst import am_db, am_types
+from amherst import am_db
 from amherst.front import emailer, support
 from amherst.front.ship import shipping_page
 from amherst.models.shipment_record import ShipmentRecordInDB, ShipmentRecordOut
 
-router = fastapi.APIRouter()
+router = APIRouter()
+
+
+# @router.get('/fail/', response_model=FastUI, response_model_exclude_none=True)
+@router.get('/fail/{alert}', response_model=FastUI, response_model_exclude_none=True)
+async def fail_page(
+        alert: str
+) -> support.Fui_Page:
+    alert = base64.urlsafe_b64decode(alert).decode('utf-8')
+    logger.warning(f'ERROR {alert}')
+    return await builders.page_w_alerts(
+        alert_dict={alert: 'ERROR'},
+        components=[
+            # c.Text(text='Error Page')
+        ],
+        title='ERROR',
+    )
 
 
 @router.get('/invoice/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
 async def open_invoice(
-    manager_id: int,
-    session: sqlmodel.Session = Depends(am_db.get_session),
+        manager_id: int,
+        session: sqlmodel.Session = Depends(am_db.get_session),
 ) -> support.Fui_Page:
     """Endpoint for opening invoice.
 
@@ -42,7 +59,10 @@ async def open_invoice(
         os.startfile(inv_file)
     except (FileNotFoundError, TypeError):
         logger.error(f'Invoice file not found: {inv_file}')
-        return await shipping_page.ship_page(manager=man_out, alert_dict={'INVOICE NOT FOUND': 'WARNING'})
+        return await shipping_page.ship_page(
+            manager=man_out,
+            alert_dict={'INVOICE NOT FOUND': 'WARNING'}
+        )
 
     return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{manager_id}'))]
 

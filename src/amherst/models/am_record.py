@@ -15,6 +15,7 @@ from pycommence import pycmc_types
 from shipaw import ELClient, ship_types
 from shipaw.models import pf_ext, pf_lists, pf_top
 from shipaw.ship_ui import states
+from zeep.exceptions import XMLParseError
 
 
 class AmherstRecord(_p.BaseModel):
@@ -54,7 +55,9 @@ class AmherstRecord(_p.BaseModel):
 
     @cached_property
     def customer_record(self) -> dict[str, str]:
-        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(self.customer)
+        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(
+            self.customer
+        )
 
     @cached_property
     def input_address(self):
@@ -92,8 +95,15 @@ class AmherstRecord(_p.BaseModel):
                 reference=self.delivery_business,
                 # special_instructions='',
             )
-        except BackendError:
-            logger.exception(f'Zeep Backend Error prevents retrieving initial state for {self.name}')
+        except BackendError as err:
+            if isinstance(err.args[0], XMLParseError):
+                raise BackendError(
+                    f'(POSTCODE LIKELY BAD) XMLParseError prevents retrieving initial state for {self.name}'
+                ) from err
+            logger.exception(
+                f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
+            )
+            raise
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:

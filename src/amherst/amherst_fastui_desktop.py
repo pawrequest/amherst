@@ -18,14 +18,16 @@ Environment variables:
 
 """
 import argparse
+import asyncio
+import base64
+from urllib.parse import quote, quote_plus
 
-from combadge.core.errors import BackendError
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
+import pycommence
 
 import amherst.models.am_record
-import pycommence
-from amherst import am_db, am_types, app_file
+from amherst import am_db, app_file
 from amherst.models.am_record import AmherstRecord
 
 
@@ -36,7 +38,9 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
+async def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
+    alert = None
+    man_id = None
     am_db.create_db()
 
     py_cmc = pycommence.PyCommence.from_table_name(table_name=category)
@@ -45,15 +49,31 @@ def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
     try:
         shiprec = AmherstRecord(**record)
         shiprec = shiprec.model_validate(shiprec)
-    except Exception as e:
-        logger.exception(f'Error creating ShipableRecord: {e}')
-        raise ValueError(f'Error creating ShipableRecord: {e}')
 
-    man_id = am_db.record_to_manager(shiprec)
-    logger.info(f'added booking manager #{man_id}')
+        man_id = am_db.record_to_manager(shiprec)
+        logger.info(f'added booking manager #{man_id}')
+
+    except Exception as e:
+        alert = f'Error creating ShipableRecord: {e}'
+        logger.exception(alert)
+        alert = base64.urlsafe_b64encode(alert.encode('utf-8')).decode('utf-8')
 
     try:
-        fui = FlaskUI(fullscreen=True, app=app_file.app, server='fastapi', url_suffix=f'ship/select/{man_id}')
+        if alert or not man_id:
+            logger.warning(f'alert = {alert}')
+            fui = FlaskUI(
+                fullscreen=True,
+                app=app_file.app,
+                server='fastapi',
+                url_suffix=f'shared/fail/{alert}',
+            )
+        else:
+            fui = FlaskUI(
+                fullscreen=True,
+                app=app_file.app,
+                server='fastapi',
+                url_suffix=f'ship/select/{man_id}',
+            )
         fui.run()
     except Exception as e:
         if "got an unexpected keyword argument 'url_suffix'" in str(e):
@@ -63,10 +83,14 @@ def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
             )
             logger.exception(msg)
             raise ImportError(msg)
+        else:
+            raise
     finally:
         close_application()
 
 
 if __name__ == '__main__':
     args = parse_arguments()
-    main(args.category, args.record_name)
+    asyncio.run(main(args.category, args.record_name))
+
+    # main(args.category, args.record_name)
