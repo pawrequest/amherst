@@ -92,7 +92,7 @@ class AmherstRecord(_p.BaseModel):
                 ship_date=self.send_date,
                 boxes=self.boxes,
                 candidates=candidates,
-                reference=self.delivery_business,
+                reference=self.customer,
                 # special_instructions='',
             )
         except BackendError as err:
