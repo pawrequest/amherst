@@ -17,12 +17,12 @@ router = APIRouter()
 async def state_post(
         manager_id: int,
         form: _t.Annotated[
-            ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
+            ship_states.ShipmentPartial, fastui_form(ship_states.ShipmentPartial)],
         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
         session=fastapi.Depends(am_db.get_session),
 
 ):
-    update = ship_states.ShipStatePartial.model_validate(form.model_dump())
+    update = ship_states.ShipmentPartial.model_validate(form.model_dump())
     if update.address.postcode:
         update.candidates = pfcom.get_candidates(update.address.postcode)
     await support.update_and_commit(manager_id, update, session)

@@ -158,7 +158,7 @@ async def select_post(
 #         form: Annotated[ship_forms.AddressForm, fastui_form(ship_forms.AddressForm)],
 # ):
 #     addy = pf_ext.AddressRecipient.model_validate(form.model_dump())
-#     partial = states.ShipStatePartial(address=addy)
+#     partial = states.ShipmentPartial(address=addy)
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
@@ -175,7 +175,7 @@ async def select_post(
 )
 async def state_model_post(
         manager_id: int,
-        form: Annotated[shipstates.ShipStatePartial, fastui_form(shipstates.ShipStatePartial)],
+        form: Annotated[shipstates.ShipmentPartial, fastui_form(shipstates.ShipmentPartial)],
         session=fastapi.Depends(am_db.get_session),
 ):
     man_in = await support.get_manager(manager_id, session)
@@ -212,7 +212,7 @@ async def address_form_post(
     addr_class = await addr_class_f_direction(manager.shipment.direction)
 
     address = addr_class(address_)
-    partial = shipstates.ShipStatePartial.model_validate({'address': address})
+    partial = shipstates.ShipmentPartial.model_validate({'address': address})
     await support.update_and_commit(manager_id, partial, session)
     return [
         c.FireEvent(
@@ -363,7 +363,7 @@ async def address_form_post(
 #     return [
 #         c.FireEvent(
 #             event=e.GoToEvent(
-#                 url=f'/ship/update/{manager_id}/{states.ShipStatePartial(boxes=boxes).model_dump_64()}'
+#                 url=f'/ship/update/{manager_id}/{states.ShipmentPartial(boxes=boxes).model_dump_64()}'
 #             ),
 #         )
 #     ]
@@ -536,9 +536,9 @@ async def email_post(
     # )
 
 
-async def get_model_form_type(model_kind: FormKind):
-    logger.debug(f'getting model form type for {model_kind}')
-    match model_kind:
+async def get_model_form_type(formkind: FormKind):
+    logger.debug(f'getting model form type for {formkind}')
+    match formkind:
         case 'zero':
             return pf_top.RequestedShipmentZero
         case 'minimum':
@@ -548,4 +548,4 @@ async def get_model_form_type(model_kind: FormKind):
         case 'collect':
             return pf_top.CollectionMinimum
         case _:
-            raise ValueError(f'Invalid kind {model_kind!r}')
+            raise ValueError(f'Invalid kind {formkind!r}')

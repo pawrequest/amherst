@@ -247,6 +247,6 @@ async def address_from_pc_div(manager) -> c.Div:
 #         FastUI page
 #     """
 #     logger.info(f'UPDATE_SHIPMENT {booking_id=}, {update_64=}')
-#     updt = states.ShipStatePartial.model_validate_64(update_64)
+#     updt = states.ShipmentPartial.model_validate_64(update_64)
 #     man_out = await support.update_and_commit(booking_id, updt, session)
 #     return await shipping_page(manager=man_out)
