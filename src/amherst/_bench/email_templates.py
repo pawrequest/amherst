@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from amherst.front import support
-from amherst.front.support import state_notification_labels_str
+from amherst.front.support import shipment_notification_labels_str
 from amherst.models import shipment_record
 from pawdantic import paw_strings
 from shipaw.ship_ui import states
 from suppawt.office_ps import email_handler as eh
+
+from amherst.models.shipment_record import ShipmentRecordInDB
 
 
 # def state_notification_labels_str(shipment: states.ShipState):
@@ -24,7 +26,7 @@ def return_label_email(state):
     )
 
 
-async def invoice_email(manager: managers.ShipmentRecordInDB) -> eh.Email:
+async def invoice_email(manager: ShipmentRecordInDB) -> eh.Email:
     inv_num = manager.record.invoice.stem
     return eh.Email(
         to_address=manager.shipment.contact.email_address,
@@ -56,7 +58,7 @@ def return_body(state: states.Shipment):
     
     Collection is booked for {paw_strings.date_string(state.ship_date)}, we are unable to give precise timings, however you should receive notifications at the contact details below:
         
-{state_notification_labels_str(state)}
+{shipment_notification_labels_str(state)}
     
     If for any reason the courier is missed you can drop the labelled box at any uk postoffice.
     

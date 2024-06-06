@@ -32,7 +32,7 @@ async def email_post(
 ):
     logger.info(f'email {recipients=}')
     alert_dict = {}
-    manager = await support.get_manager(manager_id, session)
+    manager = await support.get_shiprec(manager_id, session)
 
     if label:
         if not manager.shipment.booking_state.label_downloaded:
@@ -67,7 +67,7 @@ class EmailChoiceBoolean(c.FormFieldBoolean):
     name: EmailChoices
 
 
-def get_email_form(manager: ShipmentRecordInDB, choices: list[EmailChoices]):
+def get_email_form(shiprec: ShipmentRecordInDB, choices: list[EmailChoices]):
     bool_fields = [EmailChoiceBoolean(name=k, title=k.title()) for k in choices]
 
     return c.Form(
@@ -76,11 +76,11 @@ def get_email_form(manager: ShipmentRecordInDB, choices: list[EmailChoices]):
                 name='recipients',
                 title='recipients',
                 multiple=True,
-                options=get_email_options(manager),
+                options=get_email_options(shiprec),
             ),
             *bool_fields,
         ],
-        submit_url=f'/api/email/{manager.id}',
+        submit_url=f'/api/email/{shiprec.id}',
     )
 
 
@@ -101,7 +101,7 @@ Please ensure any old postage labels are removed or thoroughly obscured as other
 def collection_str(shipment: states.Shipment):
     return f"""Collection is booked for {paw_strings.date_string(shipment.ship_date)}, 
 we are unable to give precise timings, however you should receive notifications at the contact details below:'
-{support.state_notification_labels_str(shipment)}
+{support.shipment_notification_labels_str(shipment)}
 
 If for any reason the courier is missed you can drop the labelled box at any uk postoffice.
 """
@@ -148,7 +148,7 @@ async def generic_email(
 
     Args:
         recipients: List of email addresses.
-        manager: The manager object.
+        manager: The shiprec object.
         label: Whether to include the shipping label.
         missing: Whether to include the missing kit request.
         invoice: Whether to include the invoice.
@@ -185,17 +185,17 @@ async def generic_email(
     )
 
 
-def get_email_options(manager: ShipmentRecordInDB):
-    # irec = manager.record
-    # crec = manager.item.customer_record
+def get_email_options(shiprec: ShipmentRecordInDB):
+    # irec = shiprec.record
+    # crec = shiprec.item.customer_record
 
-    state_delivery = manager.shipment.contact.email_address
-    record_delivery = manager.record.email
+    state_delivery = shiprec.shipment.contact.email_address
+    record_delivery = shiprec.record.email
 
-    customer_accounts = manager.record.customer_record.get(CustomerFields.ACCOUNTS_EMAIL)
-    customer_primary = manager.record.customer_record.get(CustomerFields.PRIMARY_EMAIL)
-    customer_default_del = manager.record.customer_record.get(CustomerFields.DELIVERY_EMAIL)
-    customer_invoice = manager.record.customer_record.get(CustomerFields.INVOICE_EMAIL)
+    customer_accounts = shiprec.record.customer_record.get(CustomerFields.ACCOUNTS_EMAIL)
+    customer_primary = shiprec.record.customer_record.get(CustomerFields.PRIMARY_EMAIL)
+    customer_default_del = shiprec.record.customer_record.get(CustomerFields.DELIVERY_EMAIL)
+    customer_invoice = shiprec.record.customer_record.get(CustomerFields.INVOICE_EMAIL)
 
     addr_dict = {
         state_delivery: f'from shipper ({state_delivery})',
@@ -209,11 +209,11 @@ def get_email_options(manager: ShipmentRecordInDB):
     return [fastui_forms.SelectOption(value=k, label=v) for k, v in addr_dict.items() if k]
 
 
-# async def send_label(manager: managers.MANAGER_IN_DB):
+# async def send_label(shiprec: managers.MANAGER_IN_DB):
 #     """Send the label by email."""
 #     email = await generic_email(
-#         recipients=[manager.shipment.contact.email_address],
-#         manager=manager,
+#         recipients=[shiprec.shipment.contact.email_address],
+#         shiprec=shiprec,
 #         label=True,
 #     )
 #     handler = oh.OutlookHandlerMultipleAttachments()
@@ -227,22 +227,22 @@ def get_email_options(manager: ShipmentRecordInDB):
 #     handler.send_email(email)
 
 
-# async def send_missing(manager: managers.MANAGER_IN_DB):
+# async def send_missing(shiprec: managers.MANAGER_IN_DB):
 #     email = await generic_email(
-#         recipients=[manager.shipment.contact.email_address],
-#         shipment=manager.shipment,
-#         item=manager.item,
+#         recipients=[shiprec.shipment.contact.email_address],
+#         shipment=shiprec.shipment,
+#         item=shiprec.item,
 #     )
 #     handler = oh.OutlookHandlerMultipleAttachments()
 #     handler.create_open_email(email)
 
 
-# async def send_invoice(manager: managers.BookingManagerOut):
+# async def send_invoice(shiprec: managers.BookingManagerOut):
 #     """Send invoice by email."""
-#     # email = await email_templates.invoice_email(manager)
+#     # email = await email_templates.invoice_email(shiprec)
 #     email = await generic_email(
-#         recipients=[manager.shipment.contact.email_address],
-#         invoice=await support.get_invoice_path(manager.item)
+#         recipients=[shiprec.shipment.contact.email_address],
+#         invoice=await support.get_invoice_path(shiprec.item)
 #     )
 #     handler = oh.OutlookHandlerMultipleAttachments()
 #     handler.create_open_email(email)

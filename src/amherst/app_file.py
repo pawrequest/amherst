@@ -57,13 +57,13 @@ async def favicon_ico() -> responses.RedirectResponse:
     return responses.RedirectResponse(url='/static/favicon.svg')
 
 
-# def populate_db_from_cmc(session: sqm.Session, pfcom):
+# def populate_db_from_cmc(session: sqm.Session, el_client):
 #     records = sample_data.hires
 #     # with cmc.csr_context(shipable_item.Hire.cmc_table_name) as csr:
 #     #     filters = shipable_item.Hire.initial_filter_array.default
 #     #     records = csr.filter_by_array(filters, get=True)
 #     records = records[:3]
-#     managers = rec_importer.hire_records_to_managers(*records, pfcom=pfcom)
+#     managers = rec_importer.hire_records_to_managers(*records, el_client=el_client)
 #     session.add_all(managers)
 #     session.commit()
 

@@ -41,7 +41,7 @@ async def open_invoice(
 ) -> support.Fui_Page:
     """Endpoint for opening invoice.
 
-    Opens invoice file for the shipable_item in the booking manager.
+    Opens invoice file for the shipable_item in the booking shiprec.
 
     Args:
         manager_id: Booking Manager ID
@@ -51,7 +51,7 @@ async def open_invoice(
         Redirects to Shipping page with alert if invoice not found.
 
     """
-    man_in = await support.get_manager(manager_id, session)
+    man_in = await support.get_shiprec(manager_id, session)
     inv_file = await support.get_invoice_path(man_in.record)
     man_out = ShipmentRecordOut.model_validate(man_in)
 
@@ -90,8 +90,8 @@ async def invoice_div(manager: ShipmentRecordOut) -> c.Div:
     )
 
 
-async def email_div(manager: ShipmentRecordInDB, choices: list[EmailChoices]):
-    return c.Div(class_name='row my-3', components=[emailer.get_email_form(manager, choices)])
+async def email_div(shiprec: ShipmentRecordInDB, choices: list[support.EmailChoices]):
+    return c.Div(class_name='row my-3', components=[emailer.get_email_form(shiprec, choices)])
 
 
 async def close_div():

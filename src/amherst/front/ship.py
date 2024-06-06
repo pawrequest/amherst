@@ -40,7 +40,7 @@ async def shipping_page(
     bg_col = ' bg-light' if pf_sett.ship_live else ' bg-warning'
     page_style = f'container{bg_col}'
 
-    manager = await support.get_manager(manager_id, session)
+    manager = await support.get_shiprec(manager_id, session)
     if 'parcelforce' not in manager.record.send_method.lower():
         alert = {'Commence Send Method not include "parcelforce"': 'WARNING'}
         alert_dict = alert | alert_dict if alert_dict else alert
@@ -73,7 +73,7 @@ async def left_col(manager: ShipmentRecord) -> c.Div:
             await input_address_div(manager),
             await shared.email_div(manager, ['invoice', 'missing_kit']),
             await shared.close_div(),
-            # await address_from_pc_div(manager),
+            # await address_from_pc_div(shiprec),
         ],
     )
 
@@ -108,7 +108,6 @@ async def form_div(kind: ship_types.FormKind, manager_id: int, session) -> c.Div
                 load_trigger=e.PageEvent(name='change-form'),
                 components=[await get_form(manager_id, kind, session)],
             ),
-            # await dropoff_button(manager_id),
             await swap_form_button(kind, manager_id),
         ],
     )
@@ -132,11 +131,11 @@ async def swap_form_button(kind, manager_id: int):
     )
 
 
-# async def server_load_form(kind, manager, session):
+# async def server_load_form(kind, shiprec, session):
 #     return c.ServerLoad(
-#         path=f"/forms/get_form/{manager.id}/{kind}",
+#         path=f"/forms/get_form/{shiprec.id}/{kind}",
 #         load_trigger=e.PageEvent(name="change-form"),
-#         components=[await get_form(manager.id, kind, session)],
+#         components=[await get_form(shiprec.id, kind, session)],
 #     )
 
 
@@ -146,14 +145,14 @@ async def swap_form_button(kind, manager_id: int):
     response_model_exclude_none=True
 )
 async def get_form(
-        manager_id: int,
+        shiprec_id: int,
         kind: ship_types.FormKind,
         session=Depends(am_db.get_session)
 ) -> c.Form:
     """Endpoint to get form for shipping page.
 
     Args:
-        manager_id: Booking Manager ID
+        shiprec_id: Booking Manager ID
         kind: Form kind
         session: sqlmodel session
 
@@ -161,10 +160,10 @@ async def get_form(
         c.Form:
 
     """
-    manager = await support.get_manager(manager_id, session)
+    manager = await support.get_shiprec(shiprec_id, session)
     return c.Form(
         form_fields=await get_form_fields(kind, manager.shipment),
-        submit_url=f'/api/forms/{kind}/{manager_id}',
+        submit_url=f'/api/forms/{kind}/{shiprec_id}',
     )
 
 
@@ -227,26 +226,26 @@ async def address_from_pc_div(manager) -> c.Div:
     )
 
 # @router.get(
-#     '/update/{booking_id}/{update_64}',
+#     '/update/{shiprec_id}/{update_64}',
 #     response_model=fastui.FastUI,
 #     response_model_exclude_none=True
 # )
 # async def update_shipment(
-#         booking_id: int,
+#         shiprec_id: int,
 #         update_64: str | None = None,
 #         session: sqlmodel.Session = Depends(am_db.get_session),
 # ) -> support.Fui_Page:
 #     """Endpoint for updating shipment.
 #
 #     Args:
-#         booking_id: Booking Manager ID
+#         shiprec_id: Booking Manager ID
 #         update_64: BookingManagerState as base64 encoded json
 #         session: sqlmodel session
 #
 #     Returns:
 #         FastUI page
 #     """
-#     logger.info(f'UPDATE_SHIPMENT {booking_id=}, {update_64=}')
+#     logger.info(f'UPDATE_SHIPMENT {shiprec_id=}, {update_64=}')
 #     updt = states.ShipmentPartial.model_validate_64(update_64)
-#     man_out = await support.update_and_commit(booking_id, updt, session)
-#     return await shipping_page(manager=man_out)
+#     man_out = await support.update_and_commit(shiprec_id, updt, session)
+#     return await shipping_page(shiprec=man_out)
