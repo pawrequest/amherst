@@ -8,244 +8,188 @@ import os
 
 import fastapi
 import sqlmodel as sqm
-from comtypes import CoInitialize, CoUninitialize
 from fastui import FastUI, components as c, events, events as e
+from fastui.components.display import DisplayLookup, DisplayMode
 from loguru import logger
 from pawdantic.pawui import builders, pawui_types
-import shipaw
-from pycommence import PyCommence
-from shipaw import ELClient
-from shipaw.ship_ui import states as ship_states
 
+import shipaw
+from amherst.am_shared import HireFields
+from pycommence import PyCommence
+from shipaw import BookingState, ELClient, Shipment
 from amherst import am_db
 from amherst.front import booked, ship, support
-from amherst.front.support import update_manager_state
-from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordInDB, ShipmentRecordOut
+from amherst.front.support import get_shiprec
+from amherst.models.shipment_record import (
+    ShipmentRecordDB,
+    ShipmentRecordInDB,
+)
 
 router = fastapi.APIRouter()
 
 
-@router.get(
-    '/confirm/{manager_id}/{state_64}',
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
+@router.get('/confirm/{shiprec_id}/{shipment_64}', response_model=FastUI, response_model_exclude_none=True)
 async def confirm_or_back(
-        manager_id: int,
-        state_64: str,
-        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
-        session: sqm.Session = fastapi.Depends(am_db.get_session),
+    shiprec_id: int,
+    shipment_64: str,
+    el_client: ELClient = fastapi.Depends(am_db.get_el_client),
+    session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
     """Endpoint to submit shipment and return 'Confirm or Back' page.
 
     Args:
-        manager_id (int): BookingManager id.
-        state_64 (str): State as Base64 encoded JSON.
-        pfcom (ELClient, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
+        shiprec_id (int): BookingManager id.
+        shipment_64 (str): State as Base64 encoded JSON.
+        el_client (ELClient, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
         session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
 
     Returns:
         c.Page: :meth:`~confirm_book_page`
 
     """
-    state = ship_states.Shipment.model_validate_64(state_64)
-    state.candidates = pfcom.get_candidates(state.address.postcode)
+    shiprec: ShipmentRecordDB = await get_shiprec(shiprec_id, session)
 
-    man_in = await update_manager_state(manager_id, session, state)
-    return await confirm_or_back_page(man_in)
+    shipment = Shipment.model_validate_64(shipment_64)
+    shipment.candidates = el_client.get_candidates(shipment.address.postcode)
+    shiprec.shipment = shipment
+
+    request = el_client.shipment_request_authenticated(shipment)
+
+    booking_state = BookingState(request=request)
+    shiprec.booking_state = booking_state
+    # shiprec = shiprec.model_validate(shiprec)
+    session.add(shiprec)
+    session.commit()
+    return await confirm_or_back_page(shiprec)
 
 
 async def confirm_or_back_page(
-        manager: ShipmentRecordInDB, alert_dict: pawui_types.AlertDict = None
+    shiprec: ShipmentRecordDB, alert_dict: pawui_types.AlertDict = None
 ) -> list[c.AnyComponent]:
     """Confirm or Back page.
 
     Display the current shipment and buttons to proceed with booking or go back.
 
     Args:
-        manager (managers.MANAGER_IN_DB): The manager object.
+        shiprec (managers.MANAGER_IN_DB): The shiprec object.
         alert_dict (pawui_types.AlertDict, optional): The alert dictionary - defaults to None.
 
     Returns:
         c.Page: Pre-Confirmation page.
 
     """
+
     return await builders.page_w_alerts(
         components=[
-            c.Heading(
-                text=f'Confirm details for {manager.record.name}',
-                level=1,
-                class_name='row mx-auto my-5'
-            ),
-            c.ServerLoad(path=f'/book/check_state/{manager.id}'),
-            await confirm_div(manager),
-            await back_div(manager.id),
+            c.Heading(text=f'Confirm details for {shiprec.record.name}', level=1, class_name='row mx-auto my-5'),
+            await confirm_div(shiprec),
+            await back_div(shiprec.id),
+            await simple_check(shiprec),
         ],
         title='booking',
         alert_dict=alert_dict,
     )
 
 
-def record_tracking(man_in: ShipmentRecordInDB):
-    CoInitialize()
-
-    try:
-        tracking_number = man_in.shipment.booking_state.response.shipment_num
-        category = man_in.record.cmc_table_name
-        if category == 'Customer':
-            logger.error('CANT LOG TO CUSTOMER')
-            return
-        record_name = man_in.record.name
-        direction = man_in.shipment.direction
-        do_record_tracking(category, direction, record_name, tracking_number)
-
-    except Exception as exce:
-        logger.error(f'Failed to record tracking for {man_in.record.name} due to:\n{exce}')
-
-    finally:
-        CoUninitialize()
+async def simple_check(shiprec):
+    return c.Details(data=shiprec.booking_state, fields=[DisplayLookup(field='request', mode=DisplayMode.json)])
 
 
-def do_record_tracking(category, direction, record_name, tracking_number):
-    py_cmc = PyCommence.from_table_name(table_name=category)
-    tracking_link_field = 'Track Inbound' if direction == 'in' else 'Track Outbound'
-    pf_url = 'https://www.parcelforce.com/track-trace?trackNumber='
-    tracking_link = pf_url + tracking_number
-    py_cmc.edit_record(
-        record_name,
-        {tracking_link_field: tracking_link, 'DB label printed': True}
-    )
-    logger.info(
-        f'Updated "{record_name}" {tracking_link_field} to {tracking_link}'
-    )
-
-
-@router.get('/go_book/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
-async def do_booking(
-        manager_id: int,
-        pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
-        session: sqm.Session = fastapi.Depends(am_db.get_session),
+@router.get('/go_book/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
+async def go_book(
+    shiprec_id: int,
+    el_client: ELClient = fastapi.Depends(am_db.get_el_client),
+    session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
-    """Endpoint for booking a shipment.
+    # pythoncom.CoInitialize()
 
-    Args:
-        manager_id (int): The manager's id.
-        pfcom (ELClient, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
-        session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
+    logger.warning(f'booking_id: {shiprec_id}')
+    shiprec = await support.get_shiprec(shiprec_id, session)
 
-    Returns:
-        - :meth:`~amherst.front.booked.booked_page`: Post-Booking Page on success.
-        - :meth:`~amherst.front.ship.shipping_page`: Shipping Page on failure, which may include alerts.
-
-    """
-    CoInitialize()
-
-    logger.warning(f'booking_id: {manager_id}')
-    man_in = await support.get_manager(manager_id, session)
-
-    if man_in.shipment.booking_state is not None:
-        logger.error(f'booking {manager_id} already booked')
+    if shiprec.booking_state.booked or shiprec.booking_state.completed:
+        logger.error(f'Shipment for {shiprec.record.name} already booked')
         alert_dict = {'ALREADY BOOKED': 'ERROR'}
-        return await booked.booked_page(manager=man_in, alert_dict=alert_dict)
+        return await booked.booked_page(shiprec=shiprec, alert_dict=alert_dict)
 
     try:
-        if man_in.shipment.direction == 'in':
-            tod = dt.date.today()
-            if man_in.shipment.ship_date <= tod:
+        if shiprec.shipment.direction == 'in':
+            if shiprec.shipment.ship_date <= dt.date.today():
                 raise ValueError('CAN NOT COLLECT TODAY')
 
-        req, resp = await book_shipment(man_in, pfcom)
-        processed_manager = await process_shipment(man_in, pfcom, req, resp)
-        # record_tracking(man_in)
+        processed_shiprec = process_shipment_request(shiprec, el_client)
 
-        session.add(processed_manager)
+        session.add(processed_shiprec)
         session.commit()
-        man_out = ShipmentRecordOut.model_validate(processed_manager)
-        return await booked.booked_page(manager=man_out)
+        # man_out = ShipmentRecordOut.model_validate(processed_shiprec)
+        return await booked.booked_page(shiprec=processed_shiprec)
 
     except Exception as err:
         alert_dict = {str(err): 'ERROR'}
-        man_out = ShipmentRecordOut.model_validate(man_in)
+        # man_out = ShipmentRecordOut.model_validate(shiprec)
 
-        return await ship.shipping_page(man_out.id, session=session, alert_dict=alert_dict)
-    finally:
-        CoUninitialize()
-
-
-@router.get('/check_state/{man_id}', response_model=FastUI, response_model_exclude_none=True)
-async def check_state(
-        man_id: int,
-        session=fastapi.Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
-    """Html Div with the current shipment of the manager.
-
-    Args:
-        man_id (int): The BookingManger id.
-        session (sqm.Session, optional): The database session - defaults to fastapi.Depends(am_db.get_session).
-
-    Returns:
-        list(c.Div): A list containing a single DIV with each attribute of shipment as a text element.
-
-    """
-    man_in = await support.get_manager(man_id, session)
-    texts = builders.dict_strs_texts(
-        man_in.shipment.model_dump(exclude={'candidates'}),
-        with_keys='YES'
-    )
-    return [c.Div(
-        components=builders.list_of_divs(class_name='row my-2 mx-auto', components=texts),
-        class_name='row'
-    )]
+        return await ship.shipping_page(shiprec.id, session=session, alert_dict=alert_dict)
+    # finally:
+    #     pythoncom.CoUninitialize()
 
 
-async def book_shipment(manager: ShipmentRecordInDB, pfcom: ELClient):
-    """Book a shipment.
+# async def book_shipment(shiprec: ShipmentRecordInDB, el_client: ELClient):
+#     """Book a shipment.
+#
+#     Args:
+#         shiprec (shipment_record.ShipmentRecordDB): The :class:`~managers.MANAGER_IN_DB` object.
+#         el_client (ELClient): :class:`~ELClient` object.
+#
+#     Returns:
+#         tuple: The request and response objects.
+#
+#     """
+#     req = el_client.shipment_to_request(shiprec.shipment)
+#     logger.warning(f'BOOKING ({shiprec.shipment.direction.title()}) {shiprec.record.name}')
+#     resp = el_client.send_shipment_request(req)
+#     return req, resp
 
-    Args:
-        manager (shipment_record.ShipmentRecordDB): The :class:`~managers.MANAGER_IN_DB` object.
-        pfcom (ELClient): :class:`~ELClient` object.
 
-    Returns:
-        tuple: The request and response objects.
-
-    """
-    req = pfcom.state_to_request(manager.shipment)
-    logger.warning(f'BOOKING ({manager.shipment.direction.title()}) {manager.record.name}')
-    resp = pfcom.send_shipment_request(req)
-    return req, resp
-
-
-async def process_shipment(manager: ShipmentRecordDB, pfcom: ELClient, req, resp):
+# noinspection DuplicatedCode
+def process_shipment_request(shiprec: ShipmentRecordDB, el_client: ELClient):
     """Process the shipment.
 
-    Update the manager with the booking shipment and wait for the label to download.
+    Update the shiprec with the booking shipment and wait for the label to download.
     Open the label file in OS default pdf handler.
 
     Args:
-        manager (shipment_record.ShipmentRecordDB): The manager object.
-        pfcom (ELClient): :class:`~ELClient` object.
-        req: The request object.
-        resp: The response object.
+        shiprec (shipment_record.ShipmentRecordDB): The shiprec object.
+        el_client (ELClient): :class:`~ELClient` object.
 
     Returns:
-        managers.ShipmentRecordDB: The manager object.
+        managers.ShipmentRecordDB: The shiprec object.
 
     Raises:
         shipaw.ExpressLinkError: If the shipment is not completed.
 
     """
-    booked_state = ship_states.BookingState.model_validate(dict(request=req, response=resp))
-    if alt := booked_state.alerts:
-        raise shipaw.ExpressLinkError(str(alt))
-        # if not resp.completed_shipment_info:
-        # raise shipaw.ExpressLinkError(str(ship_states.response_alert_dict(resp)))
+    resp = book_shipment(el_client, shiprec)
+    process_shipment_label(el_client, resp, shiprec)
+    record_tracking(shiprec)
+    return shiprec
 
-    new_ship_state = manager.shipment.model_copy(update={'booking_state': booked_state})
-    val_ship_state = shipaw.Shipment.model_validate(new_ship_state)
-    await support.wait_label(val_ship_state, pfcom)
-    os.startfile(val_ship_state.booking_state.label_dl_path)
-    manager.shipment = val_ship_state
-    return manager
+
+def book_shipment(el_client, shiprec):
+    req = shiprec.booking_state.request
+    resp = el_client.send_shipment_request(req)
+    for a in resp.alerts if resp.alerts else []:
+        if a.type == 'ERROR':
+            raise shipaw.ExpressLinkError(a.message)
+    booked_state = BookingState(request=req, response=resp, booked=True)
+    shiprec.booking_state = booked_state
+    return resp
+
+
+def process_shipment_label(el_client, resp, shiprec):
+    label_path = shiprec.shipment.named_label_path
+    support.wait_label_decon(shipment_num=resp.shipment_num, dl_path=label_path, el_client=el_client)
+    os.startfile(label_path)
+    shiprec.booking_state.label_downloaded = True
+    shiprec.booking_state.label_dl_path = label_path
 
 
 async def back_div(manager_id: int):
@@ -257,6 +201,7 @@ async def back_div(manager_id: int):
                 class_name='row btn btn-lg btn-primary',
                 text='Back',
                 on_click=events.GoToEvent(url=f'/ship/select/{manager_id}'),
+                # on_click=events.BackEvent(), # takes two clicks?
             )
         ],
     )
@@ -275,19 +220,56 @@ async def confirm_div(manager):
         ],
     )
 
+
 # unused?
-# @router.post('/confirm_post/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# @router.post('/confirm_post/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 # async def confirm_post(
-#         manager_id: int,
+#         shiprec_id: int,
 #         form: _t.Annotated[
-#             ship_states.ShipStatePartial, fastui_form(ship_states.ShipStatePartial)],
-#         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
+#             ship_states.ShipmentPartial, fastui_form(ship_states.ShipmentPartial)],
+#         el_client: ELClient = fastapi.Depends(am_db.get_el_client),
 #         session=fastapi.Depends(am_db.get_session),
 #
 # ):
 #     """Endpoint for posting confirmation form."""
-#     update = ship_states.ShipStatePartial.model_validate(form.model_dump())
+#     update = ship_states.ShipmentPartial.model_validate(form.model_dump())
 #     if update.address.postcode:
-#         update.candidates = pfcom.get_candidates(update.address.postcode)
-#     await support.update_and_commit(manager_id, update, session)
-#     return responses.RedirectResponse(url=f'/ship/select/{manager_id}')
+#         update.candidates = el_client.get_candidates(update.address.postcode)
+#     await support.update_and_commit(shiprec_id, update, session)
+#     return responses.RedirectResponse(url=f'/ship/select/{shiprec_id}')
+
+
+def record_tracking(shiprec: ShipmentRecordInDB):
+    # CoInitialize()
+
+    try:
+        tracking_number = shiprec.booking_state.response.shipment_num
+        category = shiprec.record.cmc_table_name
+        if category == 'Customer':
+            logger.error('CANT LOG TO CUSTOMER')
+            return
+        record_name = shiprec.record.name
+        direction = shiprec.shipment.direction
+        do_record_tracking(category, direction, record_name, tracking_number)
+
+    except Exception as exce:
+        logger.error(f'Failed to record tracking for {shiprec.record.name} due to:\n{exce}')
+
+    # finally:
+    #     CoUninitialize()
+
+
+def do_record_tracking(category, direction, record_name, tracking_number):
+    tracking_link_field = HireFields.TRACK_INBOUND if direction in ['in', 'dropoff'] else HireFields.TRACK_OUTBOUND
+    pf_url = 'https://www.parcelforce.com/track-trace?trackNumber='
+    tracking_link = pf_url + tracking_number
+
+    with PyCommence.from_table_name_context(table_name=category) as py_cmc:
+        py_cmc.edit_record(
+            record_name,
+            row_dict={
+                tracking_link_field: tracking_link,
+                HireFields.DB_LABEL_PRINTED: True
+            },
+        )
+    logger.info(f'Set DB Printed and Updated "{record_name}" {tracking_link_field} to {tracking_link}')

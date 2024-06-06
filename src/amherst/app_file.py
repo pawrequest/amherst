@@ -4,6 +4,8 @@ import flaskwebgui
 import pythoncom
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from starlette.staticfiles import StaticFiles
 
 from amherst import am_config, front
@@ -57,13 +59,13 @@ async def favicon_ico() -> responses.RedirectResponse:
     return responses.RedirectResponse(url='/static/favicon.svg')
 
 
-# def populate_db_from_cmc(session: sqm.Session, pfcom):
+# def populate_db_from_cmc(session: sqm.Session, el_client):
 #     records = sample_data.hires
 #     # with cmc.csr_context(shipable_item.Hire.cmc_table_name) as csr:
 #     #     filters = shipable_item.Hire.initial_filter_array.default
 #     #     records = csr.filter_by_array(filters, get=True)
 #     records = records[:3]
-#     managers = rec_importer.hire_records_to_managers(*records, pfcom=pfcom)
+#     managers = rec_importer.hire_records_to_managers(*records, el_client=el_client)
 #     session.add_all(managers)
 #     session.commit()
 
@@ -141,3 +143,15 @@ async def html_landing() -> responses.HTMLResponse:
 # app.add_middleware(BaseHTTPMiddleware, dispatch=log_request_middleware)
 #
 #
+
+
+# @app.middleware("http")
+# async def co_initialize_middleware(request: Request, call_next):
+#     try:
+#         pythoncom.CoInitialize()
+#         response = await call_next(request)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+#     finally:
+#         pythoncom.CoUninitialize()
+#     return response

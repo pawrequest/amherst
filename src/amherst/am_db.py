@@ -47,10 +47,14 @@ def create_db(engine=None):
     sqm.SQLModel.metadata.create_all(engine)
 
 
-def record_to_manager(ship_rec: AmherstRecord) -> int:
+def amherst_record_to_shiprec(am_record: AmherstRecord) -> int:
     with sqm.Session(get_engine()) as session:
-        manager = ShipmentRecordDB(record=ship_rec, shipment=ship_rec.initial_state)
-        manager = manager.model_validate(manager)
-        session.add(manager)
+        initial_state = am_record.initial_shipment_state
+        shiprec = ShipmentRecordDB(
+            record=am_record,
+            shipment=initial_state,
+        )
+        shiprec = shiprec.model_validate(shiprec)
+        session.add(shiprec)
         session.commit()
-        return manager.id
+        return shiprec.id

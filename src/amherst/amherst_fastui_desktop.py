@@ -20,12 +20,11 @@ Environment variables:
 import argparse
 import asyncio
 import base64
-from urllib.parse import quote, quote_plus
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
-import pycommence
 
+from pycommence import PyCommence
 import amherst.models.am_record
 from amherst import am_db, app_file
 from amherst.models.am_record import AmherstRecord
@@ -39,27 +38,32 @@ def parse_arguments():
 
 
 async def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
+    # CoInitialize()
     alert = None
-    man_id = None
+    shiprec_id = None
     am_db.create_db()
 
-    py_cmc = pycommence.PyCommence.from_table_name(table_name=category)
-    record = py_cmc.one_record(record_name)
-    record['cmc_table_name'] = category
     try:
-        shiprec = AmherstRecord(**record)
-        shiprec = shiprec.model_validate(shiprec)
+        with PyCommence.from_table_name_context(table_name=category) as py_cmc:
+            record = py_cmc.one_record(record_name)
 
-        man_id = am_db.record_to_manager(shiprec)
-        logger.info(f'added booking manager #{man_id}')
+        record['cmc_table_name'] = category
+        amrec = AmherstRecord(**record)
+        amrec = amrec.model_validate(amrec)
+
+        shiprec_id = am_db.amherst_record_to_shiprec(amrec)
+        logger.info(f'added ShipmentRecord #{shiprec_id}')
 
     except Exception as e:
         alert = f'Error creating ShipableRecord: {e}'
         logger.exception(alert)
         alert = base64.urlsafe_b64encode(alert.encode('utf-8')).decode('utf-8')
 
+    # finally:
+    #     CoUninitialize()
+
     try:
-        if alert or not man_id:
+        if alert or not shiprec_id:
             logger.warning(f'alert = {alert}')
             fui = FlaskUI(
                 fullscreen=True,
@@ -72,7 +76,7 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                url_suffix=f'ship/select/{man_id}',
+                url_suffix=f'ship/select/{shiprec_id}',
             )
         fui.run()
     except Exception as e:
