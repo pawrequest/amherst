@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import functools
 import typing as _t
 from functools import cached_property
 from pathlib import Path
@@ -122,13 +123,14 @@ def get_email(fields_enum, record):
     )
 
 
+@functools.lru_cache
 def get_customer_record(customer: str) -> dict[str, str]:
     """Get a customer record from `:class:PyCommence`"""
-    CoInitialize()
+    # CoInitialize()
     logger.debug(f'Getting customer record for {customer}')
     py_cmc = pycommence.PyCommence.from_table_name(table_name='Customer')
     rec = py_cmc.one_record(customer)
-    CoUninitialize()
+    # CoUninitialize()
     return rec
 
 

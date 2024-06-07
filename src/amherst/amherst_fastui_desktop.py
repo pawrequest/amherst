@@ -50,7 +50,7 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
         shiprec = AmherstRecord(**record)
         shiprec = shiprec.model_validate(shiprec)
 
-        man_id = am_db.record_to_manager(shiprec)
+        man_id = am_db.record_to_shiprec(shiprec)
         logger.info(f'added booking manager #{man_id}')
 
     except Exception as e:

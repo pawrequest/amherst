@@ -8,15 +8,14 @@ import os
 
 import fastapi
 import sqlmodel as sqm
-from comtypes import CoInitialize, CoUninitialize
 from fastui import FastUI, components as c, events, events as e
 from fastui.components.display import DisplayLookup, DisplayMode
 from loguru import logger
 from pawdantic.pawui import builders, pawui_types
+
 import shipaw
 from pycommence import PyCommence
 from shipaw import BookingState, ELClient, Shipment
-
 from amherst import am_db
 from amherst.front import booked, ship, support
 from amherst.front.support import get_shiprec
@@ -25,6 +24,7 @@ from amherst.models.shipment_record import (
     ShipmentRecordInDB,
     ShipmentRecordOut,
 )
+from shipaw.msgs import CreateShipmentResponse
 
 router = fastapi.APIRouter()
 
@@ -108,12 +108,12 @@ async def simple_check(shiprec):
 
 
 @router.get('/go_book/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
-async def do_booking(
+async def go_book(
         shiprec_id: int,
         el_client: ELClient = fastapi.Depends(am_db.get_el_client),
         session: sqm.Session = fastapi.Depends(am_db.get_session),
 ) -> list[c.AnyComponent]:
-    CoInitialize()
+    # pythoncom.CoInitialize()
 
     logger.warning(f'booking_id: {shiprec_id}')
     shiprec = await support.get_shiprec(shiprec_id, session)
@@ -125,23 +125,23 @@ async def do_booking(
 
     try:
         if shiprec.shipment.direction == 'in':
-            tod = dt.date.today()
-            if shiprec.shipment.ship_date <= tod:
+            if shiprec.shipment.ship_date <= dt.date.today():
                 raise ValueError('CAN NOT COLLECT TODAY')
 
         processed_shiprec = await process_shipment_request(shiprec, el_client)
+
         session.add(processed_shiprec)
         session.commit()
-        man_out = ShipmentRecordOut.model_validate(processed_shiprec)
-        return await booked.booked_page(shiprec=man_out)
+        # man_out = ShipmentRecordOut.model_validate(processed_shiprec)
+        return await booked.booked_page(shiprec=processed_shiprec)
 
     except Exception as err:
         alert_dict = {str(err): 'ERROR'}
-        man_out = ShipmentRecordOut.model_validate(shiprec)
+        # man_out = ShipmentRecordOut.model_validate(shiprec)
 
-        return await ship.shipping_page(man_out.id, session=session, alert_dict=alert_dict)
-    finally:
-        CoUninitialize()
+        return await ship.shipping_page(shiprec.id, session=session, alert_dict=alert_dict)
+    # finally:
+    #     pythoncom.CoUninitialize()
 
 
 # async def book_shipment(shiprec: ShipmentRecordInDB, el_client: ELClient):
@@ -179,14 +179,24 @@ async def process_shipment_request(shiprec: ShipmentRecordDB, el_client: ELClien
         shipaw.ExpressLinkError: If the shipment is not completed.
 
     """
+    resp = await book_shipment(el_client, shiprec)
+    await process_shipment_label(el_client, resp, shiprec)
+    record_tracking(shiprec)
+    return shiprec
+
+
+async def book_shipment(el_client, shiprec):
     req = shiprec.booking_state.request
     resp = el_client.send_shipment_request(req)
-    booked_state = BookingState.model_validate(dict(request=req, response=resp))
+    for a in resp.alerts if resp.alerts else []:
+        if a.type == 'ERROR':
+            raise shipaw.ExpressLinkError(a.message)
+    booked_state = BookingState(request=req, response=resp, booked=True)
     shiprec.booking_state = booked_state
+    return resp
 
-    if alt := booked_state.alerts:
-        raise shipaw.ExpressLinkError(str(alt))
 
+async def process_shipment_label(el_client, resp, shiprec):
     label_path = shiprec.shipment.named_label_path
     await support.wait_label_decon(
         shipment_num=resp.shipment_num,
@@ -196,7 +206,6 @@ async def process_shipment_request(shiprec: ShipmentRecordDB, el_client: ELClien
     os.startfile(label_path)
     shiprec.booking_state.label_downloaded = True
     shiprec.booking_state.label_dl_path = label_path
-    return shiprec
 
 
 async def back_div(manager_id: int):
@@ -242,24 +251,24 @@ async def confirm_div(manager):
 #     return responses.RedirectResponse(url=f'/ship/select/{shiprec_id}')
 
 
-def record_tracking(man_in: ShipmentRecordInDB):
-    CoInitialize()
+def record_tracking(shiprec: ShipmentRecordInDB):
+    # CoInitialize()
 
     try:
-        tracking_number = man_in.shipment.booking_state.response.shipment_num
-        category = man_in.record.cmc_table_name
+        tracking_number = shiprec.booking_state.response.shipment_num
+        category = shiprec.record.cmc_table_name
         if category == 'Customer':
             logger.error('CANT LOG TO CUSTOMER')
             return
-        record_name = man_in.record.name
-        direction = man_in.shipment.direction
+        record_name = shiprec.record.name
+        direction = shiprec.shipment.direction
         do_record_tracking(category, direction, record_name, tracking_number)
 
     except Exception as exce:
-        logger.error(f'Failed to record tracking for {man_in.record.name} due to:\n{exce}')
+        logger.error(f'Failed to record tracking for {shiprec.record.name} due to:\n{exce}')
 
-    finally:
-        CoUninitialize()
+    # finally:
+    #     CoUninitialize()
 
 
 def do_record_tracking(category, direction, record_name, tracking_number):
@@ -272,5 +281,8 @@ def do_record_tracking(category, direction, record_name, tracking_number):
         {tracking_link_field: tracking_link, 'DB label printed': True}
     )
     logger.info(
-        f'Updated "{record_name}" {tracking_link_field} to {tracking_link}'
+        f'Set DB Printed and Updated "{record_name}" {tracking_link_field} to {tracking_link}'
     )
+
+
+1

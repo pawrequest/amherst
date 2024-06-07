@@ -70,7 +70,7 @@ async def left_col(manager: ShipmentRecord) -> c.Div:
     return c.Div(
         class_name='col col-4 mx-auto',
         components=[
-            await input_address_div(manager),
+            await address_from_cmc_div(manager),
             await shared.email_div(manager, ['invoice', 'missing_kit']),
             await shared.close_div(),
             # await address_from_pc_div(shiprec),
@@ -132,34 +132,34 @@ async def swap_form_button(kind, manager_id: int):
 
 
 @router.get(
-    '/get_form/{manager_id}/{kind}',
+    '/get_form/{manager_id}/{formkind}',
     response_model=FastUI,
     response_model_exclude_none=True
 )
 async def get_form(
         shiprec_id: int,
-        kind: ship_types.FormKind,
+        formkind: ship_types.FormKind,
         session=Depends(am_db.get_session)
 ) -> c.Form:
     """Endpoint to get form for shipping page.
 
     Args:
         shiprec_id: Booking Manager ID
-        kind: Form kind
+        formkind: Form kind
         session: sqlmodel session
 
     Returns:
         c.Form:
 
     """
-    manager = await support.get_shiprec(shiprec_id, session)
+    shiprec = await support.get_shiprec(shiprec_id, session)
     return c.Form(
-        form_fields=await get_form_fields(kind, manager.shipment),
-        submit_url=f'/api/forms/{kind}/{shiprec_id}',
+        form_fields=await get_form_fields(formkind, shiprec.shipment),
+        submit_url=f'/api/forms/{formkind}/{shiprec_id}',
     )
 
 
-async def input_address_div(
+async def address_from_cmc_div(
         manager,
         class_name: class_name_.ClassName = 'row',
         inner_class_name: class_name_.ClassName = 'row'

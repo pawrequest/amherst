@@ -4,6 +4,8 @@ import flaskwebgui
 import pythoncom
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
+from starlette.exceptions import HTTPException
+from starlette.requests import Request
 from starlette.staticfiles import StaticFiles
 
 from amherst import am_config, front
@@ -141,3 +143,15 @@ async def html_landing() -> responses.HTMLResponse:
 # app.add_middleware(BaseHTTPMiddleware, dispatch=log_request_middleware)
 #
 #
+
+
+# @app.middleware("http")
+# async def co_initialize_middleware(request: Request, call_next):
+#     try:
+#         pythoncom.CoInitialize()
+#         response = await call_next(request)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+#     finally:
+#         pythoncom.CoUninitialize()
+#     return response
