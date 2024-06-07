@@ -18,10 +18,10 @@
 # router = APIRouter()
 #
 #
-# @router.get('/{kind}/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+# @router.get('/{kind}/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 # async def forms_view(
 #         kind: ModelKind,
-#         manager_id: int,
+#         shiprec_id: int,
 #         session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
 # ) -> list[c.AnyComponent]:
 #     """Endpoint returning """
@@ -33,19 +33,19 @@
 #                         components=[c.Text(text='Zero Form')],
 #                         on_click=e.PageEvent(
 #                             name='change-form',
-#                             push_path=f'/ship_model/zero/{manager_id}',
-#                             context={'kind': 'zero', 'shiprec_id': manager_id},
+#                             push_path=f'/ship_model/zero/{shiprec_id}',
+#                             context={'kind': 'zero', 'shiprec_id': shiprec_id},
 #                         ),
-#                         active=f'/ship_model/zero/{manager_id}',
+#                         active=f'/ship_model/zero/{shiprec_id}',
 #                     ),
 #                     c.Link(
 #                         components=[c.Text(text='Minimal Form')],
 #                         on_click=e.PageEvent(
 #                             name='change-form',
-#                             push_path=f'/ship_model/minimum/{manager_id}',
-#                             context={'kind': 'minimum', 'shiprec_id': manager_id},
+#                             push_path=f'/ship_model/minimum/{shiprec_id}',
+#                             context={'kind': 'minimum', 'shiprec_id': shiprec_id},
 #                         ),
-#                         active=f'/ship_model/minimum/{manager_id}',
+#                         active=f'/ship_model/minimum/{shiprec_id}',
 #                     ),
 #                 ],
 #                 mode='tabs',
@@ -55,7 +55,7 @@
 #                 # not fstring!!!!!
 #                 path='/ship_model/get_form/{kind}/{shiprec_id}',
 #                 load_trigger=e.PageEvent(name='change-form'),
-#                 components=await get_form(kind, manager_id, session),
+#                 components=await get_form(kind, shiprec_id, session),
 #             ),
 #         ],
 #     )
@@ -70,16 +70,16 @@
 #
 #
 # @router.get(
-#     '/get_form/{kind}/{manager_id}',
+#     '/get_form/{kind}/{shiprec_id}',
 #     response_model=FastUI,
 #     response_model_exclude_none=True
 # )
 # async def get_form(
 #         kind: ModelKind,
-#         manager_id: int,
+#         shiprec_id: int,
 #         session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
 # ):
-#     manager = await support.get_shiprec(manager_id, session)
+#     manager = await support.get_shiprec(shiprec_id, session)
 #     logger.debug(f'getting form for {kind}')
 #     form_model = await amherst.front.forms.get_model_form_type(kind)
 #
@@ -87,7 +87,7 @@
 #     return [
 #         c.ModelForm(
 #             model=form_model,
-#             submit_url=f'/api/ship_model/{kind}/{manager_id}',
+#             submit_url=f'/api/ship_model/{kind}/{shiprec_id}',
 #             # initial=model_initial,
 #         )
 #     ]

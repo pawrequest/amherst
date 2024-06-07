@@ -2,7 +2,6 @@ from __future__ import annotations, annotations
 
 import base64
 import os
-from urllib.parse import unquote_plus
 
 import sqlmodel
 from fastapi import APIRouter, Depends
@@ -67,11 +66,47 @@ async def open_invoice(
     return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{manager_id}'))]
 
 
-async def invoice_div(manager: ShipmentRecordOut) -> c.Div:
+@router.get('/invoice2/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
+async def open_invoice2(
+        shiprec_id: int,
+        session: sqlmodel.Session = Depends(am_db.get_session),
+) -> c.AnyComponent:
+    """Endpoint for opening invoice.
+
+    Opens invoice file for the shipable_item in the booking shiprec.
+
+    Args:
+        shiprec_id: Booking Manager ID
+        session: sqlmodel session
+
+    Returns:
+        Redirects to Shipping page with alert if invoice not found.
+
+    """
+    shiprec = await support.get_shiprec(shiprec_id, session)
+    inv_file = await support.get_invoice_path(shiprec.record)
+    man_out = ShipmentRecordOut.model_validate(shiprec)
+
+    try:
+        os.startfile(inv_file)
+    except (FileNotFoundError, TypeError):
+        logger.error(f'Invoice file not found: {inv_file}')
+        # return await shipping_page(
+        #     shiprec_id=shiprec_id,
+        #     session=session,
+        #     alert_dict={'INVOICE NOT FOUND': 'WARNING'}
+        # )
+        return [c.Text(text='Invoice Not Found')]
+
+    return [c.Text(text='Invoice Opened')]
+    # return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{shiprec_id}'))]
+
+
+async def invoice_div(shiprec: ShipmentRecordOut) -> c.Div:
     """Div for opening invoice.
 
     Args:
-        manager: Booking Manager
+        shiprec: Booking Manager
 
     Returns:
         c.Div: Div with button to fire GoToEvent to invoice endpoint
@@ -83,10 +118,24 @@ async def invoice_div(manager: ShipmentRecordOut) -> c.Div:
             c.Button(
                 text='Open Invoice',
                 on_click=e.GoToEvent(
-                    url=f'/shared/invoice/{manager.id}',
+                    url=f'/shared/invoice/{shiprec.id}',
                 ),
-            )
+                # on_click=e.PageEvent(
+                #     name='open_invoice',
+                # ),
+            ),
+            # await get_sse(shiprec.id),
         ],
+    )
+
+
+async def get_sse(shiprec_id):
+    c.ServerLoad(
+        # not fstring!!!!!
+        path=f'/shared/invoice2/{shiprec_id}',
+        load_trigger=e.PageEvent(name='open-invoice'),
+        components=[c.Text(text='Invoice Openedsasss')],
+        # components=[await open_invoice2(shiprec_id)],
     )
 
 

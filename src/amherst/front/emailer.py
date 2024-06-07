@@ -6,13 +6,13 @@ import fastapi
 from fastui import FastUI, components as c, forms as fastui_forms
 from loguru import logger
 from pawdantic import paw_strings
+from shipaw import Shipment
 from suppawt.office_ps import email_handler as eh
 from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms import outlook_handler as oh
-from shipaw.ship_ui import states
 
 from amherst import am_db
-from amherst._bench.am_shared import CustomerFields, SaleFields
+from amherst.am_shared import CustomerFields
 from amherst.front import support
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordInDB
@@ -21,9 +21,9 @@ from amherst.front.support import EmailChoices
 router = fastapi.APIRouter()
 
 
-@router.post('/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.post('/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def email_post(
-        manager_id: int,
+        shiprec_id: int,
         recipients: list = fastapi.Form(...),
         invoice: bool = fastapi.Form(False),
         label=fastapi.Form(False),
@@ -32,16 +32,16 @@ async def email_post(
 ):
     logger.info(f'email {recipients=}')
     alert_dict = {}
-    manager = await support.get_shiprec(manager_id, session)
+    shiprec = await support.get_shiprec(shiprec_id, session)
 
     if label:
-        if not manager.shipment.booking_state.label_downloaded:
+        if not shiprec.booking_state.label_downloaded:
             alert_dict = {'Label not downloaded': 'Error'}
             return [c.Text(text=str(alert_dict))]
     try:
         email = await generic_email(
             recipients=recipients,
-            manager=manager,
+            shiprec=shiprec,
             invoice=invoice,
             missing=missing_kit,
             label=label,
@@ -91,14 +91,14 @@ INVOICE_BODY = 'Please find your invoice attached.\n'
 GOODBYE = 'If you have any queries please let us know.\n\nKind Regards,\nAmherst Enterprises'
 
 
-def label_body(state: states.Shipment):
+def label_body(state: Shipment):
     return f"""Please find a pre-paid parcelforce label attached – it needs to be printed and attached to the box.
 Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!'
 {collection_str(state) if state.direction == 'in' else ''}
 """
 
 
-def collection_str(shipment: states.Shipment):
+def collection_str(shipment: Shipment):
     return f"""Collection is booked for {paw_strings.date_string(shipment.ship_date)}, 
 we are unable to give precise timings, however you should receive notifications at the contact details below:'
 {support.shipment_notification_labels_str(shipment)}
@@ -122,7 +122,7 @@ MISSING KIT:
 
 
 def compose_body(
-        state: states.Shipment = None,
+        state: Shipment = None,
         item: AmherstRecord = None,
         invoice: bool = False,
         missing_kit: bool = False,
@@ -139,7 +139,7 @@ def compose_body(
 
 async def generic_email(
         recipients: list[str],
-        manager: ShipmentRecordInDB = None,
+        shiprec: ShipmentRecordInDB = None,
         label: bool = False,
         missing: bool = False,
         invoice: bool = False,
@@ -148,7 +148,7 @@ async def generic_email(
 
     Args:
         recipients: List of email addresses.
-        manager: The shiprec object.
+        shiprec: The shiprec object.
         label: Whether to include the shipping label.
         missing: Whether to include the missing kit request.
         invoice: Whether to include the invoice.
@@ -156,7 +156,7 @@ async def generic_email(
     Returns:
         EmailMultipleAttachments: The email object.
     """
-    if manager.record.cmc_table_name == 'Customer':
+    if shiprec.record.cmc_table_name == 'Customer':
         if invoice:
             raise ValueError("Customers don't have invoices")
         if missing:
@@ -168,19 +168,19 @@ async def generic_email(
 
     addresses = '; '.join(recipients)
     if invoice:
-        invoice_pdf_path = manager.record.invoice.with_suffix('.pdf')
+        invoice_pdf_path = shiprec.record.invoice.with_suffix('.pdf')
         invoice_num = invoice_pdf_path.stem
 
     if label:
         try:
-            label_path = manager.shipment.booking_state.label_dl_path
+            label_path = shiprec.booking_state.label_dl_path
         except AttributeError:
             raise ValueError('Label not downloaded')
 
     return eh.EmailMultipleAttachments(
         to_address=addresses,
         subject=await subject(invoice_num, missing, label),
-        body=compose_body(manager.shipment, manager.record, invoice, missing, label),
+        body=compose_body(shiprec.shipment, shiprec.record, invoice, missing, label),
         attachment_paths=[x for x in [invoice_pdf_path, label_path] if x],
     )
 
@@ -188,6 +188,8 @@ async def generic_email(
 def get_email_options(shiprec: ShipmentRecordInDB):
     # irec = shiprec.record
     # crec = shiprec.item.customer_record
+
+    rec_type = shiprec.record.cmc_table_name
 
     state_delivery = shiprec.shipment.contact.email_address
     record_delivery = shiprec.record.email
@@ -203,7 +205,7 @@ def get_email_options(shiprec: ShipmentRecordInDB):
         customer_primary: f'customer primary ({customer_primary})',
         customer_default_del: f'customer default delivery ({customer_default_del})',
         customer_invoice: f'customer invoice ({customer_invoice})',
-        record_delivery: f'record delivery ({record_delivery})',
+        record_delivery: f'{rec_type} delivery ({record_delivery})',
     }
 
     return [fastui_forms.SelectOption(value=k, label=v) for k, v in addr_dict.items() if k]

@@ -11,8 +11,7 @@ from loguru import logger
 import sqlmodel as sqm
 from shipaw.models import pf_ext, pf_shared
 import shipaw
-from shipaw import BookingState, ELClient, pf_config
-from shipaw.ship_ui import states
+from shipaw import BookingState, ELClient, pf_config, Shipment
 
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
@@ -31,7 +30,7 @@ async def get_shiprec(shiprec_id: int, session: sqm.Session) -> ShipmentRecordDB
 
 async def update_and_commit(shiprec_id, partial, session) -> ShipmentRecordOut:
     shiprec = await get_shiprec(shiprec_id, session)
-    updated_shipment_ = shiprec.shipment.get_updated(partial)
+    updated_shipment_ = shiprec.shipment.get_updated(updater=partial)
     updated_shipment = shipaw.Shipment.model_validate(updated_shipment_)
     shiprec.shipment = updated_shipment
     session.add(shiprec)
@@ -39,24 +38,6 @@ async def update_and_commit(shiprec_id, partial, session) -> ShipmentRecordOut:
     man_out = ShipmentRecordOut.model_validate(shiprec)
 
     return man_out
-
-
-async def wait_label(shipment: shipaw.Shipment, el_client: ELClient) -> bool:
-    label_path = el_client.get_label(
-        ship_num=shipment.booking_state.shipment_num(),
-        dl_path=None if shipment.direction == 'out' else shipment.named_label_path,
-    ).resolve()
-
-    for i in range(20):
-        if label_path:
-            shipment.booking_state.label_downloaded = True
-            shipment.booking_state.label_dl_path = label_path
-            return True
-        else:
-            print('waiting for file to be created')
-            time.sleep(1)
-    else:
-        raise ValueError(f'file not created after 20 seconds {label_path=}')
 
 
 async def wait_label_decon(shipment_num, dl_path, el_client: ELClient) -> pathlib.Path:
@@ -108,7 +89,7 @@ async def prnt_label_arrayed(label_path: pathlib.Path) -> None:
     pawdf.array_pdf.convert_many(label_path, print_files=True)
 
 
-def shipment_notification_labels_str(state: states.Shipment):
+def shipment_notification_labels_str(state: Shipment):
     indent = ' ' * 4
     lines = [
         f'{indent}{pf_shared.notification_label_map[notification]} - {shipment_notification_contact_detail(state, notification)}'
@@ -117,7 +98,7 @@ def shipment_notification_labels_str(state: states.Shipment):
     return '\n'.join(lines)
 
 
-def shipment_notification_contact_detail(state: states.Shipment, notification: str):
+def shipment_notification_contact_detail(state: Shipment, notification: str):
     if 'EMAIL' in notification or notification == 'DELIVERYNOTIFICATION':
         return state.contact.email_address
     elif 'SMS' in notification:

@@ -13,10 +13,10 @@ from amherst import am_db
 router = APIRouter()
 
 
-@router.get('/{kind}/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.get('/{kind}/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def shipping_page(
-        manager_id: int,
-        kind: ship_types.FormKind = 'select',
+        shiprec_id: int,
+        formkind: ship_types.FormKind = 'select',
         session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
         alert_dict: pawui_types.AlertDict | None = None,
 ) -> support.Fui_Page:
@@ -26,8 +26,8 @@ async def shipping_page(
     Can provide 'select' or 'manual' form, i.e. choose an address from those at the postcode, or override with manual entry.
 
     Args:
-        manager_id: Booking Manager ID
-        kind: Which input form to use
+        shiprec_id: Booking Manager ID
+        formkind: Which input form to use
         session: sqlmodel session
         alert_dict: Alert dictionary
 
@@ -40,7 +40,7 @@ async def shipping_page(
     bg_col = ' bg-light' if pf_sett.ship_live else ' bg-warning'
     page_style = f'container{bg_col}'
 
-    manager = await support.get_shiprec(manager_id, session)
+    manager = await support.get_shiprec(shiprec_id, session)
     if 'parcelforce' not in manager.record.send_method.lower():
         alert = {'Commence Send Method not include "parcelforce"': 'WARNING'}
         alert_dict = alert | alert_dict if alert_dict else alert
@@ -49,7 +49,7 @@ async def shipping_page(
         alert_dict=alert_dict,
         components=[
             await left_col(manager),
-            c.Div(class_name='col', components=[await form_div(kind, manager.id, session)]),
+            c.Div(class_name='col', components=[await form_div(formkind, manager.id, session)]),
         ],
         title='Forms',
     )

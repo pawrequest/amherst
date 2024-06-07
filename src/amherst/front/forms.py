@@ -8,11 +8,9 @@ from combadge.core.errors import BackendError
 from fastui import FastUI, components as c, events
 from fastui.forms import fastui_form
 from loguru import logger
-from shipaw.ship_types import FormKind
 from urllib3.exceptions import ConnectTimeoutError
-from shipaw import ELClient
+from shipaw import ELClient, Shipment, ShipmentPartial
 from shipaw.models import pf_ext, pf_top
-from shipaw.ship_ui import states as shipstates
 
 from amherst import am_db
 from amherst.front import support
@@ -63,8 +61,8 @@ async def manual_post(
         mobile_phone=phone,
     )
 
-    state = shipstates.Shipment.model_validate(
-        shipstates.Shipment(
+    state = Shipment.model_validate(
+        Shipment(
             reference=reference,
             special_instructions=special_instructions,
             boxes=boxes,
@@ -115,8 +113,8 @@ async def select_post(
             mobile_phone=phone,
         )
 
-        state = shipstates.Shipment.model_validate(
-            shipstates.Shipment(
+        state = Shipment.model_validate(
+            Shipment(
                 boxes=boxes,
                 ship_date=date,
                 direction=direction,
@@ -173,11 +171,11 @@ async def select_post(
 )
 async def state_model_post(
         manager_id: int,
-        form: Annotated[shipstates.ShipmentPartial, fastui_form(shipstates.ShipmentPartial)],
+        form: Annotated[ShipmentPartial, fastui_form(ShipmentPartial)],
         session=fastapi.Depends(am_db.get_session),
 ):
     man_in = await support.get_shiprec(manager_id, session)
-    man_in.shipment = shipstates.Shipment.model_validate(
+    man_in.shipment = Shipment.model_validate(
         man_in.shipment.get_updated(form)
     )
 
@@ -194,31 +192,31 @@ async def state_model_post(
     ]
 
 
-@router.post(
-    '/address_form/{manager_id}',
-    response_model=FastUI,
-    response_model_exclude_none=True
-)
-async def address_form_post(
-        request: fastapi.Request,
-        manager_id: int,
-        session=fastapi.Depends(am_db.get_session),
-) -> list[c.AnyComponent]:
-    manager = await support.get_shiprec(manager_id, session)
-    form = await request.form()
-    address_ = json.loads(form.get('address'))
-    addr_class = await addr_class_f_direction(manager.shipment.direction)
-
-    address = addr_class(address_)
-    partial = shipstates.ShipmentPartial.model_validate({'address': address})
-    await support.update_and_commit(manager_id, partial, session)
-    return [
-        c.FireEvent(
-            event=events.GoToEvent(
-                url=f'/ship/view/{manager_id}'
-            )
-        )
-    ]
+# @router.post(
+#     '/address_form/{shiprec_id}',
+#     response_model=FastUI,
+#     response_model_exclude_none=True
+# )
+# async def address_form_post(
+#         request: fastapi.Request,
+#         shiprec_id: int,
+#         session=fastapi.Depends(am_db.get_session),
+# ) -> list[c.AnyComponent]:
+#     manager = await support.get_shiprec(shiprec_id, session)
+#     form = await request.form()
+#     address_ = json.loads(form.get('address'))
+#     addr_class = await addr_class_f_direction(manager.shipment.direction)
+#
+#     address = addr_class(address_)
+#     partial = ShipmentPartial.model_validate({'address': address})
+#     await support.update_and_commit(shiprec_id, partial, session)
+#     return [
+#         c.FireEvent(
+#             event=events.GoToEvent(
+#                 url=f'/ship/view/{shiprec_id}'
+#             )
+#         )
+#     ]
 
 
 # async def man_in_to_out(man_in: ShipmentRecordDB) -> ShipmentRecordOut:
@@ -532,7 +530,6 @@ async def email_post(
     #     label=label,
     #     missing=missing_kit,
     # )
-
 
 # async def get_model_form_type(formkind: FormKind):
 #     logger.debug(f'getting model form type for {formkind}')

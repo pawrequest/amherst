@@ -12,9 +12,8 @@ from loguru import logger
 from pydantic import AliasChoices, ConfigDict, Field
 import pycommence
 from pycommence import pycmc_types
-from shipaw import ELClient, ship_types
+from shipaw import ELClient, ship_types, Shipment
 from shipaw.models import pf_ext, pf_lists, pf_top
-from shipaw.ship_ui import states
 from zeep.exceptions import XMLParseError
 
 
@@ -82,11 +81,11 @@ class AmherstRecord(_p.BaseModel):
         return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
     @cached_property
-    def initial_state(self) -> states.Shipment:
+    def initial_state(self) -> Shipment:
         try:
             el_client = ELClient()
             chosen, candidates = el_client.choose_address(self.input_address)
-            return states.Shipment(
+            return Shipment(
                 contact=self.contact,
                 address=chosen,
                 ship_date=self.send_date,
