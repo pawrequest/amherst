@@ -3,9 +3,9 @@ import sqlmodel
 from fastapi import APIRouter, Depends
 from fastui import FastUI, class_name as class_name_, components as c, events, events as e
 from pawdantic.pawui import builders, pawui_types
+
 from shipaw import pf_config, ship_types
 from shipaw.ship_ui.forms import get_form_fields
-
 from amherst.models.shipment_record import ShipmentRecord
 from amherst.front import shared, support
 from amherst import am_db
@@ -13,7 +13,7 @@ from amherst import am_db
 router = APIRouter()
 
 
-@router.get('/{kind}/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.get('/{formkind}/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def shipping_page(
         shiprec_id: int,
         formkind: ship_types.FormKind = 'select',
@@ -78,19 +78,11 @@ async def left_col(manager: ShipmentRecord) -> c.Div:
     )
 
 
-async def dropoff_button(manager_id):
-    return c.Button(
-        text='Dropoff',
-        class_name='col col-4 my-3 btn btn-primary',
-        on_click=events.GoToEvent(url=f'/dropoff/{manager_id}'),
-    )
-
-
-async def form_div(kind: ship_types.FormKind, manager_id: int, session) -> c.Div:
+async def form_div(formkind: ship_types.FormKind, manager_id: int, session) -> c.Div:
     """Load prepopulated form.
 
     Args:
-        kind: Form kind - 'manual' or 'select'
+        formkind: Form kind - 'manual' or 'select'
         manager_id: Booking Manager ID
         session: sqlmodel session
 
@@ -104,11 +96,11 @@ async def form_div(kind: ship_types.FormKind, manager_id: int, session) -> c.Div
         inner_class_name='row my-3',
         components=[
             c.ServerLoad(
-                path=f'/forms/get_form/{manager_id}/{kind}',
+                path=f'/forms/get_form/{manager_id}/{formkind}',
                 load_trigger=e.PageEvent(name='change-form'),
-                components=[await get_form(manager_id, kind, session)],
+                components=[await get_form(manager_id, formkind, session)],
             ),
-            await swap_form_button(kind, manager_id),
+            await swap_form_button(formkind, manager_id),
         ],
     )
 
