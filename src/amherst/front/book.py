@@ -52,10 +52,7 @@ async def confirm_or_back(
     shipment = Shipment.model_validate_64(shipment_64)
     shipment.candidates = el_client.get_candidates(shipment.address.postcode)
     shiprec.shipment = shipment
-
-    request = el_client.shipment_request_authenticated(shipment)
-
-    booking_state = BookingState(request=request)
+    booking_state = BookingState(requested_shipment=(shipment.shipment_request()))
     shiprec.booking_state = booking_state
     # shiprec = shiprec.model_validate(shiprec)
     session.add(shiprec)
@@ -92,7 +89,7 @@ async def confirm_or_back_page(
 
 
 async def simple_check(shiprec):
-    return c.Details(data=shiprec.booking_state, fields=[DisplayLookup(field='request', mode=DisplayMode.json)])
+    return c.Details(data=shiprec.booking_state, fields=[DisplayLookup(field='requested_shipment', mode=DisplayMode.json)])
 
 
 @router.get('/go_book/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
@@ -174,12 +171,12 @@ def process_shipment_request(shiprec: ShipmentRecordDB, el_client: ELClient):
 
 
 def book_shipment(el_client, shiprec):
-    req = shiprec.booking_state.request
+    req = shiprec.booking_state.requested_shipment
     resp = el_client.send_shipment_request(req)
     for a in resp.alerts if resp.alerts else []:
         if a.type == 'ERROR':
             raise shipaw.ExpressLinkError(a.message)
-    booked_state = BookingState(request=req, response=resp, booked=True)
+    booked_state = BookingState(requested_shipment=req, response=resp, booked=True)
     shiprec.booking_state = booked_state
     return resp
 
