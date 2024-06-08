@@ -85,7 +85,7 @@ class AmherstRecord(_p.BaseModel):
                 address=chosen,
                 ship_date=self.send_date,
                 boxes=self.boxes,
-                candidates=candidates,
+                # candidates=candidates,
                 reference=self.customer,
                 # special_instructions='',
             )

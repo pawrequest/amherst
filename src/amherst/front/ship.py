@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from fastui import FastUI, class_name as class_name_, components as c, events, events as e
 from pawdantic.pawui import builders, pawui_types
 
-from shipaw import pf_config, ship_types
+from shipaw import pf_config, ship_types, ELClient
 from shipaw.ship_ui.forms import get_form_fields
 from amherst.models.shipment_record import ShipmentRecord
 from amherst.front import shared, support
@@ -92,15 +92,15 @@ async def form_div(formkind: ship_types.FormKind, manager_id: int, session) -> c
     """
 
     return builders.wrap_divs(
-        class_name='col col-8 mx-auto',
-        inner_class_name='row my-3',
+        class_name='col col-8 mx-auto mb-5',
+        inner_class_name='row my-1',
         components=[
+            await swap_form_button(formkind, manager_id),
             c.ServerLoad(
                 path=f'/forms/get_form/{manager_id}/{formkind}',
                 load_trigger=e.PageEvent(name='change-form'),
                 components=[await get_form(manager_id, formkind, session)],
             ),
-            await swap_form_button(formkind, manager_id),
         ],
     )
 
@@ -117,7 +117,7 @@ async def swap_form_button(kind, manager_id: int):
             raise ValueError(f'Invalid kind {kind!r}')
 
     return c.Button(
-        class_name='col col-4 my-3 btn btn-primary',
+        class_name='my-2 btn btn-primary',
         text=button_text,
         on_click=events.GoToEvent(url=f'/ship/{other_kind}/{manager_id}'),
     )
@@ -139,7 +139,7 @@ async def swap_form_button(kind, manager_id: int):
 async def get_form(
         shiprec_id: int,
         formkind: ship_types.FormKind,
-        session=Depends(am_db.get_session)
+        session=Depends(am_db.get_session),
 ) -> c.Form:
     """Endpoint to get form for shipping page.
 
@@ -152,10 +152,13 @@ async def get_form(
         c.Form:
 
     """
+    expresslink = ELClient()
     shiprec = await support.get_shiprec(shiprec_id, session)
+    candidates = expresslink.get_candidates(shiprec.shipment.address.postcode)
     return c.Form(
-        form_fields=await get_form_fields(formkind, shiprec.shipment),
+        form_fields=await get_form_fields(formkind, shiprec.shipment, candidates),
         submit_url=f'/api/forms/{formkind}/{shiprec_id}',
+        # class_name='row mx-auto',
     )
 
 

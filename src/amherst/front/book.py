@@ -50,7 +50,7 @@ async def confirm_or_back(
     shiprec: ShipmentRecordDB = await get_shiprec(shiprec_id, session)
 
     shipment = Shipment.model_validate_64(shipment_64)
-    shipment.candidates = el_client.get_candidates(shipment.address.postcode)
+    # shipment.candidates = el_client.get_candidates(shipment.address.postcode)
     shiprec.shipment = shipment
     booking_state = BookingState(requested_shipment=(shipment.shipment_request()))
     shiprec.booking_state = booking_state

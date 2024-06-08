@@ -70,7 +70,7 @@ async def manual_post(
             direction=direction,
             address=address_choice,
             contact=contact,
-            candidates=pfcom.get_candidates(address_choice.postcode),
+            # candidates=pfcom.get_candidates(address_choice.postcode),
             service=service,
 
         )
@@ -120,7 +120,7 @@ async def select_post(
                 direction=direction,
                 address=address_choice,
                 contact=contact,
-                candidates=pfcom.get_candidates(address_choice.postcode),
+                # candidates=pfcom.get_candidates(address_choice.postcode),
                 service=service,
                 reference=reference,
                 special_instructions=special_instructions,
