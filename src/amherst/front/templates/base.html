@@ -6,15 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Form Page{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@1.5.0/dist/htmx.min.js"></script>
-    <script src="../static/scripts.js"></script>
+    <script src="{{ url_for('static', path='script.js') }}"></script>
+    <link href="{{ url_for('static', path='style.css') }}" rel="stylesheet">
+
+
     {% block head %}{% endblock %}
 </head>
 <body>
-    <header>
-        <h1>{% block header %}AmShipper{% endblock %}</h1>
-    </header>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+<header>
+    <h1>{% block header %}AmShipper{% endblock %}</h1>
+</header>
+<main>
+    {% block content %}{% endblock %}
+</main>
 </body>
 </html>

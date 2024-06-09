@@ -1,0 +1,175 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+root {
+    --clr-primary: #007bff;
+    --clr-secondary: #6c757d;
+    --clr-success: #28a745;
+    --clr-danger: #dc3545;
+    --clr-warning: #ffc107;
+    --clr-info: #17a2b8;
+    --clr-light: #f8f9fa;
+    --clr-dark: #343a40;
+    --clr-white: #fff;
+    --clr-dtg-orange-700: #df4817;
+    --clr-3: #df4817;
+    --clr-5: #df4817;
+    --fs-500: 1.25rem;
+    --fs-400: 1rem;
+
+}
+
+html {
+    font-family: "Roboto", sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--clr-primary);
+    background-color: var(--clr-secondary)
+}
+
+body {
+    /*padding: 20px;*/
+}
+
+#main-form {
+    max-width: min(100% - 3rem, 1200px);
+    /*justify-content: center;*/
+    margin-inline: auto;
+}
+
+.wrapper {
+    display: grid;
+    grid-template-areas:
+        "shipment shipment notes"
+        "contact address notes";
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-inline: auto;
+    /*justify-content: space-around;*/
+    background-color: red;
+}
+
+.inputs {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid black;
+}
+
+.inputs__ship {
+    grid-area: shipment;
+    flex-direction: row;
+
+    h1 {
+        margin-right: 5rem;
+    }
+}
+.ship-options {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+
+}
+.pair {
+    display: flex;
+    flex-direction: column;
+}
+.inputs__contact {
+    grid-area: contact;
+}
+
+.inputs__address {
+    grid-area: address;
+}
+
+.inputs__notes {
+    grid-area: notes;
+}
+
+/*.shipment-details {*/
+/*    display: flex;*/
+/*    flex-direction: row;*/
+/*    column-span: 2;*/
+/*}*/
+
+#postcode {
+    max-width: max(50%, 150px);
+    /*display: inline;*/
+}
+
+.postcode-div {
+    display: flex;
+    flex-direction: row;
+}
+
+
+/*label {*/
+/*    grid-row: span 1;*/
+/*}*/
+
+
+/*input,*/
+/*select {*/
+/*    grid-row: span 1;*/
+/*    width: 100%;*/
+/*}*/
+
+button {
+    /*display: inline;*/
+    /*padding: 10px 20px;*/
+    /*color: #fff;*/
+    /*background-color: #007bff;*/
+    /*border: none;*/
+    /*border-radius: 4px;*/
+    /*cursor: pointer;*/
+    /*font-size: 16px;*/
+}
+
+button:hover {
+    background-color: purple;
+}
+
+
+form h1 {
+    /*font-size: 24px;*/
+    /*margin-bottom: 20px;*/
+    /*color: #333;*/
+}
+
+label {
+    /*display: block;*/
+    /*font-weight: bold;*/
+    /*margin-bottom: 5px;*/
+}
+
+input,
+select {
+    /*width: 100%;*/
+    /*padding: 10px;*/
+    /*margin-bottom: 20px;*/
+    /*border: 1px solid #ccc;*/
+    /*border-radius: 4px;*/
+    /*font-size: 16px;*/
+}
+
+/*input[type="date"],*/
+/*input[type="number"],*/
+/*input[type="text"],*/
+/*input[type="email"],*/
+/*input[type="tel"] {*/
+/*    appearance: none;*/
+/*}*/
+
+input:focus,
+select:focus {
+    /*border-color: #007bff;*/
+    /*outline: none;*/
+    /*box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);*/
+}
+
+
