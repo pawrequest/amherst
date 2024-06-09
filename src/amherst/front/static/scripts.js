@@ -16,11 +16,9 @@ function loadCandidates() {
     fetch(`/jinji/get_candidates?postcode=${postcode}`)
         .then(response => response.json())
         .then(data => {
-            console.log(data)
             const addressSelect = document.getElementById('address-select');
             addressSelect.innerHTML = '';
             for (const [key, value] of Object.entries(data)) {
-                console.log('key:', key, 'val:', value);
                 const option = document.createElement('option');
                 option.value = value;
                 option.textContent = key;
