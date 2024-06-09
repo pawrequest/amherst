@@ -107,7 +107,7 @@ def shipment_notification_contact_detail(state: Shipment, notification: str):
         raise ValueError('Invalid notification type')
 
 
-async def get_manager_label_path(man_in):
+async def get_shiprec_label_path(man_in):
     return man_in.shipment.booking_state.label_dl_path
 
 

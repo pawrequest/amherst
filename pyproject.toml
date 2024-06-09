@@ -28,6 +28,7 @@ dependencies = [
     'python-dotenv',
     'httpx',
     "pywin32",
+    'jinja2',
 ]
 
 [project.optional-dependencies]

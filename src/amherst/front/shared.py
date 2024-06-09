@@ -33,9 +33,9 @@ async def fail_page(
     )
 
 
-@router.get('/invoice/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.get('/invoice/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def open_invoice(
-        manager_id: int,
+        shiprec_id: int,
         session: sqlmodel.Session = Depends(am_db.get_session),
 ) -> support.Fui_Page:
     """Endpoint for opening invoice.
@@ -43,14 +43,14 @@ async def open_invoice(
     Opens invoice file for the shipable_item in the booking shiprec.
 
     Args:
-        manager_id: Booking Manager ID
+        shiprec_id: Booking shiprec ID
         session: sqlmodel session
 
     Returns:
         Redirects to Shipping page with alert if invoice not found.
 
     """
-    man_in = await support.get_shiprec(manager_id, session)
+    man_in = await support.get_shiprec(shiprec_id, session)
     inv_file = await support.get_invoice_path(man_in.record)
     man_out = ShipmentRecordOut.model_validate(man_in)
 
@@ -59,11 +59,11 @@ async def open_invoice(
     except (FileNotFoundError, TypeError):
         logger.error(f'Invoice file not found: {inv_file}')
         return await shipping_page.ship_page(
-            manager=man_out,
+            shiprec=man_out,
             alert_dict={'INVOICE NOT FOUND': 'WARNING'}
         )
 
-    return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{manager_id}'))]
+    return [c.FireEvent(event=events.GoToEvent(url=f'/ship/select/{shiprec_id}'))]
 
 
 @router.get('/invoice2/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
@@ -76,7 +76,7 @@ async def open_invoice2(
     Opens invoice file for the shipable_item in the booking shiprec.
 
     Args:
-        shiprec_id: Booking Manager ID
+        shiprec_id: Booking shiprec ID
         session: sqlmodel session
 
     Returns:
@@ -106,7 +106,7 @@ async def invoice_div(shiprec: ShipmentRecordOut) -> c.Div:
     """Div for opening invoice.
 
     Args:
-        shiprec: Booking Manager
+        shiprec: Booking shiprec
 
     Returns:
         c.Div: Div with button to fire GoToEvent to invoice endpoint

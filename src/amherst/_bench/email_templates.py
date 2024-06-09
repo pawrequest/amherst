@@ -26,13 +26,13 @@ def return_label_email(state):
     )
 
 
-async def invoice_email(manager: ShipmentRecordInDB) -> eh.Email:
-    inv_num = manager.record.invoice.stem
+async def invoice_email(shiprec: ShipmentRecordInDB) -> eh.Email:
+    inv_num = shiprec.record.invoice.stem
     return eh.Email(
-        to_address=manager.shipment.contact.email_address,
+        to_address=shiprec.shipment.contact.email_address,
         subject=f'Radio Hire - Invoice {inv_num} Attached',
         body=invoice_body(),
-        attachment_path=manager.record.invoice,
+        attachment_path=shiprec.record.invoice,
     )
 
 

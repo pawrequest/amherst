@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import os
 from functools import cached_property
 from pathlib import Path
@@ -46,8 +47,10 @@ class AmSettings(BaseSettings):
 
     model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AM_ENV)
 
+@functools.lru_cache
+def am_sett():
+    return AmSettings()
 
-AM_SETTINGS = AmSettings()
-logger = get_loguru(log_file=AM_SETTINGS.log_file, profile='local')
+logger = get_loguru(log_file=am_sett().log_file, profile='local')
 
-logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in AM_SETTINGS.model_dump().items()]))
+logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in am_sett().model_dump().items()]))

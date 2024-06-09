@@ -9,7 +9,7 @@ from starlette.requests import Request
 from starlette.staticfiles import StaticFiles
 
 from amherst import am_config, front
-
+from amherst.front.jinji import router as jinji_router
 settings = am_config.AmSettings()
 static_path = settings.base_dir / 'front' / 'static'
 
@@ -38,6 +38,7 @@ app.include_router(front.booked_router, prefix='/api/booked')
 app.include_router(front.forms_router, prefix='/api/forms')
 app.include_router(front.email_router, prefix='/api/email')
 app.include_router(front.shared_router, prefix='/api/shared')
+app.include_router(jinji_router, prefix='/jinji')
 
 
 @app.get('/api/close_app/', response_model=None, response_model_exclude_none=True)

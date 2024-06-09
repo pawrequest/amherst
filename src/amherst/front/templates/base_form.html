@@ -1,0 +1,111 @@
+{#{% extends "base.html" %}#}
+{##}
+{#{% block title %}Form{% endblock %}#}
+{##}
+{#{% block content %}#}
+{#    <form id="main-form">#}
+{#        <label for="date">Date:</label>#}
+{#        <input type="date" id="date" name="date" required><br>#}
+{##}
+{#        <label for="boxes">Boxes:</label>#}
+{#        <input type="number" id="boxes" name="boxes" required><br>#}
+{##}
+{#        <label for="direction">Direction:</label>#}
+{#        <input type="text" id="direction" name="direction" required><br>#}
+{##}
+{#        <label for="business_name">Business Name:</label>#}
+{#        <input type="text" id="business_name" name="business_name" required><br>#}
+{##}
+{#        <label for="contact_name">Contact Name:</label>#}
+{#        <input type="text" id="contact_name" name="contact_name" required><br>#}
+{##}
+{#        <label for="email">Email:</label>#}
+{#        <input type="email" id="email" name="email" required><br>#}
+{##}
+{#        <label for="phone">Phone:</label>#}
+{#        <input type="tel" id="phone" name="phone" required><br>#}
+{##}
+{#        <label for="service">Service:</label>#}
+{#        <input type="text" id="service" name="service" required><br>#}
+{##}
+{#        <label for="reference">Reference1:</label>#}
+{#        <input type="text" id="reference" name="reference1"><br>#}
+{##}
+{#        <label for="special_instructions1">Special Instructions1:</label>#}
+{#        <input type="text" id="special_instructions1" name="special_instructions1"><br>#}
+{##}
+{#        <div id="form-container" hx-get="/jinji/select/{{ shiprec }}">#}
+{#        </div>#}
+{#        <button hx-get="jinji/form/select/{{ manager_id }}" hx-target="#form-container" hx-swap="innerHTML">Search#}
+{#            Select#}
+{#        </button>#}
+{#        <button hx-get="/form/manual/{{ manager_id }}" hx-target="#form-container" hx-swap="innerHTML">Manual#}
+{#            Entry#}
+{#        </button>#}
+{##}
+{#        <button type="submit">Submit</button>#}
+{##}
+{#    </form>#}
+{#{% endblock %}#}
+
+
+<!-- templates/base_form.html -->
+{% extends "base.html" %}
+
+{% block title %}Form{% endblock %}
+
+{% block content %}
+    <form id="main-form" hx-post="post_form/{{ shiprec.id }}">
+        <label for="ship_date">Date:</label>
+        {#    <select id="ship_date" name="date">#}
+        {#        {% for direc in ['in', 'out', 'in_dropoff']  %}#}
+        {#            <option value={{ direc }}>{{ direc.title() }}</option>#}
+        {#        {% endfor %}#}
+        {#    </select><br>#}
+        <input type="date" id="ship_date" name="ship_date" value="{{ shiprec.shipment.ship_date }}" required><br>
+
+        <label for="boxes">Boxes:</label>
+        <input type="number" id="boxes" name="boxes" value="{{ shiprec.shipment.boxes }}" required><br>
+
+        <label for="direction">Direction:</label>
+        <select id="direction" name="direction">
+            {% for direc in ['in', 'out', 'in_dropoff'] %}
+                <option value={{ direc }}>{{ direc }}</option>
+            {% endfor %}
+        </select><br>
+
+        <label for="direction">Direction:</label>
+        <input type="text" id="direction" name="direction" value="{{ shiprec.shipment.direction }}" required><br>
+
+        <label for="business_name">Business Name:</label>
+        <input type="text" id="business_name" name="business_name" value="{{ shiprec.shipment.contact.business_name }}"
+               required><br>
+
+        <label for="contact_name">Contact Name:</label>
+        <input type="text" id="contact_name" name="contact_name" value="{{ shiprec.shipment.contact.contact_name }}"
+               required><br>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" value="{{ shiprec.shipment.contact.email_address }}" required><br>
+
+        <label for="mobile_phone">Mobile Phone:</label>
+        <input type="tel" id="mobile_phone" name="phone" value="{{ shiprec.shipment.contact.mobile_phone }}"
+               required><br>
+
+        <label for="service">Service:</label>
+        <input type="text" id="service" name="service" value="{{ shiprec.shipment.service }}" required><br>
+
+        <label for="reference1">Reference1:</label>
+        <input type="text" id="reference1" name="reference1" value="{{ shiprec.shipment.reference1 }}"><br>
+
+        <label for="special_instructions1">Special Instructions1:</label>
+        <input type="text" id="special_instructions1" name="special_instructions1"
+               value="{{ shiprec.shipment.special_instructions1 }}"><br>
+
+
+        {% include 'address_form.html' with context %}
+
+        <button type="submit">Submit</button>
+
+    </form>
+{% endblock %}

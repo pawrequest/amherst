@@ -1,0 +1,41 @@
+<div id="address-div">
+    <h1>Address</h1>
+    <label for="address-select">From Postcode:</label>
+    <select id="address-select" name="address" onchange="updateManualFields()">
+        {% for key, value in candidates.items() %}
+            <option value="{{ value }}">{{ key }}</option>
+        {% endfor %}
+    </select><br>
+    <label for="address_line1">Address Line 1:</label>
+    <input type="text" id="address_line1" name="address_line1"
+           value="{{ shiprec.shipment.address.address_line1 }}"
+           required>
+    <br>
+
+    <label for="address_line2">Address Line 2:</label>
+    <input type="text" id="address_line2" name="address_line2"
+           value="{{ shiprec.shipment.address.address_line2 }}">
+    <br>
+
+    <label for="address_line3">Address Line 3:</label>
+    <input type="text" id="address_line3" name="address_line3"
+           value="{{ shiprec.shipment.address.address_line3 }}"
+    ><br>
+
+    <label for="town">Town:</label>
+    <input type="text" id="town" name="town" required
+           value="{{ shiprec.shipment.address.town }}"
+    ><br>
+
+    <label for="postcode">Postcode:</label>
+    <input type="text" id="postcode" name="postcode" required
+           value="{{ shiprec.shipment.address.postcode }}"
+    >
+    <button
+            type="button"
+            onclick="loadCandidates()"
+    >Get Candidates
+    </button>
+    <br>
+
+</div>

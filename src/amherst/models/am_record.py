@@ -8,16 +8,13 @@ from pathlib import Path
 
 import pydantic as _p
 from combadge.core.errors import BackendError
-from comtypes import CoUninitialize, CoInitialize
 from loguru import logger
 from pydantic import AliasChoices, ConfigDict, Field
-from pycommence import PyCommence
-from pycommence import pycmc_types
-from shipaw import ELClient, Shipment
-from shipaw.models import pf_ext, pf_lists, pf_top
 from zeep.exceptions import XMLParseError
 
-from shipaw.models.all_shipment_types import AllShipmentTypes
+from pycommence import PyCommence, pycmc_types
+from shipaw import ELClient, Shipment
+from shipaw.models import pf_ext, pf_lists, pf_top
 from shipaw.ship_types import SHIPPING_DATE
 
 
@@ -44,10 +41,10 @@ class AmherstRecord(_p.BaseModel):
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
 
-    @_p.field_validator('send_date', mode='after')
-    def date_not_past(cls, v, info):
-        tod = datetime.date.today()
-        return v if v >= tod else tod
+    # @_p.field_validator('send_date', mode='after')
+    # def date_not_past(cls, v, info):
+    #     tod = datetime.date.today()
+    #     return v if v >= tod else tod
 
     @cached_property
     def customer_record(self) -> dict[str, str]:
@@ -79,15 +76,13 @@ class AmherstRecord(_p.BaseModel):
     def initial_shipment_state(self) -> Shipment:
         try:
             el_client = ELClient()
-            chosen, candidates = el_client.choose_address(self.input_address)
+            chosen = el_client.choose_address(self.input_address)
             return Shipment(
                 contact=self.contact,
                 address=chosen,
                 ship_date=self.send_date,
                 boxes=self.boxes,
-                # candidates=candidates,
-                reference=self.customer,
-                # special_instructions='',
+                reference1=self.customer,
             )
         except BackendError as err:
             if isinstance(err.args[0], XMLParseError):

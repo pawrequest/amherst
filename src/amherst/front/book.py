@@ -38,7 +38,7 @@ async def confirm_or_back(
     """Endpoint to submit shipment and return 'Confirm or Back' page.
 
     Args:
-        shiprec_id (int): BookingManager id.
+        shiprec_id (int): Bookingshiprec id.
         shipment_64 (str): State as Base64 encoded JSON.
         el_client (ELClient, optional): The shipper object - defaults to fastapi.Depends(amherst.am_db.get_pfc).
         session (sqm.Session, optional): The database session - defaults to fastapi.Depends(amherst.am_db.get_session).
@@ -68,7 +68,7 @@ async def confirm_or_back_page(
     Display the current shipment and buttons to proceed with booking or go back.
 
     Args:
-        shiprec (managers.MANAGER_IN_DB): The shiprec object.
+        shiprec (shiprecs.shiprec_IN_DB): The shiprec object.
         alert_dict (pawui_types.AlertDict, optional): The alert dictionary - defaults to None.
 
     Returns:
@@ -133,7 +133,7 @@ async def go_book(
 #     """Book a shipment.
 #
 #     Args:
-#         shiprec (shipment_record.ShipmentRecordDB): The :class:`~managers.MANAGER_IN_DB` object.
+#         shiprec (shipment_record.ShipmentRecordDB): The :class:`~shiprecs.shiprec_IN_DB` object.
 #         el_client (ELClient): :class:`~ELClient` object.
 #
 #     Returns:
@@ -158,7 +158,7 @@ def process_shipment_request(shiprec: ShipmentRecordDB, el_client: ELClient):
         el_client (ELClient): :class:`~ELClient` object.
 
     Returns:
-        managers.ShipmentRecordDB: The shiprec object.
+        shiprecs.ShipmentRecordDB: The shiprec object.
 
     Raises:
         shipaw.ExpressLinkError: If the shipment is not completed.
@@ -189,7 +189,7 @@ def process_shipment_label(el_client, resp, shiprec):
     shiprec.booking_state.label_dl_path = label_path
 
 
-async def back_div(manager_id: int):
+async def back_div(shiprec_id: int):
     """Back button."""
     return c.Div(
         class_name='row my-3',
@@ -197,21 +197,21 @@ async def back_div(manager_id: int):
             c.Button(
                 class_name='row btn btn-lg btn-primary',
                 text='Back',
-                on_click=events.GoToEvent(url=f'/ship/select/{manager_id}'),
+                on_click=events.GoToEvent(url=f'/ship/select/{shiprec_id}'),
                 # on_click=events.BackEvent(), # takes two clicks?
             )
         ],
     )
 
 
-async def confirm_div(manager):
+async def confirm_div(shiprec):
     """Confirm button."""
     return c.Div(
         class_name='row my-3',
         components=[
             c.Button(
                 text='Confirm Booking',
-                on_click=e.GoToEvent(url=f'/book/go_book/{manager.id}'),
+                on_click=e.GoToEvent(url=f'/book/go_book/{shiprec.id}'),
                 class_name='row btn btn-lg btn-primary',
             )
         ],

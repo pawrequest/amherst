@@ -6,10 +6,11 @@ from typing import Annotated
 import fastapi
 from combadge.core.errors import BackendError
 from fastui import FastUI, components as c, events
+from fastui.events import GoToEvent
 from fastui.forms import fastui_form
 from loguru import logger
 from urllib3.exceptions import ConnectTimeoutError
-from shipaw import ELClient, Shipment, ShipmentPartial
+from shipaw import ELClient, Shipment, ShipmentPartial, ship_types
 from shipaw.models import pf_ext, pf_top
 
 from amherst import am_db
@@ -19,9 +20,9 @@ from amherst.front.support import addr_class_f_direction
 router = fastapi.APIRouter()
 
 
-@router.post('/manual/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.post('/manual/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def manual_post(
-        manager_id: int,
+        shiprec_id: int,
 
         date=fastapi.Form(...),
         boxes=fastapi.Form(...),
@@ -63,8 +64,8 @@ async def manual_post(
 
     state = Shipment.model_validate(
         Shipment(
-            reference=reference,
-            special_instructions=special_instructions,
+            reference1=reference,
+            special_instructions1=special_instructions,
             boxes=boxes,
             ship_date=date,
             direction=direction,
@@ -77,15 +78,16 @@ async def manual_post(
     )
     return [c.FireEvent(
         event=events.GoToEvent(
-            url=f'/book/confirm/{manager_id}/{state.model_dump_64()}'
+            url=f'/book/confirm/{shiprec_id}/{state.model_dump_64()}'
         ),
     )
     ]
 
 
-@router.post('/select/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+
+@router.post('/select/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def select_post(
-        manager_id: int,
+        shiprec_id: int,
         pfcom: ELClient = fastapi.Depends(am_db.get_el_client),
 
         address=fastapi.Form(None),
@@ -113,24 +115,22 @@ async def select_post(
             mobile_phone=phone,
         )
 
-        state = Shipment.model_validate(
-            Shipment(
+        shipment = Shipment(
                 boxes=boxes,
                 ship_date=date,
                 direction=direction,
                 address=address_choice,
                 contact=contact,
-                # candidates=pfcom.get_candidates(address_choice.postcode),
                 service=service,
-                reference=reference,
-                special_instructions=special_instructions,
+                reference1=reference,
+                special_instructions1=special_instructions,
 
             )
-        )
+        shipment = Shipment.model_validate(shipment)
 
         return [c.FireEvent(
             event=events.GoToEvent(
-                url=f'/book/confirm/{manager_id}/{state.model_dump_64()}'
+                url=f'/book/confirm/{shiprec_id}/{shipment.model_dump_64()}'
 
             )
         )
@@ -165,28 +165,28 @@ async def select_post(
 
 
 @router.post(
-    '/state/{manager_id}',
+    '/partial/{shiprec_id}',
     response_model=FastUI,
     response_model_exclude_none=True
 )
 async def state_model_post(
-        manager_id: int,
+        shiprec_id: int,
         form: Annotated[ShipmentPartial, fastui_form(ShipmentPartial)],
         session=fastapi.Depends(am_db.get_session),
 ):
-    man_in = await support.get_shiprec(manager_id, session)
-    man_in.shipment = Shipment.model_validate(
-        man_in.shipment.get_updated(form)
+    shiprec = await support.get_shiprec(shiprec_id, session)
+    shiprec.shipment = Shipment.model_validate(
+        shiprec.shipment.get_updated(form)
     )
 
-    session.add(man_in)
+    session.add(shiprec)
     session.commit()
     # return await shipping_page.ship_page(shiprec=man_in)
 
     return [
         c.FireEvent(
             event=events.GoToEvent(
-                url=f'/ship/view/{manager_id}'
+                url=f'/ship/select/{shiprec_id}'
             )
         )
     ]
@@ -223,31 +223,33 @@ async def state_model_post(
 #     return ShipmentRecordOut.model_validate(man_in)
 
 
-# @router.post('/postcode2/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
-# async def postcode_post2(
-#         shiprec_id: int,
-#         postcode: str = fastapi.Form(...),
-#         session=fastapi.Depends(am_db.get_session),
-#         el_client: ELClient = fastapi.Depends(am_db.get_el_client),
-# ) -> list[c.AnyComponent]:
-#     if ship_types.is_valid_postcode(postcode):
-#         man_in = await support.get_manager(shiprec_id, session)
-#         man_in.shipment.candidates = el_client.get_candidates(postcode)
-#         session.add(man_in)
-#         session.commit()
-#         alert_dict = {}
-#     else:
-#         alert_dict = {f'INVALID POSTCODE : {postcode}': 'ERROR'}
-#         logger.warning(f'Invalid postcode: {postcode}')
-#
-#     return [
-#         c.FireEvent(
-#             event=e.GoToEvent(
-#                 url=f'/ship/select/{shiprec_id}',
-#                 # target='_blank',
-#             )
-#         )
-#     ]
+@router.post('/postcode/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
+async def postcode_post(
+        shiprec_id: int,
+        postcode: str = fastapi.Form(...),
+        session=fastapi.Depends(am_db.get_session),
+        el_client: ELClient = fastapi.Depends(am_db.get_el_client),
+) -> list[c.AnyComponent]:
+    if ship_types.is_valid_postcode(postcode):
+        shiprec = await support.get_shiprec(shiprec_id, session)
+        #
+        shiprec.shipment.address.postcode = postcode
+        session.add(shiprec)
+        session.commit()
+        alert_dict = {}
+        ...
+    else:
+        alert_dict = {f'INVALID POSTCODE : {postcode}': 'ERROR'}
+        logger.warning(f'Invalid postcode: {postcode}')
+
+    return [
+        c.FireEvent(
+            event=GoToEvent(
+                url=f'/ship/select/{shiprec_id}',
+                # target='_blank',
+            )
+        )
+    ]
 # return await ship_page_2.shipping_page(
 #     shiprec_id=shiprec_id,
 #     session=session,
@@ -512,9 +514,9 @@ async def state_model_post(
 #     ...
 
 
-@router.post('/email/{manager_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.post('/email/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def email_post(
-        manager_id: int,
+        shiprec_id: int,
         invoice: bool = fastapi.Form(False),
         recipients=fastapi.Form(...),
         label=fastapi.Form(False),

@@ -8,16 +8,15 @@ import sqlmodel as sqm
 from loguru import logger
 from shipaw import ELClient
 
-from amherst.am_config import AM_SETTINGS
+from amherst.am_config import am_sett
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordDB
 
 
 @functools.lru_cache(maxsize=1)
 def get_engine() -> sqa.engine.base.Engine:
-    am_sett = AM_SETTINGS
     connect_args = {'check_same_thread': False}
-    return sqa.create_engine(am_sett.db_url, echo=False, connect_args=connect_args)
+    return sqa.create_engine(am_sett().db_url, echo=False, connect_args=connect_args)
 
 
 def get_session(engine=None) -> sqm.Session:
