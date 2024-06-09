@@ -2,8 +2,8 @@
     <h1>Address</h1>
     <label for="address-select">From Postcode:</label>
     <select id="address-select" name="address" onchange="updateManualFields()">
-        {% for key, value in candidates.items() %}
-            <option value="{{ value }}">{{ key }}</option>
+        {% for addr_choice in candidates %}
+            <option value="{{ addr_choice.address.model_dump_json() }}">{{ addr_choice.address.lines_str }}</option>
         {% endfor %}
     </select><br>
     <label for="address_line1">Address Line 1:</label>

@@ -1,4 +1,5 @@
 from datetime import date
+from pprint import pprint
 
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
@@ -67,8 +68,7 @@ async def index(
     el_client: ELClient = Depends(am_db.get_el_client),
 ):
     shiprec = await support.get_shiprec(shiprec_id, session)
-    candidates = el_client.candidates_json(shiprec.shipment.address.postcode)
-    # candidates = el_client.candidates_dict(shiprec.shipment.address.postcode)
+    addr_choices = el_client.get_choices(shiprec.shipment.address)
     return TEMPLATES.TemplateResponse(
-        'base_form.html', {'request': request, 'shiprec': shiprec, 'candidates': candidates}
+        'base_form.html', {'request': request, 'shiprec': shiprec, 'candidates': addr_choices}
     )
