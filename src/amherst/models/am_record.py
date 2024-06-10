@@ -9,12 +9,14 @@ from pathlib import Path
 import pydantic as _p
 from combadge.core.errors import BackendError
 from loguru import logger
-from pydantic import AliasChoices, ConfigDict, Field
+from pawdantic.pawui.pawui_types import AlertDict
+from pydantic import AliasChoices, ConfigDict, Field, field_validator
 from zeep.exceptions import XMLParseError
 
 from pycommence import PyCommence, pycmc_types
 from shipaw import ELClient, Shipment
 from shipaw.models import pf_ext, pf_lists, pf_top
+from shipaw.models.pf_shared import Alert
 from shipaw.ship_types import SHIPPING_DATE
 
 
@@ -22,17 +24,27 @@ class AmherstRecord(_p.BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
+    alerts: list[Alert] | None = None
     cmc_table_name: AmherstTableName
     name: str = _p.Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
     send_date: CMC_SHIP_DATE2 = Field(datetime.date.today(), alias='Send Out Date')
-    delivery_contact: str = Field(..., validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact'))
+    delivery_contact: str = Field(
+        ...,
+        validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
+    )
     delivery_business: str = Field(
         ..., validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
     )
-    telephone: str = Field(..., validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone'))
+    telephone: str = Field(
+        ...,
+        validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
+    )
     email: _p.EmailStr = Field(..., validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
-    address_str: str = Field(..., validation_alias=AliasChoices('Delivery Address', 'Deliv Address'))
+    address_str: str = Field(
+        ...,
+        validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
+    )
     postcode: str = Field(..., validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
     send_method: str = Field('', validation_alias=AliasChoices('Send Method', 'Delivery Method'))
     invoice: Path | None = Field(None, validation_alias=AliasChoices('Invoice', 'Invoice Path'))
@@ -48,7 +60,9 @@ class AmherstRecord(_p.BaseModel):
 
     @cached_property
     def customer_record(self) -> dict[str, str]:
-        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(self.customer)
+        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(
+            self.customer
+        )
 
     @cached_property
     def input_address(self):
@@ -89,7 +103,9 @@ class AmherstRecord(_p.BaseModel):
                 raise BackendError(
                     f'(POSTCODE LIKELY BAD) XMLParseError prevents retrieving initial state for {self.name}'
                 ) from err
-            logger.exception(f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}')
+            logger.exception(
+                f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
+            )
             raise
 
 
@@ -104,9 +120,9 @@ def addr_lines_dict_am(address: str) -> dict[str, str]:
 
 def get_email(fields_enum, record):
     return (
-        record.get(fields_enum.DELIVERY_EMAIL)
-        or record.get(fields_enum.PRIMARY_EMAIL)
-        or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
+            record.get(fields_enum.DELIVERY_EMAIL)
+            or record.get(fields_enum.PRIMARY_EMAIL)
+            or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
     )
 
 
@@ -123,3 +139,30 @@ def get_customer_record(customer: str) -> dict[str, str]:
 
 AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
 CMC_SHIP_DATE2 = _t.Annotated[SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]
+
+
+class AmherstRecordPartial(AmherstRecord):
+    delivery_contact: str = Field(
+        '',
+        validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
+    )
+    delivery_business: str = Field(
+        '',
+        validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
+    )
+    telephone: str = Field(
+        '',
+        validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
+    )
+    email: str = Field('', validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
+    address_str: str = Field(
+        '',
+        validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
+    )
+    postcode: str = Field('', validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
+
+    @field_validator('email', mode='after')
+    def fake_email(cls, v, values):
+        if not v:
+            return "THISEMAILNOTREAL@REPLACEME.com"
+        return v

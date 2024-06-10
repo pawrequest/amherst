@@ -96,7 +96,13 @@ h1 {
 .inputs__contact {
     grid-area: contact;
 }
-
+.alert {
+    background-color: red;
+    text-align: center;
+    line-height: 2rem;
+    font-size: 1.5rem;
+    padding-block: 1rem;
+}
 .inputs__address {
     grid-area: address;
 

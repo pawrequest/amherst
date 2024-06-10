@@ -23,12 +23,15 @@ import base64
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
+from pawdantic.pawui.pawui_types import AlertDict
+from pydantic import ValidationError
 from win32com.universal import com_error
 
 from pycommence import PyCommence
 import amherst.models.am_record
 from amherst import am_db, app_file
-from amherst.models.am_record import AmherstRecord
+from amherst.models.am_record import AmherstRecord, AmherstRecordPartial
+from shipaw.models.pf_shared import Alert
 
 
 def parse_arguments():
@@ -49,7 +52,13 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
             record = py_cmc.one_record(record_name)
 
         record['cmc_table_name'] = category
-        amrec = AmherstRecord(**record)
+        try:
+            amrec = AmherstRecord(**record)
+        except ValidationError as e:
+            msg = f'Error validating record, using partial data'
+            logger.warning(f'{msg} \n{e}')
+            amrec = AmherstRecordPartial(**record)
+            amrec.alerts = [Alert(code=None, message=msg, type='WARNING')]
         amrec = amrec.model_validate(amrec)
 
         shiprec_id = am_db.amherst_record_to_shiprec(amrec)

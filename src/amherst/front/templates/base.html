@@ -15,6 +15,13 @@
 <body>
 <header>
 </header>
+<section>
+    {% if shiprec.record.alerts %}
+    {% for alert in shiprec.record.alerts %}
+    <div class="alert alert-{{ alert.type }}">{{ alert.message }}</div>
+    {% endfor %}
+    {% endif %}
+</section>
 <main>
     {% block content %}{% endblock %}
 </main>
