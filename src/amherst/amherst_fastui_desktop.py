@@ -77,8 +77,8 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                # url_suffix=f'jinji/{shiprec_id}',
-                url_suffix=f'ship/select/{shiprec_id}',
+                url_suffix=f'jinji/{shiprec_id}',
+                # url_suffix=f'ship/select/{shiprec_id}',
             )
         fui.run()
     except Exception as e:

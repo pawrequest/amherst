@@ -6,9 +6,11 @@
     padding: 0;
 }
 
-root {
+:root {
     --clr-primary: #007bff;
-    --clr-secondary: #6c757d;
+    /*--clr-secondary: #66ff00;*/
+    --clr-main: rgb(157, 168, 171);
+    --clr-wrapper: rgba(108, 117, 125, 0.42);
     --clr-success: #28a745;
     --clr-danger: #dc3545;
     --clr-warning: #ffc107;
@@ -28,11 +30,10 @@ html {
     font-family: "Roboto", sans-serif;
     font-size: 18px;
     line-height: 1.5;
-    color: var(--clr-primary);
-    background-color: var(--clr-secondary)
 }
 
 body {
+    background-color: var(--clr-main);
     /*padding: 20px;*/
 }
 
@@ -47,12 +48,17 @@ input, select, textarea, button {
 #main-form {
     max-width: min(100% - 3rem, 1200px);
     margin-inline: auto;
-    background-color: purple;
 }
-
+h1 {
+    /*text-align: center;*/
+    font-size: 1.4rem;
+}
 .wrapper {
+    border-radius: 1rem;
     /*font-size: 1.5rem;*/
     /*width:100%;*/
+    margin-block: 3rem;
+    padding-block: 1rem;
     padding-inline: 3rem;
     display: grid;
     grid-template-areas:
@@ -62,7 +68,8 @@ input, select, textarea, button {
         "notes notes notes";
 
     gap: 1rem;
-    background-color: red;
+    /*background-color: red;*/
+    background-color: var(--clr-wrapper);
 }
 
 .commence {
@@ -78,7 +85,8 @@ input, select, textarea, button {
     flex-direction: column;
     border: 2px solid black;
     padding: 1rem;
-    gap: .5rem
+    gap: .5rem;
+    border-radius: 1rem;
 }
 
 .inputs__ship {
@@ -91,6 +99,19 @@ input, select, textarea, button {
 
 .inputs__address {
     grid-area: address;
+
+    .addr-head {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+        justify-content: space-between;
+    }
+
+    span {
+        align-self: start;
+        justify-self: end;
+        font-size: 0.7rem;
+    }
 }
 
 .inputs__notes {
@@ -149,7 +170,11 @@ button[type="submit"] {
     /* Your styles here */
     background-color: blue;
     color: white;
+    line-height: 2rem;
+    font-size: 1.5rem;
+    margin-block: 1rem;
 }
+
 
 button:hover {
     background-color: purple;

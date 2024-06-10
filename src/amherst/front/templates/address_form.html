@@ -1,4 +1,9 @@
-<h1>Address</h1>
+<div class="addr-head">
+    <h1>Address</h1>
+    <span>
+    input address = {{ shiprec.shipment.address.lines_str_oneline }}
+</span>
+</div>
 
 <label for="address_line1">Address Lines:</label>
 <input type="text" id="address_line1" name="address_line1"
@@ -31,17 +36,7 @@
 <label for="address-select">Choose Address</label>
 <select id="address-select" name="address" onchange="updateManualFieldsCaps()">
     {% for addr_choice in candidates %}
-        <option value="{{ addr_choice.address.model_dump_json(by_alias=True) }}">{{ addr_choice.address.lines_str }}</option>
+    <option value="{{ addr_choice.address.model_dump_json(by_alias=True) }}">{{ addr_choice.address.lines_str }}
+    </option>
     {% endfor %}
 </select>
-
-
-{#<label for="combo-input">Combo</label>#}
-{#<input type="text" id="combo-input" name="combo" list="combo-list">#}
-{#<datalist id="combo-list" onchange="updateManualFields2()">#}
-{#    {% for addr_choice in candidates %}#}
-{#        <option value="{{ addr_choice.address.model_dump_json() }}">#}
-{#    {% endfor %}#}
-{#    <option value="0">somelabel</option>#}
-{#</datalist>#}
-
