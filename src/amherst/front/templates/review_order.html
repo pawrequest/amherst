@@ -3,28 +3,34 @@
 {% block title %}Amherst Shipper - confirm details{% endblock %}
 
 {% block content %}
+    <div class="loading-spinner" style="display: none;">
+        <p>Loading...</p>
+        <!-- Add your spinner HTML/CSS here -->
+        <div class="spinner"></div>
+    </div>
     <div id=results class="wrapper wrapper__requested requested-shipment">
         {#        <div class="requested-head">#}
         {#            <h2 class="requested-title">Requested Shipment:</h2>#}
         {#            <button class="btn-confirm" hx-post="confirm_booking" hx-target="#results" hx-swap="innerHTML">Confirm Booking</button>#}
         {#        </div>#}
-        <div class="requested-head">
+        <section class="requested-head">
             <h2 class="requested-title">Requested Shipment:</h2>
             <form hx-post="confirm_booking" hx-target="#results" hx-swap="innerHTML">
                 <input type="hidden" name="shipment_request" value='{{ shipment_request.model_dump_json() | safe }}'>
-                <input type="hidden" name="shiprec_id" value='{{ shiprec.id }}'>
-                <button type="submit" class="btn-confirm">Confirm Booking</button>
+                <input type="hidden" name="shiprec_id" value='{{ shiprec_id }}'>
+                <button class="submit-confirm">Confirm Booking</button>
+                {#                <button type="submit" class="btn-confirm">Confirm Booking</button>#}
             </form>
-        </div>
-        <div class="inputs requested__contact">
+        </section>
+        <section class="inputs requested__contact">
             <h3>Contact Information</h3>
             <p><strong>Business Name:</strong> {{ shipment_request.recipient_contact.business_name }}</p>
             <p><strong>Contact Name:</strong> {{ shipment_request.recipient_contact.contact_name }}</p>
             <p><strong>Email:</strong> {{ shipment_request.recipient_contact.email_address }}</p>
             <p><strong>Phone:</strong> {{ shipment_request.recipient_contact.mobile_phone }}</p>
-        </div>
+        </section>
 
-        <div class="inputs requested__address">
+        <section class="inputs requested__address">
             <h3>Address</h3>
             <p><strong>Address Line 1:</strong> {{ shipment_request.recipient_address.address_line1 }}</p>
             {% if shipment_request.recipient_address.address_line2 %}
@@ -35,9 +41,10 @@
             {% endif %}
             <p><strong>Town:</strong> {{ shipment_request.recipient_address.town }}</p>
             <p><strong>Postcode:</strong> {{ shipment_request.recipient_address.postcode }}</p>
-        </div>
+        </section>
 
-        <div class="inputs requested__notes">
+
+        <section class="inputs requested__notes">
             <h3>Notes</h3>
             {% if shipment_request.reference_number1 %}
                 <p><strong>Reference Number 1:</strong> {{ shipment_request.reference_number1 }}</p>
@@ -66,9 +73,18 @@
             {% if shipment_request.special_instructions4 %}
                 <p><strong>Special Instructions 4:</strong> {{ shipment_request.special_instructions4 }}</p>
             {% endif %}
-        </div>
+        </section>
 
-        <div class="inputs requested__details">
+        {% if shipment_request.collection_info %}
+            <section class="inputs requested__collection">
+                <h3>Collection Information</h3>
+                {%  set cont = shipment_request.collection_info.collection_contact %}
+                <p><strong>Collection Contact:</strong> {{ cont.contact_name }} - {{ cont.business_name }} - {{ cont.mobile_phone }} - {{ cont.email_address }}</p>
+                <p><strong>Collection Address:</strong> {{ shipment_request.collection_info.collection_address.address_line1 }} -  {{ shipment_request.collection_info.collection_address.postcode }}</p>
+            </section>
+        {% endif %}
+
+        <section class="inputs requested__details">
             <h3>Other Details</h3>
             <p><strong>Total Number of Parcels:</strong> {{ shipment_request.total_number_of_parcels }}</p>
             <p><strong>Shipping Date:</strong> {{ shipment_request.shipping_date }}</p>
@@ -104,8 +120,26 @@
             {% if shipment_request.returns %}
                 <p><strong>Returns:</strong> {{ shipment_request.returns }}</p>
             {% endif %}
-        </div>
+        </section>
     </div>
+
+
+    <script>
+        const spinner = document.querySelector('.loading-spinner');
+        const returnedRequestDiv = document.querySelector('.returned-request');
+        const confirmButton = document.querySelector('.submit-confirm');
+
+        confirmButton.addEventListener('click', function () {
+            console.log('confirm button clicked');
+            spinner.style.display = 'flex';
+        });
+
+        returnedRequestDiv.addEventListener('htmx:afterOnLoad', function () {
+            console.log('htmx:afterOnLoad');
+            spinner.style.display = 'none';
+        });
+        console.log('script loaded')
+    </script>
 
 {% endblock %}
 

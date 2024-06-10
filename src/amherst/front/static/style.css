@@ -72,13 +72,13 @@ h1 {
 
 .wrapper__booking {
     grid-template-areas:
-           "cmc cmc cmc"
-           "shipment contact address"
-           "submit submit submit"
-           "notes notes notes";
+           "cmc cmc cmc cmc"
+           "shipment contact address notes"
+           "submit submit submit submit";
+           /*"notes notes notes";*/
 }
 
-.btn-confirm {
+.submit-confirm {
 }
 
 .commence {
@@ -126,9 +126,9 @@ h1 {
 
 .inputs__notes {
     grid-area: notes;
-    flex-direction: row;
-    margin-inline: auto;
-    gap: 1rem;
+    /*flex-direction: row;*/
+    /*margin-inline: auto;*/
+    /*gap: 1rem;*/
 
     > div {
         display: flex;
@@ -162,6 +162,7 @@ h1 {
 }
 
 
+
 button {
     border: none;
     border-radius: 4px;
@@ -177,10 +178,15 @@ button {
     /*background-color: purple;*/
 }
 
-button[type="submit"] {
+button.submit-request {
     grid-area: submit;
 }
-
+/*button.submit-confirm{*/
+/**/
+/*}*/
+button.update-address-btn {
+    font-size: 18px;
+}
 
 button:hover {
     background-color: purple;
@@ -199,6 +205,7 @@ select:focus {
 
     grid-template-areas:
         "... head head ..."
+        "collection collection collection collection"
         "details contact address notes";
 }
 
@@ -221,8 +228,8 @@ select:focus {
         /*grid-area: title;*/
     }
 
-    .btn-confirm {
-    }
+    /*.submit-confirm {*/
+    /*}*/
 
     .requested-container {
         display: grid;
@@ -257,10 +264,17 @@ select:focus {
         grid-area: notes;
     }
 
-
+    .requested__collection {
+        grid-area: collection;
+    }
 }
 
-
+.loading-spinner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
 
 

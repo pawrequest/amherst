@@ -1,5 +1,5 @@
 # from __future__ import annotations
-
+import os
 from datetime import date
 
 from combadge.core.errors import BackendError
@@ -11,13 +11,13 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
 from urllib3.exceptions import ConnectTimeoutError
 
-from amherst.front.jin_book import process_shipment_request, book_shipment, process_shipment_label
+from amherst.front.jin_book import book_shipment
 from shipaw import ELClient, Shipment, ship_types
 from amherst import am_db
 from amherst.am_config import am_sett
 from amherst.front import support
 from shipaw.models import Contact
-from shipaw.models.all_shipment_types import AllShipmentTypes
+from shipaw.models.all_shipment_types import SHIPMENT_NOTES_FIELDNAMES, ShipmentRequest
 from shipaw.models.pf_ext import AddressChoice, AddressCollection
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.ship_types import VALID_POSTCODE
@@ -35,26 +35,39 @@ async def confirm_booking(
         el_client: ELClient = Depends(am_db.get_el_client),
         session: Session = Depends(am_db.get_session),
 ):
-    shipment_request = AllShipmentTypes.model_validate_json(shipment_request)
+    shipment_request = ShipmentRequest.model_validate_json(shipment_request)
 
     logger.warning(f'booking_id: {shiprec_id}')
     shiprec = await support.get_shiprec(shiprec_id, session)
 
-    if shiprec.booking_state.booked or shiprec.booking_state.completed:
+    if hasattr(shiprec, 'booking_state') and shiprec.booking_state:
         logger.error(f'Shipment for {shiprec.record.name} already booked')
         raise ValueError(f'Shipment for {shiprec.record.name} already booked')
 
     booking_state = book_shipment(el_client, shipment_request)
-    label_path = process_shipment_label(el_client, shiprec.sh)
+
+    label_path = shipment_request.label_path
+    support.wait_label_decon(
+        shipment_num=booking_state.response.shipment_num,
+        dl_path=label_path,
+        el_client=el_client
+    )
+    os.startfile(label_path)
     booking_state.label_downloaded = True
     booking_state.label_dl_path = label_path
-
 
     shiprec.booking_state = booking_state
 
     session.add(shiprec)
     session.commit()
-    return HTMLResponse(content=f"<p>Booking Confirmed! {shipment_request}</p>")
+
+    # record_tracking(shiprec)
+
+    return HTMLResponse(content=f"<p>Booking Confirmed! {booking_state.response}</p>")
+
+
+async def get_notes_f_form(form_data):
+    return [(fieldname, form_data[fieldname]) for fieldname in SHIPMENT_NOTES_FIELDNAMES if fieldname in form_data]
 
 
 @router.post('/post_form/{shiprec_id}', response_class=HTMLResponse)
@@ -74,14 +87,14 @@ async def post_form(
         address_line3: str = Form(''),
         town: str = Form(...),
         postcode: VALID_POSTCODE = Form(...),
-        reference_number1: str = Form(''),
-        special_instructions1: str = Form(''),
-        reference_number2: str = Form(''),
-        special_instructions2: str = Form(''),
-        reference_number3: str = Form(''),
-        special_instructions3: str = Form(''),
-        reference_number4: str = Form(''),
-        special_instructions4: str = Form(''),
+        # reference_number1: str = Form(''),
+        # special_instructions1: str = Form(''),
+        # reference_number2: str = Form(''),
+        # special_instructions2: str = Form(''),
+        # reference_number3: str = Form(''),
+        # special_instructions3: str = Form(''),
+        # reference_number4: str = Form(''),
+        # special_instructions4: str = Form(''),
         pfcom: ELClient = Depends(am_db.get_el_client),
 ):
     try:
@@ -105,14 +118,18 @@ async def post_form(
             ship_date=ship_date,
             boxes=boxes,
             direction=direction,
-            reference_number1=reference_number1,
-            special_instructions1=special_instructions1,
         )
+        for fieldname, value in await get_notes_f_form(await request.form()):
+            setattr(shipment, fieldname, value)
+
         shipment = shipment.model_validate(shipment)
 
         return TEMPLATES.TemplateResponse(
             'review_order.html',
-            {'request': request, 'shipment_request': shipment.shipment_request()}
+            {
+                'request': request, 'shipment_request': shipment.shipment_request(),
+                'shiprec_id': shiprec_id
+            },
         )
     except (ConnectTimeoutError, BackendError) as e:
         msg = f'Error: {e.__class__.__name__}. Connection Likely Timed Out.\n{str(e)}'

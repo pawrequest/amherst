@@ -69,39 +69,38 @@
 
             <div class="inputs inputs__notes">
                 <h1>Notes</h1>
-                <div class="reference">
-                    <label for="reference_number1">Reference:</label>
-                    <input type="text" id="reference_number1" name="reference_number1"
-                           value="{{ shiprec.shipment.reference_number1 }}" maxlength="24">
-                    <!--suppress HtmlFormInputWithoutLabel -->
-                    <input type="text" id="reference_number2" name="reference_number2"
-                           value="{{ shiprec.shipment.reference_number2 }}"
-                           aria-labelledby="reference_number1" maxlength="24">
-                    <!--suppress HtmlFormInputWithoutLabel -->
-                    <input type="text" id="reference_number3" name="reference_number3"
-                           value="{{ shiprec.shipment.reference_number3 }}"
-                           aria-labelledby="reference_number1" maxlength="24">
-                </div>
-                <div class="special_instructions">
-                    <label for="special_instructions1">Special Instructions:</label>
-                    <input type="text" id="special_instructions1" name="special_instructions1"
-                           value="{{ shiprec.shipment.special_instructions1 }}" maxlength="25">
-                    <!--suppress HtmlFormInputWithoutLabel -->
-                    <input type="text" id="special_instructions2" name="special_instructions2"
-                           value="{{ shiprec.shipment.special_instructions2 }}" aria-labelledby="special_instructions1"
-                           maxlength="24">
-                    <!--suppress HtmlFormInputWithoutLabel -->
-                    <input type="text" id="special_instructions3" name="special_instructions3"
-                           value="{{ shiprec.shipment.special_instructions3 }}" aria-labelledby="special_instructions1"
-                           maxlength="24">
-                </div>
+                {#                <div class="reference">#}
+                <label for="reference_number1">Reference:</label>
+                <input type="text" id="reference_number1" name="reference_number1"
+                       value="{{ shiprec.shipment.reference_number1 }}" maxlength="24">
+                <!--suppress HtmlFormInputWithoutLabel -->
+                <input type="text" id="reference_number2" name="reference_number2"
+                       value="{{ shiprec.shipment.reference_number2 }}"
+                       aria-labelledby="reference_number1" maxlength="24">
+                <!--suppress HtmlFormInputWithoutLabel -->
+                <input type="text" id="reference_number3" name="reference_number3"
+                       value="{{ shiprec.shipment.reference_number3 }}"
+                       aria-labelledby="reference_number1" maxlength="24">
+                {#                </div>#}
+                {#                <div class="special_instructions">#}
+                <label for="special_instructions1">Special Instructions:</label>
+                <input type="text" id="special_instructions1" name="special_instructions1"
+                       value="{{ shiprec.shipment.special_instructions1 }}" maxlength="25">
+                <!--suppress HtmlFormInputWithoutLabel -->
+                <input type="text" id="special_instructions2" name="special_instructions2"
+                       value="{{ shiprec.shipment.special_instructions2 }}" aria-labelledby="special_instructions1"
+                       maxlength="24">
+                <!--suppress HtmlFormInputWithoutLabel -->
+                <input type="text" id="special_instructions3" name="special_instructions3"
+                       value="{{ shiprec.shipment.special_instructions3 }}" aria-labelledby="special_instructions1"
+                       maxlength="24">
+                {#                </div>#}
             </div>
 
-            <button type="submit" class="submit-shipment">Submit</button>
+            <button type="submit" class="submit-request">Submit</button>
         </div>
 
     </form>
-
     <div class="returned-request"></div>
 {% endblock %}
 

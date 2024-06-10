@@ -23,15 +23,15 @@
 <input type="text" id="town" name="town" required
        value="{{ shiprec.shipment.address.town }}"
 >
-<div class="postcode-div">
-    <div class="postcode-pair">
+{#<div class="postcode-div">#}
+{#    <div class="postcode-pair">#}
         <label for="postcode">Postcode:</label>
         <input type="text" id="postcode" name="postcode" required
                value="{{ shiprec.shipment.address.postcode }}"
         >
-    </div>
-    <button type="button" onclick="loadCandidatesp()">Update Address Choices</button>
-</div>
+{#    </div>#}
+    <button class="update-address-btn" onclick="loadCandidatesp()">Update Address Choices</button>
+{#</div>#}
 
 <label for="address-select">Choose Address</label>
 <select id="address-select" name="address" onchange="updateManualFieldsCaps()">
