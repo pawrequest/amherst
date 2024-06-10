@@ -45,31 +45,40 @@ input, select, textarea, button {
     padding: .3rem;
 }
 
-#main-form {
-    max-width: min(100% - 3rem, 1200px);
-    margin-inline: auto;
+.alert {
+    background-color: red;
+    text-align: center;
+    line-height: 2rem;
+    font-size: 1.5rem;
+    padding-block: 1rem;
 }
+
 h1 {
     /*text-align: center;*/
     font-size: 1.4rem;
 }
+
 .wrapper {
     border-radius: 1rem;
-    /*font-size: 1.5rem;*/
-    /*width:100%;*/
     margin-block: 3rem;
     padding-block: 1rem;
     padding-inline: 3rem;
     display: grid;
-    grid-template-areas:
-        "cmc cmc cmc"
-        "shipment contact address"
-        "submit submit submit"
-        "notes notes notes";
-
+    max-width: min(100% - 3rem, 1200px);
+    margin-inline: auto;
     gap: 1rem;
-    /*background-color: red;*/
     background-color: var(--clr-wrapper);
+}
+
+.wrapper__booking {
+    grid-template-areas:
+           "cmc cmc cmc"
+           "shipment contact address"
+           "submit submit submit"
+           "notes notes notes";
+}
+
+.btn-confirm {
 }
 
 .commence {
@@ -96,13 +105,8 @@ h1 {
 .inputs__contact {
     grid-area: contact;
 }
-.alert {
-    background-color: red;
-    text-align: center;
-    line-height: 2rem;
-    font-size: 1.5rem;
-    padding-block: 1rem;
-}
+
+
 .inputs__address {
     grid-area: address;
 
@@ -152,13 +156,10 @@ h1 {
     }
 
     button {
-        /*margin-top: 5px;*/
         align-self: end;
-        /*display: inline;*/
         font-size: 18px;
     }
 }
-
 
 
 button {
@@ -167,18 +168,17 @@ button {
     cursor: pointer;
     padding-inline: 5px;
     padding-block: 2px;
+    background-color: blue;
+    color: white;
+    line-height: 2rem;
+    font-size: 1.5rem;
+    margin-block: 1rem;
     /*line-height: 2rem;*/
     /*background-color: purple;*/
 }
 
 button[type="submit"] {
     grid-area: submit;
-    /* Your styles here */
-    background-color: blue;
-    color: white;
-    line-height: 2rem;
-    font-size: 1.5rem;
-    margin-block: 1rem;
 }
 
 
@@ -193,5 +193,76 @@ select:focus {
     outline: none;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
+
+.wrapper__requested {
+    display: grid;
+
+    grid-template-areas:
+        "... head head ..."
+        "details contact address notes";
+}
+
+.requested-shipment {
+    /*border: 1px solid #ccc;*/
+    /*padding: 20px;*/
+    /*border-radius: 5px;*/
+    /*margin-bottom: 20px;*/
+
+
+    .requested-head {
+        grid-area: head;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 2rem;
+    }
+
+    .requested-title {
+        /*grid-area: title;*/
+    }
+
+    .btn-confirm {
+    }
+
+    .requested-container {
+        display: grid;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .requested {
+        /*display: flex;*/
+        /*flex-direction: column;*/
+        /*flex: 1;*/
+        /*min-width: 300px;*/
+        /*border: 1px solid black;*/
+        /*padding: 15px;*/
+        /*border-radius: 5px;*/
+    }
+
+    .requested__address {
+        grid-area: address;
+    }
+
+    .requested__contact {
+        grid-area: contact;
+
+    }
+
+    .requested__details {
+        grid-area: details;
+    }
+
+    .requested__notes {
+        grid-area: notes;
+    }
+
+
+}
+
+
+
+
+
 
 

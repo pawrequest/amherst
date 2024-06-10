@@ -47,3 +47,16 @@ function loadCandidatesp() {
         });
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('main-form');
+    const returnedRequestDiv = document.querySelector('.returned-request');
+
+    form.addEventListener('input', function () {
+        returnedRequestDiv.style.display = 'none';
+
+    });
+
+    form.addEventListener('submit', function (event) {
+        returnedRequestDiv.style.display = '';
+    });
+});

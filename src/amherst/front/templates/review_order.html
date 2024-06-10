@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Amherst Shipper - confirm details{% endblock %}
+
+{% block content %}
+    <div id=results class="wrapper wrapper__requested requested-shipment">
+        {#        <div class="requested-head">#}
+        {#            <h2 class="requested-title">Requested Shipment:</h2>#}
+        {#            <button class="btn-confirm" hx-post="confirm_booking" hx-target="#results" hx-swap="innerHTML">Confirm Booking</button>#}
+        {#        </div>#}
+        <div class="requested-head">
+            <h2 class="requested-title">Requested Shipment:</h2>
+            <form hx-post="confirm_booking" hx-target="#results" hx-swap="innerHTML">
+                <input type="hidden" name="shipment_request" value='{{ shipment_request.model_dump_json() | safe }}'>
+                <input type="hidden" name="shiprec_id" value='{{ shiprec.id }}'>
+                <button type="submit" class="btn-confirm">Confirm Booking</button>
+            </form>
+        </div>
+        <div class="inputs requested__contact">
+            <h3>Contact Information</h3>
+            <p><strong>Business Name:</strong> {{ shipment_request.recipient_contact.business_name }}</p>
+            <p><strong>Contact Name:</strong> {{ shipment_request.recipient_contact.contact_name }}</p>
+            <p><strong>Email:</strong> {{ shipment_request.recipient_contact.email_address }}</p>
+            <p><strong>Phone:</strong> {{ shipment_request.recipient_contact.mobile_phone }}</p>
+        </div>
+
+        <div class="inputs requested__address">
+            <h3>Address</h3>
+            <p><strong>Address Line 1:</strong> {{ shipment_request.recipient_address.address_line1 }}</p>
+            {% if shipment_request.recipient_address.address_line2 %}
+                <p><strong>Address Line 2:</strong> {{ shipment_request.recipient_address.address_line2 }}</p>
+            {% endif %}
+            {% if shipment_request.recipient_address.address_line3 %}
+                <p><strong>Address Line 3:</strong> {{ shipment_request.recipient_address.address_line3 }}</p>
+            {% endif %}
+            <p><strong>Town:</strong> {{ shipment_request.recipient_address.town }}</p>
+            <p><strong>Postcode:</strong> {{ shipment_request.recipient_address.postcode }}</p>
+        </div>
+
+        <div class="inputs requested__notes">
+            <h3>Notes</h3>
+            {% if shipment_request.reference_number1 %}
+                <p><strong>Reference Number 1:</strong> {{ shipment_request.reference_number1 }}</p>
+            {% endif %}
+            {% if shipment_request.reference_number2 %}
+                <p><strong>Reference Number 2:</strong> {{ shipment_request.reference_number2 }}</p>
+            {% endif %}
+            {% if shipment_request.reference_number3 %}
+                <p><strong>Reference Number 3:</strong> {{ shipment_request.reference_number3 }}</p>
+            {% endif %}
+            {% if shipment_request.reference_number4 %}
+                <p><strong>Reference Number 4:</strong> {{ shipment_request.reference_number4 }}</p>
+            {% endif %}
+            {% if shipment_request.reference_number5 %}
+                <p><strong>Reference Number 5:</strong> {{ shipment_request.reference_number5 }}</p>
+            {% endif %}
+            {% if shipment_request.special_instructions1 %}
+                <p><strong>Special Instructions 1:</strong> {{ shipment_request.special_instructions1 }}</p>
+            {% endif %}
+            {% if shipment_request.special_instructions2 %}
+                <p><strong>Special Instructions 2:</strong> {{ shipment_request.special_instructions2 }}</p>
+            {% endif %}
+            {% if shipment_request.special_instructions3 %}
+                <p><strong>Special Instructions 3:</strong> {{ shipment_request.special_instructions3 }}</p>
+            {% endif %}
+            {% if shipment_request.special_instructions4 %}
+                <p><strong>Special Instructions 4:</strong> {{ shipment_request.special_instructions4 }}</p>
+            {% endif %}
+        </div>
+
+        <div class="inputs requested__details">
+            <h3>Other Details</h3>
+            <p><strong>Total Number of Parcels:</strong> {{ shipment_request.total_number_of_parcels }}</p>
+            <p><strong>Shipping Date:</strong> {{ shipment_request.shipping_date }}</p>
+            <p><strong>Service Code:</strong> {{ shipment_request.service_code }}</p>
+            <p><strong>Shipment Type:</strong> {{ shipment_request.shipment_type }}</p>
+            {% if shipment_request.print_own_label %}
+                <p><strong>Print Own Label:</strong> {{ shipment_request.print_own_label }}</p>
+            {% endif %}
+            {% if shipment_request.enhancement %}
+                <p><strong>Enhancement:</strong> {{ shipment_request.enhancement }}</p>
+            {% endif %}
+            {% if shipment_request.hazardous_goods %}
+                <p><strong>Hazardous Goods:</strong> {{ shipment_request.hazardous_goods }}</p>
+            {% endif %}
+            {% if shipment_request.consignment_handling %}
+                <p><strong>Consignment Handling:</strong> {{ shipment_request.consignment_handling }}</p>
+            {% endif %}
+            {% if shipment_request.drop_off_ind %}
+                <p><strong>Drop Off Indicator:</strong> {{ shipment_request.drop_off_ind }}</p>
+            {% endif %}
+            {% if shipment_request.exchange_instructions1 %}
+                <p><strong>Exchange Instructions 1:</strong> {{ shipment_request.exchange_instructions1 }}</p>
+            {% endif %}
+            {% if shipment_request.exchange_instructions2 %}
+                <p><strong>Exchange Instructions 2:</strong> {{ shipment_request.exchange_instructions2 }}</p>
+            {% endif %}
+            {% if shipment_request.exchange_instructions3 %}
+                <p><strong>Exchange Instructions 3:</strong> {{ shipment_request.exchange_instructions3 }}</p>
+            {% endif %}
+            {% if shipment_request.request_id %}
+                <p><strong>Request ID:</strong> {{ shipment_request.request_id }}</p>
+            {% endif %}
+            {% if shipment_request.returns %}
+                <p><strong>Returns:</strong> {{ shipment_request.returns }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
+
+
