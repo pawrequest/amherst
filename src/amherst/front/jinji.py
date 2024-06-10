@@ -39,7 +39,7 @@ async def post_form(
     address_line3: str = Form(''),
     town: str = Form(...),
     postcode: VALID_POSTCODE = Form(...),
-    reference1: str = Form(''),
+    reference_number1: str = Form(''),
     special_instructions1: str = Form(''),
     pfcom: ELClient = Depends(am_db.get_el_client),
 ):
@@ -64,7 +64,7 @@ async def post_form(
             ship_date=ship_date,
             boxes=boxes,
             direction=direction,
-            reference1=reference1,
+            reference_number1=reference_number1,
             special_instructions1=special_instructions1,
         )
         shipment = shipment.model_validate(shipment)

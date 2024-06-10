@@ -2,24 +2,25 @@ import fastapi
 import sqlmodel
 from fastapi import APIRouter, Depends
 from fastui import FastUI, class_name as class_name_, components as c
-from fastui.events import GoToEvent, PageEvent
+from fastui.events import PageEvent
+from loguru import logger
 from pawdantic.pawui import builders, pawui_types
 
 from shipaw import ELClient, pf_config, ship_types
-from shipaw.ship_ui.forms import get_form_fields
 from amherst.models.shipment_record import ShipmentRecordDB
 from amherst.front import shared, support
 from amherst import am_db
+from shipaw.ship_ui.forms import get_form_fields
 
 router = APIRouter()
 
 
 @router.get('/{formkind}/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
 async def shipping_page(
-    shiprec_id: int,
-    formkind: ship_types.FormKind = 'select',
-    session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
-    alert_dict: pawui_types.AlertDict | None = None,
+        shiprec_id: int,
+        formkind: ship_types.FormKind = 'select',
+        session: sqlmodel.Session = fastapi.Depends(am_db.get_session),
+        alert_dict: pawui_types.AlertDict | None = None,
 ) -> support.Fui_Page:
     """Endpoint for shipping page.
 
@@ -56,18 +57,6 @@ async def shipping_page(
     )
 
 
-async def jinji_div(shiprec_id: int) -> c.Div:
-    return c.Div(
-        components=[
-            c.Button(
-                text='Jinji',
-                on_click=GoToEvent(url=f'/jinji/manual/{shiprec_id}'),
-            ),
-        ],
-        class_name='row mx-auto',
-    )
-
-
 async def left_col(shiprec: ShipmentRecordDB) -> c.Div:
     """Left column of shipping page.
     Displays:
@@ -86,7 +75,7 @@ async def left_col(shiprec: ShipmentRecordDB) -> c.Div:
             await address_from_cmc_div(shiprec),
             await shared.email_div(shiprec, ['invoice', 'missing_kit']),
             await shared.close_div(),
-            await address_from_pc_div(shiprec.id),
+            # await address_from_pc_div(shiprec.id),
         ],
     )
 
@@ -108,43 +97,63 @@ async def form_div(formkind: ship_types.FormKind, shiprec_id: int, session) -> c
         class_name='col col-8 mx-auto mb-5',
         inner_class_name='row my-1',
         components=[
-            # await jinji_div(shiprec_id),
-            await go_to_other_form(formkind, shiprec_id),
-            await get_form(shiprec_id, formkind, session),
+            await go_to_other_form(formkind),
+
+            await dynamic(formkind, shiprec_id, session),
+            # await get_form(shiprec_id, formkind, session),
             # c.ServerLoad(
-            #     path=f'/forms/get_form/{formkind}/{shiprec_id}',
-            #     load_trigger=PageEvent(name='change-form'),
-            #     components=[await get_form(shiprec_id, formkind, session)],
+            #     path=f'/ship/get_form/{formkind}/{shiprec_id}',
+            #     # load_trigger=PageEvent(name='change-form'),
+            #     # components=[await get_form(shiprec_id, formkind, session)],
             # ),
         ],
     )
 
 
-async def swapform_button(shiprec_id: int):
-    return c.Button(
-        text='Swap Form',
-        on_click=PageEvent(
-            name='change-form',
-            context={'formkind': 'manual', 'shiprec_id': shiprec_id},
-        ),
+async def dynamic(formkind: ship_types.FormKind, shiprec_id: int, session):
+    logger.info(f'DYNAMIC {formkind=}, {shiprec_id=}')
+    other_kind = get_other_kind(formkind)
+    return c.Div(
+        components=[
+            c.ServerLoad(
+                path=f'/ship/get_form/{other_kind}/{shiprec_id}',
+                # path='/components/dynamic-content',
+                load_trigger=PageEvent(name='server-load'),
+                components=await get_form(shiprec_id, formkind, session),
+            ),
+        ],
+        class_name='py-2',
     )
 
 
-async def go_to_other_form(kind, shiprec_id: int):
-    match kind:
+def get_other_kind(formkind) -> ship_types.FormKind:
+    match formkind:
         case 'manual':
-            other_kind = 'select'
-            button_text = 'Choose Address From Postcode'
+            return 'select'
         case 'select':
-            other_kind = 'manual'
-            button_text = 'Manual Address Override'
+            return 'manual'
         case _:
-            raise ValueError(f'Invalid kind {kind!r}')
+            raise ValueError(f'Invalid kind {formkind!r}')
 
+
+def get_button_text(formkind):
+    match formkind:
+        case 'manual':
+            return 'Choose Address From Postcode'
+        case 'select':
+            return 'Manual Address Override'
+        case _:
+            raise ValueError(f'Invalid kind {formkind!r}')
+
+
+async def go_to_other_form(formkind):
+    # other_kind = get_other_kind(formkind)
+    button_text = get_button_text(formkind)
     return c.Button(
         class_name='my-2 btn btn-primary',
         text=button_text,
-        on_click=GoToEvent(url=f'/ship/{other_kind}/{shiprec_id}'),
+        on_click=PageEvent(name=f'server-load', context={'formkind': formkind}),
+        # on_click=GoToEvent(url=f'/ship/{other_kind}/{shiprec_id}'),
     )
 
 
@@ -156,12 +165,22 @@ async def go_to_other_form(kind, shiprec_id: int):
 #     )
 
 
-@router.get('/get_form/{formkind}/{shiprec_id}', response_model=FastUI, response_model_exclude_none=True)
+@router.get('/get_some', response_model=FastUI, response_model_exclude_none=True)
+async def get_some(
+) -> list[c.AnyComponent]:
+    return [c.Heading(text='Form')]
+
+
+@router.get(
+    '/get_form/{formkind}/{shiprec_id}',
+    response_model=FastUI,
+    response_model_exclude_none=True
+)
 async def get_form(
-    shiprec_id: int,
-    formkind: ship_types.FormKind,
-    session=Depends(am_db.get_session),
-) -> c.Form:
+        shiprec_id: int,
+        formkind: ship_types.FormKind,
+        session=Depends(am_db.get_session),
+) -> list[c.AnyComponent]:
     """Endpoint to get form for shipping page.
 
     Args:
@@ -173,18 +192,24 @@ async def get_form(
         c.Form:
 
     """
+    logger.warning(f'GET_FORM {shiprec_id=}, {formkind=}')
     expresslink = ELClient()
     shiprec = await support.get_shiprec(shiprec_id, session)
     candidates = expresslink.get_candidates(shiprec.shipment.address.postcode)
-    return c.Form(
+    # return c.Form(
+    #     form_fields=[FormFieldInput(name='postcode', title='New Postcode to Get Addresses')],
+    #     submit_url=f'/api/forms/{formkind}/{shiprec_id}',
+    # )
+    return [c.Form(
         form_fields=await get_form_fields(formkind, shiprec.shipment, candidates),
         submit_url=f'/api/forms/{formkind}/{shiprec_id}',
-        # class_name='row mx-auto',
-    )
+    )]
 
 
 async def address_from_cmc_div(
-    shiprec, class_name: class_name_.ClassName = 'row', inner_class_name: class_name_.ClassName = 'row'
+        shiprec,
+        class_name: class_name_.ClassName = 'row',
+        inner_class_name: class_name_.ClassName = 'row'
 ) -> c.Div:
     """Div for displaying commence data.
 
@@ -204,7 +229,10 @@ async def address_from_cmc_div(
                 class_name=inner_class_name,
                 components=[
                     *builders.dict_strs_texts(shiprec.record.contact.model_dump(), title='Contact'),
-                    *builders.dict_strs_texts(shiprec.record.input_address.model_dump(), title='Address'),
+                    *builders.dict_strs_texts(
+                        shiprec.record.input_address.model_dump(),
+                        title='Address'
+                    ),
                 ],
             ),
         ],
@@ -235,7 +263,6 @@ async def address_from_pc_div(shiprec_id) -> c.Div:
         ],
         class_name='row mx-auto my-3',
     )
-
 
 # @router.get(
 #     '/update/{shiprec_id}/{update_64}',

@@ -1,53 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}Form{% endblock %}
+{% block title %}Amherst Shipper{% endblock %}
 
 {% block content %}
     <form id="main-form" hx-post="post_form/{{ shiprec.id }}">
         <div class="wrapper">
+            <div class="commence">
+                <h1>
+                    {{ shiprec.record.name }}
+                </h1>
+            </div>
             <div class="inputs inputs__ship">
                 <h1>Shipment</h1>
-                <div class="ship-options">
-                    <div class="pair">
-                        <label for="ship_date">Date:</label>
-                        <input type="date" id="ship_date" name="ship_date" value="{{ shiprec.shipment.ship_date }}"
-                               required>
-                    </div>
+                {#                <div class="ship-options">#}
+                {#                    <div class="pair">#}
+                <label for="ship_date">Date:</label>
+                <input type="date" id="ship_date" name="ship_date" value="{{ shiprec.shipment.ship_date }}"
+                       required>
+                {#                    </div>#}
 
-                    <div class="pair">
-                        <label for="boxes">Boxes:</label>
-                        <select id="boxes" name="boxes">
-                            {% for i in range(1,13) %}
-                                <option value={{ i }}>{{ i }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                {#                    <div class="pair">#}
+                <label for="boxes">Boxes:</label>
+                <select id="boxes" name="boxes">
+                    {% for i in range(1,13) %}
+                        <option value={{ i }}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+                {#                    </div>#}
 
-                    <div class="pair">
-                        <label for="direction">Direction:</label>
-                        <select id="direction" name="direction">
-                            <option value="out" selected>Outbound</option>
-                            <option value="in">Inbound Collection</option>
-                            <option value="dropoff">Inbound Dropoff</option>
-                        </select>
-                    </div>
+                {#                    <div class="pair">#}
+                <label for="direction">Direction:</label>
+                <select id="direction" name="direction">
+                    <option value="out" selected>Outbound</option>
+                    <option value="in">Inbound Collection</option>
+                    <option value="dropoff">Inbound Dropoff</option>
+                </select>
+                {#            </div>#}
 
-                    <div class="pair">
-                        <label for="service">Service:</label>
-                        <select id="service" name="service">
-                            <option value="SND" selected>Express 24</option>
-                            <option value="09">Express Pre-9am</option>
-                            <option value="S10">Express Pre-10am</option>
-                            <option value="S12">Express Pre-Noon</option>
-                            <option value="SUP">Express 48</option>
-                            <option value="SPM">Express PM</option>
-                        </select>
-                    </div>
-                </div>
+                {#                    <div class="pair">#}
+                <label for="service">Service:</label>
+                <select id="service" name="service">
+                    <option value="SND" selected>Express 24</option>
+                    <option value="09">Express Pre-9am</option>
+                    <option value="S10">Express Pre-10am</option>
+                    <option value="S12">Express Pre-Noon</option>
+                    <option value="SUP">Express 48</option>
+                    <option value="SPM">Express PM</option>
+                </select>
+                {#                    </div>#}
+                {#                </div>#}
             </div>
 
             <div class="inputs inputs__contact">
                 <h1>Contact</h1>
+                <label for="business_name">Business Name:</label>
+                <input type="text" id="business_name" name="business_name"
+                       value="{{ shiprec.shipment.contact.business_name }}"
+                       required>
+
                 <label for="contact_name">Contact Name:</label>
                 <input type="text" id="contact_name" name="contact_name"
                        value="{{ shiprec.shipment.contact.contact_name }}"
@@ -61,10 +71,7 @@
                 <input type="tel" id="mobile_phone" name="phone" value="{{ shiprec.shipment.contact.mobile_phone }}"
                        required>
 
-                <label for="business_name">Business Name:</label>
-                <input type="text" id="business_name" name="business_name"
-                       value="{{ shiprec.shipment.contact.business_name }}"
-                       required>
+
             </div>
 
             <div class="inputs inputs__address">
@@ -73,12 +80,24 @@
 
             <div class="inputs inputs__notes">
                 <h1>Notes</h1>
-                <label for="reference1">Reference1:</label>
-                <input type="text" id="reference1" name="reference1" value="{{ shiprec.shipment.reference1 }}">
+                <div class="reference">
+                    <label for="reference_number1">Reference:</label>
+                    <input type="text" id="reference_number1" name="reference_number1" value="{{ shiprec.shipment.reference_number1 }}">
+                    <input type="text" id="reference_number2" name="reference_number2" value="{{ shiprec.shipment.reference_number2 }}"
+                           aria-labelledby="reference_number1">
+                    <input type="text" id="reference_number3" name="reference_number3" value="{{ shiprec.shipment.reference_number3 }}"
+                           aria-labelledby="reference_number1">
+                </div>
+                <div class="special_instructions">
+                    <label for="special_instructions1">Special Instructions:</label>
+                    <input type="text" id="special_instructions1" name="special_instructions1"
+                           value="{{ shiprec.shipment.special_instructions1 }}">
+                    <input type="text" id="special_instructions2" name="special_instructions2"
+                           value="{{ shiprec.shipment.special_instructions2 }}" aria-labelledby="special_instructions1">
+                    <input type="text" id="special_instructions3" name="special_instructions3"
+                           value="{{ shiprec.shipment.special_instructions3 }}" aria-labelledby="special_instructions1">
+                </div>
 
-                <label for="special_instructions1">Special Instructions1:</label>
-                <input type="text" id="special_instructions1" name="special_instructions1"
-                       value="{{ shiprec.shipment.special_instructions1 }}">
             </div>
 
             <button type="submit">Submit</button>

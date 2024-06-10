@@ -26,7 +26,7 @@ root {
 
 html {
     font-family: "Roboto", sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.5;
     color: var(--clr-primary);
     background-color: var(--clr-secondary)
@@ -36,49 +36,55 @@ body {
     /*padding: 20px;*/
 }
 
+input, select, textarea, button {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    border-radius: 4px;
+    padding: .3rem;
+}
+
 #main-form {
     max-width: min(100% - 3rem, 1200px);
-    /*justify-content: center;*/
     margin-inline: auto;
+    background-color: purple;
 }
 
 .wrapper {
+    /*font-size: 1.5rem;*/
+    /*width:100%;*/
+    padding-inline: 3rem;
     display: grid;
     grid-template-areas:
-        "shipment shipment notes"
-        "contact address notes";
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin-inline: auto;
-    /*justify-content: space-around;*/
+        "cmc cmc cmc"
+        "shipment contact address"
+        "submit submit submit"
+        "notes notes notes";
+
+    gap: 1rem;
     background-color: red;
 }
 
+.commence {
+    grid-area: cmc;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    gap: 1rem;
+}
+
 .inputs {
-    width: 100%;
     display: flex;
     flex-direction: column;
     border: 2px solid black;
+    padding: 1rem;
+    gap: .5rem
 }
 
 .inputs__ship {
     grid-area: shipment;
-    flex-direction: row;
+}
 
-    h1 {
-        margin-right: 5rem;
-    }
-}
-.ship-options {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-
-}
-.pair {
-    display: flex;
-    flex-direction: column;
-}
 .inputs__contact {
     grid-area: contact;
 }
@@ -89,45 +95,60 @@ body {
 
 .inputs__notes {
     grid-area: notes;
+    flex-direction: row;
+    margin-inline: auto;
+    gap: 1rem;
+
+    > div {
+        display: flex;
+        flex-direction: column;
+    }
 }
 
-/*.shipment-details {*/
-/*    display: flex;*/
-/*    flex-direction: row;*/
-/*    column-span: 2;*/
-/*}*/
-
-#postcode {
-    max-width: max(50%, 150px);
-    /*display: inline;*/
-}
 
 .postcode-div {
     display: flex;
     flex-direction: row;
+    gap: 1rem;
+    /*align-items: center;*/
+    /*margin-block: 1rem;*/
+
+    .postcode-pair {
+        display: flex;
+        flex-direction: column;
+        /*gap: 1rem;*/
+    }
+
+    #postcode {
+        /*max-width: max(50%, 150px);*/
+        /*display: inline;*/
+    }
+
+    button {
+        /*margin-top: 5px;*/
+        align-self: end;
+        /*display: inline;*/
+        font-size: 18px;
+    }
 }
 
 
-/*label {*/
-/*    grid-row: span 1;*/
-/*}*/
-
-
-/*input,*/
-/*select {*/
-/*    grid-row: span 1;*/
-/*    width: 100%;*/
-/*}*/
 
 button {
-    /*display: inline;*/
-    /*padding: 10px 20px;*/
-    /*color: #fff;*/
-    /*background-color: #007bff;*/
-    /*border: none;*/
-    /*border-radius: 4px;*/
-    /*cursor: pointer;*/
-    /*font-size: 16px;*/
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding-inline: 5px;
+    padding-block: 2px;
+    /*line-height: 2rem;*/
+    /*background-color: purple;*/
+}
+
+button[type="submit"] {
+    grid-area: submit;
+    /* Your styles here */
+    background-color: blue;
+    color: white;
 }
 
 button:hover {
@@ -135,41 +156,11 @@ button:hover {
 }
 
 
-form h1 {
-    /*font-size: 24px;*/
-    /*margin-bottom: 20px;*/
-    /*color: #333;*/
-}
-
-label {
-    /*display: block;*/
-    /*font-weight: bold;*/
-    /*margin-bottom: 5px;*/
-}
-
-input,
-select {
-    /*width: 100%;*/
-    /*padding: 10px;*/
-    /*margin-bottom: 20px;*/
-    /*border: 1px solid #ccc;*/
-    /*border-radius: 4px;*/
-    /*font-size: 16px;*/
-}
-
-/*input[type="date"],*/
-/*input[type="number"],*/
-/*input[type="text"],*/
-/*input[type="email"],*/
-/*input[type="tel"] {*/
-/*    appearance: none;*/
-/*}*/
-
 input:focus,
 select:focus {
-    /*border-color: #007bff;*/
-    /*outline: none;*/
-    /*box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);*/
+    border: 3px solid #186d9a;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
 

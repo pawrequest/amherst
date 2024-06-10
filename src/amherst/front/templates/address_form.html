@@ -1,37 +1,39 @@
 <h1>Address</h1>
-<label for="address-select">From Postcode:</label>
-<select id="address-select" name="address" onchange="updateManualFieldsCaps()">
-    {% for addr_choice in candidates %}
-        <option value="{{ addr_choice.address.model_dump_json(by_alias=True) }}">{{ addr_choice.address.lines_str }}</option>
-    {% endfor %}
-</select>
 
-<label for="address_line1">Address Line 1:</label>
+<label for="address_line1">Address Lines:</label>
 <input type="text" id="address_line1" name="address_line1"
        value="{{ shiprec.shipment.address.address_line1 }}"
-       required>
-
-<label for="address_line2">Address Line 2:</label>
-<input type="text" id="address_line2" name="address_line2"
-       value="{{ shiprec.shipment.address.address_line2 }}">
-
-<label for="address_line3">Address Line 3:</label>
+       required
+>
+<input type="text" id="address_line2" name="address_line2 "
+       value="{{ shiprec.shipment.address.address_line2 }}"
+       aria-labelledby="address_line1"
+>
 <input type="text" id="address_line3" name="address_line3"
        value="{{ shiprec.shipment.address.address_line3 }}"
+       aria-labelledby="address_line1"
 >
 
 <label for="town">Town:</label>
 <input type="text" id="town" name="town" required
        value="{{ shiprec.shipment.address.town }}"
 >
-<label for="postcode">Postcode:</label>
 <div class="postcode-div">
-    <input type="text" id="postcode" name="postcode" required
-           value="{{ shiprec.shipment.address.postcode }}"
-    >
-    <button type="button" onclick="loadCandidatesp()">Load addresses from postcode</button>
-{#    <button type="button" onclick="loadCandidates()">Load addresses from postcode</button>#}
+    <div class="postcode-pair">
+        <label for="postcode">Postcode:</label>
+        <input type="text" id="postcode" name="postcode" required
+               value="{{ shiprec.shipment.address.postcode }}"
+        >
+    </div>
+    <button type="button" onclick="loadCandidatesp()">Update Address Choices</button>
 </div>
+
+<label for="address-select">Choose Address</label>
+<select id="address-select" name="address" onchange="updateManualFieldsCaps()">
+    {% for addr_choice in candidates %}
+        <option value="{{ addr_choice.address.model_dump_json(by_alias=True) }}">{{ addr_choice.address.lines_str }}</option>
+    {% endfor %}
+</select>
 
 
 {#<label for="combo-input">Combo</label>#}

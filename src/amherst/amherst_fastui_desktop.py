@@ -23,6 +23,7 @@ import base64
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
+from win32com.universal import com_error
 
 from pycommence import PyCommence
 import amherst.models.am_record
@@ -52,19 +53,19 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
         amrec = amrec.model_validate(amrec)
 
         shiprec_id = am_db.amherst_record_to_shiprec(amrec)
+        assert shiprec_id, f'Error creating ShipableRecord for {amrec.name}'
         logger.info(f'added ShipmentRecord #{shiprec_id}')
+
+    except com_error as e:
+        alert = 'Error: Commence Server execution failed. Ensure Commence is running.'
 
     except Exception as e:
         alert = f'Error creating ShipableRecord: {e}'
-        logger.exception(alert)
-        alert = base64.urlsafe_b64encode(alert.encode('utf-8')).decode('utf-8')
-
-    # finally:
-    #     CoUninitialize()
 
     try:
-        if alert or not shiprec_id:
-            logger.warning(f'alert = {alert}')
+        if alert:
+            logger.exception(alert)
+            alert = base64.urlsafe_b64encode(alert.encode('utf-8')).decode('utf-8')
             fui = FlaskUI(
                 fullscreen=True,
                 app=app_file.app,
@@ -76,9 +77,8 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                url_suffix=f'jinji/{shiprec_id}',
-                # url_suffix=f'jinji/autoform',
-                # url_suffix=f'ship/select/{shiprec_id}',
+                # url_suffix=f'jinji/{shiprec_id}',
+                url_suffix=f'ship/select/{shiprec_id}',
             )
         fui.run()
     except Exception as e:

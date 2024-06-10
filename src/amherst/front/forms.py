@@ -64,7 +64,7 @@ async def manual_post(
 
     state = Shipment.model_validate(
         Shipment(
-            reference1=reference,
+            reference_number1=reference,
             special_instructions1=special_instructions,
             boxes=boxes,
             ship_date=date,
@@ -122,7 +122,7 @@ async def select_post(
                 address=address_choice,
                 contact=contact,
                 service=service,
-                reference1=reference,
+                reference_number1=reference,
                 special_instructions1=special_instructions,
 
             )

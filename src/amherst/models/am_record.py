@@ -82,7 +82,7 @@ class AmherstRecord(_p.BaseModel):
                 address=chosen,
                 ship_date=self.send_date,
                 boxes=self.boxes,
-                reference1=self.customer,
+                reference_number1=self.customer,
             )
         except BackendError as err:
             if isinstance(err.args[0], XMLParseError):
