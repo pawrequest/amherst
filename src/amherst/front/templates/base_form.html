@@ -3,6 +3,11 @@
 {% block title %}Amherst Shipper{% endblock %}
 
 {% block content %}
+    {% if request.app.ship_live %}
+        <div class="shipper shipper__live">Shipper in Live Mode</div>
+    {% else %}
+        <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
+    {% endif %}
     {#    {% include 'email_handler.html' with context %}#}
 
     <form id="main-form" hx-post="post_form/{{ shiprec.id }}"
@@ -147,7 +152,7 @@
                 <input type="text" id="special_instructions3" name="special_instructions3"
                         {% if shiprec.shipment.special_instructions3 %}
                        value="{{ shiprec.shipment.special_instructions3 }}"
-                       {% endif %}
+                        {% endif %}
                        aria-labelledby="special_instructions1"
                        maxlength="24">
                 {#                                    </div>#}

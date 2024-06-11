@@ -23,17 +23,17 @@
 <input type="text" id="town" name="town" required
        value="{{ shiprec.shipment.address.town }}"
 >
-        <label for="postcode">Postcode:</label>
-        <input type="text" id="postcode" name="postcode" required
-               value="{{ shiprec.shipment.address.postcode }}"
-        >
-    <button type="button" class="update-address-btn" onclick="loadCandidates()">Update Address Choices</button>
+<label for="postcode">Postcode:</label>
+<input type="text" id="postcode" name="postcode" required
+       value="{{ shiprec.shipment.address.postcode }}"
+>
+<button type="button" class="update-address-btn" onclick="loadCandidates()">Update Address Choices</button>
 {#    <button class="update-address-btn" onclick="loadCandidates()">Update Address Choices</button>#}
 
 <label for="address-select">Choose Address</label>
 <select id="address-select" name="address" onchange="updateManualFields()">
     {% for addr_choice in candidates %}
-    <option value="{{ addr_choice.address.model_dump_json(by_alias=True) }}">{{ addr_choice.address.lines_str }}
-    </option>
+        <option value="{{ addr_choice.address.model_dump_json(by_alias=True) }}">{{ addr_choice.address.lines_str }}
+        </option>
     {% endfor %}
 </select>

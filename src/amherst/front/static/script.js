@@ -16,11 +16,7 @@
 function updateManualFields() {
     const selectedOption = document.getElementById('address-select').value;
     const addressData = JSON.parse(selectedOption);
-    console.log('updating manual fields caps')
-    console.log('Address data:', addressData)
-    console.log('selectedOption:', selectedOption)
-
-
+    console.log('updating manual fields')
     document.getElementById('address_line1').value = addressData.AddressLine1 || '';
     document.getElementById('address_line2').value = addressData.AddressLine2 || '';
     document.getElementById('address_line3').value = addressData.AddressLine3 || '';
@@ -28,6 +24,7 @@ function updateManualFields() {
     document.getElementById('postcode').value = addressData.Postcode || '';
 }
 
+// Load the new address candidates from postcode when user presses the button
 function loadCandidates() {
     console.log('Loading candidates pydantic');
     const postcode = document.getElementById('postcode').value;
@@ -47,15 +44,13 @@ function loadCandidates() {
         });
 }
 
+// hide the returned request div on page load to avoid resubmission of confirmation
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('main-form');
     const returnedRequestDiv = document.querySelector('.returned-request');
-
     form.addEventListener('input', function () {
         returnedRequestDiv.style.display = 'none';
-
     });
-
     form.addEventListener('submit', function (event) {
         returnedRequestDiv.style.display = '';
     });
