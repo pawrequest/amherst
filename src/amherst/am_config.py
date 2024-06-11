@@ -9,8 +9,7 @@ import typing as _t
 
 import pydantic as _p
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from suppawt.pawlogger import get_loguru
-
+from pawlogger import get_loguru
 AM_ENV = os.getenv('AM_ENV')
 if not Path(AM_ENV).exists():
     raise ValueError(f'AM_ENV .env file doies not exist: {AM_ENV}')

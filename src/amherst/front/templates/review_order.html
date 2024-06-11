@@ -3,22 +3,16 @@
 {% block title %}Amherst Shipper - confirm details{% endblock %}
 
 {% block content %}
-    <div class="loading-spinner" style="display: none;">
-        <p>Loading...</p>
-        <!-- Add your spinner HTML/CSS here -->
-        <div class="spinner"></div>
+    <div class="loading-spinner">
+        <span class="loader"></span>
     </div>
     <div id=results class="wrapper wrapper__requested requested-shipment">
-        {#        <div class="requested-head">#}
-        {#            <h2 class="requested-title">Requested Shipment:</h2>#}
-        {#            <button class="btn-confirm" hx-post="confirm_booking" hx-target="#results" hx-swap="innerHTML">Confirm Booking</button>#}
-        {#        </div>#}
         <section class="requested-head">
             <h2 class="requested-title">Requested Shipment:</h2>
-            <form hx-post="confirm_booking" hx-target="#results" hx-swap="innerHTML">
+            <form hx-post="confirm_booking" hx-target="#results" hx-swap="beforebegin">
                 <input type="hidden" name="shipment_request" value='{{ shipment_request.model_dump_json() | safe }}'>
                 <input type="hidden" name="shiprec_id" value='{{ shiprec_id }}'>
-                <button class="submit-confirm">Confirm Booking</button>
+                <button class="submit-confirm-btn">Confirm Booking</button>
                 {#                <button type="submit" class="btn-confirm">Confirm Booking</button>#}
             </form>
         </section>
@@ -78,9 +72,12 @@
         {% if shipment_request.collection_info %}
             <section class="inputs requested__collection">
                 <h3>Collection Information</h3>
-                {%  set cont = shipment_request.collection_info.collection_contact %}
-                <p><strong>Collection Contact:</strong> {{ cont.contact_name }} - {{ cont.business_name }} - {{ cont.mobile_phone }} - {{ cont.email_address }}</p>
-                <p><strong>Collection Address:</strong> {{ shipment_request.collection_info.collection_address.address_line1 }} -  {{ shipment_request.collection_info.collection_address.postcode }}</p>
+                {% set cont = shipment_request.collection_info.collection_contact %}
+                <p><strong>Collection Contact:</strong> {{ cont.contact_name }} - {{ cont.business_name }}
+                    - {{ cont.mobile_phone }} - {{ cont.email_address }}</p>
+                <p><strong>Collection
+                    Address:</strong> {{ shipment_request.collection_info.collection_address.address_line1 }}
+                    - {{ shipment_request.collection_info.collection_address.postcode }}</p>
             </section>
         {% endif %}
 
@@ -126,17 +123,25 @@
 
     <script>
         const spinner = document.querySelector('.loading-spinner');
-        const returnedRequestDiv = document.querySelector('.returned-request');
-        const confirmButton = document.querySelector('.submit-confirm');
+        const resultsDiv = document.querySelector('.returned-request');
+        const requestDiv = document.querySelector('.requested-shipment');
+        const confirmButton = document.querySelector('.submit-confirm-btn');
 
         confirmButton.addEventListener('click', function () {
             console.log('confirm button clicked');
             spinner.style.display = 'flex';
+            requestDiv.style.display = 'none';
         });
 
-        returnedRequestDiv.addEventListener('htmx:afterOnLoad', function () {
+        resultsDiv.addEventListener('htmx:afterOnLoad', function () {
             console.log('htmx:afterOnLoad');
             spinner.style.display = 'none';
+            requestDiv.style.display = '';
+
+            const bookingConfirmed = document.createElement('div');
+            bookingConfirmed.className = 'booking-confirmed';
+            bookingConfirmed.innerText = 'Booking Confirmed';
+            confirmButton.parentNode.replaceChild(bookingConfirmed, confirmButton)
         });
         console.log('script loaded')
     </script>

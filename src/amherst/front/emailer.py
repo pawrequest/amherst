@@ -67,21 +67,6 @@ class EmailChoiceBoolean(c.FormFieldBoolean):
     name: EmailChoices
 
 
-def get_email_form(shiprec: ShipmentRecordInDB, choices: list[EmailChoices]):
-    bool_fields = [EmailChoiceBoolean(name=k, title=k.title()) for k in choices]
-
-    return c.Form(
-        form_fields=[
-            c.FormFieldSelect(
-                name='recipients',
-                title='recipients',
-                multiple=True,
-                options=get_email_options(shiprec),
-            ),
-            *bool_fields,
-        ],
-        submit_url=f'/api/email/{shiprec.id}',
-    )
 
 
 GREETING = 'Hi,\n\nThanks for choosing to hire from Amherst.\n'
@@ -143,7 +128,7 @@ async def generic_email(
         label: bool = False,
         missing: bool = False,
         invoice: bool = False,
-) -> eh.EmailMultipleAttachments:
+) -> eh.Email:
     """Get an Email object for sending an invoice, missing kit request, or shipping-label.
 
     Args:
@@ -154,7 +139,7 @@ async def generic_email(
         invoice: Whether to include the invoice.
 
     Returns:
-        EmailMultipleAttachments: The email object.
+        Email: The email object.
     """
     if shiprec.record.cmc_table_name == 'Customer':
         if invoice:
@@ -177,7 +162,7 @@ async def generic_email(
         except AttributeError:
             raise ValueError('Label not downloaded')
 
-    return eh.EmailMultipleAttachments(
+    return eh.Email(
         to_address=addresses,
         subject=await subject(invoice_num, missing, label),
         body=compose_body(shiprec.shipment, shiprec.record, invoice, missing, label),

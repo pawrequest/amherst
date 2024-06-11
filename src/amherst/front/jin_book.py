@@ -1,31 +1,17 @@
+from __future__ import annotations
+
+from typing import Literal
+
 from loguru import logger
+from suppawt.office_ps import email_handler
 
 import shipaw
 from amherst.am_shared import HireFields
+from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordInDB
 from pycommence import PyCommence
-from shipaw import BookingState, ELClient
+from shipaw import BookingState
 from shipaw.models.all_shipment_types import ShipmentRequest
-
-
-def process_shipment_request(shipment_request: ShipmentRequest, el_client: ELClient):
-    """Process the shipment.
-
-    Update the shiprec with the booking shipment and wait for the label to download.
-    Open the label file in OS default pdf handler.
-
-    Args:
-        shipment_request (shipment_record.ShipmentRecordDB): The shiprec object.
-        el_client (ELClient): :class:`~ELClient` object.
-
-    Returns:
-        shiprecs.ShipmentRecordDB: The shiprec object.
-
-    Raises:
-        shipaw.ExpressLinkError: If the shipment is not completed.
-
-    """
-    return shipment_request
 
 
 def book_shipment(el_client, shipment_request: ShipmentRequest) -> BookingState:
@@ -69,4 +55,15 @@ def do_record_tracking(category, direction, record_name, tracking_number):
         )
     logger.info(
         f'Set DB Printed and Updated "{record_name}" {tracking_link_field} to {tracking_link}'
+    )
+
+
+
+
+async def subject(invoice_num: str | None = None, missing = None, label = None):
+    return (
+        f'Amherst Radios'
+        f'{f"- Invoice {invoice_num} Attached" if invoice_num else ""} '
+        f'{"- We Are Missing Kit" if missing else ""} '
+        f'{"- Shipping Label Attached" if label else ""}'
     )

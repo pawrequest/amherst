@@ -9,9 +9,11 @@ from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.templating import Jinja2Templates
+from suppawt.office_ps.email_handler import EmailError, Email
+from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
 
-from amherst.front.jin_book import book_shipment
+from amherst.front.jin_book import book_shipment, subject
 from shipaw import ELClient, Shipment, ship_types
 from amherst import am_db
 from amherst.am_config import am_sett
@@ -25,6 +27,81 @@ from shipaw.ship_types import VALID_POSTCODE
 TEMPLATES = Jinja2Templates(directory=str(am_sett().base_dir / 'front' / 'templates'))
 
 router = APIRouter()
+
+
+@router.post('/print', response_class=HTMLResponse)
+async def print_label(request: Request, addr: str = Form(...)):
+    """Endpoint to print the label for a booking."""
+    logger.info(addr)
+
+
+@router.post('/email', response_class=HTMLResponse)
+async def email(request: Request, shiprec_id: int = Form(...), session=Depends(am_db.get_session)):
+    """Endpoint to handle email options."""
+    shiprec = await support.get_shiprec(shiprec_id, session)
+    form_data = await request.form()
+    addresses = [value for key, value in form_data.items() if
+                 value and key.startswith('email-')]
+    addresses = '; '.join(addresses)
+
+    att_choices = [key.lstrip('att-') for key, value in form_data.items() if
+                   value and key.startswith('att-')]
+    if invoice := 'invoice' in att_choices:
+        invoice = shiprec.record.invoice.with_suffix('.pdf')
+    if label := 'label' in att_choices:
+        label = shiprec.booking_state.label_dl_path
+    if missing := 'missing' in att_choices:
+        missing = shiprec.record.missing_kit
+
+    email_obj = await make_email(addresses, invoice, label, missing, shiprec.booking_state)
+
+    try:
+        emailer(email_obj, html=True)
+    except EmailError as e:
+        msg = 'Error sending email'
+        if '-2147221005' in e.args:
+            msg = f'{msg} - Outlook not open'
+            logger.exception(msg)
+        return HTMLResponse(content=f'<p>{msg} {e}</p>')
+    else:
+        return HTMLResponse(content='<p>Email created and opened</p>')
+
+    # logger.info(f'Email options received: {email_options}')
+
+    # Process email options as needed
+    # processed_options = ', '.join([f"{key}: {value}" for key, value in email_options.items()])
+
+
+async def make_email(addresses, invoice, label, missing, booking_state):
+    email_body = TEMPLATES.get_template('email.html').render(
+        {
+            'booking_state': booking_state,
+            'invoice': invoice,
+            'label': label,
+            'missing': missing,
+        }
+    )
+    subject_str = await subject(
+        invoice.stem if invoice else None,
+        missing is not False,
+        label is not False
+    )
+    email_obj = Email(
+        to_address=addresses,
+        subject=subject_str,
+        body=email_body,
+        attachment_paths=[x for x in [label, invoice] if x],
+    )
+    return email_obj
+
+
+#
+# @router.post('/email', response_class=HTMLResponse)
+# async def email(request : Request, label_path: str = Form(...)):
+#     """Endpoint to print the label for a booking."""
+#     logger.info(f'printing')
+#     array_pdf.convert_many(Path(label_path), print_files=True)
+#     return HTMLResponse(content=f'<p>Printed {label_path}</p>')
 
 
 @router.post("/confirm_booking", response_class=HTMLResponse)
@@ -42,7 +119,7 @@ async def confirm_booking(
 
     if hasattr(shiprec, 'booking_state') and shiprec.booking_state:
         logger.error(f'Shipment for {shiprec.record.name} already booked')
-        raise ValueError(f'Shipment for {shiprec.record.name} already booked')
+        return ValueError(f'Shipment for {shiprec.record.name} already booked')
 
     booking_state = book_shipment(el_client, shipment_request)
 
@@ -60,14 +137,15 @@ async def confirm_booking(
 
     session.add(shiprec)
     session.commit()
-
-    # record_tracking(shiprec)
-
-    return HTMLResponse(content=f"<p>Booking Confirmed! {booking_state.response}</p>")
+    return TEMPLATES.TemplateResponse(
+        'order_confirmed.html',
+        {'request': request, 'booking_state': booking_state, 'shiprec': shiprec}
+    )
 
 
 async def get_notes_f_form(form_data):
-    return [(fieldname, form_data[fieldname]) for fieldname in SHIPMENT_NOTES_FIELDNAMES if fieldname in form_data]
+    return [(fieldname, form_data[fieldname]) for fieldname in SHIPMENT_NOTES_FIELDNAMES if
+            fieldname in form_data]
 
 
 @router.post('/post_form/{shiprec_id}', response_class=HTMLResponse)
@@ -166,7 +244,6 @@ async def index(
         el_client: ELClient = Depends(am_db.get_el_client),
 ):
     shiprec = await support.get_shiprec(shiprec_id, session)
-    shiprec.model_dump_json(by_alias=True)
     addr_choices = el_client.get_choices(
         shiprec.shipment.address.postcode,
         shiprec.shipment.address

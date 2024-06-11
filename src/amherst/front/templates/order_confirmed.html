@@ -4,6 +4,31 @@
 
 {% block content %}
 
+    <div class="wrapper wrapper__results">
+        <div class="print">
+
+            <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
+                <input type="hidden" name="label_path" value="{{ booking_state.label_dl_path }}">
+                <button type="submit" class="btn-print-label">Print Label</button>
+            </form>
+            <div id="print-result"></div>
+        </div>
+        {% include 'email_handler.html' with context %}
+
+{#        <div class="email">#}
+{#            <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}
+{#                {% for addr in shiprec.record.email_options %}#}
+{#                    <label for={{ addr.name }}>{{ addr.description }}</label>#}
+{#                    <input type="checkbox" id={{ addr.name }}>#}
+{#                {% endfor %}#}
+{##}
+{##}
+{#            </form>#}
+{#        </div>#}
+    </div>
+    <script>
+
+    </script>
 {% endblock %}
 
 

@@ -18,7 +18,7 @@ from amherst.models.shipment_record import ShipmentRecordInDB
 
 
 def return_label_email(state):
-    return eh.EmailMultipleAttachments(
+    return eh.Email(
         to_address=state.contact.email_address,
         subject='Radio Hire - Parcelforce Collection Label Attached',
         body=return_body(state),

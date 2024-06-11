@@ -3,6 +3,8 @@
 {% block title %}Amherst Shipper{% endblock %}
 
 {% block content %}
+    {% include 'email_handler.html' with context %}
+
     <form id="main-form" hx-post="post_form/{{ shiprec.id }}"
           hx-target=".returned-request"
           hx-swap="innerHTML">
@@ -12,7 +14,8 @@
                     {{ shiprec.record.name }}
                 </h1>
             </div>
-            <div class="inputs inputs__ship">
+
+            <section class="inputs inputs__ship">
                 <h1>Shipment</h1>
                 <label for="ship_date">Date:</label>
                 <input type="date" id="ship_date" name="ship_date" value="{{ shiprec.shipment.ship_date }}"
@@ -38,9 +41,9 @@
                     <option value="SUP">Express 48</option>
                     <option value="SPM">Express PM</option>
                 </select>
-            </div>
+            </section>
 
-            <div class="inputs inputs__contact">
+            <section class="inputs inputs__contact">
                 <h1>Contact</h1>
                 <label for="business_name">Business Name:</label>
                 <input type="text" id="business_name" name="business_name"
@@ -59,15 +62,13 @@
                 <label for="mobile_phone">Mobile Phone:</label>
                 <input type="tel" id="mobile_phone" name="phone" value="{{ shiprec.shipment.contact.mobile_phone }}"
                        required>
+            </section>
 
-
-            </div>
-
-            <div class="inputs inputs__address">
+            <section class="inputs inputs__address">
                 {% include 'address_inputs.html' with context %}
-            </div>
+            </section>
 
-            <div class="inputs inputs__notes">
+            <section class="inputs inputs__notes">
                 <h1>Notes</h1>
                 {#                <div class="reference">#}
                 <label for="reference_number1">Reference:</label>
@@ -95,7 +96,7 @@
                        value="{{ shiprec.shipment.special_instructions3 }}" aria-labelledby="special_instructions1"
                        maxlength="24">
                 {#                </div>#}
-            </div>
+            </section>
 
             <button type="submit" class="submit-request">Submit</button>
         </div>

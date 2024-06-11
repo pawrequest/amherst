@@ -9,10 +9,10 @@ from pathlib import Path
 import pydantic as _p
 from combadge.core.errors import BackendError
 from loguru import logger
-from pawdantic.pawui.pawui_types import AlertDict
-from pydantic import AliasChoices, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field, field_validator
 from zeep.exceptions import XMLParseError
 
+from amherst.am_shared import CustomerFields
 from pycommence import PyCommence, pycmc_types
 from shipaw import ELClient, Shipment
 from shipaw.models import pf_ext, pf_lists, pf_top
@@ -52,6 +52,48 @@ class AmherstRecord(_p.BaseModel):
     boxes: int = Field(1, alias='Boxes')
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
+
+    @property
+    def email_options(self):
+        maybes = [
+            dict(
+                name='accounts',
+                email=self.customer_record.get(CustomerFields.ACCOUNTS_EMAIL),
+                description='Customer Accounts'
+            ),
+            dict(
+                name='primary',
+                email=self.customer_record.get(CustomerFields.PRIMARY_EMAIL),
+                description='Customer Primary'
+            ),
+            dict(
+                name='cust_del',
+                email=self.customer_record.get(CustomerFields.DELIVERY_EMAIL),
+                description='Customer Default Delivery'
+            ),
+            dict(
+                name='invoice',
+                email=self.customer_record.get(CustomerFields.INVOICE_EMAIL),
+                description='Customer Invoice'
+            ),
+            dict(
+                name='rec_del',
+                email=self.email,
+                description=f'{self.cmc_table_name.title()} Delivery'
+            )
+        ]
+
+        return [EmailOption(**i) for i in maybes if i['email']]
+
+    def email_addresses(self):
+        maybe_emails = [
+            self.customer_record.get(CustomerFields.ACCOUNTS_EMAIL),
+            self.customer_record.get(CustomerFields.PRIMARY_EMAIL),
+            self.customer_record.get(CustomerFields.DELIVERY_EMAIL),
+            self.customer_record.get(CustomerFields.INVOICE_EMAIL),
+            self.email,
+        ]
+        return [i for i in maybe_emails if i]
 
     # @_p.field_validator('send_date', mode='after')
     # def date_not_past(cls, v, info):
@@ -166,3 +208,12 @@ class AmherstRecordPartial(AmherstRecord):
         if not v:
             return "THISEMAILNOTREAL@REPLACEME.com"
         return v
+
+
+class EmailOption(BaseModel):
+    email: EmailStr
+    description: str
+    name: str
+
+    def __eq__(self, other: EmailOption):
+        return self.email == other.email

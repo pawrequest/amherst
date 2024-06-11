@@ -1,0 +1,22 @@
+ <div class="email">
+        <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">
+            <div class="email-recipients">
+                {% for addr in shiprec.record.email_options %}
+                    <label for="{{ addr.name }}">{{ addr.description }}</label>
+                    <input type="checkbox"
+                           id="{{ addr.name }}"
+                           name="email-{{ addr.name }}"
+                           value="{{ addr.email }}">
+                    <input type="hidden" name="shiprec_id" value="{{ shiprec.id }}">
+                {% endfor %}
+            </div>
+            <div class="attachments">
+                {% for att in ['invoice', 'missing', 'label'] %}
+                    <label for="{{ att }}">{{ att.title() }}</label>
+                    <input type="checkbox" id="{{ att }}" name="att-{{ att }}">
+                {% endfor %}
+            </div>
+            <button type="submit">Send Email</button>
+        </form>
+        <div id="email-result"></div>
+    </div>
