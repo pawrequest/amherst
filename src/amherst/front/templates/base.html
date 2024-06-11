@@ -14,6 +14,11 @@
 </head>
 <body>
 <header>
+    {% if request.app.ship_live %}
+    <div class="shipper shipper__live">Shipper in Live Mode</div>
+    {% else %}
+    <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
+    {% endif %}
 </header>
 <section>
     {% if shiprec and shiprec.record.alerts %}

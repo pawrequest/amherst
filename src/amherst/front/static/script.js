@@ -13,7 +13,7 @@
  * @property {Address} Address
  * @property {number} Score
  */
-function updateManualFieldsCaps() {
+function updateManualFields() {
     const selectedOption = document.getElementById('address-select').value;
     const addressData = JSON.parse(selectedOption);
     console.log('updating manual fields caps')
@@ -28,7 +28,7 @@ function updateManualFieldsCaps() {
     document.getElementById('postcode').value = addressData.Postcode || '';
 }
 
-function loadCandidatesp() {
+function loadCandidates() {
     console.log('Loading candidates pydantic');
     const postcode = document.getElementById('postcode').value;
     fetch(`/jinji/get_candidatesp?postcode=${postcode}`)
@@ -43,7 +43,7 @@ function loadCandidatesp() {
                 option.textContent = addressChoice.Address.AddressLine1;
                 addressSelect.appendChild(option);
             });
-            updateManualFieldsCaps();
+            updateManualFields();
         });
 }
 

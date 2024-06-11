@@ -36,6 +36,8 @@ dependencies = [
 dev = [
     'pyinstaller',
     "pytest",
+]
+docs = [
     "sphinx",
     "sphinx-autodoc-typehints",
     "sphinx-autodoc2",

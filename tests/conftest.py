@@ -3,7 +3,7 @@ import pytest
 from sqlmodel import SQLModel, Session, create_engine
 
 from shipaw import ELClient, pf_config
-from shipaw.models import pf_ext, pf_top
+from shipaw.models import pf_models, pf_top
 
 # from . import monkey as el_types
 
@@ -19,10 +19,10 @@ DB_MEMORY = 'sqlite:///:memory:'
 HIRE_NAME_ENCODED = 'UG9ydHNtb3V0aCBQcmlkZSAtIDAyLzA3LzIwMjQgcmVmIDIwMzU5'
 
 
-### COMMENCE
+# COMMENCE
 
 
-### FASTAPI
+# FASTAPI
 @pytest.fixture(scope='session')
 def test_session():
     engine = create_engine(DB_MEMORY)
@@ -32,12 +32,11 @@ def test_session():
         yield session
 
 
-## ExpressLink
-
+# ExpressLink
 
 @pytest.fixture
 def sett():
-    settings = pf_config.sandbox_settings()
+    settings = pf_config.pf_sandbox_sett()
     pf_config.PFSandboxSettings.model_validate(settings, from_attributes=True)
     yield settings
 
@@ -49,7 +48,7 @@ def el_client(sett):
 
 @pytest.fixture
 def fake_address():
-    addr = pf_ext.AddressRecipient.model_validate(
+    addr = pf_models.AddressRecipient.model_validate(
         dict(
             address_line1='30 Bennet Close',
             town='East Wickham',
@@ -61,7 +60,7 @@ def fake_address():
 
 @pytest.fixture
 def long_address():
-    addr = pf_ext.AddressRecipient.model_validate(
+    addr = pf_models.AddressRecipient.model_validate(
         dict(
             address_line1='30 Bennet Close' * 10,
             town='East Wickham',

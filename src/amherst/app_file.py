@@ -3,6 +3,7 @@ import contextlib
 import flaskwebgui
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
+from shipaw import pf_config
 from starlette.staticfiles import StaticFiles
 
 from amherst import am_config
@@ -10,7 +11,7 @@ from amherst.front.jinji import router as jinji_router
 
 settings = am_config.AmSettings()
 static_path = settings.base_dir / 'front' / 'static'
-
+pf_settings = pf_config.pf_sett()
 
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
@@ -31,7 +32,7 @@ app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(static_path)), name='static')
 
 app.include_router(jinji_router, prefix='/jinji')
-
+app.ship_live = pf_settings.ship_live
 
 @app.get('/api/close_app/', response_model=None, response_model_exclude_none=True)
 async def close_app(
@@ -63,9 +64,9 @@ async def favicon_ico() -> responses.RedirectResponse:
 #     session.commit()
 
 
-@app.get('/{path:path}')
-async def html_landing() -> responses.HTMLResponse:
-    return responses.HTMLResponse(prebuilt_html(title='Amherst'))
+# @app.get('/{path:path}')
+# async def html_landing() -> responses.HTMLResponse:
+#     return responses.HTMLResponse(prebuilt_html(title='Amherst'))
 
 #
 # @app.exception_handler(

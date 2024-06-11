@@ -221,6 +221,18 @@ select:focus {
 ;
 }
 
+.shipper {
+    display: flex;
+    justify-content: center;
+}
+.shipper__live {
+    background-color: rgba(255, 0, 0, 0.23);
+}
+
+.shipper__sandbox {
+    background: rgba(255, 193, 7, 0.48);
+
+}
 .requested-shipment {
     /*border: 1px solid #ccc;*/
     /*padding: 20px;*/

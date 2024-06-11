@@ -1,4 +1,5 @@
 # from __future__ import annotations
+import base64
 import os
 from datetime import date
 from pathlib import Path
@@ -31,8 +32,12 @@ TEMPLATES = Jinja2Templates(directory=str(am_sett().base_dir / 'front' / 'templa
 router = APIRouter()
 
 
-@router.post('/fail', response_class=HTMLResponse)
-async def fail(request: Request, alerts: list[Alert] = Form(...)):
+@router.get('/fail/{alert}', response_class=HTMLResponse)
+async def fail(request: Request, alert: str):
+    alert = base64.urlsafe_b64decode(alert).decode('utf-8')
+    logger.error(f'Error: {alert}')
+    return TEMPLATES.TemplateResponse('fail.html', {'request': request, 'alert': alert})
+
 
 @router.post('/print', response_class=HTMLResponse)
 async def print_label(request: Request, label_path: str = Form(...)):
