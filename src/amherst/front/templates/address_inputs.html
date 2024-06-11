@@ -10,7 +10,7 @@
        value="{{ shiprec.shipment.address.address_line1 }}"
        required
 >
-<input type="text" id="address_line2" name="address_line2 "
+<input type="text" id="address_line2" name="address_line2"
        value="{{ shiprec.shipment.address.address_line2 }}"
        aria-labelledby="address_line1"
 >
@@ -23,15 +23,11 @@
 <input type="text" id="town" name="town" required
        value="{{ shiprec.shipment.address.town }}"
 >
-{#<div class="postcode-div">#}
-{#    <div class="postcode-pair">#}
         <label for="postcode">Postcode:</label>
         <input type="text" id="postcode" name="postcode" required
                value="{{ shiprec.shipment.address.postcode }}"
         >
-{#    </div>#}
     <button class="update-address-btn" onclick="loadCandidatesp()">Update Address Choices</button>
-{#</div>#}
 
 <label for="address-select">Choose Address</label>
 <select id="address-select" name="address" onchange="updateManualFieldsCaps()">

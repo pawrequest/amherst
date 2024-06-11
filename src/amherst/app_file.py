@@ -1,15 +1,13 @@
 import contextlib
 
 import flaskwebgui
-import pythoncom
 from fastapi import FastAPI, responses
 from fastui import prebuilt_html
-from starlette.exceptions import HTTPException
-from starlette.requests import Request
 from starlette.staticfiles import StaticFiles
 
-from amherst import am_config, front
+from amherst import am_config
 from amherst.front.jinji import router as jinji_router
+
 settings = am_config.AmSettings()
 static_path = settings.base_dir / 'front' / 'static'
 
@@ -32,12 +30,6 @@ async def lifespan(app_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(static_path)), name='static')
 
-app.include_router(front.shipping_router, prefix='/api/ship')
-app.include_router(front.booking_router, prefix='/api/book')
-app.include_router(front.booked_router, prefix='/api/booked')
-app.include_router(front.forms_router, prefix='/api/forms')
-app.include_router(front.email_router, prefix='/api/email')
-app.include_router(front.shared_router, prefix='/api/shared')
 app.include_router(jinji_router, prefix='/jinji')
 
 

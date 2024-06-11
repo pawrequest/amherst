@@ -1,6 +1,6 @@
 set CATEGORY=%1
 set RECORD=%2
-set VENV=C:\Users\giles\prdev\amdev\amherst\.venv
+set VENV=C:\Users\giles\prdev\amdev\.venv
 set PYTHONPATH=C:\Users\giles\prdev\amdev\amherst\src
 
 set SHIP_ENV=R:\paul_r\.internal\envs\pf_live.env

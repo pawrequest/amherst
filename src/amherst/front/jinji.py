@@ -1,7 +1,9 @@
 # from __future__ import annotations
 import os
 from datetime import date
+from pathlib import Path
 
+import pawdf
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
@@ -13,8 +15,8 @@ from suppawt.office_ps.email_handler import EmailError, Email
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
 
-from amherst.front.jin_book import book_shipment, subject
-from shipaw import ELClient, Shipment, ship_types
+from amherst.front.jin_book import book_shipment, subject, record_tracking
+from shipaw import ELClient, Shipment, ship_types, BookingState
 from amherst import am_db
 from amherst.am_config import am_sett
 from amherst.front import support
@@ -30,9 +32,11 @@ router = APIRouter()
 
 
 @router.post('/print', response_class=HTMLResponse)
-async def print_label(request: Request, addr: str = Form(...)):
+async def print_label(request: Request, label_path: str = Form(...)):
     """Endpoint to print the label for a booking."""
-    logger.info(addr)
+    pawdf.array_pdf.convert_many(Path(label_path), print_files=True)
+    return HTMLResponse(content=f'<p>Printed {label_path}</p>')
+
 
 
 @router.post('/email', response_class=HTMLResponse)
@@ -113,34 +117,42 @@ async def confirm_booking(
         session: Session = Depends(am_db.get_session),
 ):
     shipment_request = ShipmentRequest.model_validate_json(shipment_request)
-
+    booking_state: BookingState | None = None
     logger.warning(f'booking_id: {shiprec_id}')
     shiprec = await support.get_shiprec(shiprec_id, session)
 
-    if hasattr(shiprec, 'booking_state') and shiprec.booking_state:
-        logger.error(f'Shipment for {shiprec.record.name} already booked')
-        return ValueError(f'Shipment for {shiprec.record.name} already booked')
+    try:
+        if hasattr(shiprec, 'booking_state') and shiprec.booking_state:
+            logger.error(f'Shipment for {shiprec.record.name} already booked')
+            return ValueError(f'Shipment for {shiprec.record.name} already booked')
 
-    booking_state = book_shipment(el_client, shipment_request)
+        booking_state = book_shipment(el_client, shipment_request)
+        record_tracking()
 
-    label_path = shipment_request.label_path
-    support.wait_label_decon(
-        shipment_num=booking_state.response.shipment_num,
-        dl_path=label_path,
-        el_client=el_client
-    )
-    os.startfile(label_path)
-    booking_state.label_downloaded = True
-    booking_state.label_dl_path = label_path
+        label_path = shipment_request.label_path
+        support.wait_label_decon(
+            shipment_num=booking_state.response.shipment_num,
+            dl_path=label_path,
+            el_client=el_client
+        )
+        booking_state.label_downloaded = True
+        booking_state.label_dl_path = label_path
+        shiprec.booking_state = booking_state
 
-    shiprec.booking_state = booking_state
+        session.add(shiprec)
+        session.commit()
+        return TEMPLATES.TemplateResponse(
+            'order_confirmed.html',
+            {'request': request, 'booking_state': booking_state, 'shiprec': shiprec}
+        )
+    except Exception as e:
+        if booking_state:
+            return TEMPLATES.TemplateResponse(
+                'order_confirmed.html',
+                {'request': request, 'booking_state': booking_state, 'shiprec': shiprec}
+            )
 
-    session.add(shiprec)
-    session.commit()
-    return TEMPLATES.TemplateResponse(
-        'order_confirmed.html',
-        {'request': request, 'booking_state': booking_state, 'shiprec': shiprec}
-    )
+        return f'<p>ERROR: {str(e)}</p>'
 
 
 async def get_notes_f_form(form_data):

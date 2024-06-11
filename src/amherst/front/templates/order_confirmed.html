@@ -5,6 +5,9 @@
 {% block content %}
 
     <div class="wrapper wrapper__results">
+    <div class="response">
+        {{ booking_state.response }}
+    </div>
         <div class="print">
 
             <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">

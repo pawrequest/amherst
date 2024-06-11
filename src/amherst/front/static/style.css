@@ -72,7 +72,7 @@ h1 {
 
 .wrapper__booking {
     grid-template-areas:
-           "email cmc cmc cmc"
+           "cmc cmc cmc cmc"
            "shipment contact address notes"
            "submit submit submit submit";
            /*"notes notes notes";*/
@@ -216,8 +216,9 @@ select:focus {
 
     grid-template-areas:
         "... head head ..."
+        "details contact address notes"
         "collection collection collection collection"
-        "details contact address notes";
+;
 }
 
 .requested-shipment {

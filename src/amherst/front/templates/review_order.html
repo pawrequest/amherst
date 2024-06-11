@@ -17,7 +17,7 @@
             </form>
         </section>
         <section class="inputs requested__contact">
-            <h3>Contact Information</h3>
+            <h3>Recipient Contact</h3>
             <p><strong>Business Name:</strong> {{ shipment_request.recipient_contact.business_name }}</p>
             <p><strong>Contact Name:</strong> {{ shipment_request.recipient_contact.contact_name }}</p>
             <p><strong>Email:</strong> {{ shipment_request.recipient_contact.email_address }}</p>
@@ -25,7 +25,7 @@
         </section>
 
         <section class="inputs requested__address">
-            <h3>Address</h3>
+            <h3>Recipient Address</h3>
             <p><strong>Address Line 1:</strong> {{ shipment_request.recipient_address.address_line1 }}</p>
             {% if shipment_request.recipient_address.address_line2 %}
                 <p><strong>Address Line 2:</strong> {{ shipment_request.recipient_address.address_line2 }}</p>
@@ -82,7 +82,7 @@
         {% endif %}
 
         <section class="inputs requested__details">
-            <h3>Other Details</h3>
+            <h3>Shipment Details</h3>
             <p><strong>Total Number of Parcels:</strong> {{ shipment_request.total_number_of_parcels }}</p>
             <p><strong>Shipping Date:</strong> {{ shipment_request.shipping_date }}</p>
             <p><strong>Service Code:</strong> {{ shipment_request.service_code }}</p>

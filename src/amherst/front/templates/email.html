@@ -26,7 +26,7 @@
     <p>Please find a pre-paid Parcelforce label attached – it needs to be printed and attached to the box.</p>
     <p>Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!</p>
 
-    {% if booking_state.collection_info %}
+    {% if booking_state.response.collection_info %}
     <p>Collection is booked for {{ booking_state.requested_shipment.shipping_date }} from {{ booking_state.collection_info.recipient_address.address_line1 }}.</p>
     <p>We are unable to give precise timings, however you should receive notifications by SMS and email where provided.</p>
 
