@@ -9,7 +9,7 @@ import pawdf
 from fastui import components as c
 from loguru import logger
 import sqlmodel as sqm
-from shipaw.models import pf_ext, pf_shared
+from shipaw.models import pf_models, pf_shared
 import shipaw
 from shipaw import BookingState, ELClient, pf_config, Shipment
 
@@ -128,4 +128,4 @@ async def update_shiprec_shipment(
 
 
 async def addr_class_f_direction(direction):
-    return pf_ext.AddressRecipient if direction == 'out' else pf_ext.AddressCollection
+    return pf_models.AddressRecipient if direction == 'out' else pf_models.AddressCollection

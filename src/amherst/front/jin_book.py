@@ -11,7 +11,7 @@ from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordInDB
 from pycommence import PyCommence
 from shipaw import BookingState
-from shipaw.models.all_shipment_types import ShipmentRequest
+from shipaw.models.pf_shipment import ShipmentRequest
 
 
 def book_shipment(el_client, shipment_request: ShipmentRequest) -> BookingState:

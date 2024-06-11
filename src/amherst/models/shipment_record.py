@@ -23,7 +23,18 @@ class ShipmentRecordDB(ShipmentRecord, table=True):
     id: int | None = sqm.Field(primary_key=True)
     shipment: Shipment = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(Shipment)))
     record: AmherstRecord = sqm.Field(sa_column=sqm.Column(s_types.PawdanticJSON(AmherstRecord)))
-    booking_state: BookingState | None = sqm.Field(None, sa_column=sqm.Column(s_types.PawdanticJSON(BookingState)))
+    booking_state: BookingState | None = sqm.Field(
+        None,
+        sa_column=sqm.Column(s_types.PawdanticJSON(BookingState))
+    )
+
+
+# class BookingStateDB(BookingState, table=True):
+#     id: int | None = sqm.Field(primary_key=True)
+#
+#
+# class AmRecordDB(AmherstRecord, table=True):
+#     id: int | None = sqm.Field(primary_key=True)
 
 
 class ShipmentRecordOut(ShipmentRecord, table=False):

@@ -79,7 +79,7 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                url_suffix=f'shared/fail/{alert}',
+                url_suffix=f'jinji/fail/{alert}',
             )
         else:
             fui = FlaskUI(

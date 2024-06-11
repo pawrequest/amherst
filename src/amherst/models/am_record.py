@@ -15,7 +15,7 @@ from zeep.exceptions import XMLParseError
 from amherst.am_shared import CustomerFields
 from pycommence import PyCommence, pycmc_types
 from shipaw import ELClient, Shipment
-from shipaw.models import pf_ext, pf_lists, pf_top
+from shipaw.models import pf_models, pf_lists, pf_top
 from shipaw.models.pf_shared import Alert
 from shipaw.ship_types import SHIPPING_DATE
 
@@ -108,7 +108,7 @@ class AmherstRecord(_p.BaseModel):
 
     @cached_property
     def input_address(self):
-        return pf_ext.AddressRecipient(
+        return pf_models.AddressRecipient(
             **addr_lines_dict_am(self.address_str),
             town='',
             postcode=self.postcode,

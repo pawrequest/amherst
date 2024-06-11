@@ -21,15 +21,18 @@ from amherst import am_db
 from amherst.am_config import am_sett
 from amherst.front import support
 from shipaw.models import Contact
-from shipaw.models.all_shipment_types import SHIPMENT_NOTES_FIELDNAMES, ShipmentRequest
-from shipaw.models.pf_ext import AddressChoice, AddressCollection
-from shipaw.models.pf_shared import ServiceCode
+from shipaw.models.pf_shipment import SHIPMENT_NOTES_FIELDNAMES, ShipmentRequest
+from shipaw.models.pf_models import AddressChoice, AddressCollection
+from shipaw.models.pf_shared import ServiceCode, Alert
 from shipaw.ship_types import VALID_POSTCODE
 
 TEMPLATES = Jinja2Templates(directory=str(am_sett().base_dir / 'front' / 'templates'))
 
 router = APIRouter()
 
+
+@router.post('/fail', response_class=HTMLResponse)
+async def fail(request: Request, alerts: list[Alert] = Form(...)):
 
 @router.post('/print', response_class=HTMLResponse)
 async def print_label(request: Request, label_path: str = Form(...)):
