@@ -72,29 +72,51 @@
                 <h1>Notes</h1>
                 {#                <div class="reference">#}
                 <label for="reference_number1">Reference:</label>
-                <input type="text" id="reference_number1" name="reference_number1"
-                       value="{{ shiprec.shipment.reference_number1 }}" maxlength="24">
-                <!--suppress HtmlFormInputWithoutLabel -->
-                <input type="text" id="reference_number2" name="reference_number2"
-                       value="{{ shiprec.shipment.reference_number2 }}"
-                       aria-labelledby="reference_number1" maxlength="24">
-                <!--suppress HtmlFormInputWithoutLabel -->
-                <input type="text" id="reference_number3" name="reference_number3"
-                       value="{{ shiprec.shipment.reference_number3 }}"
-                       aria-labelledby="reference_number1" maxlength="24">
+                {% for refname, ref in [("ref1", shiprec.shipment.reference_number1), ("ref2", shiprec.shipment.reference_number2), ("ref3", shiprec.shipment.reference_number3)] %}
+                    <input type="text"
+                           id="{{ refname }}"
+                           name="{{ refname }}"
+                            {% if ref %}
+                           value="{{ ref }}"
+                            {% endif %}
+                           maxlength="24">
+                {% endfor %}
+{#                <label for="reference_number1">Reference:</label>#}
+{#                <input type="text" id="reference_number1" name="reference_number1"#}
+{#                       value="{{ shiprec.shipment.reference_number1 }}" maxlength="24">#}
+{#                <!--suppress HtmlFormInputWithoutLabel -->#}
+{#                <input type="text" id="reference_number2" name="reference_number2"#}
+{#                       value="{{ shiprec.shipment.reference_number2 }}"#}
+{#                       aria-labelledby="reference_number1" maxlength="24">#}
+{#                <!--suppress HtmlFormInputWithoutLabel -->#}
+{#                <input type="text" id="reference_number3" name="reference_number3"#}
+{#                       value="{{ shiprec.shipment.reference_number3 }}"#}
+{#                       aria-labelledby="reference_number1" maxlength="24">#}
                 {#                </div>#}
                 {#                <div class="special_instructions">#}
+
                 <label for="special_instructions1">Special Instructions:</label>
-                <input type="text" id="special_instructions1" name="special_instructions1"
-                       value="{{ shiprec.shipment.special_instructions1 }}" maxlength="25">
-                <!--suppress HtmlFormInputWithoutLabel -->
-                <input type="text" id="special_instructions2" name="special_instructions2"
-                       value="{{ shiprec.shipment.special_instructions2 }}" aria-labelledby="special_instructions1"
-                       maxlength="24">
-                <!--suppress HtmlFormInputWithoutLabel -->
-                <input type="text" id="special_instructions3" name="special_instructions3"
-                       value="{{ shiprec.shipment.special_instructions3 }}" aria-labelledby="special_instructions1"
-                       maxlength="24">
+                {% for refname, ref in [("ref1", shiprec.shipment.special_instructions1), ("ref2", shiprec.shipment.special_instructions2), ("ref3", shiprec.shipment.special_instructions3)] %}
+                    <input type="text"
+                           id="{{ refname }}"
+                           name="{{ refname }}"
+                            {% if ref %}
+                           value="{{ ref }}"
+                            {% endif %}
+                           maxlength="24">
+                {% endfor %}
+
+{#                <label for="special_instructions1">Special Instructions:</label>#}
+{#                <input type="text" id="special_instructions1" name="special_instructions1"#}
+{#                       value="{{ shiprec.shipment.special_instructions1 }}" maxlength="25">#}
+{#                <!--suppress HtmlFormInputWithoutLabel -->#}
+{#                <input type="text" id="special_instructions2" name="special_instructions2"#}
+{#                       value="{{ shiprec.shipment.special_instructions2 }}" aria-labelledby="special_instructions1"#}
+{#                       maxlength="24">#}
+{#                <!--suppress HtmlFormInputWithoutLabel -->#}
+{#                <input type="text" id="special_instructions3" name="special_instructions3"#}
+{#                       value="{{ shiprec.shipment.special_instructions3 }}" aria-labelledby="special_instructions1"#}
+{#                       maxlength="24">#}
                 {#                </div>#}
             </section>
 
