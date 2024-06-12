@@ -20,8 +20,8 @@
 
 </section>
 <section>
-    {% if shiprec and shiprec.record.alerts %}
-    {% for alert in shiprec.record.alerts %}
+    {% if booking and booking.alerts %}
+    {% for alert in booking.alerts %}
     <div class="alert alert-{{ alert.type }}">{{ alert.message }}</div>
     {% endfor %}
     {% endif %}

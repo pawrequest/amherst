@@ -11,7 +11,7 @@ from loguru import logger
 from shipaw import ELClient
 from amherst.am_config import am_sett
 from amherst.models.am_record import AmherstRecord
-from amherst.models.shipment_record import ShipmentRecordDB
+from shipaw.models.pf_shipment import ShipmentRequest
 
 
 @functools.lru_cache(maxsize=1)
@@ -56,14 +56,22 @@ def create_db(engine=None):
     sqm.SQLModel.metadata.create_all(engine)
 
 
-def amherst_record_to_shiprec(am_record: AmherstRecord) -> int:
-    with sqm.Session(get_engine()) as session:
-        initial_state = am_record.initial_shipment_state()
-        shiprec = ShipmentRecordDB(
-            record=am_record,
-            shipment=initial_state,
-        )
-        shiprec = shiprec.model_validate(shiprec)
-        session.add(shiprec)
-        session.commit()
-        return shiprec.id
+def amherst_shipment_request(am_record: AmherstRecord) -> ShipmentRequest:
+    return ShipmentRequest(
+        recipient_contact=am_record.contact(),
+        recipient_address=am_record.input_address(),
+        shipping_date=am_record.send_date,
+        total_number_of_parcels=am_record.boxes,
+        reference_number1=am_record.customer,
+    )
+# def amherst_record_to_shiprec(am_record: AmherstRecord) -> int:
+#     with sqm.Session(get_engine()) as session:
+#         initial_state = am_record.initial_shipment_state()
+#         shiprec = ShipmentRecordDB(
+#             record=am_record,
+#             shipment=initial_state,
+#         )
+#         shiprec = shiprec.model_validate(shiprec)
+#         session.add(shiprec)
+#         session.commit()
+#         return shiprec.id

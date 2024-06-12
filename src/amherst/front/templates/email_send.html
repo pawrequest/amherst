@@ -1,13 +1,13 @@
  <div class="email">
         <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">
             <div class="email-recipients">
-                {% for addr in shiprec.record.email_options %}
+                {% for addr in booking.record.email_options() %}
                     <label for="{{ addr.name }}">{{ addr.description }}</label>
                     <input type="checkbox"
                            id="{{ addr.name }}"
                            name="email-{{ addr.name }}"
                            value="{{ addr.email }}">
-                    <input type="hidden" name="shiprec_id" value="{{ shiprec.id }}">
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
                 {% endfor %}
             </div>
             <div class="attachments">

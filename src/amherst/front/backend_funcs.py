@@ -6,35 +6,34 @@ from suppawt.office_ps.email_handler import Email
 import shipaw
 from amherst.am_shared import HireFields
 from amherst.front.support import TEMPLATES
-from amherst.models.shipment_record import ShipmentRecordInDB
 from pycommence import PyCommence
-from shipaw import BookingState
+from shipaw.models import BookingState, pf_msg
 from shipaw.models.pf_shipment import ShipmentRequest
 
 
-def book_shipment(el_client, shipment_request: ShipmentRequest) -> BookingState:
+def book_shipment(el_client, shipment_request: ShipmentRequest) -> pf_msg.CreateShipmentResponse:
     resp = el_client.send_shipment_request(shipment_request)
     for a in resp.alerts if resp.alerts else []:
         if a.type == 'ERROR':
             logger.error(f'ERROR IN BOOKING: {a.message}')
             raise shipaw.ExpressLinkError(a.message)
         logger.warning(f'WARNING IN BOOKING: {a.message}')
-    return BookingState(requested_shipment=shipment_request, response=resp, booked=True)
+    return resp
 
 
-def record_tracking(shiprec: ShipmentRecordInDB):
+def record_tracking(record, booking_state: BookingState):
     try:
-        tracking_number = shiprec.booking_state.response.shipment_num
-        category = shiprec.record.cmc_table_name
+        tracking_number = booking_state.response.shipment_num
+        category = record.cmc_table_name
         if category == 'Customer':
             logger.error('CANT LOG TO CUSTOMER')
             return
-        record_name = shiprec.record.name
-        direction = shiprec.shipment.direction
+        record_name = record.name
+        direction = booking_state.direction
         do_record_tracking(category, direction, record_name, tracking_number)
 
     except Exception as exce:
-        logger.error(f'Failed to record tracking for {shiprec.record.name} due to:\n{exce}')
+        logger.error(f'Failed to record tracking for {record.name} due to:\n{exce}')
 
 
 def do_record_tracking(category, direction, record_name, tracking_number):

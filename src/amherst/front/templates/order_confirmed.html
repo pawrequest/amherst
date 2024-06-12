@@ -20,13 +20,13 @@
     <div class="wrapper wrapper__results">
         <div class="response">
             <div class="result">
-                {% if booking_state.booked or booking_state.completed %}
+                {% if booking.booked or booking.completed() %}
                     <div class="result__success">
                         <h2>Booking Confirmed</h2>
                         <p>Your booking is now complete and your label is ready to print.</p>
                         <div class="print">
                             <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
-                                <input type="hidden" name="label_path" value="{{ booking_state.label_dl_path }}">
+                                <input type="hidden" name="label_path" value="{{ booking.label_dl_path }}">
                                 <button type="submit" class="btn-print-label">Print Label</button>
                             </form>
                             <div id="print-result"></div>
@@ -40,14 +40,14 @@
                 {% endif %}
 
             </div>
-            {{ booking_state.response }}
+            {{ booking.response }}
         </div>
 
         {% include 'alerts.html' with context %}
 
         {#        <div class="email">#}
         {#            <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}
-        {#                {% for addr in shiprec.record.email_options %}#}
+        {#                {% for addr in booking(.record.email_options %}#}
         {#                    <label for={{ addr.name }}>{{ addr.description }}</label>#}
         {#                    <input type="checkbox" id={{ addr.name }}>#}
         {#                {% endfor %}#}

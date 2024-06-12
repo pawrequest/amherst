@@ -25,8 +25,10 @@ from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 from win32com.universal import com_error
 
+import amherst.models.am_record
+import amherst.models.db_models
 from pycommence import PyCommence
-from amherst.models import am_record
+from amherst.models import am_record, db_models
 from amherst import am_db, app_file
 
 
@@ -40,7 +42,7 @@ def parse_arguments():
 async def main(category: am_record.AmherstTableEnum, record_name: str):
     # CoInitialize()
     alert = None
-    shiprec_id = None
+    booking = None
     am_db.create_db()
 
     try:
@@ -50,13 +52,16 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         record['cmc_table_name'] = category
         amrec = am_record.AmherstRecord(**record)
         amrec = amrec.model_validate(amrec)
-
-        amrec_db = am_record.AmherstRecordDB(**amrec.model_dump())
+        amrec_db = amherst.models.am_record.AmherstRecordDB(**amrec.model_dump())
+        booking = db_models.BookingStateDB(
+            record=amrec_db,
+            shipment_request=(am_db.amherst_shipment_request(amrec))
+        )
 
         with am_db.get_session_cm() as session:
-            session.add(amrec_db)
+            session.add(booking)
             session.commit()
-            session.refresh(amrec_db)
+            session.refresh(booking)
             ...
 
         # try:
@@ -68,9 +73,9 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
 
         # amrec = amrec.model_validate(amrec)
 
-        shiprec_id = am_db.amherst_record_to_shiprec(amrec)
-        assert shiprec_id, f'Error creating ShipableRecord for {amrec.name}'
-        logger.info(f'added ShipmentRecord #{shiprec_id}')
+        # shiprec_id = am_db.amherst_record_to_shiprec(amrec)
+        # assert shiprec_id, f'Error creating ShipableRecord for {amrec.name}'
+        # logger.info(f'added ShipmentRecord #{shiprec_id}')
 
     except com_error as e:
         alert = 'Error: Commence Server execution failed. Ensure Commence is running.'
@@ -79,7 +84,7 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         alert = f'Error creating ShipableRecord: {e}'
 
     try:
-        if alert:
+        if alert or not booking:
             logger.exception(alert)
             alert = base64.urlsafe_b64encode(alert.encode('utf-8')).decode('utf-8')
             fui = FlaskUI(
@@ -93,7 +98,7 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                url_suffix=f'{shiprec_id}',
+                url_suffix=f'{booking.id}',
                 # url_suffix=f'ship/select/{shiprec_id}',
             )
         fui.run()

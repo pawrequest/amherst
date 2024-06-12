@@ -10,112 +10,111 @@
         <section class="requested-head">
             <h2 class="requested-title">Requested Shipment:</h2>
             <form hx-post="confirm_booking" hx-target="#results" hx-swap="beforebegin">
-                <input type="hidden" name="shipment_request" value='{{ shipment_request.model_dump_json() | safe }}'>
-                <input type="hidden" name="shiprec_id" value='{{ shiprec_id }}'>
+                <input type="hidden" name="booking_id" value='{{ booking.id }}'>
                 <button class="submit-confirm-btn">Confirm Booking</button>
                 {#                <button type="submit" class="btn-confirm">Confirm Booking</button>#}
             </form>
         </section>
         <section class="inputs requested__contact">
             <h3>Recipient Contact</h3>
-            <p><strong>Business Name:</strong> {{ shipment_request.recipient_contact.business_name }}</p>
-            <p><strong>Contact Name:</strong> {{ shipment_request.recipient_contact.contact_name }}</p>
-            <p><strong>Email:</strong> {{ shipment_request.recipient_contact.email_address }}</p>
-            <p><strong>Phone:</strong> {{ shipment_request.recipient_contact.mobile_phone }}</p>
+            <p><strong>Business Name:</strong> {{ booking.shipment_request.recipient_contact.business_name }}</p>
+            <p><strong>Contact Name:</strong> {{ booking.shipment_request.recipient_contact.contact_name }}</p>
+            <p><strong>Email:</strong> {{ booking.shipment_request.recipient_contact.email_address }}</p>
+            <p><strong>Phone:</strong> {{ booking.shipment_request.recipient_contact.mobile_phone }}</p>
         </section>
 
         <section class="inputs requested__address">
             <h3>Recipient Address</h3>
-            <p><strong>Address Line 1:</strong> {{ shipment_request.recipient_address.address_line1 }}</p>
-            {% if shipment_request.recipient_address.address_line2 %}
-                <p><strong>Address Line 2:</strong> {{ shipment_request.recipient_address.address_line2 }}</p>
+            <p><strong>Address Line 1:</strong> {{ booking.shipment_request.recipient_address.address_line1 }}</p>
+            {% if booking.shipment_request.recipient_address.address_line2 %}
+                <p><strong>Address Line 2:</strong> {{ booking.shipment_request.recipient_address.address_line2 }}</p>
             {% endif %}
-            {% if shipment_request.recipient_address.address_line3 %}
-                <p><strong>Address Line 3:</strong> {{ shipment_request.recipient_address.address_line3 }}</p>
+            {% if booking.shipment_request.recipient_address.address_line3 %}
+                <p><strong>Address Line 3:</strong> {{ booking.shipment_request.recipient_address.address_line3 }}</p>
             {% endif %}
-            <p><strong>Town:</strong> {{ shipment_request.recipient_address.town }}</p>
-            <p><strong>Postcode:</strong> {{ shipment_request.recipient_address.postcode }}</p>
+            <p><strong>Town:</strong> {{ booking.shipment_request.recipient_address.town }}</p>
+            <p><strong>Postcode:</strong> {{ booking.shipment_request.recipient_address.postcode }}</p>
         </section>
 
 
         <section class="inputs requested__notes">
             <h3>Notes</h3>
-            {% if shipment_request.reference_number1 %}
-                <p><strong>Reference Number 1:</strong> {{ shipment_request.reference_number1 }}</p>
+            {% if booking.shipment_request.reference_number1 %}
+                <p><strong>Reference Number 1:</strong> {{ booking.shipment_request.reference_number1 }}</p>
             {% endif %}
-            {% if shipment_request.reference_number2 %}
-                <p><strong>Reference Number 2:</strong> {{ shipment_request.reference_number2 }}</p>
+            {% if booking.shipment_request.reference_number2 %}
+                <p><strong>Reference Number 2:</strong> {{ booking.shipment_request.reference_number2 }}</p>
             {% endif %}
-            {% if shipment_request.reference_number3 %}
-                <p><strong>Reference Number 3:</strong> {{ shipment_request.reference_number3 }}</p>
+            {% if booking.shipment_request.reference_number3 %}
+                <p><strong>Reference Number 3:</strong> {{ booking.shipment_request.reference_number3 }}</p>
             {% endif %}
-            {% if shipment_request.reference_number4 %}
-                <p><strong>Reference Number 4:</strong> {{ shipment_request.reference_number4 }}</p>
+            {% if booking.shipment_request.reference_number4 %}
+                <p><strong>Reference Number 4:</strong> {{ booking.shipment_request.reference_number4 }}</p>
             {% endif %}
-            {% if shipment_request.reference_number5 %}
-                <p><strong>Reference Number 5:</strong> {{ shipment_request.reference_number5 }}</p>
+            {% if booking.shipment_request.reference_number5 %}
+                <p><strong>Reference Number 5:</strong> {{ booking.shipment_request.reference_number5 }}</p>
             {% endif %}
-            {% if shipment_request.special_instructions1 %}
-                <p><strong>Special Instructions 1:</strong> {{ shipment_request.special_instructions1 }}</p>
+            {% if booking.shipment_request.special_instructions1 %}
+                <p><strong>Special Instructions 1:</strong> {{ booking.shipment_request.special_instructions1 }}</p>
             {% endif %}
-            {% if shipment_request.special_instructions2 %}
-                <p><strong>Special Instructions 2:</strong> {{ shipment_request.special_instructions2 }}</p>
+            {% if booking.shipment_request.special_instructions2 %}
+                <p><strong>Special Instructions 2:</strong> {{ booking.shipment_request.special_instructions2 }}</p>
             {% endif %}
-            {% if shipment_request.special_instructions3 %}
-                <p><strong>Special Instructions 3:</strong> {{ shipment_request.special_instructions3 }}</p>
+            {% if booking.shipment_request.special_instructions3 %}
+                <p><strong>Special Instructions 3:</strong> {{ booking.shipment_request.special_instructions3 }}</p>
             {% endif %}
-            {% if shipment_request.special_instructions4 %}
-                <p><strong>Special Instructions 4:</strong> {{ shipment_request.special_instructions4 }}</p>
+            {% if booking.shipment_request.special_instructions4 %}
+                <p><strong>Special Instructions 4:</strong> {{ booking.shipment_request.special_instructions4 }}</p>
             {% endif %}
         </section>
 
-        {% if shipment_request.collection_info %}
+        {% if booking.shipment_request.collection_info %}
             <section class="inputs requested__collection">
                 <h3>Collection Information</h3>
-                {% set cont = shipment_request.collection_info.collection_contact %}
+                {% set cont = booking.shipment_request.collection_info.collection_contact %}
                 <p><strong>Collection Contact:</strong> {{ cont.contact_name }} - {{ cont.business_name }}
                     - {{ cont.mobile_phone }} - {{ cont.email_address }}</p>
                 <p><strong>Collection
-                    Address:</strong> {{ shipment_request.collection_info.collection_address.address_line1 }}
-                    - {{ shipment_request.collection_info.collection_address.postcode }}</p>
+                    Address:</strong> {{ booking.shipment_request.collection_info.collection_address.address_line1 }}
+                    - {{ booking.shipment_request.collection_info.collection_address.postcode }}</p>
             </section>
         {% endif %}
 
         <section class="inputs requested__details">
             <h3>Shipment Details</h3>
-            <p><strong>Total Number of Parcels:</strong> {{ shipment_request.total_number_of_parcels }}</p>
-            <p><strong>Shipping Date:</strong> {{ shipment_request.shipping_date }}</p>
-            <p><strong>Service Code:</strong> {{ shipment_request.service_code }}</p>
-            <p><strong>Shipment Type:</strong> {{ shipment_request.shipment_type }}</p>
-            {% if shipment_request.print_own_label %}
-                <p><strong>Print Own Label:</strong> {{ shipment_request.print_own_label }}</p>
+            <p><strong>Total Number of Parcels:</strong> {{ booking.shipment_request.total_number_of_parcels }}</p>
+            <p><strong>Shipping Date:</strong> {{ booking.shipment_request.shipping_date }}</p>
+            <p><strong>Service Code:</strong> {{ booking.shipment_request.service_code }}</p>
+            <p><strong>Shipment Type:</strong> {{ booking.shipment_request.shipment_type }}</p>
+            {% if booking.shipment_request.print_own_label %}
+                <p><strong>Print Own Label:</strong> {{ booking.shipment_request.print_own_label }}</p>
             {% endif %}
-            {% if shipment_request.enhancement %}
-                <p><strong>Enhancement:</strong> {{ shipment_request.enhancement }}</p>
+            {% if booking.shipment_request.enhancement %}
+                <p><strong>Enhancement:</strong> {{ booking.shipment_request.enhancement }}</p>
             {% endif %}
-            {% if shipment_request.hazardous_goods %}
-                <p><strong>Hazardous Goods:</strong> {{ shipment_request.hazardous_goods }}</p>
+            {% if booking.shipment_request.hazardous_goods %}
+                <p><strong>Hazardous Goods:</strong> {{ booking.shipment_request.hazardous_goods }}</p>
             {% endif %}
-            {% if shipment_request.consignment_handling %}
-                <p><strong>Consignment Handling:</strong> {{ shipment_request.consignment_handling }}</p>
+            {% if booking.shipment_request.consignment_handling %}
+                <p><strong>Consignment Handling:</strong> {{ booking.shipment_request.consignment_handling }}</p>
             {% endif %}
-            {% if shipment_request.drop_off_ind %}
-                <p><strong>Drop Off Indicator:</strong> {{ shipment_request.drop_off_ind }}</p>
+            {% if booking.shipment_request.drop_off_ind %}
+                <p><strong>Drop Off Indicator:</strong> {{ booking.shipment_request.drop_off_ind }}</p>
             {% endif %}
-            {% if shipment_request.exchange_instructions1 %}
-                <p><strong>Exchange Instructions 1:</strong> {{ shipment_request.exchange_instructions1 }}</p>
+            {% if booking.shipment_request.exchange_instructions1 %}
+                <p><strong>Exchange Instructions 1:</strong> {{ booking.shipment_request.exchange_instructions1 }}</p>
             {% endif %}
-            {% if shipment_request.exchange_instructions2 %}
-                <p><strong>Exchange Instructions 2:</strong> {{ shipment_request.exchange_instructions2 }}</p>
+            {% if booking.shipment_request.exchange_instructions2 %}
+                <p><strong>Exchange Instructions 2:</strong> {{ booking.shipment_request.exchange_instructions2 }}</p>
             {% endif %}
-            {% if shipment_request.exchange_instructions3 %}
-                <p><strong>Exchange Instructions 3:</strong> {{ shipment_request.exchange_instructions3 }}</p>
+            {% if booking.shipment_request.exchange_instructions3 %}
+                <p><strong>Exchange Instructions 3:</strong> {{ booking.shipment_request.exchange_instructions3 }}</p>
             {% endif %}
-            {% if shipment_request.request_id %}
-                <p><strong>Request ID:</strong> {{ shipment_request.request_id }}</p>
+            {% if booking.shipment_request.request_id %}
+                <p><strong>Request ID:</strong> {{ booking.shipment_request.request_id }}</p>
             {% endif %}
-            {% if shipment_request.returns %}
-                <p><strong>Returns:</strong> {{ shipment_request.returns }}</p>
+            {% if booking.shipment_request.returns %}
+                <p><strong>Returns:</strong> {{ booking.shipment_request.returns }}</p>
             {% endif %}
         </section>
     </div>

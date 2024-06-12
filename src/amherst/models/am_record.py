@@ -3,22 +3,20 @@ from datetime import date
 from enum import StrEnum
 import functools
 import typing as _t
-from pathlib import Path
 
 import sqlmodel as sqm
 import pydantic as _p
 from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field
-from combadge.core.errors import BackendError
 from loguru import logger
 
 from amherst.am_shared import CustomerFields
 from pycommence import PyCommence, pycmc_types
-from shipaw import ELClient, Shipment
+from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
-from shipaw.ship_types import SHIPPING_DATE
+from shipaw.ship_types import limit_daterange_no_weekends
 
-AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
-CMC_SHIP_DATE2 = _t.Annotated[SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]
+if _t.TYPE_CHECKING:
+    from amherst.models.db_models import BookingStateDB
 
 
 class AmherstTableEnum(StrEnum):
@@ -35,7 +33,8 @@ class AmherstRecord(sqm.SQLModel):
 
     name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
-    send_date: date = Field(date.today(), alias='Send Out Date')
+    send_date: _t.Annotated[date, Field(..., alias='Send Out Date'), _p.BeforeValidator(get_cmc_date), _p.AfterValidator(limit_daterange_no_weekends)]
+    # send_date: date = Field(date.today(), alias='Send Out Date')
     delivery_contact: str = Field(
         ...,
         validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
@@ -60,13 +59,6 @@ class AmherstRecord(sqm.SQLModel):
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
 
-    @_p.field_validator('send_date', mode='before')
-    def cmc_date(cls, v):
-        if isinstance(v, str):
-            if len(v) == 8:
-                return pycmc_types.get_cmc_date(v)
-            raise ValueError('Date must be in format YYYYMMDD')
-        return v
 
     def email_options(self):
         maybes = [
@@ -139,26 +131,22 @@ class AmherstRecord(sqm.SQLModel):
     def missing_kit(self) -> list[str] | None:
         return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
-    def initial_shipment_state(self) -> Shipment:
-        try:
-            el_client = ELClient()
-            chosen = el_client.choose_address(self.input_address())
-            return Shipment(
-                contact=self.contact(),
-                address=chosen,
-                ship_date=self.send_date,
-                boxes=self.boxes,
-                reference_number1=self.customer,
-            )
-        except BackendError as err:
-            logger.exception(
-                f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
-            )
-            raise
-
-
-class AmherstRecordDB(AmherstRecord, table=True):
-    id: int | None = sqm.Field(primary_key=True)
+    # def initial_shipment_state(self) -> Shipment:
+    #     try:
+    #         el_client = ELClient()
+    #         chosen = el_client.choose_address(self.input_address())
+    #         return Shipment(
+    #             contact=self.contact(),
+    #             address=chosen,
+    #             ship_date=self.send_date,
+    #             boxes=self.boxes,
+    #             reference_number1=self.customer,
+    #         )
+    #     except BackendError as err:
+    #         logger.exception(
+    #             f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
+    #         )
+    #         raise
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:
@@ -223,3 +211,10 @@ class EmailOption(BaseModel):
 
     def __eq__(self, other: 'EmailOption'):
         return self.email == other.email
+
+
+class AmherstRecordDB(AmherstRecord, table=True):
+    id: int | None = sqm.Field(primary_key=True)
+    booking_states: list['BookingStateDB'] = sqm.Relationship(
+        back_populates="record",
+    )

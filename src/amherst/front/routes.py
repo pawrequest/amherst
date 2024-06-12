@@ -16,13 +16,17 @@ from urllib3.exceptions import ConnectTimeoutError
 
 from amherst.front.backend_funcs import book_shipment, make_email
 from amherst.front.support import TEMPLATES
-from shipaw import BookingState, ELClient, Shipment, ship_types
+from amherst.models.db_models import BookingStateDB
+from shipaw import ELClient, ship_types
+from shipaw.models import Contact
 from amherst import am_db
 from amherst.front import support
-from shipaw.models import Contact
+from shipaw.models.pf_msg import CreateShipmentResponse
 from shipaw.models.pf_shipment import (ShipmentReferenceFields, ShipmentRequest)
-from shipaw.models.pf_models import AddressChoice, AddressCollection
-from shipaw.models.pf_shared import Alert, ServiceCode
+from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRecipient
+from shipaw.models.pf_shared import Alert, DateTimeRange, ServiceCode
+from shipaw.models.pf_top import CollectionInfo, CollectionContact
+from shipaw.pf_config import pf_sett
 from shipaw.ship_types import VALID_POSTCODE
 
 router = APIRouter()
@@ -43,9 +47,9 @@ async def print_label(request: Request, label_path: str = Form(...)):
 
 
 @router.post('/email', response_class=HTMLResponse)
-async def email(request: Request, shiprec_id: int = Form(...), session=Depends(am_db.get_session)):
+async def email(request: Request, booking_id: int = Form(...), session=Depends(am_db.get_session)):
     """Endpoint to handle email options."""
-    shiprec = await support.get_shiprec(shiprec_id, session)
+    booking: BookingStateDB = await support.get_booking(booking_id, session)
     form_data = await request.form()
     addresses = [value for key, value in form_data.items() if
                  value and key.startswith('email-')]
@@ -54,13 +58,13 @@ async def email(request: Request, shiprec_id: int = Form(...), session=Depends(a
     att_choices = [key.lstrip('att-') for key, value in form_data.items() if
                    value and key.startswith('att-')]
     if invoice := 'invoice' in att_choices:
-        invoice = shiprec.record.invoice_path.with_suffix('.pdf')
+        invoice = Path(booking.record.invoice_path).with_suffix('.pdf')
     if label := 'label' in att_choices:
-        label = shiprec.booking_state.label_dl_path
+        label = booking.label_dl_path
     if missing := 'missing' in att_choices:
-        missing = shiprec.record.missing_kit()
+        missing = booking.record.missing_kit()
 
-    email_obj = await make_email(addresses, invoice, label, missing, shiprec.booking_state)
+    email_obj = await make_email(addresses, invoice, label, missing, booking)
 
     try:
         emailer(email_obj, html=True)
@@ -91,49 +95,49 @@ async def email(request: Request, shiprec_id: int = Form(...), session=Depends(a
 @router.post("/confirm_booking", response_class=HTMLResponse)
 async def confirm_booking(
         request: Request,
-        shiprec_id: int = Form(...),
-        shipment_request: str = Form(...),
+        booking_id: int = Form(...),
         el_client: ELClient = Depends(am_db.get_el_client),
         session: Session = Depends(am_db.get_session),
 ):
-    shipment_request = ShipmentRequest.model_validate_json(shipment_request)
-    booking_state: BookingState | None = None
-    logger.warning(f'booking_id: {shiprec_id}')
-    shiprec = await support.get_shiprec(shiprec_id, session)
+    logger.warning(f'booking_id: {booking_id}')
+    booking: BookingStateDB = await support.get_booking(booking_id, session)
 
     try:
-        if hasattr(shiprec, 'booking_state') and shiprec.booking_state:
-            logger.error(f'Shipment for {shiprec.record.name} already booked')
-            return ValueError(f'Shipment for {shiprec.record.name} already booked')
+        if booking.response:
+            logger.error(f'Shipment for {booking.record.name} already booked')
+            return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
 
-        booking_state = book_shipment(el_client, shipment_request)
+        resp: CreateShipmentResponse = book_shipment(el_client, booking.shipment_request)
+        booking.booked = True
         # record_tracking()
+        booking.response = resp
 
-        label_path = shipment_request.label_path
-        support.wait_label_decon(
-            shipment_num=booking_state.response.shipment_num,
+        label_path = booking.get_label_path()
+        support.wait_label(
+            shipment_num=resp.shipment_num,
             dl_path=label_path,
             el_client=el_client
         )
-        booking_state.label_downloaded = True
-        booking_state.label_dl_path = label_path
-        shiprec.booking_state = booking_state
+        resp.label_downloaded = True
+        resp.label_dl_path = label_path
 
-        session.add(shiprec)
+        session.add(booking)
         session.commit()
         return TEMPLATES.TemplateResponse(
             'order_confirmed.html',
-            {'request': request, 'booking_state': booking_state, 'shiprec': shiprec}
+            {'request': request, 'booking': booking}
         )
     except Exception as e:
         alert = Alert.from_exception(e)
-        if booking_state:
-            booking_state.alerts.append(alert)
+        booking.alerts.append(alert)
+        if booking.response:
+            session.add(booking)
+            session.commit()
             return TEMPLATES.TemplateResponse(
                 'order_confirmed.html',
                 {
-                    'request': request, 'alert': alert, 'booking_state': booking_state,
-                    'shiprec': shiprec
+                    'request': request,
+                    'booking': booking
                 }
             )
         return TEMPLATES.TemplateResponse(
@@ -148,13 +152,13 @@ async def get_notes_f_form(form_data):
             fieldname in form_data]
 
 
-@router.post('/post_form/{shiprec_id}', response_class=HTMLResponse)
+@router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
         request: Request,
-        shiprec_id: int,
+        booking_id: int = Form(...),
         ship_date: date = Form(...),
         boxes: int = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
+        direction: ship_types.ShipDirectionEnum = Form(...),
         service: ServiceCode = Form(...),
         contact_name: str = Form(...),
         email: str = Form(...),
@@ -165,48 +169,49 @@ async def post_form(
         address_line3: str = Form(''),
         town: str = Form(...),
         postcode: VALID_POSTCODE = Form(...),
-        # reference_number1: str = Form(''),
-        # special_instructions1: str = Form(''),
-        # reference_number2: str = Form(''),
-        # special_instructions2: str = Form(''),
-        # reference_number3: str = Form(''),
-        # special_instructions3: str = Form(''),
-        # reference_number4: str = Form(''),
-        # special_instructions4: str = Form(''),
-        pfcom: ELClient = Depends(am_db.get_el_client),
+        session=Depends(am_db.get_session),
 ):
     try:
-        address = AddressCollection(
+        addr_class = AddressRecipient if direction == 'out' else AddressCollection
+        contact_class = Contact if direction == 'out' else CollectionContact
+        address = addr_class(
             address_line1=address_line1,
             address_line2=address_line2,
             address_line3=address_line3,
             town=town,
             postcode=postcode,
         )
-        contact = Contact(
+        contact = contact_class(
             business_name=business_name,
             contact_name=contact_name,
             email_address=email,
             mobile_phone=phone,
         )
-        shipment = Shipment(
-            address=address,
-            contact=contact,
-            service=service,
-            ship_date=ship_date,
-            boxes=boxes,
-            direction=direction,
+        shipment_request = ShipmentRequest(
+            recipient_address=address if direction == 'out' else pf_sett().home_address,
+            recipient_contact=contact if direction == 'out' else pf_sett().home_contact,
+            service_code=service,
+            shipping_date=ship_date,
+            total_number_of_parcels=boxes,
+            collection_info=CollectionInfo(
+                collection_contact=contact,
+                collection_address=address,
+                collection_time=DateTimeRange.null_times_from_date(ship_date),
+            ) if direction == 'in' else None,
         )
-        for fieldname, value in await get_notes_f_form(await request.form()):
-            setattr(shipment, fieldname, value)
 
-        shipment = shipment.model_validate(shipment)
+        for fieldname, value in await get_notes_f_form(await request.form()):
+            setattr(shipment_request, fieldname, value)
+
+        booking = await support.get_booking(booking_id, session)
+        booking.shipment_request = shipment_request
+        session.add(booking)
+        session.commit()
 
         return TEMPLATES.TemplateResponse(
             'order_review.html',
             {
-                'request': request, 'shipment_request': shipment.shipment_request(),
-                'shiprec_id': shiprec_id
+                'request': request, 'booking': booking,
             },
         )
     except (ConnectTimeoutError, BackendError) as e:
@@ -236,18 +241,18 @@ async def get_candidatesp(
     return res
 
 
-@router.get('/{shiprec_id}', response_class=HTMLResponse)
+@router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
         request: Request,
-        shiprec_id: int,
+        booking_id: int,
         session=Depends(am_db.get_session),
         el_client: ELClient = Depends(am_db.get_el_client),
 ):
-    shiprec = await support.get_shiprec(shiprec_id, session)
+    booking = await support.get_booking(booking_id, session)
     addr_choices = el_client.get_choices(
-        shiprec.shipment.address.postcode,
-        shiprec.shipment.address
+        booking.shipment_request.recipient_address.postcode,
+        booking.shipment_request.recipient_address
     )
     return TEMPLATES.TemplateResponse(
-        'input.html', {'request': request, 'shiprec': shiprec, 'candidates': addr_choices}
+        'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
     )

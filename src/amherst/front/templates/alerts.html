@@ -1,11 +1,15 @@
 {# error handler - returns a nice div with alert type handled... message, type and code #}
 
 {% block content %}
+    {%  if booking.alerts %}
     <div class="wrapper">
         <div class="alert alert-{{ type }}">
+            {% for alert in booking.alerts %}
             <strong>{{ alert.type }}</strong> {{ alert.message }} ({{ alert.code }})
+            {% endfor %}
         </div>
     </div>
+    {% endif %}
 
 {% endblock %}
 
