@@ -35,7 +35,7 @@ router = APIRouter()
 @router.get('/fail/{alert}', response_class=HTMLResponse)
 async def fail(request: Request, alert: str):
     alert = base64.urlsafe_b64decode(alert).decode('utf-8')
-    logger.error(f'Error: {alert}')
+    logger.exception(f'Error: {alert}')
     return TEMPLATES.TemplateResponse('fail.html', {'request': request, 'alert': alert})
 
 
@@ -142,7 +142,7 @@ async def confirm_booking(
             )
         return TEMPLATES.TemplateResponse(
             'alerts.html',
-            {'alert': alert, 'request': request}
+            {'alert': alert, 'request': request, 'booking': booking}
         )
 
 

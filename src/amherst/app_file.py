@@ -5,7 +5,7 @@ from fastapi import FastAPI, responses
 from starlette.staticfiles import StaticFiles
 
 from shipaw import pf_config
-from front.routes import router
+from amherst.front.routes import router
 from amherst import am_config
 
 settings = am_config.AmSettings()

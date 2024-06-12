@@ -1,18 +1,19 @@
 # from __future__ import annotations
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 import functools
 import typing as _t
 
 import sqlmodel as sqm
 import pydantic as _p
-from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AliasChoices, ConfigDict, EmailStr, Field
 from loguru import logger
 
 from amherst.am_shared import CustomerFields
-from pycommence import PyCommence, pycmc_types
+from pycommence import PyCommence
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
+from shipaw.models.pf_shared import Alert
 from shipaw.ship_types import limit_daterange_no_weekends
 
 if _t.TYPE_CHECKING:
@@ -30,10 +31,16 @@ class AmherstRecord(sqm.SQLModel):
         populate_by_name=True,
     )
     cmc_table_name: AmherstTableEnum
-
+    alerts: list[Alert] = sqm.Field(
+        default_factory=list,
+        sa_column=sqm.Column(sqm.JSON)
+    )
     name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
-    send_date: _t.Annotated[date, Field(..., alias='Send Out Date'), _p.BeforeValidator(get_cmc_date), _p.AfterValidator(limit_daterange_no_weekends)]
+    send_date: _t.Annotated[
+        date, Field(datetime.today(), alias='Send Out Date'), _p.BeforeValidator(
+            get_cmc_date
+        ), _p.AfterValidator(limit_daterange_no_weekends)]
     # send_date: date = Field(date.today(), alias='Send Out Date')
     delivery_contact: str = Field(
         ...,
@@ -46,7 +53,7 @@ class AmherstRecord(sqm.SQLModel):
         ...,
         validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
     )
-    email: _p.EmailStr = Field(..., validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
+    email: str = Field(..., validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
     address_str: str = Field(
         ...,
         validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
@@ -58,7 +65,6 @@ class AmherstRecord(sqm.SQLModel):
     boxes: int = Field(1, alias='Boxes')
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
-
 
     def email_options(self):
         maybes = [
@@ -114,39 +120,63 @@ class AmherstRecord(sqm.SQLModel):
 
     def input_address(self):
         return pf_models.AddressRecipient(
-            **addr_lines_dict_am(self.address_str),
-            town='',
+            **addr_town_lines_maybe(self.address_str),
             postcode=self.postcode,
         )
 
-    def contact(self):
-        return pf_top.Contact(
+    #
+    # def input_address(self):
+    #     return pf_models.AddressRecipient(
+    #         **addr_lines_dict_am(self.address_str),
+    #         town='',
+    #         postcode=self.postcode,
+    #     )
+
+    def contact(self) -> pf_top.Contact | pf_top.ContactTemporary:
+        contact_dict = dict(
             business_name=self.delivery_business,
             email_address=self.email,
             mobile_phone=self.telephone,
             contact_name=self.delivery_contact,
             notifications=pf_lists.RecipientNotifications.standard_recip(),
         )
+        try:
+            contact_model = pf_top.Contact(**contact_dict)
+            contact_model.model_validate(contact_model)
+        except _p.ValidationError as err:
+            logger.exception(f'Error validating contact')
+            contact_model = pf_top.ContactTemporary(**contact_dict)
+            # self.alerts.append(Alert(type="WARNING", message="Contact details invalid, using filler."))
+        return contact_model
 
-    def missing_kit(self) -> list[str] | None:
-        return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
-    # def initial_shipment_state(self) -> Shipment:
-    #     try:
-    #         el_client = ELClient()
-    #         chosen = el_client.choose_address(self.input_address())
-    #         return Shipment(
-    #             contact=self.contact(),
-    #             address=chosen,
-    #             ship_date=self.send_date,
-    #             boxes=self.boxes,
-    #             reference_number1=self.customer,
-    #         )
-    #     except BackendError as err:
-    #         logger.exception(
-    #             f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
-    #         )
-    #         raise
+def missing_kit(self) -> list[str] | None:
+    return self.missing_kit_str.splitlines() if self.missing_kit_str else None
+
+
+# def initial_shipment_state(self) -> Shipment:
+#     try:
+#         el_client = ELClient()
+#         chosen = el_client.choose_address(self.input_address())
+#         return Shipment(
+#             contact=self.contact(),
+#             address=chosen,
+#             ship_date=self.send_date,
+#             boxes=self.boxes,
+#             reference_number1=self.customer,
+#         )
+#     except BackendError as err:
+#         logger.exception(
+#             f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
+#         )
+#         raise
+
+
+class AmherstRecordDB(AmherstRecord, table=True):
+    id: int | None = sqm.Field(primary_key=True)
+    booking_states: list['BookingStateDB'] = sqm.Relationship(
+        back_populates="record",
+    )
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:
@@ -156,6 +186,19 @@ def addr_lines_dict_am(address: str) -> dict[str, str]:
     elif len(addr_lines) > 3:
         addr_lines[2] = ','.join(addr_lines[2:])
     return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
+
+
+def addr_town_lines_maybe(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    used_lines = [_ for _ in addr_lines if _]
+    town = used_lines.pop() if len(used_lines) > 1 else ''
+    return {
+        f'address_line{num}': line for num, line in enumerate(used_lines, start=1)
+    } | {'town': town}
 
 
 def get_email(fields_enum, record):
@@ -204,17 +247,10 @@ def get_customer_record(customer: str) -> dict[str, str]:
 #         return v
 
 
-class EmailOption(BaseModel):
+class EmailOption(_p.BaseModel):
     email: EmailStr
     description: str
     name: str
 
     def __eq__(self, other: 'EmailOption'):
         return self.email == other.email
-
-
-class AmherstRecordDB(AmherstRecord, table=True):
-    id: int | None = sqm.Field(primary_key=True)
-    booking_states: list['BookingStateDB'] = sqm.Relationship(
-        back_populates="record",
-    )

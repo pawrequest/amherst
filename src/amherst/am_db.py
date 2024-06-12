@@ -11,6 +11,7 @@ from loguru import logger
 from shipaw import ELClient
 from amherst.am_config import am_sett
 from amherst.models.am_record import AmherstRecord
+from shipaw.models.pf_models import AddressTemporary
 from shipaw.models.pf_shipment import ShipmentRequest
 
 
@@ -56,10 +57,19 @@ def create_db(engine=None):
     sqm.SQLModel.metadata.create_all(engine)
 
 
-def amherst_shipment_request(am_record: AmherstRecord) -> ShipmentRequest:
+def amherst_shipment_request(
+        am_record: AmherstRecord,
+        el_client: ELClient or None = None
+) -> ShipmentRequest:
+    el_client = el_client or ELClient()
+    try:
+        chosen_address = el_client.choose_address(am_record.input_address())
+    except Exception as e:
+        logger.exception(e)
+        chosen_address = AddressTemporary.model_validate(am_record.input_address(), from_attributes=True)
     return ShipmentRequest(
         recipient_contact=am_record.contact(),
-        recipient_address=am_record.input_address(),
+        recipient_address=chosen_address,
         shipping_date=am_record.send_date,
         total_number_of_parcels=am_record.boxes,
         reference_number1=am_record.customer,
