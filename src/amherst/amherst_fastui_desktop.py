@@ -23,15 +23,11 @@ import base64
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
-from pawdantic.pawui.pawui_types import AlertDict
-from pydantic import ValidationError
 from win32com.universal import com_error
 
 from pycommence import PyCommence
-import amherst.models.am_record
+from amherst.models import am_record
 from amherst import am_db, app_file
-from amherst.models.am_record import AmherstRecord, AmherstRecordPartial
-from shipaw.models.pf_shared import Alert
 
 
 def parse_arguments():
@@ -41,7 +37,7 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-async def main(category: amherst.models.am_record.AmherstTableName, record_name: str):
+async def main(category: am_record.AmherstTableEnum, record_name: str):
     # CoInitialize()
     alert = None
     shiprec_id = None
@@ -52,14 +48,25 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
             record = py_cmc.one_record(record_name)
 
         record['cmc_table_name'] = category
-        try:
-            amrec = AmherstRecord(**record)
-        except ValidationError as e:
-            msg = f'Error validating record, using partial data'
-            logger.warning(f'{msg} \n{e}')
-            amrec = AmherstRecordPartial(**record)
-            amrec.alerts = [Alert(code=None, message=msg, type='WARNING')]
+        amrec = am_record.AmherstRecord(**record)
         amrec = amrec.model_validate(amrec)
+
+        amrec_db = am_record.AmherstRecordDB(**amrec.model_dump())
+
+        with am_db.get_session_cm() as session:
+            session.add(amrec_db)
+            session.commit()
+            session.refresh(amrec_db)
+            ...
+
+        # try:
+        # except ValidationError as e:
+        #     msg = f'Error validating record, using partial data'
+        #     logger.warning(f'{msg} \n{e}')
+        #     amrec = AmherstRecordPartial(**record)
+        #     amrec.alerts = [Alert(code=None, message=msg, type='WARNING')]
+
+        # amrec = amrec.model_validate(amrec)
 
         shiprec_id = am_db.amherst_record_to_shiprec(amrec)
         assert shiprec_id, f'Error creating ShipableRecord for {amrec.name}'
@@ -79,14 +86,14 @@ async def main(category: amherst.models.am_record.AmherstTableName, record_name:
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                url_suffix=f'jinji/fail/{alert}',
+                url_suffix=f'fail/{alert}',
             )
         else:
             fui = FlaskUI(
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                url_suffix=f'jinji/{shiprec_id}',
+                url_suffix=f'{shiprec_id}',
                 # url_suffix=f'ship/select/{shiprec_id}',
             )
         fui.run()

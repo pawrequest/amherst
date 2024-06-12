@@ -19,6 +19,7 @@ dependencies = [
     'pawlogger @ git+https://github.com/pawrequest/pawlogger',
     'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'sqlmodel',
     'pydantic-settings',
     'pydantic[email]',
     'pydantic-extra-types',

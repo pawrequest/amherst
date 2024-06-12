@@ -28,7 +28,7 @@ function updateManualFields() {
 function loadCandidates() {
     console.log('Loading candidates pydantic');
     const postcode = document.getElementById('postcode').value;
-    fetch(`/jinji/get_candidatesp?postcode=${postcode}`)
+    fetch(`/get_candidatesp?postcode=${postcode}`)
         .then(response => response.json())
         .then(data => {
             const addressSelect = document.getElementById('address-select');

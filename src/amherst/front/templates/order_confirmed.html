@@ -1,3 +1,16 @@
+{#
+@param candidates: List[AddressChoice]
+@type AddressChoice = {
+    address: {
+        address_line1: str,
+        address_line2: str,
+        address_line3: str,
+        town: str,
+        postcode: str
+    },
+    lines_str: str
+}
+#}
 {% extends "base.html" %}
 
 {% block title %}Amherst Shipper Booking Confirmed{% endblock %}
@@ -5,29 +18,43 @@
 {% block content %}
 
     <div class="wrapper wrapper__results">
-    <div class="response">
-        {{ booking_state.response }}
-    </div>
-        <div class="print">
+        <div class="response">
+            <div class="result">
+                {% if booking_state.booked or booking_state.completed %}
+                    <div class="result__success">
+                        <h2>Booking Confirmed</h2>
+                        <p>Your booking is now complete and your label is ready to print.</p>
+                        <div class="print">
+                            <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
+                                <input type="hidden" name="label_path" value="{{ booking_state.label_dl_path }}">
+                                <button type="submit" class="btn-print-label">Print Label</button>
+                            </form>
+                            <div id="print-result"></div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="result__failure">
+                        <h2>Booking Failed</h2>
+                        <p>There was a problem with your booking.</p>
+                    </div>
+                {% endif %}
 
-            <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
-                <input type="hidden" name="label_path" value="{{ booking_state.label_dl_path }}">
-                <button type="submit" class="btn-print-label">Print Label</button>
-            </form>
-            <div id="print-result"></div>
+            </div>
+            {{ booking_state.response }}
         </div>
-        {% include 'email_handler.html' with context %}
 
-{#        <div class="email">#}
-{#            <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}
-{#                {% for addr in shiprec.record.email_options %}#}
-{#                    <label for={{ addr.name }}>{{ addr.description }}</label>#}
-{#                    <input type="checkbox" id={{ addr.name }}>#}
-{#                {% endfor %}#}
-{##}
-{##}
-{#            </form>#}
-{#        </div>#}
+        {% include 'alerts.html' with context %}
+
+        {#        <div class="email">#}
+        {#            <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}
+        {#                {% for addr in shiprec.record.email_options %}#}
+        {#                    <label for={{ addr.name }}>{{ addr.description }}</label>#}
+        {#                    <input type="checkbox" id={{ addr.name }}>#}
+        {#                {% endfor %}#}
+        {##}
+        {##}
+        {#            </form>#}
+        {#        </div>#}
     </div>
     <script>
 

@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Literal
-
 from loguru import logger
-from suppawt.office_ps import email_handler
+from suppawt.office_ps.email_handler import Email
 
 import shipaw
 from amherst.am_shared import HireFields
-from amherst.models.am_record import AmherstRecord
+from amherst.front.support import TEMPLATES
 from amherst.models.shipment_record import ShipmentRecordInDB
 from pycommence import PyCommence
 from shipaw import BookingState
@@ -58,12 +56,33 @@ def do_record_tracking(category, direction, record_name, tracking_number):
     )
 
 
-
-
-async def subject(invoice_num: str | None = None, missing = None, label = None):
+async def subject(invoice_num: str | None = None, missing=None, label=None):
     return (
         f'Amherst Radios'
         f'{f"- Invoice {invoice_num} Attached" if invoice_num else ""} '
         f'{"- We Are Missing Kit" if missing else ""} '
         f'{"- Shipping Label Attached" if label else ""}'
     )
+
+
+async def make_email(addresses, invoice, label, missing, booking_state):
+    email_body = TEMPLATES.get_template('email.html').render(
+        {
+            'booking_state': booking_state,
+            'invoice': invoice,
+            'label': label,
+            'missing': missing,
+        }
+    )
+    subject_str = await subject(
+        invoice.stem if invoice else None,
+        missing is not False,
+        label is not False
+    )
+    email_obj = Email(
+        to_address=addresses,
+        subject=subject_str,
+        body=email_body,
+        attachment_paths=[x for x in [label, invoice] if x],
+    )
+    return email_obj

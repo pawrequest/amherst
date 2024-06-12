@@ -6,9 +6,11 @@ import pathlib
 
 import fastapi
 import pawdf
-from fastui import components as c
 from loguru import logger
 import sqlmodel as sqm
+from starlette.templating import Jinja2Templates
+
+from amherst.am_config import am_sett
 from shipaw.models import pf_models, pf_shared
 import shipaw
 from shipaw import BookingState, ELClient, pf_config, Shipment
@@ -16,7 +18,6 @@ from shipaw import BookingState, ELClient, pf_config, Shipment
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordDB, ShipmentRecordOut
 
-type Fui_Page = list[c.AnyComponent]
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 
@@ -57,13 +58,13 @@ async def get_invoice_path(record: AmherstRecord) -> pathlib.Path | None:
     if record.cmc_table_name == 'Customer':
         raise ValueError('invoice not for customer')
 
-    return record.invoice
+    return record.invoice_path
 
 
 async def get_missing(record: AmherstRecord) -> list[str]:
     if not record.cmc_table_name == 'Hire':
         raise ValueError('missing kit only for hire')
-    return record.missing_kit
+    return record.missing_kit()
 
 
 def get_named_labelpath(state: shipaw.Shipment):
@@ -129,3 +130,6 @@ async def update_shiprec_shipment(
 
 async def addr_class_f_direction(direction):
     return pf_models.AddressRecipient if direction == 'out' else pf_models.AddressCollection
+
+
+TEMPLATES = Jinja2Templates(directory=str(am_sett().base_dir / 'front' / 'templates'))

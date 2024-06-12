@@ -1,0 +1,11 @@
+{# error handler - returns a nice div with alert type handled... message, type and code #}
+
+{% block content %}
+    <div class="wrapper">
+        <div class="alert alert-{{ type }}">
+            <strong>{{ alert.type }}</strong> {{ alert.message }} ({{ alert.code }})
+        </div>
+    </div>
+
+{% endblock %}
+

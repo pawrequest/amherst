@@ -8,7 +8,7 @@
     {% else %}
         <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
     {% endif %}
-    {#    {% include 'email_handler.html' with context %}#}
+    {#    {% include 'alerts.html' with context %}#}
 
     <form id="main-form" hx-post="post_form/{{ shiprec.id }}"
           hx-target=".returned-request"
@@ -70,7 +70,7 @@
             </section>
 
             <section class="inputs inputs__address">
-                {% include 'address_inputs.html' with context %}
+                {% include 'input_address.html' with context %}
             </section>
 
             <section class="inputs inputs__notes">

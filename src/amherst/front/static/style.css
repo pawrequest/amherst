@@ -7,6 +7,7 @@
 }
 
 :root {
+    --border-radius: 1rem;
     --clr-primary: #007bff;
     /*--clr-secondary: #66ff00;*/
     --clr-main: rgb(157, 168, 171);
@@ -41,16 +42,19 @@ input, select, textarea, button {
     font-family: inherit;
     font-size: inherit;
     color: inherit;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     padding: .3rem;
 }
 
 .alert {
+    display: flex;
+    flex-direction: column;
+    margin-block: 1rem;
     background-color: red;
-    text-align: center;
     line-height: 2rem;
     font-size: 1.5rem;
-    padding-block: 1rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
 }
 
 h1 {
@@ -75,18 +79,22 @@ h1 {
            "cmc cmc cmc cmc"
            "shipment contact address notes"
            "submit submit submit submit";
-           /*"notes notes notes";*/
+    /*"notes notes notes";*/
 }
 
 .submit-confirm-btn {
 }
+
 .booking-confirmed {
+    /* used in js*/
     background-color: #28a745; /* Confirmation message color */
     color: white;
 }
+
 .email-body {
     font-family: "Roboto", sans-serif;
 }
+
 .commence {
     grid-area: cmc;
     display: flex;
@@ -94,12 +102,14 @@ h1 {
     flex-direction: row;
     gap: 1rem;
 }
+
 .email {
     grid-area: email;
     display: flex;
     flex-direction: row;
     gap: 1rem;
 }
+
 .inputs {
     display: flex;
     flex-direction: column;
@@ -173,7 +183,6 @@ h1 {
 }
 
 
-
 button {
     border: none;
     border-radius: 4px;
@@ -192,6 +201,7 @@ button {
 button.submit-request {
     grid-area: submit;
 }
+
 /*button.submit-confirm{*/
 /**/
 /*}*/
@@ -217,14 +227,14 @@ select:focus {
     grid-template-areas:
         "... head head ..."
         "details contact address notes"
-        "collection collection collection collection"
-;
+        "collection collection collection collection";
 }
 
 .shipper {
     display: flex;
     justify-content: center;
 }
+
 .shipper__live {
     background-color: rgba(255, 0, 0, 0.23);
 }
@@ -233,6 +243,7 @@ select:focus {
     background: rgba(255, 193, 7, 0.48);
 
 }
+
 .requested-shipment {
     /*border: 1px solid #ccc;*/
     /*padding: 20px;*/
@@ -293,6 +304,17 @@ select:focus {
     }
 }
 
+.result{
+    display: flex;
+    flex-direction: column;
+}
+.result__success {
+ background-color: rgba(0, 128, 0, 0.57);
+}
+
+.result__fail {
+    background-color: rgba(255, 0, 0, 0.57);
+}
 .loading-spinner {
     display: none;
     /*display: flex;*/
@@ -302,36 +324,37 @@ select:focus {
 }
 
 .loader {
-  width: 48px;
-  height: 48px;
-  border: 3px solid #FFF;
-  border-radius: 50%;
-  display: inline-block;
-  position: relative;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
+    width: 48px;
+    height: 48px;
+    border: 3px solid #FFF;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+    animation: rotation 1s linear infinite;
 }
+
 .loader::after {
-  content: '';
-  box-sizing: border-box;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  border-bottom-color: #FF3D00;
+    content: '';
+    box-sizing: border-box;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-bottom-color: #FF3D00;
 }
 
 @keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 

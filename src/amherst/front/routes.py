@@ -1,6 +1,5 @@
 # from __future__ import annotations
 import base64
-import os
 from datetime import date
 from pathlib import Path
 
@@ -11,23 +10,20 @@ from loguru import logger
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
-from starlette.templating import Jinja2Templates
-from suppawt.office_ps.email_handler import EmailError, Email
+from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
 
-from amherst.front.jin_book import book_shipment, subject, record_tracking
-from shipaw import ELClient, Shipment, ship_types, BookingState
+from amherst.front.backend_funcs import book_shipment, make_email
+from amherst.front.support import TEMPLATES
+from shipaw import BookingState, ELClient, Shipment, ship_types
 from amherst import am_db
-from amherst.am_config import am_sett
 from amherst.front import support
 from shipaw.models import Contact
-from shipaw.models.pf_shipment import SHIPMENT_NOTES_FIELDNAMES, ShipmentRequest
+from shipaw.models.pf_shipment import (ShipmentReferenceFields, ShipmentRequest)
 from shipaw.models.pf_models import AddressChoice, AddressCollection
-from shipaw.models.pf_shared import ServiceCode, Alert
+from shipaw.models.pf_shared import Alert, ServiceCode
 from shipaw.ship_types import VALID_POSTCODE
-
-TEMPLATES = Jinja2Templates(directory=str(am_sett().base_dir / 'front' / 'templates'))
 
 router = APIRouter()
 
@@ -46,7 +42,6 @@ async def print_label(request: Request, label_path: str = Form(...)):
     return HTMLResponse(content=f'<p>Printed {label_path}</p>')
 
 
-
 @router.post('/email', response_class=HTMLResponse)
 async def email(request: Request, shiprec_id: int = Form(...), session=Depends(am_db.get_session)):
     """Endpoint to handle email options."""
@@ -59,11 +54,11 @@ async def email(request: Request, shiprec_id: int = Form(...), session=Depends(a
     att_choices = [key.lstrip('att-') for key, value in form_data.items() if
                    value and key.startswith('att-')]
     if invoice := 'invoice' in att_choices:
-        invoice = shiprec.record.invoice.with_suffix('.pdf')
+        invoice = shiprec.record.invoice_path.with_suffix('.pdf')
     if label := 'label' in att_choices:
         label = shiprec.booking_state.label_dl_path
     if missing := 'missing' in att_choices:
-        missing = shiprec.record.missing_kit
+        missing = shiprec.record.missing_kit()
 
     email_obj = await make_email(addresses, invoice, label, missing, shiprec.booking_state)
 
@@ -82,29 +77,6 @@ async def email(request: Request, shiprec_id: int = Form(...), session=Depends(a
 
     # Process email options as needed
     # processed_options = ', '.join([f"{key}: {value}" for key, value in email_options.items()])
-
-
-async def make_email(addresses, invoice, label, missing, booking_state):
-    email_body = TEMPLATES.get_template('email.html').render(
-        {
-            'booking_state': booking_state,
-            'invoice': invoice,
-            'label': label,
-            'missing': missing,
-        }
-    )
-    subject_str = await subject(
-        invoice.stem if invoice else None,
-        missing is not False,
-        label is not False
-    )
-    email_obj = Email(
-        to_address=addresses,
-        subject=subject_str,
-        body=email_body,
-        attachment_paths=[x for x in [label, invoice] if x],
-    )
-    return email_obj
 
 
 #
@@ -135,7 +107,7 @@ async def confirm_booking(
             return ValueError(f'Shipment for {shiprec.record.name} already booked')
 
         booking_state = book_shipment(el_client, shipment_request)
-        record_tracking()
+        # record_tracking()
 
         label_path = shipment_request.label_path
         support.wait_label_decon(
@@ -154,17 +126,25 @@ async def confirm_booking(
             {'request': request, 'booking_state': booking_state, 'shiprec': shiprec}
         )
     except Exception as e:
+        alert = Alert.from_exception(e)
         if booking_state:
+            booking_state.alerts.append(alert)
             return TEMPLATES.TemplateResponse(
                 'order_confirmed.html',
-                {'request': request, 'booking_state': booking_state, 'shiprec': shiprec}
+                {
+                    'request': request, 'alert': alert, 'booking_state': booking_state,
+                    'shiprec': shiprec
+                }
             )
-
-        return f'<p>ERROR: {str(e)}</p>'
+        return TEMPLATES.TemplateResponse(
+            'alerts.html',
+            {'alert': alert, 'request': request}
+        )
 
 
 async def get_notes_f_form(form_data):
-    return [(fieldname, form_data[fieldname]) for fieldname in SHIPMENT_NOTES_FIELDNAMES if
+    return [(fieldname, form_data[fieldname]) for fieldname in
+            ShipmentReferenceFields.model_fields.keys() if
             fieldname in form_data]
 
 
@@ -223,7 +203,7 @@ async def post_form(
         shipment = shipment.model_validate(shipment)
 
         return TEMPLATES.TemplateResponse(
-            'review_order.html',
+            'order_review.html',
             {
                 'request': request, 'shipment_request': shipment.shipment_request(),
                 'shiprec_id': shiprec_id
@@ -269,5 +249,5 @@ async def index(
         shiprec.shipment.address
     )
     return TEMPLATES.TemplateResponse(
-        'base_form.html', {'request': request, 'shiprec': shiprec, 'candidates': addr_choices}
+        'input.html', {'request': request, 'shiprec': shiprec, 'candidates': addr_choices}
     )

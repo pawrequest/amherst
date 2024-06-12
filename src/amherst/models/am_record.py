@@ -1,34 +1,41 @@
-from __future__ import annotations
-
-import datetime
+# from __future__ import annotations
+from datetime import date
+from enum import StrEnum
 import functools
 import typing as _t
-from functools import cached_property
 from pathlib import Path
 
+import sqlmodel as sqm
 import pydantic as _p
+from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field
 from combadge.core.errors import BackendError
 from loguru import logger
-from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field, field_validator
-from zeep.exceptions import XMLParseError
 
 from amherst.am_shared import CustomerFields
 from pycommence import PyCommence, pycmc_types
 from shipaw import ELClient, Shipment
-from shipaw.models import pf_models, pf_lists, pf_top
-from shipaw.models.pf_shared import Alert
+from shipaw.models import pf_lists, pf_models, pf_top
 from shipaw.ship_types import SHIPPING_DATE
 
+AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
+CMC_SHIP_DATE2 = _t.Annotated[SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]
 
-class AmherstRecord(_p.BaseModel):
+
+class AmherstTableEnum(StrEnum):
+    Hire = 'Hire'
+    Sale = 'Sale'
+    Customer = 'Customer'
+
+
+class AmherstRecord(sqm.SQLModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
-    alerts: list[Alert] | None = None
-    cmc_table_name: AmherstTableName
-    name: str = _p.Field(..., alias='Name')
+    cmc_table_name: AmherstTableEnum
+
+    name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
-    send_date: CMC_SHIP_DATE2 = Field(datetime.date.today(), alias='Send Out Date')
+    send_date: date = Field(date.today(), alias='Send Out Date')
     delivery_contact: str = Field(
         ...,
         validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
@@ -47,33 +54,40 @@ class AmherstRecord(_p.BaseModel):
     )
     postcode: str = Field(..., validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
     send_method: str = Field('', validation_alias=AliasChoices('Send Method', 'Delivery Method'))
-    invoice: Path | None = Field(None, validation_alias=AliasChoices('Invoice', 'Invoice Path'))
+    invoice_path: str | None = Field(None, validation_alias=AliasChoices('Invoice', 'Invoice Path'))
     missing_kit_str: str | None = Field(None, alias='Missing Kit')
     boxes: int = Field(1, alias='Boxes')
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
 
-    @property
+    @_p.field_validator('send_date', mode='before')
+    def cmc_date(cls, v):
+        if isinstance(v, str):
+            if len(v) == 8:
+                return pycmc_types.get_cmc_date(v)
+            raise ValueError('Date must be in format YYYYMMDD')
+        return v
+
     def email_options(self):
         maybes = [
             dict(
                 name='accounts',
-                email=self.customer_record.get(CustomerFields.ACCOUNTS_EMAIL),
+                email=self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL),
                 description='Customer Accounts'
             ),
             dict(
                 name='primary',
-                email=self.customer_record.get(CustomerFields.PRIMARY_EMAIL),
+                email=self.customer_record().get(CustomerFields.PRIMARY_EMAIL),
                 description='Customer Primary'
             ),
             dict(
                 name='cust_del',
-                email=self.customer_record.get(CustomerFields.DELIVERY_EMAIL),
+                email=self.customer_record().get(CustomerFields.DELIVERY_EMAIL),
                 description='Customer Default Delivery'
             ),
             dict(
                 name='invoice',
-                email=self.customer_record.get(CustomerFields.INVOICE_EMAIL),
+                email=self.customer_record().get(CustomerFields.INVOICE_EMAIL),
                 description='Customer Invoice'
             ),
             dict(
@@ -87,10 +101,10 @@ class AmherstRecord(_p.BaseModel):
 
     def email_addresses(self):
         maybe_emails = [
-            self.customer_record.get(CustomerFields.ACCOUNTS_EMAIL),
-            self.customer_record.get(CustomerFields.PRIMARY_EMAIL),
-            self.customer_record.get(CustomerFields.DELIVERY_EMAIL),
-            self.customer_record.get(CustomerFields.INVOICE_EMAIL),
+            self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL),
+            self.customer_record().get(CustomerFields.PRIMARY_EMAIL),
+            self.customer_record().get(CustomerFields.DELIVERY_EMAIL),
+            self.customer_record().get(CustomerFields.INVOICE_EMAIL),
             self.email,
         ]
         return [i for i in maybe_emails if i]
@@ -100,13 +114,12 @@ class AmherstRecord(_p.BaseModel):
     #     tod = datetime.date.today()
     #     return v if v >= tod else tod
 
-    @cached_property
+    @functools.lru_cache()
     def customer_record(self) -> dict[str, str]:
         return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(
             self.customer
         )
 
-    @cached_property
     def input_address(self):
         return pf_models.AddressRecipient(
             **addr_lines_dict_am(self.address_str),
@@ -114,7 +127,6 @@ class AmherstRecord(_p.BaseModel):
             postcode=self.postcode,
         )
 
-    @cached_property
     def contact(self):
         return pf_top.Contact(
             business_name=self.delivery_business,
@@ -124,31 +136,29 @@ class AmherstRecord(_p.BaseModel):
             notifications=pf_lists.RecipientNotifications.standard_recip(),
         )
 
-    @cached_property
     def missing_kit(self) -> list[str] | None:
         return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
-    @cached_property
     def initial_shipment_state(self) -> Shipment:
         try:
             el_client = ELClient()
-            chosen = el_client.choose_address(self.input_address)
+            chosen = el_client.choose_address(self.input_address())
             return Shipment(
-                contact=self.contact,
+                contact=self.contact(),
                 address=chosen,
                 ship_date=self.send_date,
                 boxes=self.boxes,
                 reference_number1=self.customer,
             )
         except BackendError as err:
-            if isinstance(err.args[0], XMLParseError):
-                raise BackendError(
-                    f'(POSTCODE LIKELY BAD) XMLParseError prevents retrieving initial state for {self.name}'
-                ) from err
             logger.exception(
                 f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
             )
             raise
+
+
+class AmherstRecordDB(AmherstRecord, table=True):
+    id: int | None = sqm.Field(primary_key=True)
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:
@@ -179,35 +189,31 @@ def get_customer_record(customer: str) -> dict[str, str]:
     return rec
 
 
-AmherstTableName = _t.Literal['Hire', 'Sale', 'Customer']
-CMC_SHIP_DATE2 = _t.Annotated[SHIPPING_DATE, _p.BeforeValidator(pycmc_types.get_cmc_date)]
-
-
-class AmherstRecordPartial(AmherstRecord):
-    delivery_contact: str = Field(
-        '',
-        validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
-    )
-    delivery_business: str = Field(
-        '',
-        validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
-    )
-    telephone: str = Field(
-        '',
-        validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
-    )
-    email: str = Field('', validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
-    address_str: str = Field(
-        '',
-        validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
-    )
-    postcode: str = Field('', validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
-
-    @field_validator('email', mode='after')
-    def fake_email(cls, v, values):
-        if not v:
-            return "THISEMAILNOTREAL@REPLACEME.com"
-        return v
+# class AmherstRecordPartial(AmherstRecord):
+#     delivery_contact: str = Field(
+#         '',
+#         validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
+#     )
+#     delivery_business: str = Field(
+#         '',
+#         validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
+#     )
+#     telephone: str = Field(
+#         '',
+#         validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
+#     )
+#     email: str = Field('', validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
+#     address_str: str = Field(
+#         '',
+#         validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
+#     )
+#     postcode: str = Field('', validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
+#
+#     @field_validator('email', mode='after')
+#     def fake_email(cls, v, values):
+#         if not v:
+#             return "THISEMAILNOTREAL@REPLACEME.com"
+#         return v
 
 
 class EmailOption(BaseModel):
@@ -215,5 +221,5 @@ class EmailOption(BaseModel):
     description: str
     name: str
 
-    def __eq__(self, other: EmailOption):
+    def __eq__(self, other: 'EmailOption'):
         return self.email == other.email

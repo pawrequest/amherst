@@ -2,16 +2,16 @@ import contextlib
 
 import flaskwebgui
 from fastapi import FastAPI, responses
-from fastui import prebuilt_html
-from shipaw import pf_config
 from starlette.staticfiles import StaticFiles
 
+from shipaw import pf_config
+from front.routes import router
 from amherst import am_config
-from amherst.front.jinji import router as jinji_router
 
 settings = am_config.AmSettings()
 static_path = settings.base_dir / 'front' / 'static'
 pf_settings = pf_config.pf_sett()
+
 
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
@@ -31,8 +31,9 @@ async def lifespan(app_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(static_path)), name='static')
 
-app.include_router(jinji_router, prefix='/jinji')
+app.include_router(router)
 app.ship_live = pf_settings.ship_live
+
 
 @app.get('/api/close_app/', response_model=None, response_model_exclude_none=True)
 async def close_app(
@@ -51,7 +52,6 @@ async def robots_txt() -> str:
 @app.get('/favicon.ico', include_in_schema=False)
 async def favicon_ico() -> responses.RedirectResponse:
     return responses.RedirectResponse(url='/static/favicon.svg')
-
 
 # def populate_db_from_cmc(session: sqm.Session, el_client):
 #     records = sample_data.hires

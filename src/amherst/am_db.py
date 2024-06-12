@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import contextlib
 import functools
 
 import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
-from shipaw import ELClient
 
+from shipaw import ELClient
 from amherst.am_config import am_sett
 from amherst.models.am_record import AmherstRecord
 from amherst.models.shipment_record import ShipmentRecordDB
@@ -20,6 +21,15 @@ def get_engine() -> sqa.engine.base.Engine:
 
 
 def get_session(engine=None) -> sqm.Session:
+    if engine is None:
+        engine = get_engine()
+    with sqm.Session(engine) as session:
+        yield session
+    session.close()
+
+
+@contextlib.contextmanager
+def get_session_cm(engine=None):
     if engine is None:
         engine = get_engine()
     with sqm.Session(engine) as session:
@@ -48,7 +58,7 @@ def create_db(engine=None):
 
 def amherst_record_to_shiprec(am_record: AmherstRecord) -> int:
     with sqm.Session(get_engine()) as session:
-        initial_state = am_record.initial_shipment_state
+        initial_state = am_record.initial_shipment_state()
         shiprec = ShipmentRecordDB(
             record=am_record,
             shipment=initial_state,
