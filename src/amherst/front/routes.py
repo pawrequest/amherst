@@ -1,5 +1,6 @@
 # from __future__ import annotations
 import base64
+import os
 from datetime import date
 from pathlib import Path
 
@@ -46,6 +47,13 @@ async def print_label(request: Request, label_path: str = Form(...)):
     return HTMLResponse(content=f'<p>Printed {label_path}</p>')
 
 
+@router.post('/open-file', response_class=HTMLResponse)
+async def open_label(request: Request, label_path: str = Form(...)):
+    """Endpoint to print the label for a booking."""
+    os.startfile(label_path)
+    return HTMLResponse(content=f'<p>Opened {label_path}</p>')
+
+
 @router.post('/email', response_class=HTMLResponse)
 async def email(request: Request, booking_id: int = Form(...), session=Depends(am_db.get_session)):
     """Endpoint to handle email options."""
@@ -60,7 +68,7 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(a
     if invoice := 'invoice' in att_choices:
         invoice = Path(booking.record.invoice_path).with_suffix('.pdf')
     if label := 'label' in att_choices:
-        label = booking.label_dl_path
+        label = booking.label_path()
     if missing := 'missing' in att_choices:
         missing = booking.record.missing_kit()
 
@@ -99,7 +107,7 @@ async def confirm_booking(
         el_client: ELClient = Depends(am_db.get_el_client),
         session: Session = Depends(am_db.get_session),
 ):
-    logger.warning(f'booking_id: {booking_id}')
+    logger.info(f'booking_id: {booking_id}')
     booking: BookingStateDB = await support.get_booking(booking_id, session)
 
     try:
@@ -112,14 +120,13 @@ async def confirm_booking(
         # record_tracking()
         booking.response = resp
 
-        label_path = booking.get_label_path()
+        label_dl_path = booking.label_path()
         support.wait_label(
             shipment_num=resp.shipment_num,
-            dl_path=label_path,
+            dl_path=label_dl_path,
             el_client=el_client
         )
-        resp.label_downloaded = True
-        resp.label_dl_path = label_path
+        booking.label_downloaded = True
 
         session.add(booking)
         session.commit()

@@ -24,7 +24,7 @@ async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
     return record
 
 
-def wait_label(shipment_num, dl_path, el_client: ELClient) -> pathlib.Path:
+def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
     label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
     for i in range(20):
         if label_path:

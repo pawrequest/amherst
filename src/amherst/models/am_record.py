@@ -112,7 +112,6 @@ class AmherstRecord(sqm.SQLModel):
     #     tod = datetime.date.today()
     #     return v if v >= tod else tod
 
-    @functools.lru_cache()
     def customer_record(self) -> dict[str, str]:
         return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(
             self.customer

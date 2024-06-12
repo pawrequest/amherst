@@ -57,22 +57,41 @@ def create_db(engine=None):
     sqm.SQLModel.metadata.create_all(engine)
 
 
+def split_reference_numbers(am_record):
+    customer_str = am_record.customer
+    reference_numbers = {}
+
+    for i in range(1, 6):
+        start_index = (i - 1) * 24
+        end_index = i * 24
+        if start_index < len(customer_str):
+            reference_numbers[f'reference_number{i}'] = customer_str[start_index:end_index]
+        else:
+            break
+
+    return reference_numbers
+
+
 def amherst_shipment_request(
         am_record: AmherstRecord,
         el_client: ELClient or None = None
 ) -> ShipmentRequest:
     el_client = el_client or ELClient()
+    ref_nums = split_reference_numbers(am_record)
     try:
         chosen_address = el_client.choose_address(am_record.input_address())
     except Exception as e:
         logger.exception(e)
-        chosen_address = AddressTemporary.model_validate(am_record.input_address(), from_attributes=True)
+        chosen_address = AddressTemporary.model_validate(
+            am_record.input_address(),
+            from_attributes=True
+        )
     return ShipmentRequest(
         recipient_contact=am_record.contact(),
         recipient_address=chosen_address,
         shipping_date=am_record.send_date,
         total_number_of_parcels=am_record.boxes,
-        reference_number1=am_record.customer,
+        **ref_nums,
     )
 # def amherst_record_to_shiprec(am_record: AmherstRecord) -> int:
 #     with sqm.Session(get_engine()) as session:

@@ -2,7 +2,7 @@
         <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">
             <div class="email-recipients">
                 {% for addr in booking.record.email_options() %}
-                    <label for="{{ addr.name }}">{{ addr.description }}</label>
+                    <label for="{{ addr.name }}">{{ addr.email }} ({{ addr.description }})</label>
                     <input type="checkbox"
                            id="{{ addr.name }}"
                            name="email-{{ addr.name }}"

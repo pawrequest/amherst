@@ -65,7 +65,7 @@ async def subject(invoice_num: str | None = None, missing=None, label=None):
 
 
 async def make_email(addresses, invoice, label, missing, booking_state):
-    email_body = TEMPLATES.get_template('email.html').render(
+    email_body = TEMPLATES.get_template('email_body.html').render(
         {
             'booking_state': booking_state,
             'invoice': invoice,

@@ -24,17 +24,25 @@
                     <div class="result__success">
                         <h2>Booking Confirmed</h2>
                         <p>Your booking is now complete and your label is ready to print.</p>
-                        <div class="print">
+                        <div class="label-file">
                             <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
-                                <input type="hidden" name="label_path" value="{{ booking.label_dl_path }}">
+                                <input type="hidden" name="label_path" value="{{ booking.label_path() }}">
                                 <button type="submit" class="btn-print-label">Print Label</button>
                             </form>
                             <div id="print-result"></div>
                         </div>
+                        <div class="label-file">
+                            <form hx-post="open-file" hx-target="#print-result" hx-swap="innerHTML">
+                                <input type="hidden" name="label_path" value="{{ booking.label_path() }}">
+                                <button type="submit" class="btn-print-label">Open Label</button>
+                            </form>
+                            <div id="print-result"></div>
+                        </div>
                     </div>
+                    {%  include 'email_send.html' with context %}
                 {% else %}
                     <div class="result__failure">
-                        <h2>Booking Failed</h2>
+                        <h2>Booking Fai`led</h2>
                         <p>There was a problem with your booking.</p>
                     </div>
                 {% endif %}
