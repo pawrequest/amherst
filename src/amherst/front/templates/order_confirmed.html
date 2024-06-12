@@ -23,7 +23,11 @@
                 {% if booking.booked or booking.completed() %}
                     <div class="result__success">
                         <h2>Booking Confirmed</h2>
-                        <p>Your booking is now complete and your label is ready to print.</p>
+                        <p>Shipment Number {{ booking.shipment_num }} is booked with status = {{ booking.status }}.</p>
+                        <a href="{{ booking.response.tracking_link() }}" class="tracking">Track Your Parcel</a>
+                        {% if booking.commence_updated %}
+                            <p>Commence Has Been Updated</p>
+                        {% endif %}
                         <div class="label-file">
                             <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
                                 <input type="hidden" name="label_path" value="{{ booking.label_path() }}">
@@ -39,7 +43,7 @@
                             <div id="print-result"></div>
                         </div>
                     </div>
-                    {%  include 'email_send.html' with context %}
+                    {% include 'email_send.html' with context %}
                 {% else %}
                     <div class="result__failure">
                         <h2>Booking Fai`led</h2>
@@ -48,7 +52,6 @@
                 {% endif %}
 
             </div>
-            {{ booking.response }}
         </div>
 
         {% include 'alerts.html' with context %}

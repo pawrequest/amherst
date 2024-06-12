@@ -2,12 +2,12 @@
 
 
 a = Analysis(
-    ['../../amherst/src/amherst/shipper.py'],
-    pathex=[],
+    ['src/amherst/shipper.py'],
+    pathex=['.'],
     binaries=[],
     datas=[
-         ('../../amherst/src/amherst/front/static', 'front/static'),
-
+         ('src/amherst/front/static', 'front/static'),
+         ('src/amherst/front/templates', 'front/templates'),
     ],
     hiddenimports=['ipaddress', 'pyimod02_importers'],
     hookspath=[],

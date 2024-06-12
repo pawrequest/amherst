@@ -955,7 +955,7 @@ Sub Form_OnClick(ControlId)
         Case "CommandButton21"
             Form.Field("Actual Send Date").Value = "today"
             Form.Field("Status").Value = "Out"
-            Form.Field("Delivery Arranged").Value = "True"
+            Form.Field("DB label printed").Value = "True"
 
         Case "CommandButton22"
             Form.Field("Pickup Date").Value = "tomorrow"

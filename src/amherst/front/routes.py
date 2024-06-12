@@ -14,21 +14,20 @@ from starlette.responses import HTMLResponse, JSONResponse
 from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
-
-from amherst.front.backend_funcs import book_shipment, make_email
-from amherst.front.support import TEMPLATES
-from amherst.models.db_models import BookingStateDB
 from shipaw import ELClient, ship_types
 from shipaw.models import Contact
-from amherst import am_db
-from amherst.front import support
-from shipaw.models.pf_msg import CreateShipmentResponse
 from shipaw.models.pf_shipment import (ShipmentReferenceFields, ShipmentRequest)
 from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRecipient
 from shipaw.models.pf_shared import Alert, DateTimeRange, ServiceCode
-from shipaw.models.pf_top import CollectionInfo, CollectionContact
+from shipaw.models.pf_top import CollectionContact, CollectionInfo
 from shipaw.pf_config import pf_sett
 from shipaw.ship_types import VALID_POSTCODE
+
+from amherst.front.backend_funcs import book_shipment, make_email, record_tracking
+from amherst.front.support import TEMPLATES
+from amherst.models.db_models import BookingStateDB
+from amherst import am_db
+from amherst.front import support
 
 router = APIRouter()
 
@@ -113,16 +112,18 @@ async def confirm_booking(
     try:
         if booking.response:
             logger.error(f'Shipment for {booking.record.name} already booked')
-            return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
+            return TEMPLATES.TemplateResponse(
+                'alerts.html',
+                {'booking': booking, 'request': request}
+            )
 
-        resp: CreateShipmentResponse = book_shipment(el_client, booking.shipment_request)
+        booking.response = book_shipment(el_client, booking.shipment_request)
         booking.booked = True
-        # record_tracking()
-        booking.response = resp
+        record_tracking(booking)
 
         label_dl_path = booking.label_path()
         support.wait_label(
-            shipment_num=resp.shipment_num,
+            shipment_num=booking.response.shipment_num,
             dl_path=label_dl_path,
             el_client=el_client
         )

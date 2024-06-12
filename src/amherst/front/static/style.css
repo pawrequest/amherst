@@ -304,17 +304,18 @@ select:focus {
     }
 }
 
-.result{
+.result {
     display: flex;
     flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
 }
-.result__success {
- background-color: rgba(0, 128, 0, 0.57);
-}
+
 
 .result__fail {
     background-color: rgba(255, 0, 0, 0.57);
 }
+
 .loading-spinner {
     display: none;
     /*display: flex;*/
@@ -360,5 +361,75 @@ select:focus {
 .label-file {
 
 }
+
 .label-file__print {
+}
+
+
+.email-form {
+    background: rgba(52, 199, 184, 0.91);
+    margin-inline: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem 2rem;
+    width: 100%;
+    border-radius: var(--border-radius);
+}
+
+/*.email-form h2 {*/
+/*    text-align: center;*/
+/*    !*margin: 0;*!*/
+/*    !*padding-bottom: 1rem;*!*/
+/*    font-size: 24px;*/
+/*}*/
+
+.result__success {
+    background-color: rgba(0, 128, 0, 0.57);
+    border-radius: var(--border-radius);
+    padding: .5rem 1rem;
+}
+
+.checkbox-group {
+    border: 2px solid purple;
+    border-radius: .5rem;
+    /*margin: */
+    padding: 1rem;
+    /*flex: 1;*/
+    gap: .5rem;
+    /*border: 2px solid purple;*/
+    /*border-radius: .5rem;*/
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    display: flex;
+    flex-direction: column;
+}
+
+.email-btn {
+}
+
+
+.checkbox-group div {
+    /*margin-bottom: 0.5rem;*/
+
+}
+
+.checkbox-group__attach {
+
+}
+
+.checkbox-group__recip {
+}
+
+.email-btn {
+    /*padding: 0.75rem;*/
+    /*font-size: 16px;*/
+    /*background-color: #007bff;*/
+    /*border: none;*/
+    /*color: white;*/
+    /*border-radius: 5px;*/
+    /*cursor: pointer;*/
+    /*text-align: center;*/
+    /*align-self: center;*/
 }

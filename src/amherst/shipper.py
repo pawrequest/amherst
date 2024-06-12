@@ -20,6 +20,7 @@ Environment variables:
 import argparse
 import asyncio
 import base64
+import os
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
@@ -28,6 +29,8 @@ from win32com.universal import com_error
 import amherst.models.am_record
 import amherst.models.db_models
 from pycommence import PyCommence
+
+from amherst.am_config import am_sett
 from amherst.models import am_record, db_models
 from amherst import am_db, app_file
 
@@ -44,6 +47,7 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
     alert = None
     booking = None
     am_db.create_db()
+    print("Template directory:", os.path.abspath(am_sett().base_dir / 'front' / 'templates'))
 
     try:
         with PyCommence.from_table_name_context(table_name=category) as py_cmc:

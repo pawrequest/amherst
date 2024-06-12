@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from loguru import logger
 from suppawt.office_ps.email_handler import Email
-
 import shipaw
+from pycommence import PyCommence
+from shipaw.models import pf_msg
+from shipaw.models.pf_shipment import ShipmentRequest
+
 from amherst.am_shared import HireFields
 from amherst.front.support import TEMPLATES
-from pycommence import PyCommence
-from shipaw.models import BookingState, pf_msg
-from shipaw.models.pf_shipment import ShipmentRequest
+from amherst.models.db_models import BookingStateDB
 
 
 def book_shipment(el_client, shipment_request: ShipmentRequest) -> pf_msg.CreateShipmentResponse:
@@ -21,26 +22,29 @@ def book_shipment(el_client, shipment_request: ShipmentRequest) -> pf_msg.Create
     return resp
 
 
-def record_tracking(record, booking_state: BookingState):
+def record_tracking(booking_state: BookingStateDB):
+    record = booking_state.record
     try:
-        tracking_number = booking_state.response.shipment_num
         category = record.cmc_table_name
         if category == 'Customer':
             logger.error('CANT LOG TO CUSTOMER')
             return
-        record_name = record.name
-        direction = booking_state.direction
-        do_record_tracking(category, direction, record_name, tracking_number)
+        do_record_tracking(booking_state)
 
     except Exception as exce:
         logger.error(f'Failed to record tracking for {record.name} due to:\n{exce}')
 
 
-def do_record_tracking(category, direction, record_name, tracking_number):
-    tracking_link_field = HireFields.TRACK_INBOUND if direction in ['in',
-                                                                    'dropoff'] else HireFields.TRACK_OUTBOUND
-    pf_url = 'https://www.parcelforce.com/track-trace?trackNumber='
-    tracking_link = pf_url + tracking_number
+
+
+def do_record_tracking(booking: BookingStateDB):
+    direction = booking.direction
+    tracking_number = booking.response.shipment_num
+    category = booking.record.cmc_table_name
+    record_name = booking.record.name
+    tracking_link_field = HireFields.TRACK_INBOUND if direction in ['in', 'dropoff']\
+        else HireFields.TRACK_OUTBOUND
+    tracking_link = booking.response.tracking_link()
 
     with PyCommence.from_table_name_context(table_name=category) as py_cmc:
         py_cmc.edit_record(
@@ -50,6 +54,7 @@ def do_record_tracking(category, direction, record_name, tracking_number):
                 HireFields.DB_LABEL_PRINTED: True
             },
         )
+        booking.commence_updated = True
     logger.info(
         f'Set DB Printed and Updated "{record_name}" {tracking_link_field} to {tracking_link}'
     )
