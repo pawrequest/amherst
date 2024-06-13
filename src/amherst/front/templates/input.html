@@ -30,7 +30,7 @@
                 <label for="boxes">Boxes:</label>
                 <select id="boxes" name="boxes">
                     {% for i in range(1,13) %}
-                        <option value={{ i }}>{{ i }}</option>
+                        <option value={{ i }} {% if i == booking.record.boxes %}selected{% endif %}>{{ i }}</option>
                     {% endfor %}
                 </select>
                 <label for="direction">Direction:</label>
