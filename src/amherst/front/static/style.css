@@ -391,6 +391,12 @@ select:focus {
     padding: .5rem 1rem;
 }
 
+.label-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 4rem
+}
+
 .checkbox-group {
     border: 2px solid purple;
     border-radius: .5rem;
