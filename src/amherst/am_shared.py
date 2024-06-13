@@ -45,6 +45,7 @@ class HireStatusEnum(StrEnum):
     SOLD = 'Sold To Customer'
 
 
+
 INITIAL_FILTER_ARRAY = pycmc_types.FilterArray(
     filters={
         1: pycmc_types.CmcFilter(
@@ -52,21 +53,7 @@ INITIAL_FILTER_ARRAY = pycmc_types.FilterArray(
             condition='Equal To',
             value='Booked in',
         ),
-        2: pycmc_types.CmcFilter(
-            cmc_col='Send Out Date',
-            condition='After',
-            value='2023-01-01',
-        ),
     }
-)
-
-INITIAL_FILTER_ARRAY2 = pycmc_types.FilterArray().add_replace_filters(
-    pycmc_types.CmcFilter(cmc_col='Status', condition='Equal To', value='Booked in'),
-    pycmc_types.CmcFilter(
-        cmc_col='Send Out Date',
-        condition='After',
-        value='2023-01-01',
-    ),
 )
 
 
@@ -196,5 +183,3 @@ class SaleFields(str, Enum):
     INVOICE_NAME = 'Invoice Name'
     INVOICE_POSTCODE = 'Invoice Postcode'
     INVOICE_TELEPHONE = 'Invoice Telephone'
-
-
