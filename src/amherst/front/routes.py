@@ -14,7 +14,6 @@ from starlette.responses import HTMLResponse, JSONResponse
 from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
-
 from shipaw import ELClient, ship_types
 from shipaw.models import Contact
 from shipaw.models.pf_shipment import (ShipmentReferenceFields, ShipmentRequest)
@@ -22,12 +21,12 @@ from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRec
 from shipaw.models.pf_shared import Alert, DateTimeRange, ServiceCode
 from shipaw.models.pf_top import CollectionContact, CollectionInfo
 from shipaw.pf_config import pf_sett
-from shipaw.ship_types import VALID_POSTCODE
-from amherst.front.backend_funcs import book_shipment, make_email, record_tracking
-from amherst.front.support import TEMPLATES
+from shipaw.ship_types import VALID_POSTCODE, AlertType
+
+import amherst.front.backend_funcs
+from amherst.front.backend_funcs import TEMPLATES, book_shipment, make_email, record_tracking
 from amherst.models.db_models import BookingStateDB
 from amherst import am_db
-from amherst.front import support
 
 router = APIRouter()
 
@@ -36,7 +35,7 @@ router = APIRouter()
 async def fail(request: Request, alert: str):
     alert = base64.urlsafe_b64decode(alert).decode('utf-8')
     logger.exception(f'Error: {alert}')
-    return TEMPLATES.TemplateResponse('fail.html', {'request': request, 'alert': alert})
+    return TEMPLATES.TemplateResponse('fail.html', {'request': request, 'alerts': alert})
 
 
 @router.post('/print', response_class=HTMLResponse)
@@ -113,7 +112,7 @@ async def confirm_booking(
         if booking.response:
             logger.error(f'Shipment for {booking.record.name} already booked')
             booking.alerts.append(
-                Alert(type='WARNING', message=f"Already Booked {booking.record.name}")
+                Alert(type=AlertType.WARNING, message=f"Already Booked {booking.record.name}")
             )
             return TEMPLATES.TemplateResponse(
                 'alerts.html',
@@ -153,7 +152,7 @@ async def confirm_booking(
             )
         return TEMPLATES.TemplateResponse(
             'alerts.html',
-            {'alert': alert, 'request': request, 'booking': booking}
+            {'alerts': alert, 'request': request, 'booking': booking}
         )
 
 

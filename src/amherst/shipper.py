@@ -43,8 +43,7 @@ def parse_arguments():
 
 
 async def main(category: am_record.AmherstTableEnum, record_name: str):
-    # CoInitialize()
-    alert = None
+    alert_str = None
     booking = None
     am_db.create_db()
     print("Template directory:", os.path.abspath(am_sett().base_dir / 'front' / 'templates'))
@@ -81,21 +80,21 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         # assert shiprec_id, f'Error creating ShipableRecord for {amrec.name}'
         # logger.info(f'added ShipmentRecord #{shiprec_id}')
 
-    except com_error as e:
-        alert = 'Error: Commence Server execution failed. Ensure Commence is running.'
+    except com_error:
+        alert_str = 'Error: Commence Server execution failed. Ensure Commence is running.'
 
     except Exception as e:
-        alert = f'Error creating ShipableRecord: {e}'
+        alert_str = f'Error creating ShipableRecord{': ' + e.args[0] if e.args else ''}'
 
     try:
-        if alert or not booking:
-            logger.exception(alert)
-            alert = base64.urlsafe_b64encode(alert.encode('utf-8')).decode('utf-8')
+        if alert_str or not booking:
+            logger.exception(alert_str)
+            alert64 = base64.urlsafe_b64encode(alert_str.encode('utf-8')).decode('utf-8')
             fui = FlaskUI(
                 fullscreen=True,
                 app=app_file.app,
                 server='fastapi',
-                url_suffix=f'fail/{alert}',
+                url_suffix=f'fail/{alert64}',
             )
         else:
             fui = FlaskUI(
