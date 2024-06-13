@@ -58,6 +58,7 @@ class AmherstRecord(sqm.SQLModel):
         ...,
         validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
     )
+
     postcode: str = Field(..., validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
     send_method: str = Field('', validation_alias=AliasChoices('Send Method', 'Delivery Method'))
     invoice_path: str | None = Field(None, validation_alias=AliasChoices('Invoice', 'Invoice Path'))
@@ -67,50 +68,21 @@ class AmherstRecord(sqm.SQLModel):
     track_out: str | None = Field(None, alias='Track Outbound')
 
     def email_options(self):
-        maybes = [
-            dict(
-                name='accounts',
-                email=self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL),
-                description='Customer Accounts'
-            ),
-            dict(
-                name='primary',
-                email=self.customer_record().get(CustomerFields.PRIMARY_EMAIL),
-                description='Customer Primary'
-            ),
-            dict(
-                name='cust_del',
-                email=self.customer_record().get(CustomerFields.DELIVERY_EMAIL),
-                description='Customer Default Delivery'
-            ),
-            dict(
-                name='invoice',
-                email=self.customer_record().get(CustomerFields.INVOICE_EMAIL),
-                description='Customer Invoice'
-            ),
-            dict(
-                name='rec_del',
-                email=self.email,
-                description=f'{self.cmc_table_name.title()} Delivery'
-            )
-        ]
+        email_dict = {
+            self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL): ('accounts',
+                                                                        'Customer Accounts'),
+            self.customer_record().get(CustomerFields.PRIMARY_EMAIL): ('primary',
+                                                                       'Customer Primary'),
+            self.customer_record().get(CustomerFields.DELIVERY_EMAIL): ('cust_del',
+                                                                        'Customer Default Delivery'),
+            self.customer_record().get(CustomerFields.INVOICE_EMAIL): ('invoice',
+                                                                       'Customer Invoice'),
+            self.email: ('rec_del', f'{self.cmc_table_name.title()} Delivery')
 
-        return [EmailOption(**i) for i in maybes if i['email']]
-
-    def email_addresses(self):
-        maybe_emails = [
-            self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL),
-            self.customer_record().get(CustomerFields.PRIMARY_EMAIL),
-            self.customer_record().get(CustomerFields.DELIVERY_EMAIL),
-            self.customer_record().get(CustomerFields.INVOICE_EMAIL),
-            self.email,
-        ]
-        return [i for i in maybe_emails if i]
-
-    # @_p.field_validator('send_date', mode='after')
-    # def date_not_past(cls, v, info):
-    #     tod = datetime.date.today()
-    #     return v if v >= tod else tod
+        }
+        options = [EmailOption(name=name, email=email, description=description) for
+                   email, (name, description) in email_dict.items() if email]
+        return options
 
     def customer_record(self) -> dict[str, str]:
         return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(
@@ -148,9 +120,8 @@ class AmherstRecord(sqm.SQLModel):
             # self.alerts.append(Alert(type="WARNING", message="Contact details invalid, using filler."))
         return contact_model
 
-
-def missing_kit(self) -> list[str] | None:
-    return self.missing_kit_str.splitlines() if self.missing_kit_str else None
+    def missing_kit(self) -> list[str] | None:
+        return self.missing_kit_str.splitlines() if self.missing_kit_str else None
 
 
 # def initial_shipment_state(self) -> Shipment:
