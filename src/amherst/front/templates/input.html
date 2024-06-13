@@ -8,7 +8,7 @@
     {% else %}
         <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
     {% endif %}
-    {#    {% include 'alerts.html' with context %}#}
+        {% include 'alerts.html' with context %}
 
     <form id="main-form" hx-post="post_form/"
           hx-target=".returned-request"
