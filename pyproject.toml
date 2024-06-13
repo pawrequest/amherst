@@ -17,8 +17,8 @@ dependencies = [
     'pawdantic @ git+https://github.com/pawrequest/pawdantic',
     'suppawt @ git+https://github.com/pawrequest/suppawt',
     'pawlogger @ git+https://github.com/pawrequest/pawlogger',
-    'shipaw @ git+https://github.com/pawrequest/shipaw',
-    'pycommence @ git+https://github.com/pawrequest/pycommence',
+#    'shipaw @ git+https://github.com/pawrequest/shipaw',
+#    'pycommence @ git+https://github.com/pawrequest/pycommence',
     'sqlmodel',
     'pydantic-settings',
     'pydantic[email]',
@@ -53,7 +53,7 @@ from-git = [
 ]
 
 [tool.rye]
-managed = false
+managed = true
 dev-dependencies = [
     "sphinx",
     "sphinx-autodoc-typehints",
