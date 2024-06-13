@@ -93,14 +93,3 @@ def amherst_shipment_request(
         total_number_of_parcels=am_record.boxes,
         **ref_nums,
     )
-# def amherst_record_to_shiprec(am_record: AmherstRecord) -> int:
-#     with sqm.Session(get_engine()) as session:
-#         initial_state = am_record.initial_shipment_state()
-#         shiprec = ShipmentRecordDB(
-#             record=am_record,
-#             shipment=initial_state,
-#         )
-#         shiprec = shiprec.model_validate(shiprec)
-#         session.add(shiprec)
-#         session.commit()
-#         return shiprec.id
