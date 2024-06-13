@@ -1,5 +1,3 @@
-from pawdantic.pawui.pawui_types import AlertDict
-
 project = 'Amherst'
 author = 'PawRequest'
 release = '0.0.1'

@@ -24,25 +24,27 @@
                     <div class="result__success">
                         <h2>Booking Confirmed</h2>
                         <p>Shipment Number {{ booking.shipment_num }} is booked with status = {{ booking.status }}.
-{#                            <a href="{{ booking.response.tracking_link() }}" class="tracking">Tracking</a>#}
+                            {#                            <a href="{{ booking.response.tracking_link() }}" class="tracking">Tracking</a>#}
                         </p>
 
                         {% if booking.commence_updated %}
                             <p>Commence Has Been Updated</p>
                         {% endif %}
-                        <div class="label-file">
-                            <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
-                                <input type="hidden" name="label_path" value="{{ booking.label_path() }}">
-                                <button type="submit" class="btn-print-label">Print Label</button>
-                            </form>
-                            <div id="print-result"></div>
-                        </div>
-                        <div class="label-file">
-                            <form hx-post="open-file" hx-target="#print-result" hx-swap="innerHTML">
-                                <input type="hidden" name="label_path" value="{{ booking.label_path() }}">
-                                <button type="submit" class="btn-print-label">Open Label</button>
-                            </form>
-                            <div id="print-result"></div>
+                        <div class="label-buttons">
+                            <div class="label-file">
+                                <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
+                                    <input type="hidden" name="label_path" value="{{ booking.label_path() }}">
+                                    <button type="submit" class="btn-print-label">Print Label</button>
+                                </form>
+                                <div id="print-result"></div>
+                            </div>
+                            <div class="label-file">
+                                <form hx-post="open-file" hx-target="#print-result" hx-swap="innerHTML">
+                                    <input type="hidden" name="label_path" value="{{ booking.label_path() }}">
+                                    <button type="submit" class="btn-print-label">Open Label</button>
+                                </form>
+                                <div id="print-result"></div>
+                            </div>
                         </div>
                     </div>
                     {% include 'email_send.html' with context %}
