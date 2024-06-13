@@ -14,6 +14,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
+
 from shipaw import ELClient, ship_types
 from shipaw.models import Contact
 from shipaw.models.pf_shipment import (ShipmentReferenceFields, ShipmentRequest)
@@ -22,7 +23,6 @@ from shipaw.models.pf_shared import Alert, DateTimeRange, ServiceCode
 from shipaw.models.pf_top import CollectionContact, CollectionInfo
 from shipaw.pf_config import pf_sett
 from shipaw.ship_types import VALID_POSTCODE
-
 from amherst.front.backend_funcs import book_shipment, make_email, record_tracking
 from amherst.front.support import TEMPLATES
 from amherst.models.db_models import BookingStateDB
@@ -112,6 +112,9 @@ async def confirm_booking(
     try:
         if booking.response:
             logger.error(f'Shipment for {booking.record.name} already booked')
+            booking.alerts.append(
+                Alert(type='WARNING', message=f"Already Booked {booking.record.name}")
+            )
             return TEMPLATES.TemplateResponse(
                 'alerts.html',
                 {'booking': booking, 'request': request}
