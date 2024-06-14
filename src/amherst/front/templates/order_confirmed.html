@@ -23,12 +23,12 @@
                 {% if booking.booked or booking.completed() %}
                     <div class="result__success">
                         <h2>Booking Confirmed</h2>
-                        <p>Shipment Number {{ booking.shipment_num }} is booked with status = {{ booking.status }}.
-                            {#                            <a href="{{ booking.response.tracking_link() }}" class="tracking">Tracking</a>#}
-                        </p>
-
+                        <p>Shipment Number {{ booking.response.shipment_num }} is booked with status = {{ booking.status }}.</p>
+                        <p>label downloaded to {{ booking.label_path() }}</p>
+                        <a href="{{ booking.response.tracking_link() }}" class="tracking">Tracking</a>
+{##}
                         {% if booking.commence_updated %}
-                            <p>Commence Has Been Updated</p>
+                            <p>Commence Has Been Updated with tracking info and DB Label = True</p>
                         {% endif %}
                         <div class="label-buttons">
                             <div class="label-file">

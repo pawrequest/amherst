@@ -19,12 +19,15 @@
     --clr-light: #f8f9fa;
     --clr-dark: #343a40;
     --clr-white: #fff;
-    --clr-dtg-orange-700: #df4817;
-    --clr-3: #df4817;
-    --clr-5: #df4817;
     --fs-500: 1.25rem;
     --fs-400: 1rem;
-
+    --clr-loader-border: #FF3D00;
+    --clr-alert: red;
+    --clr-success-font: white;
+    --clr-btn: blue;
+    --clr-btn-hover: purple;
+    --clr-alert-muted: rgba(255, 0, 0, 0.23);
+    --clr-sandbox: rgba(255, 193, 7, 0.48);
 }
 
 html {
@@ -50,7 +53,7 @@ input, select, textarea, button {
     display: flex;
     flex-direction: column;
     margin-block: 1rem;
-    background-color: red;
+    background-color: var(--clr-alert);
     line-height: 2rem;
     font-size: 1.5rem;
     padding: 1rem;
@@ -87,8 +90,8 @@ h1 {
 
 .booking-confirmed {
     /* used in js*/
-    background-color: #28a745; /* Confirmation message color */
-    color: white;
+    background-color: var(--clr-success); /* Confirmation message color */
+    color: var(--clr-success-font);
 }
 
 .email-body {
@@ -189,8 +192,8 @@ button {
     cursor: pointer;
     padding-inline: 5px;
     padding-block: 2px;
-    background-color: blue;
-    color: white;
+    background-color: var(--clr-btn);
+    color: var(--clr-success-font);
     line-height: 2rem;
     font-size: 1.5rem;
     margin-block: 1rem;
@@ -210,7 +213,7 @@ button.update-address-btn {
 }
 
 button:hover {
-    background-color: purple;
+    background-color: var(--clr-btn-hover);
 }
 
 
@@ -236,11 +239,11 @@ select:focus {
 }
 
 .shipper__live {
-    background-color: rgba(255, 0, 0, 0.23);
+    background-color: var(--clr-alert-muted);
 }
 
 .shipper__sandbox {
-    background: rgba(255, 193, 7, 0.48);
+    background: var(--clr-sandbox);
 
 }
 
@@ -313,7 +316,7 @@ select:focus {
 
 
 .result__fail {
-    background-color: rgba(255, 0, 0, 0.57);
+    background-color: var(--clr-danger);
 }
 
 .loading-spinner {
@@ -346,7 +349,7 @@ select:focus {
     height: 56px;
     border-radius: 50%;
     border: 3px solid transparent;
-    border-bottom-color: #FF3D00;
+    border-bottom-color: var(--clr-loader-border);
 }
 
 @keyframes rotation {
@@ -367,7 +370,7 @@ select:focus {
 
 
 .email-form {
-    background: rgba(52, 199, 184, 0.91);
+    background: var(--clr-success);
     margin-inline: auto;
     display: flex;
     flex-direction: row;
@@ -386,7 +389,7 @@ select:focus {
 /*}*/
 
 .result__success {
-    background-color: rgba(0, 128, 0, 0.57);
+    background-color: var(--clr-success);
     border-radius: var(--border-radius);
     padding: .5rem 1rem;
 }
@@ -398,7 +401,7 @@ select:focus {
 }
 
 .checkbox-group {
-    border: 2px solid purple;
+    border: 2px solid var(--clr-btn-hover);
     border-radius: .5rem;
     /*margin: */
     padding: 1rem;

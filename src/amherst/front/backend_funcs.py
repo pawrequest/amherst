@@ -111,15 +111,15 @@ async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
 
 
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
-    label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
+    completed_dl_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
     for i in range(20):
-        if label_path:
-            return label_path
+        if completed_dl_path:
+            return completed_dl_path
         else:
             print('waiting for file to be created')
             time.sleep(1)
     else:
-        raise ValueError(f'file not created after 20 seconds {label_path=}')
+        raise ValueError(f'file not created after 20 seconds {completed_dl_path=}')
 
 
 async def get_invoice_path(record: AmherstRecord) -> pathlib.Path | None:

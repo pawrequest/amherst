@@ -22,13 +22,14 @@ from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRec
 from shipaw.models.pf_shared import Alert, DateTimeRange, ServiceCode
 from shipaw.models.pf_top import CollectionContact, CollectionInfo
 from shipaw.pf_config import pf_sett
-from shipaw.ship_types import VALID_POSTCODE
+from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE
 from amherst.front.backend_funcs import (
+    TEMPLATES,
     book_shipment,
+    get_booking,
     make_email,
     record_tracking,
-    TEMPLATES,
-    get_booking, wait_label,
+    wait_label,
 )
 from amherst.models.db_models import BookingStateDB
 from amherst import am_db
@@ -103,6 +104,18 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(a
 #     return HTMLResponse(content=f'<p>Printed {label_path}</p>')
 
 
+async def check_already_booked(request, booking):
+    if booking.response:
+        logger.error(f'Shipment for {booking.record.name} already booked')
+        booking.alerts.append(
+            Alert(type=AlertType.WARNING, message=f"Already Booked {booking.record.name}")
+        )
+        return TEMPLATES.TemplateResponse(
+            'alerts.html',
+            {'booking': booking, 'request': request}
+        )
+
+
 @router.post("/confirm_booking", response_class=HTMLResponse)
 async def confirm_booking(
         request: Request,
@@ -114,27 +127,22 @@ async def confirm_booking(
     booking: BookingStateDB = await get_booking(booking_id, session)
 
     try:
-        if booking.response:
-            logger.error(f'Shipment for {booking.record.name} already booked')
-            booking.alerts.append(
-                Alert(type='WARNING', message=f"Already Booked {booking.record.name}")
-            )
-            return TEMPLATES.TemplateResponse(
-                'alerts.html',
-                {'booking': booking, 'request': request}
-            )
-
+        # if booking.response:
+        #     logger.error(f'Shipment for {booking.record.name} already booked')
+        #     booking.alerts.append(
+        #         Alert(type=AlertType.WARNING, message=f"Already Booked {booking.record.name}")
+        #     )
+        #     return TEMPLATES.TemplateResponse(
+        #         'alerts.html',
+        #         {'booking': booking, 'request': request}
+        #     )
+        await check_already_booked(request, booking)
         booking.response = book_shipment(el_client, booking.shipment_request)
         booking.booked = True
+
         record_tracking(booking)
 
-        label_dl_path = booking.label_path()
-        wait_label(
-            shipment_num=booking.response.shipment_num,
-            dl_path=label_dl_path,
-            el_client=el_client
-        )
-        booking.label_downloaded = True
+        await process_label(booking, el_client)
 
         session.add(booking)
         session.commit()
@@ -161,10 +169,36 @@ async def confirm_booking(
         )
 
 
+async def process_label(booking, el_client):
+    label_dl_path = booking.label_path()
+
+    wait_label(
+        shipment_num=booking.response.shipment_num,
+        dl_path=label_dl_path,
+        el_client=el_client
+    )
+    booking.label_downloaded = True
+
+
 async def get_notes_f_form(form_data):
-    return [(fieldname, form_data[fieldname]) for fieldname in
-            ShipmentReferenceFields.model_fields.keys() if
-            fieldname in form_data]
+    return [
+        (fieldname, form_data[fieldname]) for fieldname in
+        ShipmentReferenceFields.model_fields.keys()
+        if fieldname in form_data
+    ]
+
+
+async def check_dates(booking, request):
+    alert = None
+    if not booking.shipment_request.shipping_date.weekday() < 5:
+        alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
+    if booking.direction == ShipDirection.IN and booking.shipment_request.shipping_date <= date.today():
+        alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
+    if alert:
+        logger.warning(alert.message)
+        booking.alerts.append(alert)
+        return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
+    return None
 
 
 @router.post('/post_form/', response_class=HTMLResponse)
@@ -186,8 +220,19 @@ async def post_form(
         postcode: VALID_POSTCODE = Form(...),
         session=Depends(am_db.get_session),
 ):
+    booking = await get_booking(booking_id, session)
+    await check_dates(booking, request)
+    # alert = None
+    # if not ship_date.weekday() < 5:
+    #     alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
+    # if direction == ShipDirection.IN and ship_date <= date.today():
+    #     alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
+    # if alert:
+    #     logger.warning(alert.message)
+    #     booking.alerts.append(alert)
+    #     return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
     try:
-        addr_class = AddressRecipient if direction == 'out' else AddressCollection
+        addr_class = AddressCollection if direction == 'in' else AddressRecipient
         contact_class = Contact if direction == 'out' else CollectionContact
         address = addr_class(
             address_line1=address_line1,
@@ -218,7 +263,8 @@ async def post_form(
         for fieldname, value in await get_notes_f_form(await request.form()):
             setattr(shipment_request, fieldname, value)
 
-        booking = await get_booking(booking_id, session)
+            booking.direction = direction
+
         booking.shipment_request = shipment_request
         session.add(booking)
         session.commit()
