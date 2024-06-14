@@ -37,6 +37,12 @@ from amherst import am_db
 router = APIRouter()
 
 
+@router.get('/multi', response_class=HTMLResponse)
+async def multi_shipper(request: Request, session=Depends(am_db.get_session)):
+    bookings = session.query(BookingStateDB).all()
+    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'bookings': bookings})
+
+
 @router.get('/fail/{alert}', response_class=HTMLResponse)
 async def fail(request: Request, alert: str):
     alert = base64.urlsafe_b64decode(alert).decode('utf-8')

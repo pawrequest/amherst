@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum, StrEnum
-from typing import Literal
 
-from pycommence import pycmc_types
+from pycommence import FilterArray, pycmc_types
+from pycommence.pycmc_types import CmcFilter
 
 SALE_CUSTOMERS = pycmc_types.Connection(
     name='SaleCustomers',
@@ -17,22 +17,8 @@ HIRE_CUSTOMERS = pycmc_types.Connection(
     from_table='Hire',
 )
 
-HireStatusType = Literal[
-    'Booked in',
-    'Booked in and packed',
-    'Partially packed',
-    'Out',
-    'Returned all OK',
-    'Returned with problems',
-    'Quote given',
-    'Cancelled',
-    'Extended',
-    'Sold To Customer',
-    '',
-]
 
-
-class HireStatusEnum(StrEnum):
+class HireStatus(StrEnum):
     BOOKED_IN = 'Booked in'
     PACKED = 'Booked in and packed'
     PARTIALLY_PACKED = 'Partially packed'
@@ -43,18 +29,6 @@ class HireStatusEnum(StrEnum):
     CANCELLED = 'Cancelled'
     EXTENDED = 'Extended'
     SOLD = 'Sold To Customer'
-
-
-
-INITIAL_FILTER_ARRAY = pycmc_types.FilterArray(
-    filters={
-        1: pycmc_types.CmcFilter(
-            cmc_col='Status',
-            condition='Equal To',
-            value='Booked in',
-        ),
-    }
-)
 
 
 class HireFields(str, Enum):
@@ -183,3 +157,15 @@ class SaleFields(str, Enum):
     INVOICE_NAME = 'Invoice Name'
     INVOICE_POSTCODE = 'Invoice Postcode'
     INVOICE_TELEPHONE = 'Invoice Telephone'
+
+
+INITIAL_FILTER_ARRAY = FilterArray(
+    filters={
+        1: CmcFilter(
+            cmc_col=HireFields.STATUS,
+            value=f'{HireStatus.PACKED}'
+        ),
+        2: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='After', value='one week ago'),
+        3: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='Before', value='one week from now'),
+    }
+)
