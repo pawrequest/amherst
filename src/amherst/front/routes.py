@@ -78,7 +78,7 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(a
     if invoice := 'invoice' in att_choices:
         invoice = Path(booking.record.invoice_path).with_suffix('.pdf')
     if label := 'label' in att_choices:
-        label = booking.label_path()
+        label = booking.label_path
     if missing := 'missing' in att_choices:
         missing = booking.record.missing_kit()
 
@@ -176,7 +176,7 @@ async def confirm_booking(
 
 
 async def process_label(booking, el_client):
-    label_dl_path = booking.label_path()
+    label_dl_path = booking.label_path
 
     wait_label(
         shipment_num=booking.response.shipment_num,

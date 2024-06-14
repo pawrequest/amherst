@@ -56,11 +56,12 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         record['cmc_table_name'] = category
         amrec = am_record.AmherstRecord(**record)
         amrec = amrec.model_validate(amrec)
-        amrec_db = amherst.models.am_record.AmherstRecordDB(**amrec.model_dump())
+        # amrec_db = amherst.models.am_record.AmherstRecordDB(**amrec.model_dump())
         booking = db_models.BookingStateDB(
-            record=amrec_db,
+            record=amrec,
             shipment_request=(am_db.amherst_shipment_request(amrec))
         )
+        booking = booking.model_validate(booking)
 
         with am_db.get_session_cm() as session:
             session.add(booking)

@@ -25,7 +25,7 @@ from loguru import logger
 
 from amherst.am_db import amherst_shipment_request, get_session_cm
 from amherst.am_shared import INITIAL_FILTER_ARRAY
-from amherst.models.am_record import AmherstRecordDB
+# from amherst.models.am_record import AmherstRecordDB
 from amherst.models.db_models import BookingStateDB
 from pycommence import PyCommence
 from amherst.am_config import am_sett
@@ -50,10 +50,9 @@ async def main():
             amrec = am_record.AmherstRecord(**rec)
             amrec = amrec.model_validate(amrec)
             logger.info(f'Validated record {amrec.name}')
-            amrec_db = AmherstRecordDB(**amrec.model_dump())
             bookings.append(
                 BookingStateDB(
-                    record=amrec_db,
+                    record=amrec,
                     shipment_request=amherst_shipment_request(amrec)
                 )
             )

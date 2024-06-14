@@ -142,11 +142,11 @@ class AmherstRecord(sqm.SQLModel):
 #         raise
 
 
-class AmherstRecordDB(AmherstRecord, table=True):
-    id: int | None = sqm.Field(primary_key=True)
-    booking_states: list['BookingStateDB'] = sqm.Relationship(
-        back_populates="record",
-    )
+# class AmherstRecordDB(AmherstRecord, table=True):
+#     id: int | None = sqm.Field(primary_key=True)
+#     booking_states: list['BookingStateDB'] = sqm.Relationship(
+#         back_populates="record",
+#     )
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:
