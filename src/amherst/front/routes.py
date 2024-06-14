@@ -173,7 +173,7 @@ async def post_form(
         booking_id: int = Form(...),
         ship_date: date = Form(...),
         boxes: int = Form(...),
-        direction: ship_types.ShipDirectionEnum = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
         service: ServiceCode = Form(...),
         contact_name: str = Form(...),
         email: str = Form(...),
