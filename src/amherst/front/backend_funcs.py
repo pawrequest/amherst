@@ -46,17 +46,13 @@ def record_tracking(booking_state: BookingStateDB):
 
 
 def do_record_tracking(booking: BookingStateDB):
-    direction = booking.direction
-    tracking_number = booking.response.shipment_num
-    category = booking.record.cmc_table_name
-    record_name = booking.record.name
-    tracking_link_field = HireFields.TRACK_INBOUND if direction in ['in', 'dropoff'] \
+    tracking_link_field = HireFields.TRACK_INBOUND if booking.direction in ['in', 'dropoff'] \
         else HireFields.TRACK_OUTBOUND
     tracking_link = booking.response.tracking_link()
 
-    with PyCommence.from_table_name_context(table_name=category) as py_cmc:
+    with PyCommence.from_table_name_context(table_name=booking.record.cmc_table_name) as py_cmc:
         py_cmc.edit_record(
-            record_name,
+            booking.record.name,
             row_dict={
                 tracking_link_field: tracking_link,
                 HireFields.DB_LABEL_PRINTED: True
@@ -64,7 +60,7 @@ def do_record_tracking(booking: BookingStateDB):
         )
         booking.tracking_logged = True
     logger.info(
-        f'Set DB Printed and Updated "{record_name}" {tracking_link_field} to {tracking_link}'
+        f'Set DB Printed and Updated "{booking.record.name}" {tracking_link_field} to {tracking_link}'
     )
 
 
@@ -111,15 +107,15 @@ async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
 
 
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
-    completed_dl_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
+    label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
     for i in range(20):
-        if completed_dl_path:
-            return completed_dl_path
+        if label_path:
+            return label_path
         else:
             print('waiting for file to be created')
             time.sleep(1)
     else:
-        raise ValueError(f'file not created after 20 seconds {completed_dl_path=}')
+        raise ValueError(f'file not created after 20 seconds {label_path=}')
 
 
 async def get_invoice_path(record: AmherstRecord) -> pathlib.Path | None:
