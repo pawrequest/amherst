@@ -14,7 +14,7 @@
     <section class="checkbox-group checkbox-group__recip">
         <h3>Email Recipients</h3>
         {#            <div class="checkbox-group checkbox-group__recip">#}
-        {% for addr in booking.record.email_options() %}
+        {% for addr in booking.email_options  %}
             <div>
                 <input type="checkbox" id="{{ addr.name }}" name="email-{{ addr.name }}"
                        value="{{ addr.email }}">

@@ -67,6 +67,7 @@ class AmherstRecord(sqm.SQLModel):
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
 
+    @functools.cached_property
     def email_options(self):
         email_dict = {
             self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL): ('accounts',
