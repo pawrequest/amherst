@@ -14,18 +14,20 @@
 </head>
 <body>
 <header>
-
-</header>
-<section>
-
-</section>
-<section>
-    {% if booking and booking.alerts %}
-    {% for alert in booking.alerts %}
-    <div class="alert alert-{{ alert.type }}">{{ alert.message }}</div>
-    {% endfor %}
+    {% if request.app.ship_live %}
+        <div class="shipper shipper__live">Shipper in Live Mode</div>
+    {% else %}
+        <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
     {% endif %}
-</section>
+
+    {% if booking and booking.alerts %}
+        <div class="alerts">
+            {% for alert in booking.alerts %}
+                <div class="alert alert__{{ alert.type }}">{{ alert.message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</header>
 <main>
     {% block content %}{% endblock %}
 </main>

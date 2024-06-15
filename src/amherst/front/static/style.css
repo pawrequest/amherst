@@ -48,16 +48,41 @@ input, select, textarea, button {
     border-radius: var(--border-radius);
     padding: .3rem;
 }
+header {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    justify-content: center;
+    margin-inline: auto;
+}
+
+.alerts {
+    max-width: min(100% - 3rem, 1400px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-inline: auto;
+}
 
 .alert {
     display: flex;
-    flex-direction: column;
-    margin-block: 1rem;
-    background-color: var(--clr-alert);
+    width: 100%;
     line-height: 2rem;
     font-size: 1.5rem;
-    padding: 1rem;
-    border-radius: var(--border-radius);
+    border-radius: .5rem;
+    text-align: center;
+}
+
+.alert__ERROR {
+    background-color: var(--clr-alert);
+}
+
+.alert__NOTIFICATION {
+    background-color: cornflowerblue;
+}
+
+.alert__WARNING {
+    background-color: var(--clr-sandbox);
 }
 
 h1 {
@@ -66,11 +91,12 @@ h1 {
 }
 
 .wrapper {
+    display: grid;
+
     border-radius: 1rem;
     margin-block: 3rem;
     padding-block: 1rem;
     padding-inline: 3rem;
-    display: grid;
     max-width: min(100% - 3rem, 1400px);
     margin-inline: auto;
     gap: 1rem;
@@ -234,6 +260,7 @@ select:focus {
 }
 
 .shipper {
+    padding-inline: 3rem;
     display: flex;
     justify-content: center;
 }

@@ -26,13 +26,11 @@ from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 from win32com.universal import com_error
 
-import amherst.models.am_record
-import amherst.models.db_models
 from pycommence import PyCommence
-
 from amherst.am_config import am_sett
 from amherst.models import am_record, db_models
 from amherst import am_db, app_file
+from shipaw.models.pf_msg import Alert
 
 
 def parse_arguments():
@@ -59,7 +57,8 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         # amrec_db = amherst.models.am_record.AmherstRecordDB(**amrec.model_dump())
         booking = db_models.BookingStateDB(
             record=amrec,
-            shipment_request=(am_db.amherst_shipment_request(amrec))
+            shipment_request=(am_db.amherst_shipment_request(amrec)),
+            alerts=[Alert(code=None, message='Created')]
         )
         booking = booking.model_validate(booking)
 
@@ -89,7 +88,7 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         alert = f'Error creating ShipableRecord: {e}'
 
     try:
-        if alert or not booking:
+        if alert:
             logger.exception(alert)
             alert = base64.urlsafe_b64encode(alert.encode('utf-8')).decode('utf-8')
             fui = FlaskUI(

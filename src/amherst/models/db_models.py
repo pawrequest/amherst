@@ -1,7 +1,7 @@
 # from __future__ import annotations
 
 import sqlmodel as sqm
-from pawdantic.pawsql import JSONColumn
+from pawdantic.pawsql import required_json_field
 
 from amherst.models.am_record import AmherstRecord, EmailOption
 from shipaw.models.booking_states import BookingState
@@ -9,7 +9,7 @@ from shipaw.models.booking_states import BookingState
 
 class BookingStateDB(BookingState, table=True):
     id: int | None = sqm.Field(default=None, primary_key=True)
-    record: AmherstRecord = sqm.Field(..., sa_column=sqm.Column(JSONColumn(AmherstRecord)))
+    record: AmherstRecord = required_json_field(AmherstRecord)
 
     @property
     def email_options(self):

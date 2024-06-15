@@ -15,12 +15,13 @@ from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
 
-from shipaw import ELClient, ship_types
-from shipaw.models import Contact
+from shipaw import ship_types
+from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_shipment import (ShipmentReferenceFields, ShipmentRequest)
 from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRecipient
-from shipaw.models.pf_shared import Alert, DateTimeRange, ServiceCode
-from shipaw.models.pf_top import CollectionContact, CollectionInfo
+from shipaw.models.pf_shared import DateTimeRange, ServiceCode
+from shipaw.models.pf_msg import Alert
+from shipaw.models.pf_top import CollectionContact, CollectionInfo, Contact
 from shipaw.pf_config import pf_sett
 from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE
 from amherst.front.backend_funcs import (

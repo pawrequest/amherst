@@ -3,13 +3,6 @@
 {% block title %}Amherst Shipper{% endblock %}
 
 {% block content %}
-    {% if request.app.ship_live %}
-        <div class="shipper shipper__live">Shipper in Live Mode</div>
-    {% else %}
-        <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
-    {% endif %}
-    {#    {% include 'alerts.html' with context %}#}
-
     <form id="main-form" hx-post="post_form/"
           hx-target=".returned-request"
           hx-swap="innerHTML">

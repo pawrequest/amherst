@@ -11,11 +11,11 @@
     lines_str: str
 }
 #}
-{% extends "base.html" %}
+{#{% extends "base.html" %}#}
+{##}
+{#{% block title %}Amherst Shipper Booking Confirmed{% endblock %}#}
 
-{% block title %}Amherst Shipper Booking Confirmed{% endblock %}
-
-{% block content %}
+{#{% block content %}#}
 
     <div class="wrapper wrapper__results">
         <div class="response">
@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        {% include 'alerts.html' with context %}
+{#        {% include 'alerts.html' with context %}#}
 
         {#        <div class="email">#}
         {#            <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}
@@ -74,6 +74,6 @@
     <script>
 
     </script>
-{% endblock %}
+{#{% endblock %}#}
 
 

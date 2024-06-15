@@ -4,20 +4,20 @@ import time
 import typing as _t
 import pathlib
 
-from shipaw import ELClient
 from sqlmodel import Session
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
-import shipaw
-from pycommence import PyCommence
-from shipaw.models import pf_msg
-from shipaw.models.pf_shipment import ShipmentRequest
 from loguru import logger
 
+from pycommence import PyCommence
+from shipaw.expresslink_client import ELClient
+from shipaw.models import pf_msg
+from shipaw.models.pf_shipment import ShipmentRequest
 from amherst.am_config import am_sett
 from amherst.am_shared import HireFields
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
+from shipaw.ship_types import ExpressLinkError
 
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
@@ -27,7 +27,7 @@ def book_shipment(el_client, shipment_request: ShipmentRequest) -> pf_msg.Create
     for a in resp.alerts if resp.alerts else []:
         if a.type == 'ERROR':
             logger.error(f'ERROR IN BOOKING: {a.message}')
-            raise shipaw.ExpressLinkError(a.message)
+            raise ExpressLinkError(a.message)
         logger.warning(f'WARNING IN BOOKING: {a.message}')
     return resp
 

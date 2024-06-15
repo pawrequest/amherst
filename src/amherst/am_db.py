@@ -8,9 +8,9 @@ import sqlalchemy as sqa
 import sqlmodel as sqm
 from loguru import logger
 
-from shipaw import ELClient
 from amherst.am_config import am_sett
 from amherst.models.am_record import AmherstRecord
+from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressTemporary
 from shipaw.models.pf_shipment import ShipmentRequest
 

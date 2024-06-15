@@ -6,6 +6,7 @@ import typing as _t
 
 import sqlmodel as sqm
 import pydantic as _p
+from pawdantic.pawsql import optional_json_field
 from pydantic import AliasChoices, ConfigDict, EmailStr, Field
 from loguru import logger
 
@@ -13,11 +14,8 @@ from amherst.am_shared import CustomerFields
 from pycommence import PyCommence
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
-from shipaw.models.pf_shared import Alert
+from shipaw.models.pf_msg import Alert
 from shipaw.ship_types import limit_daterange_no_weekends
-
-if _t.TYPE_CHECKING:
-    from amherst.models.db_models import BookingStateDB
 
 
 class AmherstTableEnum(StrEnum):
@@ -31,10 +29,7 @@ class AmherstRecord(sqm.SQLModel):
         populate_by_name=True,
     )
     cmc_table_name: AmherstTableEnum
-    alerts: list[Alert] = sqm.Field(
-        default_factory=list,
-        sa_column=sqm.Column(sqm.JSON)
-    )
+    alerts: list[Alert] | None = optional_json_field(Alert)
     name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
     send_date: _t.Annotated[
