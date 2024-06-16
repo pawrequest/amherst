@@ -30,7 +30,7 @@ from pycommence import PyCommence
 from amherst.am_config import am_sett
 from amherst.models import am_record, db_models
 from amherst import am_db, app_file
-from shipaw.models.pf_msg import Alert
+from shipaw.models.pf_msg import Alert, Alerts
 
 
 def parse_arguments():
@@ -58,9 +58,8 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         booking = db_models.BookingStateDB(
             record=amrec,
             shipment_request=(am_db.amherst_shipment_request(amrec)),
-            alerts=[Alert(code=None, message='Created')]
+            alerts=Alerts(alert=[Alert(code=None, message='Created')])
         )
-        booking = booking.model_validate(booking)
 
         with am_db.get_session_cm() as session:
             session.add(booking)

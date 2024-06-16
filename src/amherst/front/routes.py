@@ -159,7 +159,7 @@ async def confirm_booking(
         )
     except Exception as e:
         alert = Alert.from_exception(e)
-        booking.alerts.append(alert)
+        booking.alerts.alert.append(alert)
         if booking.response:
             session.add(booking)
             session.commit()

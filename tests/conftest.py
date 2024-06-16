@@ -1,102 +1,18 @@
-from enum import StrEnum
-
+from loguru import logger
+from sqlmodel import SQLModel, Session, create_engine
 import pytest
-import sqlmodel
-from pydantic import AliasGenerator, BaseModel, ConfigDict
-from pydantic.alias_generators import to_pascal
-from sqlalchemy import Column
-from sqlmodel import Field, SQLModel, Session, create_engine
-import sqlalchemy
 
-# from shipaw import ELClient, pf_config
-# from shipaw.models import pf_models, pf_top
+from amherst.am_db import amherst_shipment_request
+from amherst.models.am_record import AmherstRecord
+from amherst.models.db_models import BookingStateDB
+from shipaw.expresslink_client import ELClient
+from shipaw.models.pf_models import AddressRecipient
+from shipaw.models.pf_msg import Alert, Alerts
+from shipaw.models.pf_top import Contact
+from shipaw.pf_config import PFSandboxSettings, pf_sandbox_sett
 
 DB_FILE = 'sqlite:///test.db'
 DB_MEMORY = 'sqlite:///:memory:'
-
-
-class PydanticJSONColumn(sqlalchemy.TypeDecorator):
-    impl = sqlalchemy.JSON
-
-    def __init__(self, model_class: type[BaseModel], *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.model_class = model_class
-
-    def process_bind_param(self, value, dialect):
-        if value is None:
-            return None
-        elif isinstance(value, list):
-            return [
-                item.model_dump_json(round_trip=True) if isinstance(item, BaseModel) else item
-                for item in value]
-        elif isinstance(value, BaseModel):
-            return value.model_dump_json(round_trip=True)
-        return value
-
-    def process_result_value(self, value, dialect):
-        if value is None:
-            return None
-        elif isinstance(value, list):
-            return [self.model_class.model_validate_json(item) for item in value]
-        return self.model_class.model_validate_json(value)
-
-
-def pydantic_json_column(model_class: type[BaseModel]):
-    return Column(PydanticJSONColumn(model_class))
-
-
-def required_json_field(model_class: type[BaseModel]):
-    return Field(..., sa_column=pydantic_json_column(model_class))
-
-
-def optional_json_field(model_class: type[BaseModel]):
-    return Field(None, sa_column=pydantic_json_column(model_class))
-
-
-# def pydantic_json_column(model_class: type[BaseModel]):
-#     return Column(PydanticJSONColumn(model_class))
-#
-#
-# def required_json_field(model_class: type[BaseModel]):
-#     return Field(..., sa_column=pydantic_json_column(model_class))
-#
-#
-# def optional_json_field(model_class: type[BaseModel]):
-#     return Field(None, sa_column=pydantic_json_column(model_class))
-
-
-class PFBaseModel(BaseModel):
-    model_config = ConfigDict(
-        alias_generator=AliasGenerator(
-            alias=to_pascal,
-        ),
-        use_enum_values=True,
-        populate_by_name=True,
-    )
-
-
-class AlertType(StrEnum):
-    ERROR = 'ERROR'
-    WARNING = 'WARNING'
-    NOTIFICATION = 'NOTIFICATION'
-
-
-class Alert(PFBaseModel):
-    code: int | None = None
-    message: str
-    type: AlertType = AlertType.NOTIFICATION
-
-    @classmethod
-    def from_exception(cls, e: Exception):
-        return cls(message=str(e), type='ERROR')
-
-
-class Alerts(PFBaseModel):
-    alert: list[Alert] | None = optional_json_field(Alert)
-
-
-class AlertsDB(Alerts, sqlmodel.SQLModel, table=True):
-    id: int | None = sqlmodel.Field(default=None, primary_key=True)
 
 
 @pytest.fixture(scope='session')
@@ -108,51 +24,94 @@ def test_session():
         yield session
 
 
-# ExpressLink
-#
-# @pytest.fixture
-# def sett():
-#     settings = pf_config.pf_sandbox_sett()
-#     pf_config.PFSandboxSettings.model_validate(settings, from_attributes=True)
-#     yield settings
-#
-#
-# @pytest.fixture
-# def el_client(sett):
-#     yield ELClient(settings=sett)
-#
-#
-# @pytest.fixture
-# def fake_address():
-#     addr = pf_models.AddressRecipient.model_validate(
-#         dict(
-#             address_line1='30 Bennet Close',
-#             town='East Wickham',
-#             postcode='DA16 3HU',
-#         )
-#     )
-#     return addr.model_validate(addr)
-#
-#
-# @pytest.fixture
-# def long_address():
-#     addr = pf_models.AddressRecipient.model_validate(
-#         dict(
-#             address_line1='30 Bennet Close' * 10,
-#             town='East Wickham',
-#             postcode='DA16 3HU',
-#         )
-#     )
-#     return addr.model_validate(addr)
-#
-#
-# @pytest.fixture
-# def fake_contact() -> pf_top.Contact:
-#     return pf_top.Contact(
-#         business_name='Test Business',
-#         email_address='notreal@fake.com',
-#         mobile_phone='1234567890',
-#     )
+@pytest.fixture
+def sett():
+    settings = pf_sandbox_sett()
+    PFSandboxSettings.model_validate(settings, from_attributes=True)
+    yield settings
+
+
+@pytest.fixture
+def el_client(sett):
+    yield ELClient(settings=sett)
+
+
+@pytest.fixture
+def fake_address():
+    addr = AddressRecipient.model_validate(
+        dict(
+            address_line1='30 Bennet Close',
+            town='East Wickham',
+            postcode='DA16 3HU',
+        )
+    )
+    return addr.model_validate(addr)
+
+
+@pytest.fixture
+def long_address():
+    addr = AddressRecipient.model_validate(
+        dict(
+            address_line1='30 Bennet Close' * 10,
+            town='East Wickham',
+            postcode='DA16 3HU',
+        )
+    )
+    return addr.model_validate(addr)
+
+
+@pytest.fixture
+def fake_contact() -> Contact:
+    return Contact(
+        business_name='Test Business',
+        email_address='notreal@fake.com',
+        mobile_phone='1234567890',
+    )
+
+
+@pytest.fixture
+def sale_fixture():
+    return {
+        'Name': 'Test - 22/10/2022 ref 1', 'Date Ordered': '20221022', 'Date Sent': '', 'Delivery Name': 'Test',
+        'Delivery Address': 'bloggs', 'Delivery Contact': 'Blogga', 'Delivery Postcode': 'DA16 3HU',
+        'Delivery Telephone': '07888 888888', 'Delivery Email': '', 'Invoice Name': 'Test', 'Invoice Address': 'bloggs',
+        'Invoice Telephone': '07500 000000', 'Invoice Postcode': 'ME8 8SP', 'Invoice Email': '',
+        'Invoice Contact': 'Blogga', 'Status': 'Ordered Ready To Go', 'Serial Numbers': '', 'Items Ordered': '',
+        'Reference Number': '431', 'Delivery Method': 'Parcelforce',
+        'Invoice': 'C:\\Users\\RYZEN\\prdev\\amherst\\README.md', 'Purchase Order': '', 'Inbound ID': '',
+        'Lost Equipment': 'FALSE', 'Notes': '', 'All Delivery Address': 'Blogga\r\nTest\r\nbloggs\r\nDA16 3HU',
+        'Delivery Notes': '', 'Invoice Terms': 'Due for payment please', 'Purchase Order Print': '',
+        'To Customer': 'Test', 'Handled By Staff': '', 'Has Document Log': '', 'Outbound ID': '',
+        'cmc_table_name': 'Sale'
+    }
+
+
+@pytest.fixture
+def customer_record():
+    return {
+        'Name': 'Test', 'Contact Name': 'Test', 'Address': '12 sime affdresss', 'Telephone': '07', 'Fax': '',
+        'Email': '', 'Date Added': '20230823', 'Notes': '', 'Number of hires': '2', 'Postcode': '',
+        'Charity Number': '', 'Status': 'Hire Prospect', 'Student Discount?': 'FALSE', 'Date Last Contact': '20230823',
+        'Card Number': '', 'Card Expiry Date': '', 'Card CVV2': '', 'Web Site': 'www.sfrsfsf.com',
+        'Hire Customer': 'TRUE', 'Sales Customer': 'FALSE', 'Hire Prospect': 'FALSE', 'Sales Prospect': 'FALSE',
+        'Closed prospect': 'FALSE', 'Dump': '', 'AQ Ref Number': '', 'Mobile Phone': '07',
+        'All Address': 'Test\r\n\r\n12 sime affdresss', 'Supplier / Other': 'FALSE', 'Discount Percentage': '',
+        'Annual Event': 'FALSE', 'Annual Event Date': '', 'Deliv Address': '12 sime affdresss',
+        'Deliv Postcode': 'ME8 8SP', 'Deliv Name': 'Test', 'Deliv Contact': 'Test', 'Deliv Telephone': '07999 999999',
+        'Deliv Email': '', 'Purchase Order': '', 'Backorder Flag': 'FALSE', 'Backorder Details': '',
+        'Number Batteries': '0', 'Number Cases': '0', 'Number EM': '0', 'Number EMC': '0', 'Number Headset': '0',
+        'Number Headset Big': '0', 'Number Icom': '0', 'Number Megaphone': '0', 'Number Parrot': '0', 'Number UHF': '0',
+        'Accounts Contact': '', 'Accounts Telephone': '', 'Accounts Email': '', 'Licence Applied For?': 'FALSE',
+        'Licence App Date': '', 'Licence Type': '', 'Licence Ref': '', 'Charity?': 'FALSE', 'Licence Needed': 'FALSE',
+        'Main Telephone': '07888 888888', 'First Hire Date': '', 'Discount Description': '', 'First Hire Details': '',
+        'Special Radio Prog': '', 'Problem Customer': 'FALSE', 'Number of contacts': '1', 'Name For Printing': '',
+        'ShipMe': 'FALSE', 'More Contacts': '', 'Invoice Name': '', 'Invoice Address': '', 'Invoice Contact': '',
+        'Invoice Postcode': '', 'Invoice Email': '', 'Invoice Telephone': '', 'test for vbscript': '',
+        'Has Hired Hire': '2308, Test Customer - 2/21/2024 ref 43383', 'Has Log': 'stsetsetsetste',
+        'Related Date Customer': '', 'Has Sent Repairs': '', 'Has Radio Trial': '', 'Has WebEmails': '',
+        'Carried Out Repairs': '', 'Is A Type of Organisation': '', 'Involves Sale': 'Test - 22/10/2022 ref 1',
+        'Charged for Invoice': '', 'cmc_table_name': 'Customer'
+    }
 
 
 @pytest.fixture
@@ -164,7 +123,7 @@ def hire_record():
         'Booked Date': '20240220',
         'Boxes': '1',
         'Closed': 'FALSE',
-        'Cmc Table Name': 'Hire',
+        'cmc_table_name': 'Hire',
         'DB label printed': 'FALSE',
         'Delivery Address': '12 sime affdresss',
         'Delivery Contact': 'Test',
@@ -286,3 +245,26 @@ def hire_record():
         'Unpacked by': '',
         'Weeks': '1',
     }
+
+
+@pytest.fixture(params=["hire_record", "sale_fixture", "customer_record"])
+def amrec_fxt(request, test_session) -> AmherstRecord:
+    record = request.getfixturevalue(request.param)
+    logger.info(f'testing {record['cmc_table_name']} record: {record["Name"]}')
+    amrec = AmherstRecord(**record)
+    amrec = amrec.model_validate(amrec)
+    return amrec
+
+
+@pytest.fixture
+def booking_fxt(amrec_fxt, test_session):
+    booking = BookingStateDB(
+        record=amrec_fxt,
+        shipment_request=(amherst_shipment_request(amrec_fxt)),
+        alerts=Alerts(alert=[Alert(code=None, message='Created')])
+    )
+    test_session.add(booking)
+    test_session.commit()
+    test_session.refresh(booking)
+    assert booking.id
+    return booking
