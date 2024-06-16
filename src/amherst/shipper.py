@@ -103,18 +103,6 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
             session.refresh(booking)
             ...
 
-        # try:
-        # except ValidationError as e:
-        #     msg = f'Error validating record, using partial data'
-        #     logger.warning(f'{msg} \n{e}')
-        #     amrec = AmherstRecordPartial(**record)
-        #     amrec.alerts = [Alert(code=None, message=msg, type='WARNING')]
-
-        # amrec = amrec.model_validate(amrec)
-
-        # shiprec_id = am_db.amherst_record_to_shiprec(amrec)
-        # assert shiprec_id, f'Error creating ShipableRecord for {amrec.name}'
-        # logger.info(f'added ShipmentRecord #{shiprec_id}')
 
     except com_error as e:
         alert = 'Error: Commence Server execution failed. Ensure Commence is running.'
