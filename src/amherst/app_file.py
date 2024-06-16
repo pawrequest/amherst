@@ -53,3 +53,8 @@ async def robots_txt() -> str:
 async def favicon_ico():
     logger.warning("Redirecting to /static/favicon.svg")
     return responses.RedirectResponse(url='/static/favicon.svg')
+
+
+@app.get('/api/health/', response_model=str)
+async def health():
+    return "healthy"

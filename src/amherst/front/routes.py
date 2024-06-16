@@ -324,3 +324,9 @@ async def index(
     return TEMPLATES.TemplateResponse(
         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
     )
+
+
+@router.get('/api/{booking_id}', response_class=JSONResponse)
+async def get_shipper(booking_id: int, session=Depends(am_db.get_session)) -> BookingStateDB:
+    booking = await get_booking(booking_id, session)
+    return booking

@@ -1,5 +1,5 @@
 # from __future__ import annotations
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 import functools
 from typing import Annotated
@@ -9,18 +9,13 @@ import pydantic as _p
 from pawdantic.pawsql import optional_json_field
 from pydantic import AliasChoices, ConfigDict, EmailStr, Field
 from loguru import logger
+
 from amherst.am_shared import CustomerFields
 from pycommence import PyCommence
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
 from shipaw.models.pf_msg import Alert
 from shipaw.ship_types import limit_daterange_no_weekends
-
-AM_SHIP_DATE = Annotated[
-    date, Field(date.today(), alias='Send Out Date'),
-    _p.BeforeValidator(limit_daterange_no_weekends),
-    _p.BeforeValidator(get_cmc_date),
-]
 
 
 class AmherstTableEnum(StrEnum):
@@ -29,7 +24,7 @@ class AmherstTableEnum(StrEnum):
     Customer = 'Customer'
 
 
-class AmherstRecordIn(sqm.SQLModel):
+class AmherstRecord(sqm.SQLModel):
     model_config = ConfigDict(
         populate_by_name=True,
     )
@@ -37,7 +32,10 @@ class AmherstRecordIn(sqm.SQLModel):
     alerts: list[Alert] | None = optional_json_field(Alert)
     name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
-    send_date: AM_SHIP_DATE
+    send_date: Annotated[
+        date, Field(datetime.today(), alias='Send Out Date'), _p.BeforeValidator(
+            get_cmc_date
+        ), _p.AfterValidator(limit_daterange_no_weekends)]
     delivery_contact: str = Field(
         ...,
         validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
@@ -119,10 +117,6 @@ class AmherstRecordIn(sqm.SQLModel):
 
     def missing_kit(self) -> list[str] | None:
         return self.missing_kit_str.splitlines() if self.missing_kit_str else None
-
-
-class AmherstRecord(AmherstRecordIn):
-    send_date: date
 
 
 # def initial_shipment_state(self) -> Shipment:

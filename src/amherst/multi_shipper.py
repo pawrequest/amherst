@@ -23,7 +23,8 @@ import os
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
-from amherst.am_db import amherst_shipment_request, get_session_cm
+from amherst.am_db import get_session_cm
+from amherst.shipper import amherst_shipment_request
 from amherst.am_shared import INITIAL_FILTER_ARRAY
 # from amherst.models.am_record import AmherstRecordDB
 from amherst.models.db_models import BookingStateDB

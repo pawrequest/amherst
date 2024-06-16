@@ -23,8 +23,8 @@ def test_get_records_by_field(pycmc: PyCommence):
     assert res[0]['firstName'] == 'Jeff'
 
 
-def test_shipable(hire_record):
-    shipa = AmherstRecord.model_validate(hire_record)
+def test_shipable(hire_record_fxt):
+    shipa = AmherstRecord.model_validate(hire_record_fxt)
 
 
 @pytest.fixture
