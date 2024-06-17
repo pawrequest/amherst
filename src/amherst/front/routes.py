@@ -8,6 +8,7 @@ import pawdf
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
+from pydantic import EmailStr
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -23,7 +24,7 @@ from shipaw.models.pf_shared import DateTimeRange, ServiceCode
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_top import CollectionContact, CollectionInfo, Contact
 from shipaw.pf_config import pf_sett
-from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE
+from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE, UKPHONE
 from amherst.front.backend_funcs import (
     TEMPLATES,
     book_shipment,
@@ -207,7 +208,6 @@ async def check_dates(booking, request):
         return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
     return None
 
-
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
         request: Request,
@@ -217,9 +217,9 @@ async def post_form(
         direction: ship_types.ShipDirection = Form(...),
         service: ServiceCode = Form(...),
         contact_name: str = Form(...),
-        email: str = Form(...),
+        email: EmailStr = Form(...),
         business_name: str = Form(...),
-        phone: str = Form(...),
+        phone: UKPHONE = Form(...),
         address_line1: str = Form(...),
         address_line2: str = Form(''),
         address_line3: str = Form(''),

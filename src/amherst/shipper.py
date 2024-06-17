@@ -27,6 +27,7 @@ import os
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 from win32com.universal import com_error
+from thefuzz import fuzz, process
 
 from amherst.models.am_record import AmherstRecord, AmherstRecordIn
 from pycommence import PyCommence
@@ -37,6 +38,9 @@ from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressTemporary
 from shipaw.models.pf_msg import Alert, Alerts
 from shipaw.models.pf_shipment import ShipmentRequest
+from shipaw.ship_types import AlertType
+
+SCORER = fuzz.partial_ratio
 
 
 def split_reference_numbers(record: AmherstRecord):
@@ -60,20 +64,24 @@ def amherst_shipment_request(
     el_client = el_client or ELClient()
     ref_nums = split_reference_numbers(record)
     try:
-        chosen_address = el_client.choose_address(record.input_address())
+        chosen_address, score = el_client.choose_address(record.input_address)
+        altyp = AlertType.NOTIFICATION if score > 80 else AlertType.WARNING if score > 60 else AlertType.ERROR
+        record.alerts.alert.append(Alert(message=f'address score {score}', type=altyp))
+        return ShipmentRequest(
+            recipient_contact=record.contact(),
+            recipient_address=chosen_address,
+            shipping_date=record.send_date,
+            total_number_of_parcels=record.boxes,
+            **ref_nums,
+        )
     except Exception as e:
         logger.exception(e)
+
         chosen_address = AddressTemporary.model_validate(
-            record.input_address(),
+            record.input_address,
             from_attributes=True
         )
-    return ShipmentRequest(
-        recipient_contact=record.contact(),
-        recipient_address=chosen_address,
-        shipping_date=record.send_date,
-        total_number_of_parcels=record.boxes,
-        **ref_nums,
-    )
+        record.alerts.alert.append(Alert(message='Using Incomplete Address Data'))
 
 
 def parse_arguments():
@@ -88,7 +96,7 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
     alert = None
     # booking = None
     am_db.create_db()
-    print("Template directory:", os.path.abspath(am_sett().base_dir / 'front' / 'templates'))
+    print('Template directory:', os.path.abspath(am_sett().base_dir / 'front' / 'templates'))
 
     try:
         with PyCommence.from_table_name_context(table_name=category) as py_cmc:
@@ -104,7 +112,7 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
             ...
 
 
-    except com_error as e:
+    except com_error:
         alert = 'Error: Commence Server execution failed. Ensure Commence is running.'
 
     except Exception as e:

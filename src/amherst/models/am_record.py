@@ -6,15 +6,16 @@ from typing import Annotated
 
 import sqlmodel as sqm
 import pydantic as _p
-from pawdantic.pawsql import optional_json_field
-from pydantic import AliasChoices, ConfigDict, EmailStr, Field
+from pawdantic.pawsql import default_json_field
+from pydantic import AliasChoices, ConfigDict, Field
 from loguru import logger
+
 from amherst.am_shared import CustomerFields
 from pycommence import PyCommence
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
-from shipaw.models.pf_msg import Alert
-from shipaw.ship_types import limit_daterange_no_weekends
+from shipaw.models.pf_msg import Alert, Alerts
+from shipaw.ship_types import AlertType, limit_daterange_no_weekends
 
 AM_SHIP_DATE = Annotated[
     date, Field(date.today(), alias='Send Out Date'),
@@ -32,9 +33,11 @@ class AmherstTableEnum(StrEnum):
 class AmherstRecordIn(sqm.SQLModel):
     model_config = ConfigDict(
         populate_by_name=True,
+        validate_default=True,
     )
     cmc_table_name: AmherstTableEnum
-    alerts: list[Alert] | None = optional_json_field(Alert)
+    alerts: Alerts | None = default_json_field(Alerts, Alerts)
+    # alerts: list[Alert] | None = optional_json_field(Alert)
     name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
     send_date: AM_SHIP_DATE
@@ -49,7 +52,7 @@ class AmherstRecordIn(sqm.SQLModel):
         ...,
         validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
     )
-    email: str = Field(..., validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
+    email: str = Field('', validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
     address_str: str = Field(
         ...,
         validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
@@ -86,19 +89,12 @@ class AmherstRecordIn(sqm.SQLModel):
             self.customer
         )
 
+    @property
     def input_address(self):
         return pf_models.AddressRecipient(
             **addr_town_lines_maybe(self.address_str),
             postcode=self.postcode,
         )
-
-    #
-    # def input_address(self):
-    #     return pf_models.AddressRecipient(
-    #         **addr_lines_dict_am(self.address_str),
-    #         town='',
-    #         postcode=self.postcode,
-    #     )
 
     def contact(self) -> pf_top.Contact | pf_top.ContactTemporary:
         contact_dict = dict(
@@ -112,9 +108,12 @@ class AmherstRecordIn(sqm.SQLModel):
             contact_model = pf_top.Contact(**contact_dict)
             contact_model.model_validate(contact_model)
         except _p.ValidationError as err:
-            logger.warning('missing data, using filler - ' + ', '.join(_['msg'] for _ in err.errors()))
+            errors = err.errors()
+            reasons = [_.get('ctx').get('reason') for _ in errors]
+            err_msg = ', '.join(reasons)
+            logger.warning(err_msg)
             contact_model = pf_top.ContactTemporary(**contact_dict)
-            # self.alerts.append(Alert(type="WARNING", message="Contact details invalid, using filler."))
+            self.alerts.alert.append(Alert(type=AlertType.ERROR, message=err_msg))
         return contact_model
 
     def missing_kit(self) -> list[str] | None:
@@ -219,7 +218,7 @@ def get_customer_record(customer: str) -> dict[str, str]:
 
 
 class EmailOption(_p.BaseModel):
-    email: EmailStr
+    email: str
     description: str
     name: str
 

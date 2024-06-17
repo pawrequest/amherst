@@ -20,9 +20,9 @@
         <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
     {% endif %}
 
-    {% if booking and booking.alerts %}
+    {% if booking %}
         <div class="alerts">
-            {% for alert in booking.alerts %}
+            {% for alert in booking.all_alerts() %}
                 <div class="alert alert__{{ alert.type }}">{{ alert.message }}</div>
             {% endfor %}
         </div>
