@@ -32,8 +32,8 @@ class HireStatus(StrEnum):
 
 
 class HireFields(str, Enum):
-    ARRANGED_INBOUND = 'DB label printed'
-    ARRANGED_OUTBOUND = 'Pickup Arranged'
+    ARRANGED_OUTBOUND = 'DB label printed'
+    ARRANGED_INBOUND = 'Pickup Arranged'
     ACTUAL_RETURN_DATE = 'Actual Return Date'
     AERIAL_ADAPT = 'Number Aerial Adapt'
     ALL_ADDRESS = 'All Address'
@@ -74,6 +74,7 @@ class HireFields(str, Enum):
     PARROT = 'Number Parrot'
     PAYMENT_TERMS = 'Payment Terms'
     PICKUP_ARRANGED = 'Pickup Arranged'
+    PICKUP_DATE = 'Pickup Date'
     PURCHASE_ORDER = 'Purchase Order'
     RADIO_TYPE = 'Radio Type'
     RECURRING_HIRE = 'Recurring Hire'
@@ -163,13 +164,8 @@ class SaleFields(str, Enum):
 
 INITIAL_FILTER_ARRAY = FilterArray(
     filters={
-        1: CmcFilter(
-            cmc_col=HireFields.STATUS,
-            value=f'{HireStatus.PACKED}'
-        ),
+        1: CmcFilter(cmc_col=HireFields.STATUS, value=f'{HireStatus.PACKED}'),
         2: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='After', value='one week ago'),
         3: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='Before', value='one week from now'),
     }
 )
-
-

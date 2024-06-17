@@ -125,6 +125,8 @@
         const resultsDiv = document.querySelector('.returned-request');
         const requestDiv = document.querySelector('.requested-shipment');
         const confirmButton = document.querySelector('.submit-confirm-btn');
+        const bookingBooked = {{ 'true' if booking.booked else 'false' }};
+
 
         confirmButton.addEventListener('click', function () {
             console.log('confirm button clicked');
@@ -137,10 +139,12 @@
             spinner.style.display = 'none';
             requestDiv.style.display = '';
 
-            const bookingConfirmed = document.createElement('div');
-            bookingConfirmed.className = 'booking-confirmed';
-            bookingConfirmed.innerText = 'Booking Confirmed';
-            confirmButton.parentNode.replaceChild(bookingConfirmed, confirmButton)
+            if (bookingBooked) {
+                const bookingConfirmed = document.createElement('div');
+                bookingConfirmed.className = 'booking-confirmed';
+                bookingConfirmed.innerText = 'Booking Confirmed';
+                confirmButton.parentNode.replaceChild(bookingConfirmed, confirmButton)
+            }
         });
         console.log('script loaded')
     </script>

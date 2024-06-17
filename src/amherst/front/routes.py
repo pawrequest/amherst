@@ -9,6 +9,7 @@ from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
 from pydantic import EmailStr
+from pydantic_extra_types.phone_numbers import PhoneNumber
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -18,13 +19,12 @@ from urllib3.exceptions import ConnectTimeoutError
 
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_shipment import (ShipmentReferenceFields, ShipmentRequest)
+from shipaw.models.pf_shipment import ShipmentReferenceFields, ShipmentRequest
 from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRecipient
-from shipaw.models.pf_shared import DateTimeRange, ServiceCode
+from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_msg import Alert
-from shipaw.models.pf_top import CollectionContact, CollectionInfo, Contact
-from shipaw.pf_config import pf_sett
-from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE, UKPHONE, DeliveryType
+from shipaw.models.pf_top import CollectionContact, Contact
+from shipaw.ship_types import AlertType, ShipDirection, UKPHONE, VALID_POSTCODE, ExpressLinkError
 from amherst.front.backend_funcs import (
     TEMPLATES,
     book_shipment,
@@ -71,18 +71,19 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(a
     """Endpoint to handle email options."""
     booking: BookingStateDB = await get_booking(booking_id, session)
     form_data = await request.form()
-    addresses = [value for key, value in form_data.items() if
-                 value and key.startswith('email-')]
+    addresses = [value for key, value in form_data.items() if value and key.startswith('email-')]
     addresses = '; '.join(addresses)
 
-    att_choices = [key.lstrip('att-') for key, value in form_data.items() if
-                   value and key.startswith('att-')]
+    att_choices = [key.lstrip('att-') for key, value in form_data.items() if value and key.startswith('att-')]
     if invoice := 'invoice' in att_choices:
+        logger.debug(f'fetching invoice path {booking.record.invoice_path}')
         invoice = Path(booking.record.invoice_path).with_suffix('.pdf')
     if label := 'label' in att_choices:
+        logger.debug(f'fetching label path {booking.label_path}')
         label = booking.label_path
     if missing := 'missing' in att_choices:
         missing = booking.record.missing_kit()
+        logger.debug(f'fetching missing kit data {missing}')
 
     email_obj = await make_email(addresses, invoice, label, missing, booking)
 
@@ -112,24 +113,19 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(a
 #     return HTMLResponse(content=f'<p>Printed {label_path}</p>')
 
 
-async def check_already_booked(request, booking):
-    if booking.response:
+async def check_already_booked(booking):
+    if booking.booked or booking.completed:
         logger.error(f'Shipment for {booking.record.name} already booked')
-        booking.alerts.append(
-            Alert(type=AlertType.WARNING, message=f"Already Booked {booking.record.name}")
-        )
-        return TEMPLATES.TemplateResponse(
-            'alerts.html',
-            {'booking': booking, 'request': request}
-        )
+        booking.alerts.alert.append(Alert(type=AlertType.WARNING, message=f'Already Booked {booking.record.name}'))
+    return True
 
 
-@router.post("/confirm_booking", response_class=HTMLResponse)
+@router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-        request: Request,
-        booking_id: int = Form(...),
-        el_client: ELClient = Depends(am_db.get_el_client),
-        session: Session = Depends(am_db.get_session),
+    request: Request,
+    booking_id: int = Form(...),
+    el_client: ELClient = Depends(am_db.get_el_client),
+    session: Session = Depends(am_db.get_session),
 ):
     logger.info(f'booking_id: {booking_id}')
     booking: BookingStateDB = await get_booking(booking_id, session)
@@ -144,59 +140,52 @@ async def confirm_booking(
         #         'alerts.html',
         #         {'booking': booking, 'request': request}
         #     )
-        await check_already_booked(request, booking)
+        if booking.booked:
+            alert = Alert(type=AlertType.WARNING, message=f'Already Booked {booking.record.name}')
+            # booking.alerts.alert.append(alert)
+            # session.add(booking)
+            # session.commit()
+            # return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
+            logger.debug(f'Already booked, alerts = {booking.alerts}')
+            return TEMPLATES.TemplateResponse('alerts_only.html', {'alerts': [alert], 'request': request})
+
         booking.response = book_shipment(el_client, booking.shipment_request)
         booking.booked = True
-
         record_tracking(booking)
-
         await process_label(booking, el_client)
-
         session.add(booking)
         session.commit()
-        return TEMPLATES.TemplateResponse(
-            'order_confirmed.html',
-            {'request': request, 'booking': booking}
-        )
+        return TEMPLATES.TemplateResponse('order_confirmed.html', {'request': request, 'booking': booking})
+
     except (ConnectTimeoutError, BackendError) as e:
         msg = f'Error: {e.__class__.__name__}. Connection Likely Timed Out.\n{str(e)}'
         logger.exception(msg)
         return f'<p>{msg}</p><p>Please refresh the page and try again</p>'
-    # except Exception as e:
-    #     logger.exception(e)
-    #     alert = Alert.from_exception(e)
-    #     booking.alerts.alert.append(alert)
-    #     if booking.response:
-    #         session.add(booking)
-    #         session.commit()
-    #         return TEMPLATES.TemplateResponse(
-    #             'order_confirmed.html',
-    #             {
-    #                 'request': request,
-    #                 'booking': booking
-    #             }
-    #         )
-    #     return TEMPLATES.TemplateResponse(
-    #         'alerts.html',
-    #         {'alert': alert, 'request': request, 'booking': booking}
-    #     )
+
+    except ExpressLinkError as e:
+        logger.exception(e)
+        al = Alert.from_exception(e)
+        logger.debug(f'ExpressLinkErro, alerts = {booking.alerts}')
+        booking.alerts.alert.append(al)
+        session.add(booking)
+        session.commit()
+        if booking.response:
+            return TEMPLATES.TemplateResponse('order_confirmed.html', {'request': request, 'booking': booking})
+        # return TEMPLATES.TemplateResponse('alerts.html', {'request': request, 'booking':booking})
+        return TEMPLATES.TemplateResponse('alerts_only.html', {'request': request, 'alerts': [al]})
 
 
-async def process_label(booking, el_client):
-    label_dl_path = booking.label_path
-
-    wait_label(
-        shipment_num=booking.response.shipment_num,
-        dl_path=label_dl_path,
-        el_client=el_client
-    )
+async def process_label(booking: BookingStateDB, el_client):
+    label_path = booking.get_label_path()
+    wait_label(shipment_num=booking.response.shipment_num, dl_path=label_path, el_client=el_client)
     booking.label_downloaded = True
+    booking.label_path = str(label_path)
 
 
 async def get_notes_f_form(form_data):
     return [
-        (fieldname, form_data[fieldname]) for fieldname in
-        ShipmentReferenceFields.model_fields.keys()
+        (fieldname, form_data[fieldname])
+        for fieldname in ShipmentReferenceFields.model_fields.keys()
         if fieldname in form_data
     ]
 
@@ -209,28 +198,29 @@ async def check_dates(booking, request):
         alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
     if alert:
         logger.warning(alert.message)
-        booking.alerts.append(alert)
+        booking.alerts.alert.append(alert)
         return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
     return None
 
+
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-        request: Request,
-        booking_id: int = Form(...),
-        ship_date: date = Form(...),
-        boxes: int = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
-        service: ServiceCode = Form(...),
-        contact_name: str = Form(...),
-        email: EmailStr = Form(...),
-        business_name: str = Form(...),
-        phone: UKPHONE = Form(...),
-        address_line1: str = Form(...),
-        address_line2: str = Form(''),
-        address_line3: str = Form(''),
-        town: str = Form(...),
-        postcode: VALID_POSTCODE = Form(...),
-        session=Depends(am_db.get_session),
+    request: Request,
+    booking_id: int = Form(...),
+    ship_date: date = Form(...),
+    boxes: int = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
+    service: ServiceCode = Form(...),
+    contact_name: str = Form(...),
+    email: EmailStr = Form(...),
+    business_name: str = Form(...),
+    phone: PhoneNumber = Form(...),
+    address_line1: str = Form(...),
+    address_line2: str = Form(''),
+    address_line3: str = Form(''),
+    town: str = Form(...),
+    postcode: VALID_POSTCODE = Form(...),
+    session=Depends(am_db.get_session),
 ):
     booking = await get_booking(booking_id, session)
     await check_dates(booking, request)
@@ -243,6 +233,36 @@ async def post_form(
     #     logger.warning(alert.message)
     #     booking.alerts.append(alert)
     #     return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
+    # try:
+    #     addr_class = AddressCollection if direction == 'in' else AddressRecipient
+    #     contact_class = Contact if direction == 'out' else CollectionContact
+    #     address = addr_class(
+    #         address_line1=address_line1,
+    #         address_line2=address_line2,
+    #         address_line3=address_line3,
+    #         town=town,
+    #         postcode=postcode,
+    #     )
+    #     contact = contact_class(
+    #         business_name=business_name,
+    #         contact_name=contact_name,
+    #         email_address=email,
+    #         mobile_phone=phone,
+    #     )
+    #     shipment_request = ShipmentRequest(
+    #         recipient_address=address if direction == 'out' else pf_sett().home_address,
+    #         recipient_contact=contact if direction == 'out' else pf_sett().home_contact,
+    #         service_code=service,
+    #         shipping_date=ship_date,
+    #         total_number_of_parcels=boxes,
+    #         collection_info=CollectionInfo(
+    #             collection_contact=contact,
+    #             collection_address=address,
+    #             collection_time=DateTimeRange.null_times_from_date(ship_date),
+    #         ) if direction == ShipDirection.IN else None,
+    #         shipment_type=ShipmentType.COLLECTION if direction == ShipDirection.IN else ShipmentType.DELIVERY,
+    #         print_own_label=True if direction == ShipDirection.IN else None,
+    #     )
     try:
         addr_class = AddressCollection if direction == 'in' else AddressRecipient
         contact_class = Contact if direction == 'out' else CollectionContact
@@ -260,23 +280,21 @@ async def post_form(
             mobile_phone=phone,
         )
         shipment_request = ShipmentRequest(
-            recipient_address=address if direction == 'out' else pf_sett().home_address,
-            recipient_contact=contact if direction == 'out' else pf_sett().home_contact,
+            recipient_address=address,
+            recipient_contact=contact,
             service_code=service,
             shipping_date=ship_date,
             total_number_of_parcels=boxes,
-            collection_info=CollectionInfo(
-                collection_contact=contact,
-                collection_address=address,
-                collection_time=DateTimeRange.null_times_from_date(ship_date),
-            ) if direction == ShipDirection.IN else None,
-            shipment_type=DeliveryType.COLLECTION if direction == ShipDirection.IN else DeliveryType.DELIVERY,
         )
 
         for fieldname, value in await get_notes_f_form(await request.form()):
             setattr(shipment_request, fieldname, value)
 
-            booking.direction = direction
+        booking.direction = direction
+        if direction == ShipDirection.DROPOFF:
+            shipment_request.make_inbound()
+        elif direction == ShipDirection.IN:
+            shipment_request.make_collection()
 
         booking.shipment_request = shipment_request
         session.add(booking)
@@ -285,7 +303,8 @@ async def post_form(
         return TEMPLATES.TemplateResponse(
             'order_review.html',
             {
-                'request': request, 'booking': booking,
+                'request': request,
+                'booking': booking,
             },
         )
     except (ConnectTimeoutError, BackendError) as e:
@@ -299,8 +318,8 @@ async def post_form(
 
 @router.get('/get_candidates', response_class=JSONResponse)
 async def get_candidates_json(  #
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(am_db.get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.candidates_json(postcode)
     return res
@@ -308,8 +327,8 @@ async def get_candidates_json(  #
 
 @router.get('/get_candidatesp', response_model=list[AddressChoice], response_class=JSONResponse)
 async def get_candidatesp(
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(am_db.get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -317,15 +336,14 @@ async def get_candidatesp(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-        request: Request,
-        booking_id: int,
-        session=Depends(am_db.get_session),
-        el_client: ELClient = Depends(am_db.get_el_client),
+    request: Request,
+    booking_id: int,
+    session=Depends(am_db.get_session),
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     booking = await get_booking(booking_id, session)
     addr_choices = el_client.get_choices(
-        booking.shipment_request.recipient_address.postcode,
-        booking.shipment_request.recipient_address
+        booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
     )
     return TEMPLATES.TemplateResponse(
         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}

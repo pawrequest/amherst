@@ -8,7 +8,7 @@ from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressTemporary
 from shipaw.models.pf_msg import Alert, Alerts
 from shipaw.models.pf_shipment import ShipmentRequest
-from shipaw.ship_types import AlertType, DeliveryType
+from shipaw.ship_types import AlertType, ShipmentType
 
 
 def split_reference_numbers(record: AmherstRecord):
@@ -41,7 +41,7 @@ def amherst_shipment_request(
             shipping_date=record.send_date,
             total_number_of_parcels=record.boxes,
             **ref_nums,
-            shipment_type=DeliveryType.DELIVERY
+            shipment_type=ShipmentType.DELIVERY
         )
     except Exception as e:
         logger.exception(e)

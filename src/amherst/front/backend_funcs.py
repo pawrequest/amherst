@@ -40,30 +40,29 @@ def record_tracking(booking_state: BookingStateDB):
             logger.error('CANT LOG TO CUSTOMER')
             return
         do_record_tracking(booking_state)
+        logger.debug(f'Logged tracking for {category} {record.name}')
 
     except Exception as exce:
-        logger.error(f'Failed to record tracking for {record.name} due to:\n{exce}')
+        logger.exception(exce)
+        raise
 
 
 def do_record_tracking(booking: BookingStateDB):
-    tracking_link_field = HireFields.TRACK_INBOUND if booking.direction in ['in', 'dropoff'] \
-        else HireFields.TRACK_OUTBOUND
     tracking_link = booking.response.tracking_link()
-    aranged_field = HireFields.ARRANGED_INBOUND if booking.direction in ['in', 'dropoff'] \
-        else HireFields.ARRANGED_OUTBOUND
+    cmc_package = (
+        {
+            HireFields.TRACK_INBOUND: tracking_link,
+            HireFields.ARRANGED_INBOUND: True,
+            HireFields.PICKUP_DATE: f'{booking.shipment_request.shipping_date:%Y-%m-%d}',
+        }
+        if booking.direction in ['in', 'dropoff']
+        else {HireFields.TRACK_OUTBOUND: tracking_link, HireFields.ARRANGED_OUTBOUND: True}
+    )
 
     with PyCommence.from_table_name_context(table_name=booking.record.cmc_table_name) as py_cmc:
-        py_cmc.edit_record(
-            booking.record.name,
-            row_dict={
-                tracking_link_field: tracking_link,
-                aranged_field: True
-            },
-        )
-        booking.tracking_logged = True
-    logger.info(
-        f'Set DB Printed and Updated "{booking.record.name}" {tracking_link_field} to {tracking_link}'
-    )
+        py_cmc.edit_record(booking.record.name, row_dict=cmc_package)
+    booking.tracking_logged = True
+    logger.debug(f'Logged {str(cmc_package)} to Commence')
 
 
 async def subject(invoice_num: str | None = None, missing=None, label=None):
@@ -84,11 +83,7 @@ async def make_email(addresses, invoice, label, missing, booking_state):
             'missing': missing,
         }
     )
-    subject_str = await subject(
-        invoice.stem if invoice else None,
-        missing is not False,
-        label is not False
-    )
+    subject_str = await subject(invoice.stem if invoice else None, missing is not False, label is not False)
     email_obj = Email(
         to_address=addresses,
         subject=subject_str,
