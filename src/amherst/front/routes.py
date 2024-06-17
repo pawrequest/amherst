@@ -9,7 +9,6 @@ from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
 from pydantic import EmailStr
-from pydantic_extra_types.phone_numbers import PhoneNumber
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -24,7 +23,7 @@ from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRec
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_top import CollectionContact, Contact
-from shipaw.ship_types import AlertType, ShipDirection, UKPHONE, VALID_POSTCODE, ExpressLinkError
+from shipaw.ship_types import AlertType, ExpressLinkError, ShipDirection, VALID_POSTCODE
 from amherst.front.backend_funcs import (
     TEMPLATES,
     book_shipment,
@@ -122,10 +121,10 @@ async def check_already_booked(booking):
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-    request: Request,
-    booking_id: int = Form(...),
-    el_client: ELClient = Depends(am_db.get_el_client),
-    session: Session = Depends(am_db.get_session),
+        request: Request,
+        booking_id: int = Form(...),
+        el_client: ELClient = Depends(am_db.get_el_client),
+        session: Session = Depends(am_db.get_session),
 ):
     logger.info(f'booking_id: {booking_id}')
     booking: BookingStateDB = await get_booking(booking_id, session)
@@ -205,22 +204,22 @@ async def check_dates(booking, request):
 
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-    request: Request,
-    booking_id: int = Form(...),
-    ship_date: date = Form(...),
-    boxes: int = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    service: ServiceCode = Form(...),
-    contact_name: str = Form(...),
-    email: EmailStr = Form(...),
-    business_name: str = Form(...),
-    phone: PhoneNumber = Form(...),
-    address_line1: str = Form(...),
-    address_line2: str = Form(''),
-    address_line3: str = Form(''),
-    town: str = Form(...),
-    postcode: VALID_POSTCODE = Form(...),
-    session=Depends(am_db.get_session),
+        request: Request,
+        booking_id: int = Form(...),
+        ship_date: date = Form(...),
+        boxes: int = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
+        service: ServiceCode = Form(...),
+        contact_name: str = Form(...),
+        email: EmailStr = Form(...),
+        business_name: str = Form(...),
+        phone: str = Form(...),
+        address_line1: str = Form(...),
+        address_line2: str = Form(''),
+        address_line3: str = Form(''),
+        town: str = Form(...),
+        postcode: VALID_POSTCODE = Form(...),
+        session=Depends(am_db.get_session),
 ):
     booking = await get_booking(booking_id, session)
     await check_dates(booking, request)
@@ -318,8 +317,8 @@ async def post_form(
 
 @router.get('/get_candidates', response_class=JSONResponse)
 async def get_candidates_json(  #
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(am_db.get_el_client),
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.candidates_json(postcode)
     return res
@@ -327,8 +326,8 @@ async def get_candidates_json(  #
 
 @router.get('/get_candidatesp', response_model=list[AddressChoice], response_class=JSONResponse)
 async def get_candidatesp(
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(am_db.get_el_client),
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -336,10 +335,10 @@ async def get_candidatesp(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-    request: Request,
-    booking_id: int,
-    session=Depends(am_db.get_session),
-    el_client: ELClient = Depends(am_db.get_el_client),
+        request: Request,
+        booking_id: int,
+        session=Depends(am_db.get_session),
+        el_client: ELClient = Depends(am_db.get_el_client),
 ):
     booking = await get_booking(booking_id, session)
     addr_choices = el_client.get_choices(
