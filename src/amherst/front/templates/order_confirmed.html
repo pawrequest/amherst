@@ -17,63 +17,74 @@
 
 {#{% block content %}#}
 
-    <div class="wrapper wrapper__results">
-        <div class="response">
-            <div class="result">
-                {% if booking.booked or booking.completed() %}
-                    <div class="result__success">
-                        <h2>Booking Confirmed</h2>
-                        <p>Shipment Number {{ booking.response.shipment_num }} is booked with status = {{ booking.status }}.</p>
-                        <p>label downloaded to {{ booking.label_path }}</p>
-                        <a href="{{ booking.response.tracking_link() }}" class="tracking">Tracking</a>
-{##}
-                        {% if booking.commence_updated %}
-                            <p>Commence Has Been Updated with tracking info and DB Label = True</p>
-                        {% endif %}
-                        <div class="label-buttons">
-                            <div class="label-file">
-                                <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
-                                    <input type="hidden" name="label_path" value="{{ booking.label_path }}">
-                                    <button type="submit" class="btn-print-label">Print Label</button>
-                                </form>
-                                <div id="print-result"></div>
-                            </div>
-                            <div class="label-file">
-                                <form hx-post="open-file" hx-target="#print-result" hx-swap="innerHTML">
-                                    <input type="hidden" name="label_path" value="{{ booking.label_path }}">
-                                    <button type="submit" class="btn-print-label">Open Label</button>
-                                </form>
-                                <div id="print-result"></div>
-                            </div>
+<div class="wrapper wrapper__results">
+    <div class="response">
+        <div class="result">
+            {% if booking.booked or booking.completed() %}
+                <div class="result__success">
+                    <h2>Booking Confirmed</h2>
+                    <p>Shipment Number {{ booking.response.shipment_num }} is booked with status
+                        = {{ booking.status }}.</p>
+                    <p>label downloaded to {{ booking.label_path }}</p>
+                    <a href="{{ booking.response.tracking_link() }}" class="tracking">Tracking</a>
+
+                    {% if booking.response.alerts %}
+                        <div class="alerts">
+                            {% for alert in booking.response.alerts.alert %}
+                                <div class="alert">
+                                    <p>{{ alert.message }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    {##}
+                    {% if booking.commence_updated %}
+                        <p>Commence Has Been Updated with tracking info and DB Label = True</p>
+                    {% endif %}
+                    <div class="label-buttons">
+                        <div class="label-file">
+                            <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
+                                <input type="hidden" name="label_path" value="{{ booking.label_path }}">
+                                <button type="submit" class="btn-print-label">Print Label</button>
+                            </form>
+                            <div id="print-result"></div>
+                        </div>
+                        <div class="label-file">
+                            <form hx-post="open-file" hx-target="#print-result" hx-swap="innerHTML">
+                                <input type="hidden" name="label_path" value="{{ booking.label_path }}">
+                                <button type="submit" class="btn-print-label">Open Label</button>
+                            </form>
+                            <div id="print-result"></div>
                         </div>
                     </div>
-                    {% include 'email_send.html' with context %}
-                {% else %}
-                    <div class="result__failure">
-                        <h2>Booking Failed</h2>
-                        <p>There was a problem with your booking.</p>
-                    </div>
-                {% endif %}
+                </div>
+                {% include 'email_send.html' with context %}
+            {% else %}
+                <div class="result__failure">
+                    <h2>Booking Failed</h2>
+                    <p>There was a problem with your booking.</p>
+                </div>
+            {% endif %}
 
-            </div>
         </div>
-
-{#        {% include 'alerts.html' with context %}#}
-
-        {#        <div class="email">#}
-        {#            <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}
-        {#                {% for addr in booking(.record.email_options %}#}
-        {#                    <label for={{ addr.name }}>{{ addr.description }}</label>#}
-        {#                    <input type="checkbox" id={{ addr.name }}>#}
-        {#                {% endfor %}#}
-        {##}
-        {##}
-        {#            </form>#}
-        {#        </div>#}
     </div>
-    <script>
 
-    </script>
+    {#        {% include 'alerts.html' with context %}#}
+
+    {#        <div class="email">#}
+    {#            <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}
+    {#                {% for addr in booking(.record.email_options %}#}
+    {#                    <label for={{ addr.name }}>{{ addr.description }}</label>#}
+    {#                    <input type="checkbox" id={{ addr.name }}>#}
+    {#                {% endfor %}#}
+    {##}
+    {##}
+    {#            </form>#}
+    {#        </div>#}
+</div>
+<script>
+
+</script>
 {#{% endblock %}#}
 
 

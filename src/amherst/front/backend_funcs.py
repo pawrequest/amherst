@@ -24,7 +24,7 @@ type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 def book_shipment(el_client, shipment_request: ShipmentRequest) -> pf_msg.CreateShipmentResponse:
     resp = el_client.send_shipment_request(shipment_request)
-    for a in resp.alerts if resp.alerts else []:
+    for a in resp.alerts.alert if resp.alerts else []:
         if a.type == 'ERROR':
             logger.error(f'ERROR IN BOOKING: {a.message}')
             raise ExpressLinkError(a.message)
@@ -49,13 +49,15 @@ def do_record_tracking(booking: BookingStateDB):
     tracking_link_field = HireFields.TRACK_INBOUND if booking.direction in ['in', 'dropoff'] \
         else HireFields.TRACK_OUTBOUND
     tracking_link = booking.response.tracking_link()
+    aranged_field = HireFields.ARRANGED_INBOUND if booking.direction in ['in', 'dropoff'] \
+        else HireFields.ARRANGED_OUTBOUND
 
     with PyCommence.from_table_name_context(table_name=booking.record.cmc_table_name) as py_cmc:
         py_cmc.edit_record(
             booking.record.name,
             row_dict={
                 tracking_link_field: tracking_link,
-                HireFields.DB_LABEL_PRINTED: True
+                aranged_field: True
             },
         )
         booking.tracking_logged = True

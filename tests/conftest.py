@@ -1,19 +1,18 @@
 import functools
 
-import pytest_asyncio
 from loguru import logger
 from sqlalchemy import StaticPool
 from sqlmodel import SQLModel, Session, create_engine
 import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
+
 from amherst.am_db import get_session
-from amherst.shipper import amherst_shipment_request, cmc_record_to_amrec, amrec_to_booking
+from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.app_file import app
-from amherst.models.am_record import AmherstRecord, AmherstRecordIn
-from amherst.models.db_models import BookingStateDB
+from amherst.models.am_record import AmherstRecord
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressRecipient
-from shipaw.models.pf_msg import Alert, Alerts
 from shipaw.models.pf_top import Contact
 from shipaw.pf_config import PFSandboxSettings, pf_sandbox_sett
 from shipaw.ship_types import WEEKDAYS_IN_RANGE
@@ -294,7 +293,10 @@ def hire_record_fxt(address_fxt, contact_fxt):
     }
 
 
-@pytest_asyncio.fixture(params=['hire_record_fxt', 'sale_record_fxt', 'customer_record_fxt'], scope='session')
+@pytest_asyncio.fixture(
+    params=['hire_record_fxt', 'sale_record_fxt', 'customer_record_fxt'],
+    scope='session'
+)
 async def amrec_fxt(request, test_session_fxt) -> AmherstRecord:
     record = request.getfixturevalue(request.param)
     logger.info(f'testing {record['cmc_table_name']} record: {record["Name"]}')

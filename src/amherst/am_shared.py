@@ -32,6 +32,8 @@ class HireStatus(StrEnum):
 
 
 class HireFields(str, Enum):
+    ARRANGED_INBOUND = 'DB label printed'
+    ARRANGED_OUTBOUND = 'Pickup Arranged'
     ACTUAL_RETURN_DATE = 'Actual Return Date'
     AERIAL_ADAPT = 'Number Aerial Adapt'
     ALL_ADDRESS = 'All Address'
@@ -169,3 +171,5 @@ INITIAL_FILTER_ARRAY = FilterArray(
         3: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='Before', value='one week from now'),
     }
 )
+
+

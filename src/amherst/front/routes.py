@@ -24,7 +24,7 @@ from shipaw.models.pf_shared import DateTimeRange, ServiceCode
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_top import CollectionContact, CollectionInfo, Contact
 from shipaw.pf_config import pf_sett
-from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE, UKPHONE
+from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE, UKPHONE, DeliveryType
 from amherst.front.backend_funcs import (
     TEMPLATES,
     book_shipment,
@@ -158,23 +158,28 @@ async def confirm_booking(
             'order_confirmed.html',
             {'request': request, 'booking': booking}
         )
-    except Exception as e:
-        alert = Alert.from_exception(e)
-        booking.alerts.alert.append(alert)
-        if booking.response:
-            session.add(booking)
-            session.commit()
-            return TEMPLATES.TemplateResponse(
-                'order_confirmed.html',
-                {
-                    'request': request,
-                    'booking': booking
-                }
-            )
-        return TEMPLATES.TemplateResponse(
-            'alerts.html',
-            {'alert': alert, 'request': request, 'booking': booking}
-        )
+    except (ConnectTimeoutError, BackendError) as e:
+        msg = f'Error: {e.__class__.__name__}. Connection Likely Timed Out.\n{str(e)}'
+        logger.exception(msg)
+        return f'<p>{msg}</p><p>Please refresh the page and try again</p>'
+    # except Exception as e:
+    #     logger.exception(e)
+    #     alert = Alert.from_exception(e)
+    #     booking.alerts.alert.append(alert)
+    #     if booking.response:
+    #         session.add(booking)
+    #         session.commit()
+    #         return TEMPLATES.TemplateResponse(
+    #             'order_confirmed.html',
+    #             {
+    #                 'request': request,
+    #                 'booking': booking
+    #             }
+    #         )
+    #     return TEMPLATES.TemplateResponse(
+    #         'alerts.html',
+    #         {'alert': alert, 'request': request, 'booking': booking}
+    #     )
 
 
 async def process_label(booking, el_client):
@@ -264,7 +269,8 @@ async def post_form(
                 collection_contact=contact,
                 collection_address=address,
                 collection_time=DateTimeRange.null_times_from_date(ship_date),
-            ) if direction == 'in' else None,
+            ) if direction == ShipDirection.IN else None,
+            shipment_type=DeliveryType.COLLECTION if direction == ShipDirection.IN else DeliveryType.DELIVERY,
         )
 
         for fieldname, value in await get_notes_f_form(await request.form()):

@@ -24,8 +24,10 @@ from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
 from amherst.am_db import get_session_cm
-from amherst.shipper import amherst_shipment_request
-from amherst.am_shared import INITIAL_FILTER_ARRAY
+from amherst.am_shared import (
+    INITIAL_FILTER_ARRAY,
+)
+from amherst.importer import amherst_shipment_request, amrec_to_booking, cmc_record_to_amrec
 # from amherst.models.am_record import AmherstRecordDB
 from amherst.models.db_models import BookingStateDB
 from pycommence import PyCommence
@@ -45,22 +47,18 @@ async def main():
         with PyCommence.from_table_name_context(table_name='Hire') as py_cmc:
             records = py_cmc.records_by_array(INITIAL_FILTER_ARRAY)
         logger.info(f'{len(records)} records found from filters = {INITIAL_FILTER_ARRAY}')
+
         bookings = []
-        for rec in records:
-            rec['cmc_table_name'] = 'Hire'
-            amrec = am_record.AmherstRecord(**rec)
-            amrec = amrec.model_validate(amrec)
-            logger.info(f'Validated record {amrec.name}')
-            bookings.append(
-                BookingStateDB(
-                    record=amrec,
-                    shipment_request=amherst_shipment_request(amrec)
-                )
-            )
+        for record in records:
+            record['cmc_table_name'] = 'Hire'
+            amrec = await cmc_record_to_amrec(record)
+            booking = await amrec_to_booking(amrec)
+            bookings.append(booking)
 
         with get_session_cm() as session:
             session.add_all(bookings)
             session.commit()
+            logger.info(f'Added {len(bookings)} bookings to database')
 
         fui = FlaskUI(
             fullscreen=True,

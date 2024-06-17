@@ -68,7 +68,7 @@
             {% endif %}
         </section>
 
-        {% if booking.shipment_request.collection_info %}
+        {% if booking.shipment_request.collection_info and booking.shipment_request.shipment_type == 'COLLECTION' %}
             <section class="inputs requested__collection">
                 <h3>Collection Information</h3>
                 {% set cont = booking.shipment_request.collection_info.collection_contact %}

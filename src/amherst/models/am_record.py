@@ -15,7 +15,7 @@ from pycommence import PyCommence
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
 from shipaw.models.pf_msg import Alert, Alerts
-from shipaw.ship_types import AlertType, limit_daterange_no_weekends
+from shipaw.ship_types import AlertType, limit_daterange_no_weekends, ShipDirection
 
 AM_SHIP_DATE = Annotated[
     date, Field(date.today(), alias='Send Out Date'),
@@ -65,6 +65,14 @@ class AmherstRecordIn(sqm.SQLModel):
     boxes: int = Field(1, alias='Boxes')
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
+
+    # def get_cmc_update(self, direction:ShipDirection) -> dict[str, str]:
+    #     match direction:
+    #         case 'out':
+    #             return {
+    #                 tracking_link_field: tracking_link,
+    #                 HireFields.DB_LABEL_PRINTED: True
+    #             }
 
     @functools.cached_property
     def email_options(self):

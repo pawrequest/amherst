@@ -13,8 +13,8 @@ class BookingStateDB(BookingState, table=True):
 
     # @property
     def all_alerts(self):
-        return [_ for _ in self.response.alerts.alert] if self.response else [] + self.record.alerts.alert
-
+        return [_ for _ in
+                self.response.alerts.alert] if self.response else [] + self.record.alerts.alert
 
     @property
     def email_options(self):
@@ -26,8 +26,6 @@ class BookingStateDB(BookingState, table=True):
                 name='entered'
             )]
         return self.record.email_options
-
-
 
         # record_id: int | None = sqm.Field(default=None, foreign_key="amherstrecorddb.id")
     # record: AmherstRecordDB | None = sqm.Relationship(back_populates="booking_states")
