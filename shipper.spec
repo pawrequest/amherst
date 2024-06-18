@@ -9,7 +9,10 @@ a = Analysis(
          ('src/amherst/front/static', 'front/static'),
          ('src/amherst/front/templates', 'front/templates'),
     ],
-    hiddenimports=['ipaddress', 'pyimod02_importers'],
+    hiddenimports=['ipaddress',
+     'pyiboot01_bootstrap',
+     'pyimod02_importers'
+     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

@@ -1,5 +1,6 @@
 import pawdf
-from shipaw import ELClient
+
+from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSettings
 
 
@@ -18,7 +19,7 @@ def get_a_label(dl_path, shipment_number):
 
 
 if __name__ == '__main__':
-    # myfile = (get_a_label('got_a_label.pdf', 'ML8598580'))
-    # pawdf.array_pdf.convert_many(myfile, print_files=True)
+    myfile = get_a_label('got_a_label.pdf', 'UD0357591')
+    pawdf.array_pdf.convert_many(myfile, print_files=True)
 
     ...

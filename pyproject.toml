@@ -30,14 +30,20 @@ dependencies = [
     'httpx',
     "pywin32",
     'jinja2',
+    'pyinstaller',
+    'pyinstaller-hooks-contrib',
+    'shipaw',
+    'pycommence',
 ]
 
 [project.optional-dependencies]
 dev = [
     'pyinstaller',
     "pytest",
+    "pytest_asyncio",
     'beautifulsoup4',
 ]
+
 docs = [
     "sphinx",
     "sphinx-autodoc-typehints",
@@ -47,6 +53,7 @@ docs = [
     "myst-parser",
     "sphinx_rtd_dark_mode",
 ]
+
 from-git = [
     'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pycommence @ git+https://github.com/pawrequest/pycommence',

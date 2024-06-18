@@ -61,27 +61,19 @@ async def test_soup(client, booking_fxt, address_fxt, contact_fxt):
     soup = BeautifulSoup(response_text, 'html.parser')
     assert soup.title.string == 'Amherst Shipper'
     assert soup.find('div', class_='shipper shipper__sandbox').string == 'Shipper in Sandbox Mode'
-
     # assert soup.find('div', class_='alert alert__')
-
     assert booking_fxt.record.name in soup.find('h1').string
-
-    assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(
-        booking_fxt.id
-    )
-
+    assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(booking_fxt.id)
     # Check shipment details
     assert soup.find('input', {'id': 'ship_date'})['value'] == SHIP_DATE
 
     assert soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'] == '1'
 
     # Check direction options
-    assert soup.find('select', {'id': 'direction'}).find('option', {'selected': True})[
-               'value'] == ShipDirection.OUT
+    assert soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.OUT
 
     # Check service options
-    assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})[
-               'value'] == ServiceCode.EXPRESS24
+    assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
 
     # Check contact details
     assert soup.find('input', {'id': 'business_name'})['value'] == contact_fxt.business_name
