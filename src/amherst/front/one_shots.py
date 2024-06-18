@@ -1,5 +1,3 @@
-import pawdf
-
 from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSettings
 
@@ -14,12 +12,24 @@ def expresslink_live():
 
 
 def get_a_label(dl_path, shipment_number):
-    el_client = expresslink_live()
+    # el_client = expresslink_live()
+    el_client = ELClient()
     return el_client.get_label(shipment_number, dl_path)
 
 
+def get_manifest():
+    # el_client = expresslink_live()
+    el_client = ELClient()
+    sdggd = el_client.get_manifest()
+    ...
+
+
 if __name__ == '__main__':
-    myfile = get_a_label('got_a_label.pdf', 'UD0357591')
-    pawdf.array_pdf.convert_many(myfile, print_files=True)
+    print(get_manifest())
+
+    # myfile = get_a_label('got_a_label.pdf', 'ER9463748 ')
+    # os.startfile(myfile)
+
+    # pawdf.array_pdf.convert_many(myfile, print_files=True)
 
     ...
