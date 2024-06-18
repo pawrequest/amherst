@@ -66,33 +66,22 @@ async def test_soup(client, booking_fxt, address_fxt, contact_fxt):
     assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(booking_fxt.id)
     # Check shipment details
     assert soup.find('input', {'id': 'ship_date'})['value'] == SHIP_DATE
-
     assert soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'] == '1'
-
     # Check direction options
     assert soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.OUT
-
     # Check service options
     assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
-
     # Check contact details
     assert soup.find('input', {'id': 'business_name'})['value'] == contact_fxt.business_name
-
     assert soup.find('input', {'id': 'contact_name'})['value'] == contact_fxt.contact_name
-
     assert soup.find('input', {'id': 'email'})['value'] == 'fake@ssgslgjhslagjnhlsgnhl.com'
-
     assert soup.find('input', {'id': 'mobile_phone'})['value'] == contact_fxt.mobile_phone
 
     # Check address details
     assert soup.find('input', {'id': 'address_line1'})
-
     assert soup.find('input', {'id': 'address_line2'})
-
     assert soup.find('input', {'id': 'address_line3'})
-
     assert soup.find('input', {'id': 'town'})
-
     assert soup.find('input', {'id': 'postcode'})['value'] == address_fxt.postcode
 
     # Check address select options
@@ -101,22 +90,15 @@ async def test_soup(client, booking_fxt, address_fxt, contact_fxt):
     expected_options = [
         '{"AddressLine1":"752 MERESBOROUGH ROAD","AddressLine2":"RAINHAM","AddressLine3":"","Town":"GILLINGHAM","Postcode":"ME8 8SP","Country":"GB"}',
         '{"AddressLine1":"750 MERESBOROUGH ROAD","AddressLine2":"RAINHAM","AddressLine3":"","Town":"GILLINGHAM","Postcode":"ME8 8SP","Country":"GB"}',
-        # Add all expected options here...
     ]
     actual_options = [option['value'] for option in options]
     assert all(option in actual_options for option in expected_options)
 
     # Check notes and special instructions
     assert soup.find('input', {'id': 'reference_number1'})['value'] == booking_fxt.record.customer
-
     assert soup.find('input', {'id': 'reference_number2'})
-
     assert soup.find('input', {'id': 'reference_number3'})
-
     assert soup.find('input', {'id': 'special_instructions1'})
-
     assert soup.find('input', {'id': 'special_instructions2'})
-
     assert soup.find('input', {'id': 'special_instructions3'})
-
     assert soup.find('button', {'type': 'submit', 'class': 'submit-request'}).string == 'Submit'
