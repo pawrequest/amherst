@@ -27,12 +27,6 @@
                         {#                        <option value={{ i }}>{{ i }} {% selected if i==booking.record.boxes else '' %} {% endif %}</option>#}
                     {% endfor %}
                 </select>
-                <label for="direction">Direction:</label>
-                <select id="direction" name="direction">
-                    <option value="out" selected>Outbound</option>
-                    <option value="in">Inbound Collection</option>
-                    <option value="dropoff">Inbound Dropoff</option>
-                </select>
                 <label for="service">Service:</label>
                 <select id="service" name="service">
                     <option value="SND" selected>Express 24</option>
@@ -42,6 +36,19 @@
                     <option value="SUP">Express 48</option>
                     <option value="SPM">Express PM</option>
                 </select>
+                <label for="direction">Direction:</label>
+                <select id="direction" name="direction">
+                    <option value="out" selected>Outbound</option>
+                    <option value="in">Inbound Collection</option>
+                    <option value="dropoff">Inbound Dropoff</option>
+                </select>
+                <label for="own_label" id="own_label_label">Label Printing:</label>
+                <select id="own_label" name="own_label">
+                    <option value="True" selected>We Print Labels</option>
+                    <option value="False">Driver Brings Labels</option>
+                </select>
+
+
             </section>
 
             <section class="inputs inputs__contact">
@@ -72,47 +79,7 @@
             </section>
 
             <section class="inputs inputs__notes">
-                <h1>Notes</h1>
-                {#                <label for="reference_number1">Reference:</label>#}
-                {#                {% set ship = booking.shipment_request %}#}
-                {#                {% set shiprefs = ['reference_number1', 'reference_number2', 'reference_number3'] %}#}
-                {##}
-                {#                {% for refname in shiprefs %}#}
-                {#                    {% set ref = attribute(ship, refname) %}#}
-                {#                    <input type="text" id="{{ refname }}" name="{{ refname }}"#}
-                {#                            {% if ref %}#}
-                {#                           value="{{ ref }}"#}
-                {#                            {% endif %}#}
-                {#                           maxlength="24">#}
-                {#                {% endfor %}#}
-                {#                {% for refname in shiprefs %}#}
-                {#                    {%  set ref = getattr(ship, shipref) %}#}
-                {#                    <input type="text" id="{{ refname }}" name="{{ refname }}"#}
-                {#                            {% if ref %}#}
-                {#                           value="{{ ref }}"#}
-                {#                            {% endif %}#}
-                {#                           maxlength="24">#}
-                {#                {% endfor %}#}
-                {##}
-                {#                <label for="special_instructions1">Special Instructions:</label>#}
-                {#                {% set shiprefs = ['special_instructions1', 'special_instructions2', 'special_instructions3'] %}#}
-                {#                {% for refname in shiprefs %}#}
-                {#                    {% set ref = attribute(ship, refname) %}#}
-                {#                    <input type="text" id="{{ refname }}" name="{{ refname }}"#}
-                {#                            {% if ref %}#}
-                {#                           value="{{ ref }}"#}
-                {#                            {% endif %}#}
-                {#                           maxlength="24">#}
-                {#                {% endfor %}#}
-
-                {#                {% for refname, ref in [ship.special_instructions1, ship.special_instructions2, ship.special_instructions3] %}#}
-                {#                    <input type="text" id="{{ refname }}" name="{{ refname }}"#}
-                {#                            {% if ref %}#}
-                {#                           value="{{ ref }}"#}
-                {#                            {% endif %}#}
-                {#                           maxlength="24">#}
-                {#                {% endfor %}#}
-
+                <label for="reference_number1">Reference Numbers:</label>
                 <input type="text" id="reference_number1" name="reference_number1"
                         {% if booking.shipment_request.reference_number1 %}
                        value="{{ booking.shipment_request.reference_number1 }}"
@@ -161,7 +128,58 @@
 
     </form>
     <div class="returned-request"></div>
+{#    <script>#}
+{#        function toggleOwnLabel() {#}
+{#            let direction = document.getElementById("direction").value;#}
+{#            let ownLabelLabel = document.getElementById("own_label_label");#}
+{#            let ownLabelSelect = document.getElementById("own_label");#}
+{#            console.log(direction)#}
+{##}
+{#            if (direction === "in") {#}
+{#                ownLabelLabel.style.display = '';#}
+{#                ownLabelSelect.style.display = '';#}
+{#            } else {#}
+{#                ownLabelLabel.style.display = 'none';#}
+{#                ownLabelSelect.style.display = 'none';#}
+{#            }#}
+{#        }#}
+{##}
+{#        // Initial check to set the correct display when the page loads#}
+{#        document.addEventListener("DOMContentLoaded", function () {#}
+{#            toggleOwnLabel();#}
+{#        });#}
+{#    </script>#}
 {% endblock %}
 
 
 
+
+{% block scripts %}
+    <script>
+        function toggleOwnLabel() {
+            let direction = document.getElementById("direction").value;
+            let ownLabelLabel = document.getElementById("own_label_label");
+            let ownLabelSelect = document.getElementById("own_label");
+
+            console.log("Direction:", direction);  // Debug logging
+            console.log("ownLabelLabel:", ownLabelLabel);  // Debug logging
+            console.log("ownLabelSelect:", ownLabelSelect);  // Debug logging
+
+            if (direction === "in") {
+                ownLabelLabel.style.display = '';
+                ownLabelSelect.style.display = '';
+            } else {
+                ownLabelLabel.style.display = 'none';
+                ownLabelSelect.style.display = 'none';
+            }
+        }
+
+        // Initial check to set the correct display when the page loads
+        document.addEventListener("DOMContentLoaded", function () {
+            toggleOwnLabel();
+        });
+
+        // Add event listener for the select element
+        document.getElementById("direction").addEventListener("change", toggleOwnLabel);
+    </script>
+{% endblock %}

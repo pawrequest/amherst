@@ -121,10 +121,10 @@ async def check_already_booked(booking):
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-        request: Request,
-        booking_id: int = Form(...),
-        el_client: ELClient = Depends(am_db.get_el_client),
-        session: Session = Depends(am_db.get_session),
+    request: Request,
+    booking_id: int = Form(...),
+    el_client: ELClient = Depends(am_db.get_el_client),
+    session: Session = Depends(am_db.get_session),
 ):
     logger.info(f'booking_id: {booking_id}')
     booking: BookingStateDB = await get_booking(booking_id, session)
@@ -151,7 +151,8 @@ async def confirm_booking(
         booking.response = book_shipment(el_client, booking.shipment_request)
         booking.booked = True
         record_tracking(booking)
-        await process_label(booking, el_client)
+        if booking.shipment_request.print_own_label:
+            await process_label(booking, el_client)
         session.add(booking)
         session.commit()
         return TEMPLATES.TemplateResponse('order_confirmed.html', {'request': request, 'booking': booking})
@@ -204,64 +205,25 @@ async def check_dates(booking, request):
 
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-        request: Request,
-        booking_id: int = Form(...),
-        ship_date: date = Form(...),
-        boxes: int = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
-        service: ServiceCode = Form(...),
-        contact_name: str = Form(...),
-        email: EmailStr = Form(...),
-        business_name: str = Form(...),
-        phone: str = Form(...),
-        address_line1: str = Form(...),
-        address_line2: str = Form(''),
-        address_line3: str = Form(''),
-        town: str = Form(...),
-        postcode: VALID_POSTCODE = Form(...),
-        session=Depends(am_db.get_session),
+    request: Request,
+    booking_id: int = Form(...),
+    ship_date: date = Form(...),
+    boxes: int = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
+    service: ServiceCode = Form(...),
+    own_label: bool = Form(...),
+    contact_name: str = Form(...),
+    email: EmailStr = Form(...),
+    business_name: str = Form(...),
+    phone: str = Form(...),
+    address_line1: str = Form(...),
+    address_line2: str = Form(''),
+    address_line3: str = Form(''),
+    town: str = Form(...),
+    postcode: VALID_POSTCODE = Form(...),
+    session=Depends(am_db.get_session),
 ):
     booking = await get_booking(booking_id, session)
-    await check_dates(booking, request)
-    # alert = None
-    # if not ship_date.weekday() < 5:
-    #     alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
-    # if direction == ShipDirection.IN and ship_date <= date.today():
-    #     alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
-    # if alert:
-    #     logger.warning(alert.message)
-    #     booking.alerts.append(alert)
-    #     return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
-    # try:
-    #     addr_class = AddressCollection if direction == 'in' else AddressRecipient
-    #     contact_class = Contact if direction == 'out' else CollectionContact
-    #     address = addr_class(
-    #         address_line1=address_line1,
-    #         address_line2=address_line2,
-    #         address_line3=address_line3,
-    #         town=town,
-    #         postcode=postcode,
-    #     )
-    #     contact = contact_class(
-    #         business_name=business_name,
-    #         contact_name=contact_name,
-    #         email_address=email,
-    #         mobile_phone=phone,
-    #     )
-    #     shipment_request = ShipmentRequest(
-    #         recipient_address=address if direction == 'out' else pf_sett().home_address,
-    #         recipient_contact=contact if direction == 'out' else pf_sett().home_contact,
-    #         service_code=service,
-    #         shipping_date=ship_date,
-    #         total_number_of_parcels=boxes,
-    #         collection_info=CollectionInfo(
-    #             collection_contact=contact,
-    #             collection_address=address,
-    #             collection_time=DateTimeRange.null_times_from_date(ship_date),
-    #         ) if direction == ShipDirection.IN else None,
-    #         shipment_type=ShipmentType.COLLECTION if direction == ShipDirection.IN else ShipmentType.DELIVERY,
-    #         print_own_label=True if direction == ShipDirection.IN else None,
-    #     )
     try:
         addr_class = AddressCollection if direction == 'in' else AddressRecipient
         contact_class = Contact if direction == 'out' else CollectionContact
@@ -293,11 +255,14 @@ async def post_form(
         if direction == ShipDirection.DROPOFF:
             shipment_request.make_inbound()
         elif direction == ShipDirection.IN:
-            shipment_request.make_collection()
+            shipment_request.make_collection(own_label=own_label)
 
         booking.shipment_request = shipment_request
         session.add(booking)
         session.commit()
+
+        if failed := await check_dates(booking, request):
+            return failed
 
         return TEMPLATES.TemplateResponse(
             'order_review.html',
@@ -317,8 +282,8 @@ async def post_form(
 
 @router.get('/get_candidates', response_class=JSONResponse)
 async def get_candidates_json(  #
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(am_db.get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.candidates_json(postcode)
     return res
@@ -326,8 +291,8 @@ async def get_candidates_json(  #
 
 @router.get('/get_candidatesp', response_model=list[AddressChoice], response_class=JSONResponse)
 async def get_candidatesp(
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(am_db.get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -335,10 +300,10 @@ async def get_candidatesp(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-        request: Request,
-        booking_id: int,
-        session=Depends(am_db.get_session),
-        el_client: ELClient = Depends(am_db.get_el_client),
+    request: Request,
+    booking_id: int,
+    session=Depends(am_db.get_session),
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     booking = await get_booking(booking_id, session)
     addr_choices = el_client.get_choices(
