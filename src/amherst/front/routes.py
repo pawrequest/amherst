@@ -9,7 +9,7 @@ import pawdf
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -17,24 +17,26 @@ from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
 
-from shipaw import ship_types
-from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_shipment import ShipmentReferenceFields, ShipmentRequest
-from shipaw.models.pf_models import AddressChoice, AddressCollection, AddressRecipient
-from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_msg import Alert
-from shipaw.models.pf_top import CollectionContact, Contact
-from shipaw.ship_types import AlertType, ExpressLinkError, ShipDirection, VALID_POSTCODE
+from amherst import am_db
 from amherst.front.backend_funcs import (
     TEMPLATES,
     book_shipment,
+    booking_f_form,
+    booking_f_path,
     get_booking,
+    shipment_request_f_form,
     make_email,
     record_tracking,
     wait_label,
 )
 from amherst.models.db_models import BookingStateDB
-from amherst import am_db
+from shipaw import ship_types
+from shipaw.expresslink_client import ELClient
+from shipaw.models.pf_models import AddressChoice, AddressRecipient
+from shipaw.models.pf_msg import Alert
+from shipaw.models.pf_shipment import ShipmentRequest
+from shipaw.models.pf_top import Contact
+from shipaw.ship_types import AlertType, ExpressLinkError, ShipDirection, VALID_POSTCODE
 
 router = APIRouter()
 
@@ -71,7 +73,8 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(a
     """Endpoint to handle email options."""
     booking: BookingStateDB = await get_booking(booking_id, session)
     form_data = await request.form()
-    addresses = [value for key, value in form_data.items() if value and key.startswith('email-')]
+    # addresses = [value for key, value in form_data.items() if value and key.startswith('email-')]
+    addresses = form_data.getlist('email-options')
     addresses = '; '.join(addresses)
 
     att_choices = [key.lstrip('att-') for key, value in form_data.items() if value and key.startswith('att-')]
@@ -122,10 +125,10 @@ async def check_already_booked(booking):
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-        request: Request,
-        booking_id: int = Form(...),
-        el_client: ELClient = Depends(am_db.get_el_client),
-        session: Session = Depends(am_db.get_session),
+    request: Request,
+    booking_id: int = Form(...),
+    el_client: ELClient = Depends(am_db.get_el_client),
+    session: Session = Depends(am_db.get_session),
 ):
     logger.info(f'booking_id: {booking_id}')
     booking: BookingStateDB = await get_booking(booking_id, session)
@@ -152,7 +155,7 @@ async def confirm_booking(
         booking.response = book_shipment(el_client, booking.shipment_request)
         booking.booked = True
         record_tracking(booking)
-        if booking.shipment_request.print_own_label:
+        if booking.shipment_request.print_own_label is not False:
             await process_label(booking, el_client)
         session.add(booking)
         session.commit()
@@ -183,14 +186,6 @@ async def process_label(booking: BookingStateDB, el_client):
     booking.label_path = str(label_path)
 
 
-async def get_notes_f_form(form_data):
-    return [
-        (fieldname, form_data[fieldname])
-        for fieldname in ShipmentReferenceFields.model_fields.keys()
-        if fieldname in form_data
-    ]
-
-
 async def check_dates(booking, request):
     alert = None
     if not booking.shipment_request.shipping_date.weekday() < 5:
@@ -217,61 +212,16 @@ contact_from_req_json = partial(_from_req_json, model_type=Contact)
 address_from_req_json = partial(_from_req_json, model_type=AddressRecipient)
 
 
-
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-        request: Request,
-        booking_id: int = Form(...),
-        shipping_date: date = Form(...),
-        boxes: int = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
-        service: ServiceCode = Form(...),
-        own_label: bool = Form(...),
-        contact_name: str = Form(...),
-        email_address: EmailStr = Form(...),
-        business_name: str = Form(...),
-        mobile_phone: str = Form(...),
-        address_line1: str = Form(...),
-        address_line2: str = Form(''),
-        address_line3: str = Form(''),
-        town: str = Form(...),
-        postcode: VALID_POSTCODE = Form(...),
-        session=Depends(am_db.get_session),
+    request: Request,
+    direction: ship_types.ShipDirection = Form(...),
+    booking: BookingStateDB = Depends(booking_f_form),
+    session: Session = Depends(am_db.get_session),
+    shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
 ):
-    booking = await get_booking(booking_id, session)
     try:
-        addr_class = AddressCollection if direction == 'in' else AddressRecipient
-        contact_class = Contact if direction == 'out' else CollectionContact
-        address = addr_class(
-            address_line1=address_line1,
-            address_line2=address_line2,
-            address_line3=address_line3,
-            town=town,
-            postcode=postcode,
-        )
-        contact = contact_class(
-            business_name=business_name,
-            contact_name=contact_name,
-            email_address=email_address,
-            mobile_phone=mobile_phone,
-        )
-        shipment_request = ShipmentRequest(
-            recipient_address=address,
-            recipient_contact=contact,
-            service_code=service,
-            shipping_date=shipping_date,
-            total_number_of_parcels=boxes,
-        )
-
-        for fieldname, value in await get_notes_f_form(await request.form()):
-            setattr(shipment_request, fieldname, value)
-
         booking.direction = direction
-        if direction == ShipDirection.Dropoff:
-            shipment_request.make_inbound()
-        elif direction == ShipDirection.Inbound:
-            shipment_request.make_collection(own_label=own_label)
-
         booking.shipment_request = shipment_request
         session.add(booking)
         session.commit()
@@ -295,10 +245,88 @@ async def post_form(
         return f'<p>{str(e)}</p><p>Please refresh the page and try again</p>'
 
 
+#
+# @router.post('/post_form/', response_class=HTMLResponse)
+# async def post_form(
+#     request: Request,
+#     booking: BookingStateDB = Depends(booking_f_path),
+#     shipping_date: date = Form(...),
+#     boxes: int = Form(...),
+#     direction: ship_types.ShipDirection = Form(...),
+#     service: ServiceCode = Form(...),
+#     own_label: bool = Form(...),
+#     contact_name: str = Form(...),
+#     email_address: EmailStr = Form(...),
+#     business_name: str = Form(...),
+#     mobile_phone: str = Form(...),
+#     address_line1: str = Form(...),
+#     address_line2: str = Form(''),
+#     address_line3: str = Form(''),
+#     town: str = Form(...),
+#     postcode: VALID_POSTCODE = Form(...),
+#     session=Depends(am_db.get_session),
+# ):
+#     try:
+#         addr_class = AddressCollection if direction == 'in' else AddressRecipient
+#         address = addr_class(
+#             address_line1=address_line1,
+#             address_line2=address_line2,
+#             address_line3=address_line3,
+#             town=town,
+#             postcode=postcode,
+#         )
+#         contact_class = Contact if direction == 'out' else CollectionContact
+#         contact = contact_class(
+#             business_name=business_name,
+#             contact_name=contact_name,
+#             email_address=email_address,
+#             mobile_phone=mobile_phone,
+#         )
+#         shipment_request = ShipmentRequest(
+#             recipient_address=address,
+#             recipient_contact=contact,
+#             service_code=service,
+#             shipping_date=shipping_date,
+#             total_number_of_parcels=boxes,
+#         )
+#
+#         for fieldname, value in await get_notes_f_form(await request.form()):
+#             setattr(shipment_request, fieldname, value)
+#
+#         if direction == ShipDirection.Dropoff:
+#             shipment_request.make_inbound()
+#         elif direction == ShipDirection.Inbound:
+#             shipment_request.make_collection(own_label=own_label)
+#
+#         booking.direction = direction
+#         booking.shipment_request = shipment_request
+#         session.add(booking)
+#         session.commit()
+#
+#         if failed := await check_dates(booking, request):
+#             return failed
+#
+#         return TEMPLATES.TemplateResponse(
+#             'order_review.html',
+#             {
+#                 'request': request,
+#                 'booking': booking,
+#             },
+#         )
+#     except (ConnectTimeoutError, BackendError) as e:
+#         msg = f'Error: {e.__class__.__name__}. Connection Likely Timed Out.\n{str(e)}'
+#         logger.exception(msg)
+#         return f'<p>{msg}</p><p>Please refresh the page and try again</p>'
+#     except Exception as e:
+#         logger.error(e)
+#         return f'<p>{str(e)}</p><p>Please refresh the page and try again</p>'
+#
+
+
 @router.get('/get_candidates', response_class=JSONResponse)
 async def get_candidates_json(  #
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(am_db.get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.candidates_json(postcode)
     return res
@@ -306,8 +334,8 @@ async def get_candidates_json(  #
 
 @router.get('/get_candidatesp', response_model=list[AddressChoice], response_class=JSONResponse)
 async def get_candidatesp(
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(am_db.get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -315,18 +343,34 @@ async def get_candidatesp(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-        request: Request,
-        booking_id: int,
-        session=Depends(am_db.get_session),
-        el_client: ELClient = Depends(am_db.get_el_client),
+    request: Request,
+    booking: BookingStateDB = Depends(booking_f_path),
+    el_client: ELClient = Depends(am_db.get_el_client),
 ):
-    booking = await get_booking(booking_id, session)
     addr_choices = el_client.get_choices(
         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
     )
     return TEMPLATES.TemplateResponse(
         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
     )
+
+
+#
+#
+# @router.get('/{booking_id}', response_class=HTMLResponse)
+# async def index(
+#         request: Request,
+#         booking_id: int,
+#         session=Depends(am_db.get_session),
+#         el_client: ELClient = Depends(am_db.get_el_client),
+# ):
+#     booking = await get_booking(booking_id, session)
+#     addr_choices = el_client.get_choices(
+#         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
+#     )
+#     return TEMPLATES.TemplateResponse(
+#         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
+#     )
 
 
 @router.get('/api/{booking_id}', response_class=JSONResponse)

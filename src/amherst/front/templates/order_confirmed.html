@@ -41,24 +41,39 @@
                     {% if booking.commence_updated %}
                         <p>Commence Has Been Updated with tracking info and DB Label = True</p>
                     {% endif %}
-                    <div class="label-buttons">
-                        <div class="label-file">
-                            <form hx-post="print" hx-target="#print-result" hx-swap="innerHTML">
+
+                    <div class="label-actions">
+                        <div class="label-action">
+                            <form hx-post="print" hx-target="#label-action-result" hx-swap="innerHTML">
                                 <input type="hidden" name="label_path" value="{{ booking.label_path }}">
                                 <button type="submit" class="btn-print-label">Print Label</button>
                             </form>
-                            <div id="print-result"></div>
                         </div>
-                        <div class="label-file">
-                            <form hx-post="open-file" hx-target="#print-result" hx-swap="innerHTML">
+                        <div class="label-action">
+                            <form hx-post="open-file" hx-target="#label-action-result" hx-swap="innerHTML">
                                 <input type="hidden" name="label_path" value="{{ booking.label_path }}">
                                 <button type="submit" class="btn-print-label">Open Label</button>
                             </form>
-                            <div id="print-result"></div>
                         </div>
+                        <form hx-post="email" hx-target="#label-action-result" hx-swap="innerHTML">
+                            <div class="label-action label-action__email">
+                                <button type="submit">Email Label</button>
+                                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                                <input type="hidden" id="label" name="att-label" value="true">
+                                <div class="label-email-options">
+                                    <label for="email-options">Email To:</label>
+                                    <select multiple id='email-options' name="email-options">
+                                        {% for addr in booking.email_options %}
+                                            <option value="{{ addr.email }}">{{ addr.description }} ({{ addr.email }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                        <div id="label-action-result"></div>
                     </div>
                 </div>
-                {% include 'email_send.html' with context %}
+                {#                {% include 'email_send.html' with context %}#}
             {% else %}
                 <div class="result__failure">
                     <h2>Booking Failed</h2>
@@ -86,5 +101,6 @@
 
 </script>
 {#{% endblock %}#}
+
 
 

@@ -1,23 +1,32 @@
 from __future__ import annotations
 
+import pathlib
 import time
 import typing as _t
-import pathlib
+from datetime import date
 
+from fastapi import Depends, Form, Path
+from loguru import logger
+from pydantic import EmailStr
 from sqlmodel import Session
+from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
-from loguru import logger
 
-from pycommence import PyCommence
-from shipaw.expresslink_client import ELClient
-from shipaw.models import pf_msg
-from shipaw.models.pf_shipment import ShipmentRequest
 from amherst.am_config import am_sett
+from amherst.am_db import get_session
 from amherst.am_shared import HireFields
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
-from shipaw.ship_types import ExpressLinkError
+from pycommence import PyCommence
+from shipaw import ship_types
+from shipaw.expresslink_client import ELClient
+from shipaw.models import pf_msg
+from shipaw.models.pf_models import AddressCollection, AddressRecipient
+from shipaw.models.pf_shared import ServiceCode
+from shipaw.models.pf_shipment import ShipmentReferenceFields, ShipmentRequest
+from shipaw.models.pf_top import CollectionContact, Contact
+from shipaw.ship_types import ExpressLinkError, ShipDirection, VALID_POSTCODE
 
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
@@ -103,6 +112,20 @@ async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
     return record
 
 
+async def booking_f_form(booking_id: int = Form(), session: Session = Depends(get_session)) -> BookingStateDB:
+    booking = session.get(BookingStateDB, booking_id)
+    if not isinstance(booking, BookingStateDB):
+        raise ValueError(f'No booking found with id {booking_id}')
+    return booking
+
+
+async def booking_f_path(booking_id: int = Path(), session: Session = Depends(get_session)) -> BookingStateDB:
+    booking = session.get(BookingStateDB, booking_id)
+    if not isinstance(booking, BookingStateDB):
+        raise ValueError(f'No booking found with id {booking_id}')
+    return booking
+
+
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
     label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
     for i in range(20):
@@ -125,3 +148,91 @@ async def get_missing(record: AmherstRecord) -> list[str]:
     if not record.cmc_table_name == 'Hire':
         raise ValueError('missing kit only for hire')
     return record.missing_kit()
+
+
+async def address_f_form(
+    address_line1: str = Form(...),
+    address_line2: str = Form(''),
+    address_line3: str = Form(''),
+    town: str = Form(...),
+    postcode: VALID_POSTCODE = Form(...),
+    direction: ShipDirection = Form(...),
+):
+    logger.debug(
+        f'Address fields received: {direction=}, {address_line1=}, {address_line2=}, {address_line3=}, {town=}, {postcode=}'
+    )
+    addr_class = AddressCollection if direction == 'in' else AddressRecipient
+    addr = addr_class(
+        address_line1=address_line1,
+        address_line2=address_line2,
+        address_line3=address_line3,
+        town=town,
+        postcode=postcode,
+    )
+    addr = addr.model_validate(addr)
+    logger.debug(f'Address validated: {addr}')
+    return addr
+
+
+async def contact_f_form(
+    contact_name: str = Form(...),
+    email_address: EmailStr = Form(...),
+    business_name: str = Form(...),
+    mobile_phone: str = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
+):
+    logger.debug(
+        f'Contact fields received: direction={direction}, {contact_name=}, {email_address=}, {business_name=}, {mobile_phone=}'
+    )
+    contact_class = Contact if direction == 'out' else CollectionContact
+    cont = contact_class(
+        business_name=business_name,
+        contact_name=contact_name,
+        email_address=email_address,
+        mobile_phone=mobile_phone,
+    )
+    cont = cont.model_validate(cont)
+    logger.debug(f'Contact validated: {cont}')
+    return cont
+
+
+async def notes_f_form(request: Request) -> list[tuple[str, str]]:
+    form_data = await request.form()
+    notes = [
+        (fieldname, form_data[fieldname])
+        for fieldname in ShipmentReferenceFields.model_fields.keys()
+        if fieldname in form_data
+    ]
+    return notes
+
+
+async def shipment_request_f_form(
+    request: Request,
+    shipping_date: date = Form(...),
+    boxes: int = Form(...),
+    service: ServiceCode = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
+    # own_label: bool = Form(...),
+    own_label: str = Form(...),
+    address: AddressCollection = Depends(address_f_form),
+    contact: Contact = Depends(contact_f_form),
+    notes: list[tuple[str, str]] = Depends(notes_f_form),
+):
+    logger.warning(f'{request=}')
+    own_label = own_label.lower() == 'true'
+    shipment_request = ShipmentRequest(
+        recipient_address=address,
+        recipient_contact=contact,
+        service_code=service,
+        shipping_date=shipping_date,
+        total_number_of_parcels=boxes,
+    )
+    if direction == ShipDirection.Dropoff:
+        shipment_request.make_inbound()
+    elif direction == ShipDirection.Inbound:
+        shipment_request.make_collection(own_label=own_label)
+
+    for fieldname, value in notes:
+        setattr(shipment_request, fieldname, value)
+
+    return shipment_request
