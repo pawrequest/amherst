@@ -36,15 +36,15 @@ async def test_recipient_address(booking_fxt):
     assert booking_fxt.shipment_request.recipient_address.country
 
 
-def test_health(client):
-    response = client.get('/api/health/')
+def test_health(am_client):
+    response = am_client.get('/api/health/')
     assert response.status_code == 200
     assert response.json() == 'healthy'
 
 
 @pytest.mark.asyncio
-async def test_booking_api(client, booking_fxt, address_fxt, contact_fxt):
-    response = client.get(f'/api/{booking_fxt.id}')
+async def test_booking_api(am_client, booking_fxt, address_fxt, contact_fxt):
+    response = am_client.get(f'/api/{booking_fxt.id}')
     assert response.status_code == 200
     booking_json = response.json()
     booking = BookingStateDB.model_validate(booking_json)
@@ -54,8 +54,8 @@ async def test_booking_api(client, booking_fxt, address_fxt, contact_fxt):
 
 
 @pytest.mark.asyncio
-async def test_soup(client, booking_fxt, address_fxt, contact_fxt):
-    response = client.get(f'/{booking_fxt.id}')
+async def test_soup(am_client, booking_fxt, address_fxt, contact_fxt):
+    response = am_client.get(f'/{booking_fxt.id}')
     response_text = response.text
 
     soup = BeautifulSoup(response_text, 'html.parser')
@@ -68,7 +68,7 @@ async def test_soup(client, booking_fxt, address_fxt, contact_fxt):
     assert soup.find('input', {'id': 'ship_date'})['value'] == SHIP_DATE
     assert soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'] == '1'
     # Check direction options
-    assert soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.OUT
+    assert soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.Outbound
     # Check service options
     assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
     # Check contact details

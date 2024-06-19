@@ -13,8 +13,7 @@ class BookingStateDB(BookingState, table=True):
 
     # @property
     def all_alerts(self):
-        return [_ for _ in
-                self.response.alerts.alert] if self.response else [] + self.record.alerts.alert
+        return [_ for _ in self.response.alerts.alert] if self.response and self.response.alerts else [] + self.record.alerts.alert if self.record.alerts else []
 
     @property
     def email_options(self):

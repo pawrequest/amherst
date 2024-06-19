@@ -33,8 +33,9 @@ def amherst_shipment_request(
     ref_nums = split_reference_numbers(record)
     try:
         chosen_address, score = el_client.choose_address(record.input_address)
-        altyp = AlertType.NOTIFICATION if score > 80 else AlertType.WARNING if score > 60 else AlertType.ERROR
-        record.alerts.alert.append(Alert(message=f'address score {score}', type=altyp))
+        if score < 60:
+            altyp = AlertType.WARNING if score > 40 else AlertType.ERROR
+            record.alerts.alert.append(Alert(message=f'address score {score}', type=altyp))
         return ShipmentRequest(
             recipient_contact=record.contact(),
             recipient_address=chosen_address,

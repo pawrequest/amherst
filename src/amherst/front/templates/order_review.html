@@ -1,100 +1,71 @@
-{#{% extends "base.html" %}#}
-
-{#{% block title %}Amherst Shipper - confirm details{% endblock %}#}
-
-{#{% block content %}#}
 {% set shiprec = booking.shipment_request %}
 {% set col_cont = shiprec.collection_info.collection_contact %}
+{% set col_add = shiprec.collection_info.collection_address %}
 {% set rec_cont = shiprec.recipient_contact %}
 {% set rec_add = shiprec.recipient_address %}
 
 <div class="loading-spinner">
     <span class="loader"></span>
 </div>
-<div id=results class="wrapper wrapper__requested requested-shipment">
-    <section class="requested-head">
-        {#            <h2 class="requested-title">Requested Shipment Label = {{ booking.shipment_request.print_own_label }}:</h2>#}
-        <h2 class="requested-title">Requested
-            Shipment {{ '(Print Own Label)' if booking.shipment_request.print_own_label else '(Driver Brings Label)' }}:</h2>
-        <form hx-post="confirm_booking" hx-target="#results" hx-swap="beforebegin">
+<div id=results class="wrapper wrapper__requested">
+    <section class="requested requested__head">
+        <h3 class="requested-title">{{ booking.direction.name }} Shipment:</h3>
+        <form hx-post="confirm_booking" hx-target="#main-form" hx-swap="innerHTML">
             <input type="hidden" name="booking_id" value='{{ booking.id }}'>
             <button class="submit-confirm-btn">Confirm Booking</button>
-            {#                <button type="submit" class="btn-confirm">Confirm Booking</button>#}
         </form>
     </section>
-    <section class="inputs requested__contact">
-        <h3>Recipient Contact</h3>
-        <p><strong>Business Name:</strong> {{ rec_cont.business_name }}</p>
-        <p><strong>Contact Name:</strong> {{ rec_cont.contact_name }}</p>
+    <section class="requested requested__contact">
+        <h4>Recipient Contact</h4>
+        <p>{{ rec_cont.contact_name }}</p>
+        <p><strong>Business:</strong> {{ rec_cont.business_name }}</p>
         <p><strong>Email:</strong> {{ rec_cont.email_address }}</p>
         <p><strong>Phone:</strong> {{ rec_cont.mobile_phone }}</p>
     </section>
-
-    <section class="inputs requested__address">
-        <h3>Recipient Address</h3>
-        <p><strong>Address Line 1:</strong> {{ rec_add.address_line1 }}</p>
+    <section class="requested requested__address">
+        <h4>Recipient Address</h4>
+        <p>{{ rec_add.address_line1 }}</p>
         {% if rec_add.address_line2 %}
-            <p><strong>Address Line 2:</strong> {{ rec_add.address_line2 }}</p>
+            <p>{{ rec_add.address_line2 }}</p>
         {% endif %}
         {% if rec_add.address_line3 %}
-            <p><strong>Address Line 3:</strong> {{ rec_add.address_line3 }}</p>
+            <p>{{ rec_add.address_line3 }}</p>
         {% endif %}
-        <p><strong>Town:</strong> {{ rec_add.town }}</p>
-        <p><strong>Postcode:</strong> {{ rec_add.postcode }}</p>
+        <p>{{ rec_add.town }}</p>
+        <p>{{ rec_add.postcode }}</p>
+
     </section>
 
+    {% if booking.direction == 'in' %}
+        <section class="requested requested__col_contact">
+            <h4>Collection Contact</h4>
+            <p>{{ col_cont.contact_name }}</p>
+            <p><strong>Business:</strong> {{ col_cont.business_name }}</p>
+            <p><strong>Email:</strong> {{ col_cont.email_address }}</p>
+            <p><strong>Phone:</strong> {{ col_cont.mobile_phone }}</p>
+        </section>
+        <section class="requested requested__col_address">
+            <h4>Collection Address</h4>
+            <p>{{ col_add.address_line1 }}</p>
+            {% if col_add.address_line2 %}
+                <p>{{ col_add.address_line2 }}</p>
+            {% endif %}
+            {% if col_add.address_line3 %}
+                <p>{{ col_add.address_line3 }}</p>
+            {% endif %}
+            <p>{{ col_add.town }}</p>
+            <p>{{ col_add.postcode }}</p>
 
-    <section class="inputs requested__notes">
-        <h3>Notes</h3>
-        {% if booking.shipment_request.reference_number1 %}
-            <p><strong>Reference Number 1:</strong> {{ shiprec.reference_number1 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.reference_number2 %}
-            <p><strong>Reference Number 2:</strong> {{ shiprec.reference_number2 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.reference_number3 %}
-            <p><strong>Reference Number 3:</strong> {{ shiprec.reference_number3 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.reference_number4 %}
-            <p><strong>Reference Number 4:</strong> {{ shiprec.reference_number4 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.reference_number5 %}
-            <p><strong>Reference Number 5:</strong> {{ shiprec.reference_number5 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.special_instructions1 %}
-            <p><strong>Special Instructions 1:</strong> {{ shiprec.special_instructions1 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.special_instructions2 %}
-            <p><strong>Special Instructions 2:</strong> {{ shiprec.special_instructions2 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.special_instructions3 %}
-            <p><strong>Special Instructions 3:</strong> {{ shiprec.special_instructions3 }}</p>
-        {% endif %}
-        {% if booking.shipment_request.special_instructions4 %}
-            <p><strong>Special Instructions 4:</strong> {{ shiprec.special_instructions4 }}</p>
-        {% endif %}
-    </section>
-
-    {% if booking.shipment_request.collection_info and booking.shipment_request.shipment_type == 'COLLECTION' %}
-        <section class="inputs requested__collection">
-            <h3>Collection Information</h3>
-            {#                {% set cont = booking.shipment_request.collection_info.collection_contact %}#}
-            <p><strong>Collection Contact:</strong> {{ col_cont.contact_name }} - {{ col_cont.business_name }}
-                - {{ col_cont.mobile_phone }} - {{ col_cont.email_address }}</p>
-            <p><strong>Collection
-                Address:</strong> {{ booking.shipment_request.collection_info.collection_address.address_line1 }}
-                - {{ booking.shipment_request.collection_info.collection_address.postcode }}</p>
         </section>
     {% endif %}
 
-    <section class="inputs requested__details">
-        <h3>Shipment Details</h3>
-        <p><strong>Total Number of Parcels:</strong> {{ booking.shipment_request.total_number_of_parcels }}</p>
-        <p><strong>Shipping Date:</strong> {{ booking.shipment_request.shipping_date }}</p>
-        <p><strong>Service Code:</strong> {{ booking.shipment_request.service_code }}</p>
-        <p><strong>Shipment Type:</strong> {{ booking.shipment_request.shipment_type }}</p>
-        {% if booking.shipment_request.print_own_label %}
-            <p><strong>Print Own Label:</strong> {{ booking.shipment_request.print_own_label }}</p>
+    <section class="requested requested__details">
+        <p><strong>Boxes:</strong> {{ booking.shipment_request.total_number_of_parcels }}</p>
+        <p><strong>Date:</strong> {{ booking.shipment_request.shipping_date }}</p>
+        <p><strong>Service:</strong> {{ booking.shipment_request.service_code }}</p>
+        <p><strong>Type:</strong> {{ booking.shipment_request.shipment_type }}</p>
+        {% if booking.shipment_request.print_own_label == False %}
+            <p><strong>Driver Brings Labels</strong></p>
         {% endif %}
         {% if booking.shipment_request.enhancement %}
             <p><strong>Enhancement:</strong> {{ booking.shipment_request.enhancement }}</p>
@@ -123,6 +94,33 @@
         {% if booking.shipment_request.returns %}
             <p><strong>Returns:</strong> {{ booking.shipment_request.returns }}</p>
         {% endif %}
+        {% if booking.shipment_request.reference_number1 %}
+            <p><strong>Reference 1:</strong> {{ shiprec.reference_number1 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.reference_number2 %}
+            <p><strong>Reference 2:</strong> {{ shiprec.reference_number2 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.reference_number3 %}
+            <p><strong>Reference 3:</strong> {{ shiprec.reference_number3 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.reference_number4 %}
+            <p><strong>Reference 4:</strong> {{ shiprec.reference_number4 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.reference_number5 %}
+            <p><strong>Reference 5:</strong> {{ shiprec.reference_number5 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.special_instructions1 %}
+            <p><strong>Instructions 1:</strong> {{ shiprec.special_instructions1 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.special_instructions2 %}
+            <p><strong>Instructions 2:</strong> {{ shiprec.special_instructions2 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.special_instructions3 %}
+            <p><strong>Instructions 3:</strong> {{ shiprec.special_instructions3 }}</p>
+        {% endif %}
+        {% if booking.shipment_request.special_instructions4 %}
+            <p><strong>Instructions 4:</strong> {{ shiprec.special_instructions4 }}</p>
+        {% endif %}
     </section>
 </div>
 
@@ -146,14 +144,24 @@
         spinner.style.display = 'none';
         requestDiv.style.display = '';
 
-        if (bookingBooked) {
-            const bookingConfirmed = document.createElement('div');
-            bookingConfirmed.className = 'booking-confirmed';
-            bookingConfirmed.innerText = 'Booking Confirmed';
-            confirmButton.parentNode.replaceChild(bookingConfirmed, confirmButton)
-        }
+        {#if (bookingBooked) {#}
+        {#    const bookingConfirmed = document.createElement('div');#}
+        {#    bookingConfirmed.className = 'booking-confirmed';#}
+        {#    bookingConfirmed.innerText = 'Booking Confirmed';#}
+        {#    confirmButton.parentNode.replaceChild(bookingConfirmed, confirmButton)#}
     });
     console.log('script loaded')
+
+    // hide order review if change input
+    const form = document.getElementById('main-form');
+    const returnedRequestDiv = document.querySelector('.returned-request');
+    form.addEventListener('input', function () {
+        returnedRequestDiv.style.display = 'none';
+    });
+    form.addEventListener('submit', function (event) {
+        returnedRequestDiv.style.display = '';
+    });
+
 </script>
 
 {#{% endblock %}#}

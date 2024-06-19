@@ -23,7 +23,7 @@ EMAIL_ADDRESS = 'fake@ssgslgjhslagjnhlsgnhl.com'
 
 
 @pytest.fixture(scope='session')
-def client():
+def am_client():
     with TestClient(app) as client:
         yield client
 

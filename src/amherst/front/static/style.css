@@ -48,6 +48,7 @@ input, select, textarea, button {
     border-radius: var(--border-radius);
     padding: .3rem;
 }
+
 header {
     display: flex;
     flex-direction: column;
@@ -92,10 +93,9 @@ h1 {
 
 .wrapper {
     display: grid;
-
     border-radius: 1rem;
-    margin-block: 3rem;
-    padding-block: 1rem;
+    margin-block: .5rem;
+    padding-block: .5rem;
     padding-inline: 3rem;
     max-width: min(100% - 3rem, 1400px);
     margin-inline: auto;
@@ -105,14 +105,19 @@ h1 {
 
 .wrapper__booking {
     grid-template-areas:
-           "cmc cmc cmc cmc"
            "shipment contact address notes"
-           "submit submit submit submit";
+           "shipment contact address sub-btns";
     /*"notes notes notes";*/
 }
 
-.submit-confirm-btn {
-}
+/*    grid-template-areas:*/
+/*           "cmc cmc cmc cmc"*/
+/*           "shipment contact address notes"*/
+/*           "submit submit submit submit";*/
+/*    !*"notes notes notes";*!*/
+/*}*/
+
+
 
 .booking-confirmed {
     /* used in js*/
@@ -124,13 +129,6 @@ h1 {
     font-family: "Roboto", sans-serif;
 }
 
-.commence {
-    grid-area: cmc;
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    gap: 1rem;
-}
 
 .email {
     grid-area: email;
@@ -166,24 +164,18 @@ h1 {
         gap: 1rem;
         justify-content: space-between;
     }
-
-    span {
-        align-self: start;
-        justify-self: end;
-        font-size: 0.7rem;
-    }
 }
 
 .inputs__notes {
     grid-area: notes;
-    /*flex-direction: row;*/
-    /*margin-inline: auto;*/
-    /*gap: 1rem;*/
+}
 
-    > div {
-        display: flex;
-        flex-direction: column;
-    }
+.inputs__submit {
+    grid-area: sub-btns;
+    background-color: purple;
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*gap: 3px;*/
 }
 
 
@@ -220,20 +212,15 @@ button {
     padding-block: 2px;
     background-color: var(--clr-btn);
     color: var(--clr-success-font);
-    line-height: 2rem;
     font-size: 1.5rem;
-    margin-block: 1rem;
-    /*line-height: 2rem;*/
-    /*background-color: purple;*/
+    line-height: 2rem;
 }
 
 button.submit-request {
-    grid-area: submit;
 }
-
-/*button.submit-confirm{*/
-/**/
-/*}*/
+.submit-confirm-btn {
+    /*display: none;*/
+}
 button.update-address-btn {
     font-size: 18px;
 }
@@ -250,14 +237,12 @@ select:focus {
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
 
-.wrapper__requested {
-    display: grid;
 
-    grid-template-areas:
-        "... head head ..."
-        "details contact address notes"
-        "collection collection collection collection";
-}
+/*    grid-template-areas:*/
+/*        "... head head ..."*/
+/*        "details contact address notes"*/
+/*        "collection collection collection collection";*/
+/*}*/
 
 .shipper {
     padding-inline: 3rem;
@@ -274,64 +259,62 @@ select:focus {
 
 }
 
-.requested-shipment {
-    /*border: 1px solid #ccc;*/
-    /*padding: 20px;*/
-    /*border-radius: 5px;*/
-    /*margin-bottom: 20px;*/
+.wrapper__requested {
+    display: grid;
+    grid-template-areas:
+        "head      head    head      head    head "
+         "col-cont col-add rec-cont rec-add details";
+}
 
+.requested {
+    display: flex;
+    flex-direction: column;
+    /*border: 2px solid black;*/
+    /*padding: 1rem;*/
+    gap: .5rem;
+    border-radius: 1rem;
+}
 
-    .requested-head {
-        grid-area: head;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 2rem;
-    }
+.requested__head {
+    grid-area: head;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /*gap: .5rem;*/
+    justify-content: center;
+    text-align: center;
+}
 
-    .requested-title {
-        /*grid-area: title;*/
-    }
+.requested-title {
+    /*grid-area: title;*/
+}
 
-    /*.submit-confirm {*/
-    /*}*/
+.requested__col_contact {
+    grid-area: col-cont;
+}
+.requested__col_address {
+    grid-area: col-add;
+}
+.requested__contact {
+    grid-area: rec-cont;
 
-    .requested-container {
-        display: grid;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
+}
 
-    .requested {
-        /*display: flex;*/
-        /*flex-direction: column;*/
-        /*flex: 1;*/
-        /*min-width: 300px;*/
-        /*border: 1px solid black;*/
-        /*padding: 15px;*/
-        /*border-radius: 5px;*/
-    }
+.requested__address {
+    grid-area: rec-add;
 
-    .requested__address {
-        grid-area: address;
-    }
+}
 
-    .requested__contact {
-        grid-area: contact;
+.requested__details {
+    grid-area: details;
+}
 
-    }
+.requested__notes {
+    grid-area: notes;
+}
 
-    .requested__details {
-        grid-area: details;
-    }
-
-    .requested__notes {
-        grid-area: notes;
-    }
-
-    .requested__collection {
-        grid-area: collection;
-    }
+.requested__collection {
+    grid-area: collection;
 }
 
 .result {

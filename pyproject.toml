@@ -17,6 +17,8 @@ dependencies = [
     'pawdantic @ git+https://github.com/pawrequest/pawdantic',
     'suppawt @ git+https://github.com/pawrequest/suppawt',
     'pawlogger @ git+https://github.com/pawrequest/pawlogger',
+    'shipaw',
+    'pycommence',
     'phonenumbers',
     'sqlmodel',
     'pydantic-settings',
@@ -30,14 +32,11 @@ dependencies = [
     'httpx',
     "pywin32",
     'jinja2',
-    'pyinstaller',
-    'pyinstaller-hooks-contrib',
-    'shipaw',
-    'pycommence',
 ]
 
 [project.optional-dependencies]
 dev = [
+    'pyinstaller-hooks-contrib',
     'pyinstaller',
     "pytest",
     "pytest_asyncio",
@@ -59,17 +58,6 @@ from-git = [
     'pycommence @ git+https://github.com/pawrequest/pycommence',
 ]
 
-[tool.rye]
-managed = true
-dev-dependencies = [
-    "sphinx",
-    "sphinx-autodoc-typehints",
-    "sphinx-autodoc2",
-    "sphinx-rtd-theme",
-    "sphinx-readme",
-    "myst-parser",
-    "sphinx_rtd_dark_mode",
-]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -80,7 +68,4 @@ extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
-#[tool.hatch.build.targets.wheel]
-#packages = [
-#    "amherst",
-#]
+#[tool.

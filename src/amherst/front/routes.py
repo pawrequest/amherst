@@ -2,13 +2,14 @@
 import base64
 import os
 from datetime import date
+from functools import partial
 from pathlib import Path
 
 import pawdf
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -121,10 +122,10 @@ async def check_already_booked(booking):
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-    request: Request,
-    booking_id: int = Form(...),
-    el_client: ELClient = Depends(am_db.get_el_client),
-    session: Session = Depends(am_db.get_session),
+        request: Request,
+        booking_id: int = Form(...),
+        el_client: ELClient = Depends(am_db.get_el_client),
+        session: Session = Depends(am_db.get_session),
 ):
     logger.info(f'booking_id: {booking_id}')
     booking: BookingStateDB = await get_booking(booking_id, session)
@@ -194,7 +195,7 @@ async def check_dates(booking, request):
     alert = None
     if not booking.shipment_request.shipping_date.weekday() < 5:
         alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
-    if booking.direction == ShipDirection.IN and booking.shipment_request.shipping_date <= date.today():
+    if booking.direction == ShipDirection.Inbound and booking.shipment_request.shipping_date <= date.today():
         alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
     if alert:
         logger.warning(alert.message)
@@ -203,25 +204,39 @@ async def check_dates(booking, request):
     return None
 
 
+async def _from_req_json(request: Request, model_type: type[BaseModel]):
+    form_data = await request.json()
+    form_data = form_data.get('data')
+    c_data = {k: v for k, v in form_data.items() if k in model_type.model_fields}
+    logger.warning(form_data)
+    res = model_type.model_validate(c_data)
+    return res
+
+
+contact_from_req_json = partial(_from_req_json, model_type=Contact)
+address_from_req_json = partial(_from_req_json, model_type=AddressRecipient)
+
+
+
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-    request: Request,
-    booking_id: int = Form(...),
-    ship_date: date = Form(...),
-    boxes: int = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    service: ServiceCode = Form(...),
-    own_label: bool = Form(...),
-    contact_name: str = Form(...),
-    email: EmailStr = Form(...),
-    business_name: str = Form(...),
-    phone: str = Form(...),
-    address_line1: str = Form(...),
-    address_line2: str = Form(''),
-    address_line3: str = Form(''),
-    town: str = Form(...),
-    postcode: VALID_POSTCODE = Form(...),
-    session=Depends(am_db.get_session),
+        request: Request,
+        booking_id: int = Form(...),
+        shipping_date: date = Form(...),
+        boxes: int = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
+        service: ServiceCode = Form(...),
+        own_label: bool = Form(...),
+        contact_name: str = Form(...),
+        email_address: EmailStr = Form(...),
+        business_name: str = Form(...),
+        mobile_phone: str = Form(...),
+        address_line1: str = Form(...),
+        address_line2: str = Form(''),
+        address_line3: str = Form(''),
+        town: str = Form(...),
+        postcode: VALID_POSTCODE = Form(...),
+        session=Depends(am_db.get_session),
 ):
     booking = await get_booking(booking_id, session)
     try:
@@ -237,14 +252,14 @@ async def post_form(
         contact = contact_class(
             business_name=business_name,
             contact_name=contact_name,
-            email_address=email,
-            mobile_phone=phone,
+            email_address=email_address,
+            mobile_phone=mobile_phone,
         )
         shipment_request = ShipmentRequest(
             recipient_address=address,
             recipient_contact=contact,
             service_code=service,
-            shipping_date=ship_date,
+            shipping_date=shipping_date,
             total_number_of_parcels=boxes,
         )
 
@@ -252,9 +267,9 @@ async def post_form(
             setattr(shipment_request, fieldname, value)
 
         booking.direction = direction
-        if direction == ShipDirection.DROPOFF:
+        if direction == ShipDirection.Dropoff:
             shipment_request.make_inbound()
-        elif direction == ShipDirection.IN:
+        elif direction == ShipDirection.Inbound:
             shipment_request.make_collection(own_label=own_label)
 
         booking.shipment_request = shipment_request
@@ -282,8 +297,8 @@ async def post_form(
 
 @router.get('/get_candidates', response_class=JSONResponse)
 async def get_candidates_json(  #
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(am_db.get_el_client),
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.candidates_json(postcode)
     return res
@@ -291,8 +306,8 @@ async def get_candidates_json(  #
 
 @router.get('/get_candidatesp', response_model=list[AddressChoice], response_class=JSONResponse)
 async def get_candidatesp(
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(am_db.get_el_client),
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(am_db.get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -300,10 +315,10 @@ async def get_candidatesp(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-    request: Request,
-    booking_id: int,
-    session=Depends(am_db.get_session),
-    el_client: ELClient = Depends(am_db.get_el_client),
+        request: Request,
+        booking_id: int,
+        session=Depends(am_db.get_session),
+        el_client: ELClient = Depends(am_db.get_el_client),
 ):
     booking = await get_booking(booking_id, session)
     addr_choices = el_client.get_choices(
