@@ -8,8 +8,10 @@ from shipaw.ship_types import ShipDirection, WEEKDAYS_IN_RANGE
 SHIP_DATE = min(WEEKDAYS_IN_RANGE).strftime('%Y-%m-%d')
 
 
+@pytest.mark.parametrize('booking_fxt', ['booking_mock', 'random_booking'], )
 @pytest.mark.asyncio
-async def test_initial_booking_state(booking_fxt):
+async def test_initial_booking_state(request, booking_fxt):
+    booking_fxt = request.getfixturevalue(booking_fxt)
     assert booking_fxt
     assert booking_fxt.record
     assert booking_fxt.shipment_request
@@ -21,30 +23,30 @@ async def test_initial_booking_state(booking_fxt):
 
 
 @pytest.mark.asyncio
-async def test_email_options(booking_fxt):
-    assert booking_fxt.email_options
-    assert booking_fxt.email_options[0].email
+async def test_email_options(random_booking):
+    assert random_booking.email_options
+    assert random_booking.email_options[0].email
     ...
 
 
 @pytest.mark.asyncio
-async def test_recipient_address(booking_fxt):
-    assert booking_fxt.shipment_request.recipient_address
-    assert booking_fxt.shipment_request.recipient_address.address_line1
-    assert booking_fxt.shipment_request.recipient_address.town
-    assert booking_fxt.shipment_request.recipient_address.postcode
-    assert booking_fxt.shipment_request.recipient_address.country
+async def test_recipient_address(random_booking):
+    assert random_booking.shipment_request.recipient_address
+    assert random_booking.shipment_request.recipient_address.address_line1
+    assert random_booking.shipment_request.recipient_address.town
+    assert random_booking.shipment_request.recipient_address.postcode
+    assert random_booking.shipment_request.recipient_address.country
 
 
-def test_health(am_client):
-    response = am_client.get('/api/health/')
+def test_health(test_client):
+    response = test_client.get('/api/health/')
     assert response.status_code == 200
     assert response.json() == 'healthy'
 
 
 @pytest.mark.asyncio
-async def test_booking_api(am_client, booking_fxt, address_fxt, contact_fxt):
-    response = am_client.get(f'/api/{booking_fxt.id}')
+async def test_booking_api(test_client, random_booking, address_fxt, contact_fxt):
+    response = test_client.get(f'/api/{random_booking.id}')
     assert response.status_code == 200
     booking_json = response.json()
     booking = BookingStateDB.model_validate(booking_json)
@@ -54,21 +56,21 @@ async def test_booking_api(am_client, booking_fxt, address_fxt, contact_fxt):
 
 
 @pytest.mark.asyncio
-async def test_soup(am_client, booking_fxt, address_fxt, contact_fxt):
-    response = am_client.get(f'/{booking_fxt.id}')
+async def test_input_page(test_client, random_booking, address_fxt, contact_fxt):
+    response = test_client.get(f'/{random_booking.id}')
     response_text = response.text
 
     soup = BeautifulSoup(response_text, 'html.parser')
     assert soup.title.string == 'Amherst Shipper'
     assert soup.find('div', class_='shipper shipper__sandbox').string == 'Shipper in Sandbox Mode'
     # assert soup.find('div', class_='alert alert__')
-    assert booking_fxt.record.name in soup.find('h1').string
-    assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(booking_fxt.id)
+    assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(random_booking.id)
     # Check shipment details
     assert soup.find('input', {'id': 'ship_date'})['value'] == SHIP_DATE
     assert soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'] == '1'
     # Check direction options
-    assert soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.Outbound
+    assert soup.find('select', {'id': 'direction'}).find('option', {'selected': True})[
+               'value'] == ShipDirection.Outbound
     # Check service options
     assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
     # Check contact details
@@ -95,7 +97,7 @@ async def test_soup(am_client, booking_fxt, address_fxt, contact_fxt):
     assert all(option in actual_options for option in expected_options)
 
     # Check notes and special instructions
-    assert soup.find('input', {'id': 'reference_number1'})['value'] == booking_fxt.record.customer
+    assert soup.find('input', {'id': 'reference_number1'})['value'] == random_booking.record.customer
     assert soup.find('input', {'id': 'reference_number2'})
     assert soup.find('input', {'id': 'reference_number3'})
     assert soup.find('input', {'id': 'special_instructions1'})

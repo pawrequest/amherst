@@ -1,15 +1,12 @@
 # from __future__ import annotations
 import base64
 import os
-from datetime import date
-from functools import partial
 from pathlib import Path
 
 import pawdf
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
-from pydantic import BaseModel
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -17,32 +14,32 @@ from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
 
-from amherst import am_db
-from amherst.front.backend_funcs import (
+from amherst.backend_funcs import (
     TEMPLATES,
     book_shipment,
     booking_f_form,
     booking_f_path,
+    check_dates,
     get_booking,
-    shipment_request_f_form,
     make_email,
+    process_label,
     record_tracking,
-    wait_label,
+    shipment_request_f_form,
 )
+from amherst.db import get_session, get_el_client
 from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressChoice, AddressRecipient
+from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shipment import ShipmentRequest
-from shipaw.models.pf_top import Contact
-from shipaw.ship_types import AlertType, ExpressLinkError, ShipDirection, VALID_POSTCODE
+from shipaw.ship_types import AlertType, ExpressLinkError, VALID_POSTCODE
 
 router = APIRouter()
 
 
 @router.get('/multi', response_class=HTMLResponse)
-async def multi_shipper(request: Request, session=Depends(am_db.get_session)):
+async def multi_shipper(request: Request, session=Depends(get_session)):
     bookings = session.query(BookingStateDB).all()
     return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'bookings': bookings})
 
@@ -69,7 +66,7 @@ async def open_label(request: Request, label_path: str = Form(...)):
 
 
 @router.post('/email', response_class=HTMLResponse)
-async def email(request: Request, booking_id: int = Form(...), session=Depends(am_db.get_session)):
+async def email(request: Request, booking_id: int = Form(...), session=Depends(get_session)):
     """Endpoint to handle email options."""
     booking: BookingStateDB = await get_booking(booking_id, session)
     form_data = await request.form()
@@ -101,48 +98,17 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(a
     else:
         return HTMLResponse(content='<p>Email created and opened</p>')
 
-    # logger.info(f'Email options received: {email_options}')
-
-    # Process email options as needed
-    # processed_options = ', '.join([f"{key}: {value}" for key, value in email_options.items()])
-
-
-#
-# @router.post('/email', response_class=HTMLResponse)
-# async def email(request : Request, label_path: str = Form(...)):
-#     """Endpoint to print the label for a booking."""
-#     logger.info(f'printing')
-#     array_pdf.convert_many(Path(label_path), print_files=True)
-#     return HTMLResponse(content=f'<p>Printed {label_path}</p>')
-
-
-async def check_already_booked(booking):
-    if booking.booked or booking.completed:
-        logger.error(f'Shipment for {booking.record.name} already booked')
-        booking.alerts.alert.append(Alert(type=AlertType.WARNING, message=f'Already Booked {booking.record.name}'))
-    return True
-
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-    request: Request,
-    booking_id: int = Form(...),
-    el_client: ELClient = Depends(am_db.get_el_client),
-    session: Session = Depends(am_db.get_session),
+        request: Request,
+        booking: BookingStateDB = Depends(booking_f_form),
+        el_client: ELClient = Depends(get_el_client),
+        session: Session = Depends(get_session),
 ):
-    logger.info(f'booking_id: {booking_id}')
-    booking: BookingStateDB = await get_booking(booking_id, session)
+    logger.info(f'Booking {booking.id} for {booking.record.name}.')
 
     try:
-        # if booking.response:
-        #     logger.error(f'Shipment for {booking.record.name} already booked')
-        #     booking.alerts.append(
-        #         Alert(type=AlertType.WARNING, message=f"Already Booked {booking.record.name}")
-        #     )
-        #     return TEMPLATES.TemplateResponse(
-        #         'alerts.html',
-        #         {'booking': booking, 'request': request}
-        #     )
         if booking.booked:
             alert = Alert(type=AlertType.WARNING, message=f'Already Booked {booking.record.name}')
             # booking.alerts.alert.append(alert)
@@ -179,46 +145,13 @@ async def confirm_booking(
         return TEMPLATES.TemplateResponse('alerts_only.html', {'request': request, 'alerts': [al]})
 
 
-async def process_label(booking: BookingStateDB, el_client):
-    label_path = booking.get_label_path()
-    wait_label(shipment_num=booking.response.shipment_num, dl_path=label_path, el_client=el_client)
-    booking.label_downloaded = True
-    booking.label_path = str(label_path)
-
-
-async def check_dates(booking, request):
-    alert = None
-    if not booking.shipment_request.shipping_date.weekday() < 5:
-        alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
-    if booking.direction == ShipDirection.Inbound and booking.shipment_request.shipping_date <= date.today():
-        alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
-    if alert:
-        logger.warning(alert.message)
-        booking.alerts.alert.append(alert)
-        return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
-    return None
-
-
-async def _from_req_json(request: Request, model_type: type[BaseModel]):
-    form_data = await request.json()
-    form_data = form_data.get('data')
-    c_data = {k: v for k, v in form_data.items() if k in model_type.model_fields}
-    logger.warning(form_data)
-    res = model_type.model_validate(c_data)
-    return res
-
-
-contact_from_req_json = partial(_from_req_json, model_type=Contact)
-address_from_req_json = partial(_from_req_json, model_type=AddressRecipient)
-
-
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-    request: Request,
-    direction: ship_types.ShipDirection = Form(...),
-    booking: BookingStateDB = Depends(booking_f_form),
-    session: Session = Depends(am_db.get_session),
-    shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
+        request: Request,
+        direction: ship_types.ShipDirection = Form(...),
+        booking: BookingStateDB = Depends(booking_f_form),
+        shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
+        session: Session = Depends(get_session),
 ):
     try:
         booking.direction = direction
@@ -245,6 +178,52 @@ async def post_form(
         return f'<p>{str(e)}</p><p>Please refresh the page and try again</p>'
 
 
+@router.get('/{booking_id}', response_class=HTMLResponse)
+async def index(
+        request: Request,
+        booking: BookingStateDB = Depends(booking_f_path),
+        el_client: ELClient = Depends(get_el_client),
+):
+    addr_choices = el_client.get_choices(
+        booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
+    )
+    return TEMPLATES.TemplateResponse(
+        'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
+    )
+
+
+@router.get('/api/get_candidates', response_model=list[AddressChoice], response_class=JSONResponse)
+async def candidates_api(
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(get_el_client),
+):
+    res = el_client.get_choices(postcode)
+    return res
+
+
+@router.get('/api/{booking_id}', response_class=JSONResponse)
+async def booking_api(
+        booking: BookingStateDB = Depends(booking_f_path),
+) -> BookingStateDB:
+    return booking
+
+#
+#
+# @router.get('/{booking_id}', response_class=HTMLResponse)
+# async def index(
+#         request: Request,
+#         booking_id: int,
+#         session=Depends(get_session),
+#         el_client: ELClient = Depends(get_el_client),
+# ):
+#     booking = await get_booking(booking_id, session)
+#     addr_choices = el_client.get_choices(
+#         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
+#     )
+#     return TEMPLATES.TemplateResponse(
+#         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
+#     )
+
 #
 # @router.post('/post_form/', response_class=HTMLResponse)
 # async def post_form(
@@ -264,7 +243,7 @@ async def post_form(
 #     address_line3: str = Form(''),
 #     town: str = Form(...),
 #     postcode: VALID_POSTCODE = Form(...),
-#     session=Depends(am_db.get_session),
+#     session=Depends(get_session),
 # ):
 #     try:
 #         addr_class = AddressCollection if direction == 'in' else AddressRecipient
@@ -321,59 +300,3 @@ async def post_form(
 #         logger.error(e)
 #         return f'<p>{str(e)}</p><p>Please refresh the page and try again</p>'
 #
-
-
-@router.get('/get_candidates', response_class=JSONResponse)
-async def get_candidates_json(  #
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(am_db.get_el_client),
-):
-    res = el_client.candidates_json(postcode)
-    return res
-
-
-@router.get('/get_candidatesp', response_model=list[AddressChoice], response_class=JSONResponse)
-async def get_candidatesp(
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(am_db.get_el_client),
-):
-    res = el_client.get_choices(postcode)
-    return res
-
-
-@router.get('/{booking_id}', response_class=HTMLResponse)
-async def index(
-    request: Request,
-    booking: BookingStateDB = Depends(booking_f_path),
-    el_client: ELClient = Depends(am_db.get_el_client),
-):
-    addr_choices = el_client.get_choices(
-        booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
-    )
-    return TEMPLATES.TemplateResponse(
-        'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
-    )
-
-
-#
-#
-# @router.get('/{booking_id}', response_class=HTMLResponse)
-# async def index(
-#         request: Request,
-#         booking_id: int,
-#         session=Depends(am_db.get_session),
-#         el_client: ELClient = Depends(am_db.get_el_client),
-# ):
-#     booking = await get_booking(booking_id, session)
-#     addr_choices = el_client.get_choices(
-#         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
-#     )
-#     return TEMPLATES.TemplateResponse(
-#         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
-#     )
-
-
-@router.get('/api/{booking_id}', response_class=JSONResponse)
-async def get_shipper(booking_id: int, session=Depends(am_db.get_session)) -> BookingStateDB:
-    booking = await get_booking(booking_id, session)
-    return booking

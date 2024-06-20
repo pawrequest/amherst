@@ -162,10 +162,21 @@ class SaleFields(str, Enum):
     INVOICE_TELEPHONE = 'Invoice Telephone'
 
 
-INITIAL_FILTER_ARRAY = FilterArray(
-    filters={
-        1: CmcFilter(cmc_col=HireFields.STATUS, value=f'{HireStatus.PACKED}'),
-        2: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='After', value='one week ago'),
-        3: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='Before', value='one week from now'),
-    }
-)
+def initial_filter(tablename: str) -> FilterArray:
+    match tablename:
+        case 'Hire':
+            return FilterArray(
+                filters={
+                    1: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='After', value='one month ago'),
+                    2: CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='Before', value='one month from now'),
+                }
+            )
+        case 'Sale':
+            return FilterArray(
+                filters={
+                    1: CmcFilter(cmc_col=SaleFields.DATE_ORDERED, condition='After', value='6 months ago'),
+                }
+            )
+        case _:
+            raise ValueError(f'No initial filter for {tablename}')
+

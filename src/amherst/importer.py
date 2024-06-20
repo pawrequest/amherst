@@ -64,7 +64,7 @@ async def amrec_to_booking(amrec):
     return booking
 
 
-async def cmc_record_to_amrec(record):
+async def cmc_record_to_amrec(record) -> AmherstRecord:
     amrec_in = AmherstRecordIn(**record)
     amrec_in = amrec_in.model_validate(amrec_in)
     amrec = AmherstRecord(**amrec_in.model_dump())

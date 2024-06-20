@@ -10,7 +10,7 @@ from pawdantic.pawsql import default_json_field
 from pydantic import AliasChoices, ConfigDict, Field
 from loguru import logger
 
-from amherst.am_shared import CustomerFields
+from amherst.commence import CustomerFields
 from pycommence import PyCommence
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
@@ -36,7 +36,7 @@ class AmherstRecordIn(sqm.SQLModel):
         validate_default=True,
     )
     cmc_table_name: AmherstTableEnum
-    alerts: Alerts | None = default_json_field(Alerts, Alerts)
+    alerts: Alerts = default_json_field(Alerts, Alerts.empty)
     # alerts: list[Alert] | None = optional_json_field(Alert)
     name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))

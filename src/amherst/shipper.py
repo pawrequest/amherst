@@ -29,11 +29,12 @@ from loguru import logger
 from win32com.universal import com_error
 from thefuzz import fuzz
 
+from amherst.db import create_db, get_session_cm
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from pycommence import PyCommence
-from amherst.am_config import am_sett
+from amherst.config import settings
 from amherst.models import am_record
-from amherst import am_db, app_file
+from amherst import app_file
 
 SCORER = fuzz.partial_ratio
 
@@ -49,8 +50,8 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
     # CoInitialize()
     alert = None
     # booking = None
-    am_db.create_db()
-    print('Template directory:', os.path.abspath(am_sett().base_dir / 'front' / 'templates'))
+    create_db()
+    print('Template directory:', os.path.abspath(settings().base_dir / 'front' / 'templates'))
     booking = None
 
     try:
@@ -60,12 +61,11 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         amrec = await cmc_record_to_amrec(record)
         booking = await amrec_to_booking(amrec)
 
-        with am_db.get_session_cm() as session:
+        with get_session_cm() as session:
             session.add(booking)
             session.commit()
             session.refresh(booking)
             ...
-
 
     except com_error:
         alert = 'Error: Commence Server execution failed. Ensure Commence is running.'

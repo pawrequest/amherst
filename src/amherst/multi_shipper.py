@@ -23,17 +23,17 @@ import os
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
-from amherst.am_db import get_session_cm
-from amherst.am_shared import (
-    INITIAL_FILTER_ARRAY,
+from amherst.db import get_session_cm
+from amherst.commence import (
+    INITIAL_HIRE_FILTER,
 )
 from amherst.importer import amherst_shipment_request, amrec_to_booking, cmc_record_to_amrec
 # from amherst.models.am_record import AmherstRecordDB
 from amherst.models.db_models import BookingStateDB
 from pycommence import PyCommence
-from amherst.am_config import am_sett
+from amherst.config import settings
 from amherst.models import am_record
-from amherst import am_db, app_file
+from amherst import db, app_file
 
 
 async def main():
@@ -41,12 +41,12 @@ async def main():
     alert = None
     booking = None
     am_db.create_db()
-    print("Template directory:", os.path.abspath(am_sett().base_dir / 'front' / 'templates'))
+    print("Template directory:", os.path.abspath(settings().base_dir / 'front' / 'templates'))
 
     try:
         with PyCommence.from_table_name_context(table_name='Hire') as py_cmc:
-            records = py_cmc.records_by_array(INITIAL_FILTER_ARRAY)
-        logger.info(f'{len(records)} records found from filters = {INITIAL_FILTER_ARRAY}')
+            records = py_cmc.records_by_array(INITIAL_HIRE_FILTER)
+        logger.info(f'{len(records)} records found from filters = {INITIAL_HIRE_FILTER}')
 
         bookings = []
         for record in records:

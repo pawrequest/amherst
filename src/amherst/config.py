@@ -24,13 +24,14 @@ def set_base_dir(v, values):
             return Path(__file__).resolve().parent
 
 
-class AmSettings(BaseSettings):
+class Settings(BaseSettings):
     """Set by env file at location specified by AM_ENV."""
 
     db_loc: Path
     log_file: Path
     base_dir: _t.Annotated[Path, _p.BeforeValidator(set_base_dir)] = None
     data_dir: Path = Path(__file__).parent / '_data'
+
 
     @cached_property
     def db_url(self):
@@ -47,9 +48,9 @@ class AmSettings(BaseSettings):
     model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AM_ENV)
 
 @functools.lru_cache
-def am_sett():
-    return AmSettings()
+def settings():
+    return Settings()
 
-logger = get_loguru(log_file=am_sett().log_file, profile='local')
+logger = get_loguru(log_file=settings().log_file, profile='local')
 
-logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in am_sett().model_dump().items()]))
+logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))

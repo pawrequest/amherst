@@ -7,15 +7,15 @@ from datetime import date
 
 from fastapi import Depends, Form, Path
 from loguru import logger
-from pydantic import EmailStr
+from pydantic import EmailStr, BaseModel
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
-from amherst.am_config import am_sett
-from amherst.am_db import get_session
-from amherst.am_shared import HireFields
+from amherst.config import settings
+from amherst.db import get_session
+from amherst.commence import HireFields
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
 from pycommence import PyCommence
@@ -23,21 +23,33 @@ from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
+from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment import ShipmentReferenceFields, ShipmentRequest
 from shipaw.models.pf_top import CollectionContact, Contact
-from shipaw.ship_types import ExpressLinkError, ShipDirection, VALID_POSTCODE
+from shipaw.ship_types import (
+    ExpressLinkError,
+    ShipDirection,
+    VALID_POSTCODE,
+    AlertType,
+    ExpressLinkWarning,
+    ExpressLinkNotification,
+)
 
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 
 def book_shipment(el_client, shipment_request: ShipmentRequest) -> pf_msg.CreateShipmentResponse:
-    resp = el_client.send_shipment_request(shipment_request)
+    resp: pf_msg.CreateShipmentResponse = el_client.send_shipment_request(shipment_request)
     for a in resp.alerts.alert if resp.alerts else []:
-        if a.type == 'ERROR':
-            logger.error(f'ERROR IN BOOKING: {a.message}')
-            raise ExpressLinkError(a.message)
-        logger.warning(f'WARNING IN BOOKING: {a.message}')
+        try:
+            a.raise_exception()
+        except ExpressLinkWarning as warned:
+            ...
+        except ExpressLinkNotification as noted:
+            ...
+        if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
+            logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
     return resp
 
 
@@ -102,7 +114,7 @@ async def make_email(addresses, invoice, label, missing, booking_state):
     return email_obj
 
 
-TEMPLATES = Jinja2Templates(directory=str(am_sett().base_dir / 'front' / 'templates'))
+TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templates'))
 
 
 async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
@@ -236,3 +248,32 @@ async def shipment_request_f_form(
         setattr(shipment_request, fieldname, value)
 
     return shipment_request
+
+
+async def process_label(booking: BookingStateDB, el_client):
+    label_path = booking.get_label_path()
+    wait_label(shipment_num=booking.response.shipment_num, dl_path=label_path, el_client=el_client)
+    booking.label_downloaded = True
+    booking.label_path = str(label_path)
+
+
+async def check_dates(booking, request):
+    alert = None
+    if not booking.shipment_request.shipping_date.weekday() < 5:
+        alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
+    if booking.direction == ShipDirection.Inbound and booking.shipment_request.shipping_date <= date.today():
+        alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
+    if alert:
+        logger.warning(alert.message)
+        booking.alerts.alert.append(alert)
+        return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
+    return None
+
+
+async def _from_req_json(request: Request, model_type: type[BaseModel]):
+    form_data = await request.json()
+    form_data = form_data.get('data')
+    c_data = {k: v for k, v in form_data.items() if k in model_type.model_fields}
+    logger.warning(form_data)
+    res = model_type.model_validate(c_data)
+    return res
