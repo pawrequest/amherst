@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Form
 from loguru import logger
 from sqlmodel import Session
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse
 from suppawt.office_ps.email_handler import EmailError
 from suppawt.office_ps.ms.outlook_handler import emailer
 from urllib3.exceptions import ConnectTimeoutError
@@ -30,10 +30,9 @@ from amherst.db import get_el_client, get_session
 from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressChoice
-from shipaw.models.pf_msg import Alert, CreateShipmentResponse
+from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shipment import ShipmentRequest
-from shipaw.ship_types import AlertType, ExpressLinkError, VALID_POSTCODE
+from shipaw.ship_types import AlertType, ExpressLinkError
 
 router = APIRouter()
 
@@ -101,10 +100,10 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(g
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-        request: Request,
-        booking: BookingStateDB = Depends(booking_f_form),
-        el_client: ELClient = Depends(get_el_client),
-        session: Session = Depends(get_session),
+    request: Request,
+    booking: BookingStateDB = Depends(booking_f_form),
+    el_client: ELClient = Depends(get_el_client),
+    session: Session = Depends(get_session),
 ):
     logger.info(f'Booking {booking.id} for {booking.record.name}.')
 
@@ -147,11 +146,11 @@ async def confirm_booking(
 
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-        request: Request,
-        direction: ship_types.ShipDirection = Form(...),
-        booking: BookingStateDB = Depends(booking_f_form),
-        shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
-        session: Session = Depends(get_session),
+    request: Request,
+    direction: ship_types.ShipDirection = Form(...),
+    booking: BookingStateDB = Depends(booking_f_form),
+    shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
+    session: Session = Depends(get_session),
 ):
     try:
         booking.direction = direction
@@ -180,48 +179,18 @@ async def post_form(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-        request: Request,
-        booking: BookingStateDB = Depends(booking_f_path),
-        el_client: ELClient = Depends(get_el_client),
+    request: Request,
+    booking: BookingStateDB = Depends(booking_f_path),
+    el_client: ELClient = Depends(get_el_client),
 ):
     addr_choices = el_client.get_choices(
         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
     )
+    logger.warning(f'address_choice = {booking.record.address_choice}')
     return TEMPLATES.TemplateResponse(
         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
     )
 
-
-@router.get('/api/get_candidates', response_model=list[AddressChoice], response_class=JSONResponse)
-async def candidates_api(
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(get_el_client),
-):
-    res = el_client.get_choices(postcode)
-    return res
-
-
-@router.get('/api/{booking_id}', response_class=JSONResponse)
-async def booking_api(
-        booking: BookingStateDB = Depends(booking_f_path),
-) -> BookingStateDB:
-    return booking
-
-
-@router.post('api/shiprec', response_class=JSONResponse)
-async def shiprec_api(
-        shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
-) -> ShipmentRequest:
-    return shipment_request
-
-
-@router.post('/api/confirm_booking', response_class=JSONResponse)
-async def confirm_api(
-        shipment_request: ShipmentRequest,
-        el_client: ELClient = Depends(get_el_client),
-) -> CreateShipmentResponse:
-    response = book_shipment(el_client, shipment_request)
-    return response
 
 #
 #
