@@ -203,7 +203,7 @@ async def index(
 # ):
 #     booking = await get_booking(booking_id, session)
 #     addr_choices = el_client.get_choices(
-#         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
+#         booking.shipment.recipient_address.postcode, booking.shipment.recipient_address
 #     )
 #     return TEMPLATES.TemplateResponse(
 #         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
@@ -246,7 +246,7 @@ async def index(
 #             email_address=email_address,
 #             mobile_phone=mobile_phone,
 #         )
-#         shipment_request = Shipment(
+#         shipment = Shipment(
 #             recipient_address=address,
 #             recipient_contact=contact,
 #             service_code=service,
@@ -255,15 +255,15 @@ async def index(
 #         )
 #
 #         for fieldname, value in await get_notes_f_form(await request.form()):
-#             setattr(shipment_request, fieldname, value)
+#             setattr(shipment, fieldname, value)
 #
 #         if direction == ShipDirection.Dropoff:
-#             shipment_request.make_inbound()
+#             shipment.make_inbound()
 #         elif direction == ShipDirection.Inbound:
-#             shipment_request.make_collection(own_label=own_label)
+#             shipment.make_collection(own_label=own_label)
 #
 #         booking.direction = direction
-#         booking.shipment_request = shipment_request
+#         booking.shipment = shipment
 #         session.add(booking)
 #         session.commit()
 #

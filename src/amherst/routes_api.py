@@ -32,32 +32,20 @@ async def fetch_candidates(
 async def shiprec_post(
     shipment_request: Shipment = Depends(shipment_request_f_form),
 ) -> Shipment:
+    logger.info(shipment_request.notifications_str)
     return shipment_request
 
 
 @router.post('/confirm_booking', response_class=JSONResponse)
 async def confirm_api(
-    shipment_request: Shipment,
+    shipment: Shipment,
     el_client: ELClient = Depends(get_el_client),
 ) -> ShipmentResponse:
-    msg = f'Confirming booking to {shipment_request.recipient_address.address_line1}'
-    msg = (
-        f'{msg}\n'
-        f'Recip Notifications = {shipment_request.recipient_contact.email_address}'
-        f' + {shipment_request.recipient_contact.mobile_phone} '
-        f'{shipment_request.recipient_contact.notifications}\n'
-    )
-    if shipment_request.collection_info:
-        msg += (
-            f'Collection Notifications = {shipment_request.collection_info.collection_contact.email_address} '
-            f'+ {shipment_request.collection_info.collection_contact.mobile_phone}'
-        )
+    logger.info(shipment.notifications_str)
+    if shipment.collection_info:
+        logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
 
-    logger.info(msg)
-    if shipment_request.collection_info:
-        logger.info(f'Collection from {shipment_request.collection_info.collection_address.address_line1}')
-
-    return book_shipment(el_client, shipment_request)
+    return book_shipment(el_client, shipment)
 
 
 @router.get('/{booking_id}', response_class=JSONResponse)
