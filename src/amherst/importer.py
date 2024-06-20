@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from loguru import logger
-
 from amherst.models import db_models
 from amherst.models.am_record import AmherstRecord, AmherstRecordIn
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressTemporary
-from shipaw.models.pf_msg import Alert, Alerts
+from shipaw.models.pf_models import AddTypes
 from shipaw.models.pf_shipment import ShipmentRequest
-from shipaw.ship_types import AlertType, ShipmentType
+from shipaw.ship_types import ShipmentType
 
 
 def split_reference_numbers(record: AmherstRecord):
@@ -26,46 +23,41 @@ def split_reference_numbers(record: AmherstRecord):
 
 
 def amherst_shipment_request(
-        record: AmherstRecord,
-        el_client: ELClient or None = None
+    record: AmherstRecord,
+    address: AddTypes,
 ) -> ShipmentRequest:
-    el_client = el_client or ELClient()
-    ref_nums = split_reference_numbers(record)
-    try:
-        chosen_address, score = el_client.choose_address(record.input_address)
-        if score < 60:
-            altyp = AlertType.WARNING if score > 40 else AlertType.ERROR
-            record.alerts.alert.append(Alert(message=f'address score {score}', type=altyp))
-        return ShipmentRequest(
-            recipient_contact=record.contact(),
-            recipient_address=chosen_address,
-            shipping_date=record.send_date,
-            total_number_of_parcels=record.boxes,
-            **ref_nums,
-            shipment_type=ShipmentType.DELIVERY
-        )
-    except Exception as e:
-        logger.exception(e)
-        raise
-
-        # chosen_address = AddressTemporary.model_validate(
-        #     record.input_address,
-        #     from_attributes=True
-        # )
-        # record.alerts.alert.append(Alert(message='Using Incomplete Address Data'))
+    return ShipmentRequest(
+        recipient_contact=record.contact(),
+        recipient_address=address,
+        shipping_date=record.send_date,
+        total_number_of_parcels=record.boxes,
+        shipment_type=ShipmentType.DELIVERY,
+        **split_reference_numbers(record),
+    )
 
 
-async def amrec_to_booking(amrec):
+async def amrec_to_booking(amrec: AmherstRecord):
     booking = db_models.BookingStateDB(
         record=amrec,
-        shipment_request=(amherst_shipment_request(amrec)),
+        shipment_request=(
+            ShipmentRequest(
+                recipient_contact=amrec.contact(),
+                recipient_address=amrec.address_choice.address,
+                shipping_date=amrec.send_date,
+                total_number_of_parcels=amrec.boxes,
+                shipment_type=ShipmentType.DELIVERY,
+                **split_reference_numbers(amrec),
+            )
+        ),
         # alerts=Alerts(alert=[Alert(code=None, message='Created')])
     )
     return booking
 
 
-async def cmc_record_to_amrec(record) -> AmherstRecord:
+async def cmc_record_to_amrec(record, el_client: ELClient | None = None) -> AmherstRecord:
+    el_client = el_client or ELClient()
     amrec_in = AmherstRecordIn(**record)
+    amrec_in.address_choice = el_client.address_choice(amrec_in.input_address)
     amrec_in = amrec_in.model_validate(amrec_in)
     amrec = AmherstRecord(**amrec_in.model_dump())
     return amrec

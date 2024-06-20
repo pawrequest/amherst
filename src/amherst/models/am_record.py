@@ -1,24 +1,26 @@
 # from __future__ import annotations
+import functools
 from datetime import date
 from enum import StrEnum
-import functools
 from typing import Annotated
 
-import sqlmodel as sqm
 import pydantic as _p
+import sqlmodel as sqm
+from loguru import logger
 from pawdantic.pawsql import default_json_field
 from pydantic import AliasChoices, ConfigDict, Field
-from loguru import logger
 
 from amherst.commence import CustomerFields
 from pycommence import PyCommence
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models import pf_lists, pf_models, pf_top
+from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import Alert, Alerts
-from shipaw.ship_types import AlertType, limit_daterange_no_weekends, ShipDirection
+from shipaw.ship_types import AlertType, limit_daterange_no_weekends
 
 AM_SHIP_DATE = Annotated[
-    date, Field(date.today(), alias='Send Out Date'),
+    date,
+    Field(date.today(), alias='Send Out Date'),
     _p.BeforeValidator(limit_daterange_no_weekends),
     _p.BeforeValidator(get_cmc_date),
 ]
@@ -41,22 +43,13 @@ class AmherstRecordIn(sqm.SQLModel):
     name: str = Field(..., alias='Name')
     customer: str = Field(..., validation_alias=AliasChoices('To Customer', 'Name'))
     send_date: AM_SHIP_DATE
-    delivery_contact: str = Field(
-        ...,
-        validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
-    )
+    delivery_contact: str = Field(..., validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact'))
     delivery_business: str = Field(
         ..., validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
     )
-    telephone: str = Field(
-        ...,
-        validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
-    )
+    telephone: str = Field(..., validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone'))
     email: str = Field('', validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
-    address_str: str = Field(
-        ...,
-        validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
-    )
+    address_str: str = Field(..., validation_alias=AliasChoices('Delivery Address', 'Deliv Address'))
 
     postcode: str = Field(..., validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
     send_method: str = Field('', validation_alias=AliasChoices('Send Method', 'Delivery Method'))
@@ -65,6 +58,7 @@ class AmherstRecordIn(sqm.SQLModel):
     boxes: int = Field(1, alias='Boxes')
     track_in: str | None = Field(None, alias='Track Inbound')
     track_out: str | None = Field(None, alias='Track Outbound')
+    address_choice: AddressChoice | None = None
 
     # def get_cmc_update(self, direction:ShipDirection) -> dict[str, str]:
     #     match direction:
@@ -77,25 +71,21 @@ class AmherstRecordIn(sqm.SQLModel):
     @functools.cached_property
     def email_options(self):
         email_dict = {
-            self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL): ('accounts',
-                                                                        'Customer Accounts'),
-            self.customer_record().get(CustomerFields.PRIMARY_EMAIL): ('primary',
-                                                                       'Customer Primary'),
-            self.customer_record().get(CustomerFields.DELIVERY_EMAIL): ('cust_del',
-                                                                        'Customer Default Delivery'),
-            self.customer_record().get(CustomerFields.INVOICE_EMAIL): ('invoice',
-                                                                       'Customer Invoice'),
-            self.email: ('rec_del', f'{self.cmc_table_name.title()} Delivery')
-
+            self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL): ('accounts', 'Customer Accounts'),
+            self.customer_record().get(CustomerFields.PRIMARY_EMAIL): ('primary', 'Customer Primary'),
+            self.customer_record().get(CustomerFields.DELIVERY_EMAIL): ('cust_del', 'Customer Default Delivery'),
+            self.customer_record().get(CustomerFields.INVOICE_EMAIL): ('invoice', 'Customer Invoice'),
+            self.email: ('rec_del', f'{self.cmc_table_name.title()} Delivery'),
         }
-        options = [EmailOption(name=name, email=email, description=description) for
-                   email, (name, description) in email_dict.items() if email]
+        options = [
+            EmailOption(name=name, email=email, description=description)
+            for email, (name, description) in email_dict.items()
+            if email
+        ]
         return options
 
     def customer_record(self) -> dict[str, str]:
-        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(
-            self.customer
-        )
+        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(self.customer)
 
     @property
     def input_address(self):
@@ -174,16 +164,14 @@ def addr_town_lines_maybe(address: str) -> dict[str, str]:
         addr_lines[2] = ','.join(addr_lines[2:])
     used_lines = [_ for _ in addr_lines if _]
     town = used_lines.pop() if len(used_lines) > 1 else ''
-    return {
-        f'address_line{num}': line for num, line in enumerate(used_lines, start=1)
-    } | {'town': town}
+    return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
 
 
 def get_email(fields_enum, record):
     return (
-            record.get(fields_enum.DELIVERY_EMAIL)
-            or record.get(fields_enum.PRIMARY_EMAIL)
-            or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
+        record.get(fields_enum.DELIVERY_EMAIL)
+        or record.get(fields_enum.PRIMARY_EMAIL)
+        or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
     )
 
 

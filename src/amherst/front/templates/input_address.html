@@ -1,9 +1,10 @@
+{% set SCORE= booking.record.address_choice.score %}
 <!--suppress HtmlFormInputWithoutLabel -->
 <div class="addr-head">
     <h1>Address</h1>
-    <span>
-    {{ booking.record.customer }} - {{ booking.record.address_str }}
-</span>
+    <span id="score-span" data-score="{{ SCORE }}"> Match Confidence {{ SCORE }}%:
+        <br>({{ booking.record.address_str }})
+    </span>
 </div>
 
 <label for="address_line1">Address Lines:</label>
@@ -76,13 +77,29 @@
                 const addressSelect = document.getElementById('address-select');
                 addressSelect.innerHTML = '';
                 data.forEach(addressChoice => {
-                    console.log('addr chouce', addressChoice)
                     const option = document.createElement('option');
                     option.value = JSON.stringify(addressChoice.Address);
                     option.textContent = addressChoice.Address.AddressLine1;
                     addressSelect.appendChild(option);
                 });
                 updateManualFields();
+                setMatchScoreStyle();
             });
+    }
+
+    function setMatchScoreStyle() {
+        const scoreSpan = document.getElementById('score-span');
+        let score = parseInt(scoreSpan.getAttribute('data-score'), 10);
+        let newClass;
+
+        if (score > 80) {
+            newClass = 'high-score';
+        } else if (score >= 60 && score <= 80) {
+            newClass = 'medium-score';
+        } else {
+            newClass = 'low-score';
+        }
+
+        scoreSpan.className = newClass;
     }
 </script>
