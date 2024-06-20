@@ -31,7 +31,7 @@ from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_msg import Alert
-from shipaw.models.pf_shipment import ShipmentRequest
+from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import AlertType, ExpressLinkError
 
 router = APIRouter()
@@ -149,7 +149,7 @@ async def post_form(
     request: Request,
     direction: ship_types.ShipDirection = Form(...),
     booking: BookingStateDB = Depends(booking_f_form),
-    shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
+    shipment_request: Shipment = Depends(shipment_request_f_form),
     session: Session = Depends(get_session),
 ):
     try:
@@ -246,7 +246,7 @@ async def index(
 #             email_address=email_address,
 #             mobile_phone=mobile_phone,
 #         )
-#         shipment_request = ShipmentRequest(
+#         shipment_request = Shipment(
 #             recipient_address=address,
 #             recipient_contact=contact,
 #             service_code=service,

@@ -1,15 +1,15 @@
 import functools
 
-from sqlalchemy import StaticPool
-from sqlmodel import SQLModel, Session, create_engine
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import StaticPool
+from sqlmodel import SQLModel, Session, create_engine
 
 from amherst.app_file import app
 from amherst.db import get_session
 from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSandboxSettings, pf_sandbox_sett
-from .test_pycommence_live import pycmc, random_amrec, random_booking_in_db, random_record, random_booking
+from .test_pycommence_live import pycmc, random_amrec, random_booking, random_booking_in_db
 from .test_pycommence_mock import address_fxt, amrec_mock, booking_db_mock, booking_mock, contact_fxt
 
 #
@@ -77,10 +77,20 @@ def el_client(sett):
 #     yield booking
 
 
-__all__ = ['test_client', 'test_session_fxt', 'sett', 'el_client', 'random_booking', 'random_booking',
-           'random_booking_in_db',
-           'random_booking',
-           'random_amrec', 'pycmc', 'random_record',
-           'contact_fxt', 'address_fxt', 'booking_mock', 'booking_db_mock',
-           'amrec_mock'
-           ]
+__all__ = [
+    'test_client',
+    'test_session_fxt',
+    'sett',
+    'el_client',
+    'random_booking',
+    'random_booking',
+    'random_booking_in_db',
+    'random_booking',
+    'random_amrec',
+    'pycmc',
+    'contact_fxt',
+    'address_fxt',
+    'booking_mock',
+    'booking_db_mock',
+    'amrec_mock',
+]

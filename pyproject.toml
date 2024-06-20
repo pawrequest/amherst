@@ -41,6 +41,7 @@ dev = [
     "pytest",
     "pytest_asyncio",
     'beautifulsoup4',
+    'coverage',
 ]
 
 docs = [

@@ -41,7 +41,7 @@
 #     email_address: str
 #
 #
-# class ShipmentRequest(BaseModel):
+# class Shipment(BaseModel):
 #     recipient_contact: Contact
 #     recipient_address: AddressRecipient | AddressCollection
 #     total_number_of_parcels: int = 1
@@ -50,7 +50,7 @@
 #
 #
 # @app.post('/shipment')
-# def shipment(request: Request, input_shipment: ShipmentRequest = Depends(ShipmentRequest)) -> dict[str, str]:
+# def shipment(request: Request, input_shipment: Shipment = Depends(Shipment)) -> dict[str, str]:
 #     return {'shipment': input_shipment.model_dump_json()}
 #
 #

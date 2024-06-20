@@ -22,12 +22,8 @@
         <div class="result">
             {% if booking.booked or booking.completed() %}
                 <div class="result__success">
-                    <h2>Booking Confirmed</h2>
-                    <p>Shipment Number {{ booking.response.shipment_num }} is booked with status
-                        = {{ booking.status }}.</p>
+                    <h2>Shipment Number {{ booking.response.shipment_num }} Confirmed</h2>
                     <p>label downloaded to {{ booking.label_path }}</p>
-                    <a href="{{ booking.response.tracking_link() }}" class="tracking">Tracking</a>
-
                     {% if booking.response.alerts %}
                         <div class="alerts">
                             {% for alert in booking.response.alerts.alert %}
@@ -38,7 +34,7 @@
                         </div>
                     {% endif %}
                     {##}
-                    {% if booking.commence_updated %}
+                    {% if booking.tracking_logged %}
                         <p>Commence Has Been Updated with tracking info and DB Label = True</p>
                     {% endif %}
 

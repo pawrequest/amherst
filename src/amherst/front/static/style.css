@@ -110,7 +110,7 @@ h1 {
 
 .booking-confirmed {
     /* used in js*/
-    background-color: var(--clr-success); /* Confirmation message color */
+    background-color: var(--clr-wrapper);
     color: var(--clr-success-font);
 }
 
@@ -400,7 +400,7 @@ select:focus {
 
 
 .email-form {
-    background: var(--clr-success);
+    background: var(--clr-wrapper);
     /*margin-inline: auto;*/
     display: flex;
     flex-direction: row;
@@ -419,7 +419,7 @@ select:focus {
 /*}*/
 
 .result__success {
-    background-color: var(--clr-success);
+    /*background-color: var(--clr-success);*/
     border-radius: var(--border-radius);
     padding: .5rem 1rem;
 }

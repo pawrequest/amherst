@@ -8,8 +8,10 @@ from loguru import logger
 EMAIL_ADDRESS = 'fake@ssgslgjhslagjnhlsgnhl.com'
 
 contact_fxt = {
-    'business_name': 'Test', 'contact_name': 'test contact', 'email_address': EMAIL_ADDRESS,
-    'mobile_phone': '07666666666'
+    'business_name': 'Test',
+    'contact_name': 'test contact',
+    'email_address': EMAIL_ADDRESS,
+    'mobile_phone': '07666666666',
 }
 
 address_fxt = {'address_line1': '756', 'town': 'rainham', 'postcode': 'ME8 8SP'}
@@ -199,14 +201,11 @@ sale_record_exmpl = {
     'Handled By Staff': '',
     'Has Document Log': '',
     'Outbound ID': '',
-    'cmc_table_name': 'Sale'
+    'cmc_table_name': 'Sale',
 }
 
 
-@pytest_asyncio.fixture(
-    params=[hire_record_exmpl, sale_record_exmpl, customer_record_exmpl],
-    scope='session'
-)
+@pytest_asyncio.fixture(params=[hire_record_exmpl, sale_record_exmpl, customer_record_exmpl], scope='session')
 async def amrec_mock(request) -> AmherstRecord:
     record = request.param
     logger.info(f'testing {record['cmc_table_name']} record: {record["Name"]}')
@@ -231,3 +230,7 @@ async def booking_db_mock(test_session_fxt, booking_mock):
 @pytest.mark.asyncio
 async def test_mock(booking_db_mock):
     assert booking_db_mock.id
+
+
+FAKE_PHONE = '07666666666'
+FAKE_EMAIL = 'sdgjhbsdhjkbgfjksdbkjsdbghf@djsahfbjhdbgf.com'

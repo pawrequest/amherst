@@ -4,7 +4,7 @@ from amherst.models import db_models
 from amherst.models.am_record import AmherstRecord, AmherstRecordIn
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddTypes
-from shipaw.models.pf_shipment import ShipmentRequest
+from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipmentType
 
 
@@ -25,8 +25,8 @@ def split_reference_numbers(record: AmherstRecord):
 def amherst_shipment_request(
     record: AmherstRecord,
     address: AddTypes,
-) -> ShipmentRequest:
-    return ShipmentRequest(
+) -> Shipment:
+    return Shipment(
         recipient_contact=record.contact(),
         recipient_address=address,
         shipping_date=record.send_date,
@@ -40,7 +40,7 @@ async def amrec_to_booking(amrec: AmherstRecord):
     booking = db_models.BookingStateDB(
         record=amrec,
         shipment_request=(
-            ShipmentRequest(
+            Shipment(
                 recipient_contact=amrec.contact(),
                 recipient_address=amrec.address_choice.address,
                 shipping_date=amrec.send_date,

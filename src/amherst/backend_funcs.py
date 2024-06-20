@@ -7,15 +7,15 @@ from datetime import date
 
 from fastapi import Depends, Form, Path
 from loguru import logger
-from pydantic import EmailStr, BaseModel
+from pydantic import BaseModel, EmailStr
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
+from amherst.commence import HireFields
 from amherst.config import settings
 from amherst.db import get_session
-from amherst.commence import HireFields
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
 from pycommence import PyCommence
@@ -25,29 +25,22 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import ShipmentReferenceFields, ShipmentRequest
+from shipaw.models.pf_shipment import ShipmentReferenceFields, Shipment
 from shipaw.models.pf_top import CollectionContact, Contact
-from shipaw.ship_types import (
-    ExpressLinkError,
-    ShipDirection,
-    VALID_POSTCODE,
-    AlertType,
-    ExpressLinkWarning,
-    ExpressLinkNotification,
-)
+from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
 
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 
-def book_shipment(el_client, shipment_request: ShipmentRequest) -> pf_msg.CreateShipmentResponse:
-    resp: pf_msg.CreateShipmentResponse = el_client.send_shipment_request(shipment_request)
+def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentResponse:
+    resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment_request)
     for a in resp.alerts.alert if resp.alerts else []:
         try:
             a.raise_exception()
         except ExpressLinkWarning as warned:
-            ...
+            raise NotImplementedError(warned)
         except ExpressLinkNotification as noted:
-            ...
+            raise NotImplementedError(noted)
         if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
             logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
     return resp
@@ -232,7 +225,7 @@ async def shipment_request_f_form(
 ):
     logger.warning(f'{request=}')
     own_label = own_label.lower() == 'true'
-    shipment_request = ShipmentRequest(
+    shipment_request = Shipment(
         recipient_address=address,
         recipient_contact=contact,
         service_code=service,
