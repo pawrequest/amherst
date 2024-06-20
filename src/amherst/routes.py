@@ -26,12 +26,12 @@ from amherst.backend_funcs import (
     record_tracking,
     shipment_request_f_form,
 )
-from amherst.db import get_session, get_el_client
+from amherst.db import get_el_client, get_session
 from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
-from shipaw.models.pf_msg import Alert
+from shipaw.models.pf_msg import Alert, CreateShipmentResponse
 from shipaw.models.pf_shipment import ShipmentRequest
 from shipaw.ship_types import AlertType, ExpressLinkError, VALID_POSTCODE
 
@@ -206,6 +206,22 @@ async def booking_api(
         booking: BookingStateDB = Depends(booking_f_path),
 ) -> BookingStateDB:
     return booking
+
+
+@router.post('api/shiprec', response_class=JSONResponse)
+async def shiprec_api(
+        shipment_request: ShipmentRequest = Depends(shipment_request_f_form),
+) -> ShipmentRequest:
+    return shipment_request
+
+
+@router.post('/api/confirm_booking', response_class=JSONResponse)
+async def confirm_api(
+        shipment_request: ShipmentRequest,
+        el_client: ELClient = Depends(get_el_client),
+) -> CreateShipmentResponse:
+    response = book_shipment(el_client, shipment_request)
+    return response
 
 #
 #
