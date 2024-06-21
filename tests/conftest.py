@@ -10,7 +10,7 @@ from amherst.db import get_session
 from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSandboxSettings, pf_sandbox_sett
 from .test_pycommence_live import pycmc, random_amrec, random_booking, random_booking_in_db
-from .test_pycommence_mock import address_fxt, amrec_mock, booking_db_mock, booking_mock, contact_fxt
+from .test_pycommence_mock import address_xmpl, amrec_mock, booking_mock_db, booking_mock_fxt, contact_xmpl
 
 #
 DB_FILE = 'sqlite:///test.db'
@@ -88,9 +88,9 @@ __all__ = [
     'random_booking',
     'random_amrec',
     'pycmc',
-    'contact_fxt',
-    'address_fxt',
-    'booking_mock',
-    'booking_db_mock',
+    'contact_xmpl',
+    'address_xmpl',
+    'booking_mock_fxt',
+    'booking_mock_db',
     'amrec_mock',
 ]

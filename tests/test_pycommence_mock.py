@@ -7,16 +7,16 @@ from loguru import logger
 
 EMAIL_ADDRESS = 'fake@ssgslgjhslagjnhlsgnhl.com'
 
-contact_fxt = {
+contact_xmpl = {
     'business_name': 'Test',
     'contact_name': 'test contact',
     'email_address': EMAIL_ADDRESS,
     'mobile_phone': '07666666666',
 }
 
-address_fxt = {'address_line1': '756', 'town': 'rainham', 'postcode': 'ME8 8SP'}
+address_xmpl = {'address_line1': '756', 'town': 'rainham', 'postcode': 'ME8 8SP'}
 
-customer_record_exmpl = {
+customer_record_xmpl = {
     'AQ Ref Number': '',
     'Accounts Contact': '',
     'Accounts Email': '',
@@ -38,12 +38,12 @@ customer_record_exmpl = {
     'Contact Name': 'Test',
     'Date Added': '20230823',
     'Date Last Contact': '20230823',
-    'Deliv Address': address_fxt.get('address_line1'),
-    'Deliv Contact': contact_fxt.get('contact_name'),
-    'Deliv Email': contact_fxt.get('email_address'),
-    'Deliv Name': contact_fxt.get('business_name'),
-    'Deliv Postcode': address_fxt.get('postcode'),
-    'Deliv Telephone': contact_fxt.get('mobile_phone'),
+    'Deliv Address': address_xmpl.get('address_line1'),
+    'Deliv Contact': contact_xmpl.get('contact_name'),
+    'Deliv Email': contact_xmpl.get('email_address'),
+    'Deliv Name': contact_xmpl.get('business_name'),
+    'Deliv Postcode': address_xmpl.get('postcode'),
+    'Deliv Telephone': contact_xmpl.get('mobile_phone'),
     'Discount Description': '',
     'Discount Percentage': '',
     'Dump': '',
@@ -106,7 +106,7 @@ customer_record_exmpl = {
     'test for vbscript': '',
 }
 
-hire_record_exmpl = {
+hire_record_xmpl = {
     'Actual Return Date': '',
     'All Address': 'Test\r\nTest\r\n12 sime affdresss\r\nME8 8SP\r\n\r\n013w3 w533',
     'Bar Codes': '',
@@ -114,15 +114,15 @@ hire_record_exmpl = {
     'Boxes': '1',
     'Closed': 'FALSE',
     'DB label printed': 'FALSE',
-    'Delivery Address': address_fxt.get('address_line1'),
-    'Delivery Contact': contact_fxt.get('contact_name'),
+    'Delivery Address': address_xmpl.get('address_line1'),
+    'Delivery Contact': contact_xmpl.get('contact_name'),
     'Delivery Cost': '11.00',
     'Delivery Description': '',
     'Delivery Email': EMAIL_ADDRESS,
-    'Delivery Name': contact_fxt.get('business_name'),
-    'Delivery Postcode': address_fxt.get('postcode'),
+    'Delivery Name': contact_xmpl.get('business_name'),
+    'Delivery Postcode': address_xmpl.get('postcode'),
     'Delivery Ref': '',
-    'Delivery Tel': contact_fxt.get('mobile_phone'),
+    'Delivery Tel': contact_xmpl.get('mobile_phone'),
     'Discount Description': '',
     'Discount Percentage': '',
     'Due Back Date': '20240305',
@@ -167,16 +167,16 @@ hire_record_exmpl = {
     'cmc_table_name': 'Hire',
 }
 
-sale_record_exmpl = {
+sale_record_xmpl = {
     'Name': 'Test - 22/10/2022 ref 1',
     'Date Ordered': '20221022',
     'Date Sent': '',
-    'Delivery Name': contact_fxt.get('business_name'),
-    'Delivery Address': address_fxt.get('address_line1'),
-    'Delivery Contact': contact_fxt.get('contact_name'),
-    'Delivery Postcode': address_fxt.get('postcode'),
-    'Delivery Telephone': contact_fxt.get('mobile_phone'),
-    'Delivery Email': contact_fxt.get('email_address'),
+    'Delivery Name': contact_xmpl.get('business_name'),
+    'Delivery Address': address_xmpl.get('address_line1'),
+    'Delivery Contact': contact_xmpl.get('contact_name'),
+    'Delivery Postcode': address_xmpl.get('postcode'),
+    'Delivery Telephone': contact_xmpl.get('mobile_phone'),
+    'Delivery Email': contact_xmpl.get('email_address'),
     'Invoice Name': 'Test',
     'Invoice Address': 'bloggs',
     'Invoice Telephone': '07500 000000',
@@ -197,7 +197,7 @@ sale_record_exmpl = {
     'Delivery Notes': '',
     'Invoice Terms': 'Due for payment please',
     'Purchase Order Print': '',
-    'To Customer': contact_fxt.get('business_name'),
+    'To Customer': contact_xmpl.get('business_name'),
     'Handled By Staff': '',
     'Has Document Log': '',
     'Outbound ID': '',
@@ -205,7 +205,7 @@ sale_record_exmpl = {
 }
 
 
-@pytest_asyncio.fixture(params=[hire_record_exmpl, sale_record_exmpl, customer_record_exmpl], scope='session')
+@pytest_asyncio.fixture(params=[hire_record_xmpl, sale_record_xmpl, customer_record_xmpl], scope='session')
 async def amrec_mock(request) -> AmherstRecord:
     record = request.param
     logger.info(f'testing {record['cmc_table_name']} record: {record["Name"]}')
@@ -213,23 +213,22 @@ async def amrec_mock(request) -> AmherstRecord:
 
 
 @pytest_asyncio.fixture(scope='session')
-async def booking_mock(amrec_mock, test_session_fxt):
+async def booking_mock_fxt(amrec_mock, test_session_fxt):
     booking = await amrec_to_booking(amrec_mock)
     return booking
 
 
 @pytest_asyncio.fixture(scope='session')
-async def booking_db_mock(test_session_fxt, booking_mock):
-    booking = booking_mock
-    test_session_fxt.add(booking)
+async def booking_mock_db(test_session_fxt, booking_mock_fxt):
+    test_session_fxt.add(booking_mock_fxt)
     test_session_fxt.commit()
-    test_session_fxt.refresh(booking)
-    return booking
+    test_session_fxt.refresh(booking_mock_fxt)
+    return booking_mock_fxt
 
 
 @pytest.mark.asyncio
-async def test_mock(booking_db_mock):
-    assert booking_db_mock.id
+async def test_mock(booking_mock_db):
+    assert booking_mock_db.id
 
 
 FAKE_PHONE = '07666666666'
