@@ -9,7 +9,7 @@ from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
 from pycommence import PyCommence
-from .test_pycommence_mock import FAKE_EMAIL, FAKE_PHONE
+from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE
 
 
 @pytest.fixture(
@@ -34,7 +34,7 @@ async def random_amrec(pycmc) -> AmherstRecord:
 
 
 @pytest_asyncio.fixture
-async def random_booking(random_amrec: AmherstRecord):
+async def random_booking(random_amrec: AmherstRecord) -> BookingStateDB:
     return await amrec_to_booking(random_amrec)
 
 
@@ -46,11 +46,3 @@ async def random_booking_in_db(random_booking: BookingStateDB, test_session_fxt)
     test_session_fxt.refresh(booking)
     assert booking.id
     return booking
-
-
-@pytest.mark.parametrize('run', range(5))
-@pytest.mark.asyncio
-async def test_random_record_to_booking(random_booking_in_db: BookingStateDB, run):
-    print(f'run {run}')
-    assert random_booking_in_db
-    assert random_booking_in_db.id

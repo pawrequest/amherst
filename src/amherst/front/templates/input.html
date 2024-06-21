@@ -19,14 +19,14 @@
                        value="{{ booking.shipment_request.shipping_date }}"
                        required>
                 <label for="boxes">Boxes:</label>
-                <select id="boxes" name="boxes">
+                <select id="boxes" name="total_number_of_parcels">
                     {% for i in range(1,13) %}
                         <option value="{{ i }}" {% if i == booking.record.boxes %}selected{% endif %}>{{ i }}</option>
-                        {#                        <option value={{ i }}>{{ i }} {% selected if i==booking.record.boxes else '' %} {% endif %}</option>#}
+                        {#                        <option value={{ i }}>{{ i }} {% selected if i==booking.record.total_number_of_parcels else '' %} {% endif %}</option>#}
                     {% endfor %}
                 </select>
                 <label for="service">Service:</label>
-                <select id="service" name="service">
+                <select id="service" name="service_code">
                     <option value="SND" selected>Express 24</option>
                     <option value="09">Express Pre-9am</option>
                     <option value="S10">Express Pre-10am</option>

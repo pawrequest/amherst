@@ -24,6 +24,7 @@ import asyncio
 import base64
 import os
 
+from combadge.core.errors import BackendError
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 from win32com.universal import com_error
@@ -67,12 +68,13 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
             session.refresh(booking)
             ...
 
+    except BackendError:
+        alert = 'Backend Error. Likely Address details are conflicted (wrong postcode?).'
     except com_error:
         alert = 'Error: Commence Server execution failed. Ensure Commence is running.'
-
     except Exception as e:
         alert = f'Error creating ShipableRecord: {e}'
-        raise
+        # raise
     try:
         if alert:
             logger.exception(alert)

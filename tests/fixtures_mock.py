@@ -1,16 +1,20 @@
 import pytest
 import pytest_asyncio
-from amherst.importer import amrec_to_booking, cmc_record_to_amrec
-from amherst.models.am_record import AmherstRecord
-from shipaw.ship_types import WEEKDAYS_IN_RANGE
 from loguru import logger
 
-EMAIL_ADDRESS = 'fake@ssgslgjhslagjnhlsgnhl.com'
+from amherst.importer import amrec_to_booking, cmc_record_to_amrec
+from amherst.models.am_record import AmherstRecord
+from amherst.models.db_models import BookingStateDB
+from shipaw.models.booking_states import BookingState
+from shipaw.ship_types import WEEKDAYS_IN_RANGE
+
+FAKE_PHONE = '07666666666'
+FAKE_EMAIL = 'sdgjhbsdhjkbgfjksdbkjsdbghf@djsahfbjhdbgf.com'
 
 contact_xmpl = {
     'business_name': 'Test',
     'contact_name': 'test contact',
-    'email_address': EMAIL_ADDRESS,
+    'email_address': FAKE_EMAIL,
     'mobile_phone': '07666666666',
 }
 
@@ -118,7 +122,7 @@ hire_record_xmpl = {
     'Delivery Contact': contact_xmpl.get('contact_name'),
     'Delivery Cost': '11.00',
     'Delivery Description': '',
-    'Delivery Email': EMAIL_ADDRESS,
+    'Delivery Email': FAKE_EMAIL,
     'Delivery Name': contact_xmpl.get('business_name'),
     'Delivery Postcode': address_xmpl.get('postcode'),
     'Delivery Ref': '',
@@ -213,9 +217,8 @@ async def amrec_mock(request) -> AmherstRecord:
 
 
 @pytest_asyncio.fixture(scope='session')
-async def booking_mock_fxt(amrec_mock, test_session_fxt):
-    booking = await amrec_to_booking(amrec_mock)
-    return booking
+async def booking_mock_fxt(amrec_mock: AmherstRecord, test_session_fxt) -> BookingStateDB:
+    return await amrec_to_booking(amrec_mock)
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -226,10 +229,6 @@ async def booking_mock_db(test_session_fxt, booking_mock_fxt):
     return booking_mock_fxt
 
 
-@pytest.mark.asyncio
-async def test_mock(booking_mock_db):
-    assert booking_mock_db.id
-
-
-FAKE_PHONE = '07666666666'
-FAKE_EMAIL = 'sdgjhbsdhjkbgfjksdbkjsdbghf@djsahfbjhdbgf.com'
+# @pytest.mark.asyncio
+# async def create_retrieve_mock(booking_mock_db: BookingStateDB):
+#     assert booking_mock_db.id

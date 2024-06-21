@@ -1,12 +1,14 @@
 # from __future__ import annotations
 import base64
 import os
+from datetime import date
 from pathlib import Path
 
 import pawdf
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
+from pydantic import BaseModel, EmailStr, constr, create_model
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
@@ -31,8 +33,9 @@ from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_msg import Alert
+from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment import Shipment
-from shipaw.ship_types import AlertType, ExpressLinkError
+from shipaw.ship_types import AlertType, ExpressLinkError, VALID_POSTCODE
 
 router = APIRouter()
 
@@ -144,6 +147,60 @@ async def confirm_booking(
         return TEMPLATES.TemplateResponse('alerts_only.html', {'request': request, 'alerts': [al]})
 
 
+def as_form(cls: type[BaseModel]) -> type[BaseModel]:
+    form_params = {
+        field_name: (field_info.annotation, Form(... if field_info.is_required() else None))
+        for field_name, field_info in cls.model_fields.items()
+    }
+    new_model = create_model(cls.__name__, **form_params)
+    return new_model
+
+
+def as_form_decon(cls: type[BaseModel]) -> type[BaseModel]:
+    form_params = {}
+    for field_name, field_info in cls.model_fields:
+        form_params[field_name] = (field_info.annotation, Form(... if field_info.required else None))
+    new_model = create_model(cls.__name__, **form_params)
+    return new_model
+
+
+@as_form
+class PostForm(BaseModel):
+    booking_id: int
+    direction: ship_types.ShipDirection
+    own_label: bool | None = None
+
+    shipping_date: date
+    total_number_of_parcels: int
+    service_code: ServiceCode
+
+    address_line1: str
+    address_line2: str
+    address_line3: str
+    town: str
+    postcode: VALID_POSTCODE
+
+    contact_name: str
+    email_address: EmailStr
+    business_name: str
+    mobile_phone: str
+
+    reference_number1: constr(max_length=24) | None = None
+    reference_number2: constr(max_length=24) | None = None
+    reference_number3: constr(max_length=24) | None = None
+    reference_number4: constr(max_length=24) | None = None
+    reference_number5: constr(max_length=24) | None = None
+    special_instructions1: constr(max_length=25) | None = None
+    special_instructions2: constr(max_length=25) | None = None
+    special_instructions3: constr(max_length=25) | None = None
+    special_instructions4: constr(max_length=25) | None = None
+
+
+@router.post('/post_form2/', response_class=HTMLResponse)
+async def post_form2(post_form: PostForm, session: Session = Depends(get_session)):
+    ...
+
+
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
     request: Request,
@@ -215,9 +272,9 @@ async def index(
 #     request: Request,
 #     booking: BookingStateDB = Depends(booking_f_path),
 #     shipping_date: date = Form(...),
-#     boxes: int = Form(...),
+#     total_number_of_parcels: int = Form(...),
 #     direction: ship_types.ShipDirection = Form(...),
-#     service: ServiceCode = Form(...),
+#     service_code: ServiceCode = Form(...),
 #     own_label: bool = Form(...),
 #     contact_name: str = Form(...),
 #     email_address: EmailStr = Form(...),
@@ -249,9 +306,9 @@ async def index(
 #         shipment = Shipment(
 #             recipient_address=address,
 #             recipient_contact=contact,
-#             service_code=service,
+#             service_code=service_code,
 #             shipping_date=shipping_date,
-#             total_number_of_parcels=boxes,
+#             total_number_of_parcels=total_number_of_parcels,
 #         )
 #
 #         for fieldname, value in await get_notes_f_form(await request.form()):

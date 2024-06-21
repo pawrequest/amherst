@@ -130,7 +130,7 @@ class AmherstRecord(AmherstRecordIn):
 #             contact=self.contact(),
 #             address=chosen,
 #             ship_date=self.send_date,
-#             boxes=self.boxes,
+#             total_number_of_parcels=self.total_number_of_parcels,
 #             reference_number1=self.customer,
 #         )
 #     except BackendError as err:

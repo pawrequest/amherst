@@ -6,41 +6,46 @@ from office_am import dflt
 from office_am.dflt import DFLT_PATHS
 from office_tools.doc_handler import DocHandler
 
-def address_rows_limited(address:str):
+
+def address_rows_limited(address: str):
     add_lst = address.split('\r\n')
     if len(add_lst) > 4:
         add_lst = add_lst[:4]
     add_str = '\r\n'.join(add_lst)
     return add_str
+
+
 def box_labels_aio_tmplt(hire) -> Path:
     tmplt = DFLT_PATHS.BOX_TMPLT
     temp_file = dflt.DFLT_PATHS.TEMP_DOC
 
-    del_add=address_rows_limited(hire['Delivery Address'])
+    del_add = address_rows_limited(hire['Delivery Address'])
     boxes = int(hire['Boxes'])
     context = dict(
-                date=f"{hire['Send Out Date']:%A %d %B}",
-                method=hire['Send Method'],
-                customer_name=hire['To Customer'],
-                delivery_address=del_add,
-                delivery_contact=hire['Delivery Contact'],
-                tel=hire['Delivery Tel'],
-                boxes=boxes,
-            )
+        date=f"{hire['Send Out Date']:%A %d %B}",
+        method=hire['Send Method'],
+        customer_name=hire['To Customer'],
+        delivery_address=del_add,
+        delivery_contact=hire['Delivery Contact'],
+        tel=hire['Delivery Tel'],
+        boxes=boxes,
+    )
 
     template = DocxTemplate(tmplt)
     template.render(context)
     template.save(temp_file)
     return temp_file
+
+
 #
 #
 # def box_labels_sep(hire, doc_handler: DocHandler):
-#     boxes = int(hire['Boxes'])
+#     total_number_of_parcels = int(hire['Boxes'])
 #
 #     templates = []
-#     for i in range(boxes):
+#     for i in range(total_number_of_parcels):
 #         box = i + 1
-#         package = f"Package {box}/{boxes}"
+#         package = f"Package {box}/{total_number_of_parcels}"
 #         context = dict(
 #             date=f"{hire['Send Out Date']:%A %d %B}",
 #             method=hire['Send Method'],

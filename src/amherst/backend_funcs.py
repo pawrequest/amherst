@@ -213,15 +213,15 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 async def shipment_request_f_form(
     request: Request,
+    address: AddressCollection = Depends(address_f_form),
+    notes: list[tuple[str, str]] = Depends(notes_f_form),
     shipping_date: date = Form(...),
     boxes: int = Form(...),
     service: ServiceCode = Form(...),
     direction: ship_types.ShipDirection = Form(...),
     # own_label: bool = Form(...),
     own_label: str = Form(...),
-    address: AddressCollection = Depends(address_f_form),
     contact: Contact = Depends(contact_f_form),
-    notes: list[tuple[str, str]] = Depends(notes_f_form),
 ):
     logger.warning(f'{request=}')
     own_label = own_label.lower() == 'true'

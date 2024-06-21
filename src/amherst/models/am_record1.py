@@ -57,7 +57,7 @@
 #     send_method: str = Field('', validation_alias=AliasChoices('Send Method', 'Delivery Method'))
 #     invoice_path: str | None = Field(None, validation_alias=AliasChoices('Invoice', 'Invoice Path'))
 #     missing_kit_str: str | None = Field(None, alias='Missing Kit')
-#     boxes: int = Field(1, alias='Boxes')
+#     total_number_of_parcels: int = Field(1, alias='Boxes')
 #     track_in: str | None = Field(None, alias='Track Inbound')
 #     track_out: str | None = Field(None, alias='Track Outbound')
 #
@@ -128,7 +128,7 @@
 # #             contact=self.contact(),
 # #             address=chosen,
 # #             ship_date=self.send_date,
-# #             boxes=self.boxes,
+# #             total_number_of_parcels=self.total_number_of_parcels,
 # #             reference_number1=self.customer,
 # #         )
 # #     except BackendError as err:
