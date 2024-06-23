@@ -37,7 +37,7 @@ class AmherstRecordIn(sqm.SQLModel):
         populate_by_name=True,
         validate_default=True,
     )
-    cmc_table_name: AmherstTableEnum
+    category: AmherstTableEnum
     alerts: Alerts = default_json_field(Alerts, Alerts.empty)
     # alerts: list[Alert] | None = optional_json_field(Alert)
     name: str = Field(..., alias='Name')
@@ -60,14 +60,6 @@ class AmherstRecordIn(sqm.SQLModel):
     track_out: str | None = Field(None, alias='Track Outbound')
     address_choice: AddressChoice | None = None
 
-    # def get_cmc_update(self, direction:ShipDirection) -> dict[str, str]:
-    #     match direction:
-    #         case 'out':
-    #             return {
-    #                 tracking_link_field: tracking_link,
-    #                 HireFields.DB_LABEL_PRINTED: True
-    #             }
-
     @functools.cached_property
     def email_options(self):
         email_dict = {
@@ -75,7 +67,7 @@ class AmherstRecordIn(sqm.SQLModel):
             self.customer_record().get(CustomerFields.PRIMARY_EMAIL): ('primary', 'Customer Primary'),
             self.customer_record().get(CustomerFields.DELIVERY_EMAIL): ('cust_del', 'Customer Default Delivery'),
             self.customer_record().get(CustomerFields.INVOICE_EMAIL): ('invoice', 'Customer Invoice'),
-            self.email: ('rec_del', f'{self.cmc_table_name.title()} Delivery'),
+            self.email: ('rec_del', f'{self.category.title()} Delivery'),
         }
         options = [
             EmailOption(name=name, email=email, description=description)
@@ -85,7 +77,7 @@ class AmherstRecordIn(sqm.SQLModel):
         return options
 
     def customer_record(self) -> dict[str, str]:
-        return self.model_dump() if self.cmc_table_name == 'Customer' else get_customer_record(self.customer)
+        return self.model_dump() if self.category == 'Customer' else get_customer_record(self.customer)
 
     @property
     def input_address(self):
@@ -122,31 +114,6 @@ class AmherstRecord(AmherstRecordIn):
     send_date: date
 
 
-# def initial_shipment_state(self) -> Shipment:
-#     try:
-#         el_client = ELClient()
-#         chosen = el_client.choose_address(self.input_address())
-#         return Shipment(
-#             contact=self.contact(),
-#             address=chosen,
-#             ship_date=self.send_date,
-#             total_number_of_parcels=self.total_number_of_parcels,
-#             reference_number1=self.customer,
-#         )
-#     except BackendError as err:
-#         logger.exception(
-#             f'Zeep Backend Error prevents retrieving initial state for {self.name}:{str(err)}'
-#         )
-#         raise
-
-
-# class AmherstRecordDB(AmherstRecord, table=True):
-#     id: int | None = sqm.Field(primary_key=True)
-#     booking_states: list['BookingStateDB'] = sqm.Relationship(
-#         back_populates="record",
-#     )
-
-
 def addr_lines_dict_am(address: str) -> dict[str, str]:
     addr_lines = address.splitlines()
     if len(addr_lines) < 3:
@@ -169,9 +136,9 @@ def addr_town_lines_maybe(address: str) -> dict[str, str]:
 
 def get_email(fields_enum, record):
     return (
-        record.get(fields_enum.DELIVERY_EMAIL)
-        or record.get(fields_enum.PRIMARY_EMAIL)
-        or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
+            record.get(fields_enum.DELIVERY_EMAIL)
+            or record.get(fields_enum.PRIMARY_EMAIL)
+            or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
     )
 
 
@@ -181,36 +148,7 @@ def get_customer_record(customer: str) -> dict[str, str]:
     logger.debug(f'Getting customer record for {customer}')
     with PyCommence.from_table_name_context(table_name='Customer') as py_cmc:
         rec = py_cmc.one_record(customer)
-    # py_cmc = PyCommence.from_table_name(table_name='Customer')
-    # rec = py_cmc.one_record(customer)
     return rec
-
-
-# class AmherstRecordPartial(AmherstRecord):
-#     delivery_contact: str = Field(
-#         '',
-#         validation_alias=AliasChoices('Delivery Contact', 'Deliv Contact')
-#     )
-#     delivery_business: str = Field(
-#         '',
-#         validation_alias=AliasChoices('Delivery Name', 'Deliv Name', 'Customer', 'To Customer')
-#     )
-#     telephone: str = Field(
-#         '',
-#         validation_alias=AliasChoices('Delivery Tel', 'Deliv Telephone', 'Delivery Telephone')
-#     )
-#     email: str = Field('', validation_alias=AliasChoices('Delivery Email', 'Deliv Email'))
-#     address_str: str = Field(
-#         '',
-#         validation_alias=AliasChoices('Delivery Address', 'Deliv Address')
-#     )
-#     postcode: str = Field('', validation_alias=AliasChoices('Delivery Postcode', 'Deliv Postcode'))
-#
-#     @field_validator('email', mode='after')
-#     def fake_email(cls, v, values):
-#         if not v:
-#             return "THISEMAILNOTREAL@REPLACEME.com"
-#         return v
 
 
 class EmailOption(_p.BaseModel):

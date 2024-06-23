@@ -49,7 +49,7 @@ def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentRespo
 def record_tracking(booking_state: BookingStateDB):
     record = booking_state.record
     try:
-        category = record.cmc_table_name
+        category = record.category
         if category == 'Customer':
             logger.error('CANT LOG TO CUSTOMER')
             return
@@ -73,7 +73,7 @@ def do_record_tracking(booking: BookingStateDB):
         else {HireFields.TRACK_OUTBOUND: tracking_link, HireFields.ARRANGED_OUTBOUND: True}
     )
 
-    with PyCommence.from_table_name_context(table_name=booking.record.cmc_table_name) as py_cmc:
+    with PyCommence.from_table_name_context(table_name=booking.record.category) as py_cmc:
         py_cmc.edit_record(booking.record.name, row_dict=cmc_package)
     booking.tracking_logged = True
     logger.debug(f'Logged {str(cmc_package)} to Commence')
@@ -144,13 +144,13 @@ def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
 
 
 async def get_invoice_path(record: AmherstRecord) -> pathlib.Path | None:
-    if record.cmc_table_name == 'Customer':
+    if record.category == 'Customer':
         raise ValueError('invoice not for customer')
     return record.invoice_path
 
 
 async def get_missing(record: AmherstRecord) -> list[str]:
-    if not record.cmc_table_name == 'Hire':
+    if not record.category == 'Hire':
         raise ValueError('missing kit only for hire')
     return record.missing_kit()
 
