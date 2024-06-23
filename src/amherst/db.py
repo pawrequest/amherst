@@ -34,9 +34,17 @@ def get_session_cm(engine=None):
     session.close()
 
 
-def get_el_client():
+def get_el_client() -> ELClient:
     try:
         return ELClient()
+    except Exception as e:
+        logger.error(f'get_pfc: {e}')
+        raise
+
+
+def get_el_client_non_strict() -> ELClient:
+    try:
+        return ELClient(strict=True)
     except Exception as e:
         logger.error(f'get_pfc: {e}')
         raise
@@ -51,5 +59,3 @@ def create_db(engine=None):
     if engine is None:
         engine = get_engine()
     sqm.SQLModel.metadata.create_all(engine)
-
-

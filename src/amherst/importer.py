@@ -3,7 +3,7 @@ from __future__ import annotations
 from amherst.models import db_models
 from amherst.models.am_record import AmherstRecord, AmherstRecordIn
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddTypes
+from shipaw.models.pf_models import AddTypes, AddressTemporary, AddressChoice
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipmentType
 
@@ -55,9 +55,12 @@ async def amrec_to_booking(amrec: AmherstRecord):
 
 
 async def cmc_record_to_amrec(record, el_client: ELClient | None = None) -> AmherstRecord:
-    el_client = el_client or ELClient()
+    el_client = el_client or ELClient(strict=False)
     amrec_in = AmherstRecordIn(**record)
-    amrec_in.address_choice = el_client.address_choice(amrec_in.input_address)
+    try:
+        amrec_in.address_choice = el_client.address_choice(amrec_in.input_address)
+    except:
+        amrec_in.address_choice = AddressChoice(address=amrec_in.input_address, score=0)
     amrec_in = amrec_in.model_validate(amrec_in)
     amrec = AmherstRecord(**amrec_in.model_dump())
     return amrec

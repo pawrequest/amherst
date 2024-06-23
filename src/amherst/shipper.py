@@ -32,6 +32,7 @@ from thefuzz import fuzz
 
 from amherst.db import create_db, get_session_cm
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
+from amherst.models.am_record import AmherstRecord
 from pycommence import PyCommence
 from amherst.config import settings
 from amherst.models import am_record
@@ -48,33 +49,36 @@ def parse_arguments():
 
 
 async def main(category: am_record.AmherstTableEnum, record_name: str):
-    # CoInitialize()
+    logger.info(f'Starting Shipper with {category} record: {record_name}')
     alert = None
-    # booking = None
     create_db()
     print('Template directory:', os.path.abspath(settings().base_dir / 'front' / 'templates'))
     booking = None
 
     try:
         with PyCommence.from_table_name_context(table_name=category) as py_cmc:
-            record = py_cmc.one_record(record_name)
-        record['cmc_table_name'] = category
-        amrec = await cmc_record_to_amrec(record)
-        booking = await amrec_to_booking(amrec)
+            record: dict[str, str] = py_cmc.one_record(record_name)
+        record['category'] = category
+        amrec: AmherstRecord = await cmc_record_to_amrec(record)
 
-        with get_session_cm() as session:
-            session.add(booking)
-            session.commit()
-            session.refresh(booking)
-            ...
-
-    except BackendError:
+    except BackendError as e:
         alert = 'Backend Error. Likely Address details are conflicted (wrong postcode?).'
-    except com_error:
+
+    except com_error as e:
         alert = 'Error: Commence Server execution failed. Ensure Commence is running.'
-    except Exception as e:
-        alert = f'Error creating ShipableRecord: {e}'
-        # raise
+
+    else:
+        try:
+            booking = await amrec_to_booking(amrec)
+
+            with get_session_cm() as session:
+                session.add(booking)
+                session.commit()
+                session.refresh(booking)
+                ...
+        except Exception as e:
+            alert = f'Error creating ShipableRecord: {e}'
+
     try:
         if alert:
             logger.exception(alert)

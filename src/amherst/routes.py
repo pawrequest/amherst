@@ -28,7 +28,7 @@ from amherst.backend_funcs import (
     record_tracking,
     shipment_request_f_form,
 )
-from amherst.db import get_el_client, get_session
+from amherst.db import get_el_client, get_el_client_non_strict, get_session
 from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
@@ -103,10 +103,10 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(g
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-    request: Request,
-    booking: BookingStateDB = Depends(booking_f_form),
-    el_client: ELClient = Depends(get_el_client),
-    session: Session = Depends(get_session),
+        request: Request,
+        booking: BookingStateDB = Depends(booking_f_form),
+        el_client: ELClient = Depends(get_el_client),
+        session: Session = Depends(get_session),
 ):
     logger.info(f'Booking {booking.id} for {booking.record.name}.')
 
@@ -198,16 +198,16 @@ class PostForm(BaseModel):
 
 @router.post('/post_form2/', response_class=HTMLResponse)
 async def post_form2(post_form: PostForm, session: Session = Depends(get_session)):
-    ...
+    return HTMLResponse(content=f'<p>Form: {post_form}</p>')
 
 
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-    request: Request,
-    direction: ship_types.ShipDirection = Form(...),
-    booking: BookingStateDB = Depends(booking_f_form),
-    shipment_request: Shipment = Depends(shipment_request_f_form),
-    session: Session = Depends(get_session),
+        request: Request,
+        direction: ship_types.ShipDirection = Form(...),
+        booking: BookingStateDB = Depends(booking_f_form),
+        shipment_request: Shipment = Depends(shipment_request_f_form),
+        session: Session = Depends(get_session),
 ):
     try:
         booking.direction = direction
@@ -236,9 +236,9 @@ async def post_form(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-    request: Request,
-    booking: BookingStateDB = Depends(booking_f_path),
-    el_client: ELClient = Depends(get_el_client),
+        request: Request,
+        booking: BookingStateDB = Depends(booking_f_path),
+        el_client: ELClient = Depends(get_el_client_non_strict),
 ):
     addr_choices = el_client.get_choices(
         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
@@ -247,98 +247,3 @@ async def index(
     return TEMPLATES.TemplateResponse(
         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
     )
-
-
-#
-#
-# @router.get('/{booking_id}', response_class=HTMLResponse)
-# async def index(
-#         request: Request,
-#         booking_id: int,
-#         session=Depends(get_session),
-#         el_client: ELClient = Depends(get_el_client),
-# ):
-#     booking = await get_booking(booking_id, session)
-#     addr_choices = el_client.get_choices(
-#         booking.shipment.recipient_address.postcode, booking.shipment.recipient_address
-#     )
-#     return TEMPLATES.TemplateResponse(
-#         'input.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
-#     )
-
-#
-# @router.post('/post_form/', response_class=HTMLResponse)
-# async def post_form(
-#     request: Request,
-#     booking: BookingStateDB = Depends(booking_f_path),
-#     shipping_date: date = Form(...),
-#     total_number_of_parcels: int = Form(...),
-#     direction: ship_types.ShipDirection = Form(...),
-#     service_code: ServiceCode = Form(...),
-#     own_label: bool = Form(...),
-#     contact_name: str = Form(...),
-#     email_address: EmailStr = Form(...),
-#     business_name: str = Form(...),
-#     mobile_phone: str = Form(...),
-#     address_line1: str = Form(...),
-#     address_line2: str = Form(''),
-#     address_line3: str = Form(''),
-#     town: str = Form(...),
-#     postcode: VALID_POSTCODE = Form(...),
-#     session=Depends(get_session),
-# ):
-#     try:
-#         addr_class = AddressCollection if direction == 'in' else AddressRecipient
-#         address = addr_class(
-#             address_line1=address_line1,
-#             address_line2=address_line2,
-#             address_line3=address_line3,
-#             town=town,
-#             postcode=postcode,
-#         )
-#         contact_class = Contact if direction == 'out' else CollectionContact
-#         contact = contact_class(
-#             business_name=business_name,
-#             contact_name=contact_name,
-#             email_address=email_address,
-#             mobile_phone=mobile_phone,
-#         )
-#         shipment = Shipment(
-#             recipient_address=address,
-#             recipient_contact=contact,
-#             service_code=service_code,
-#             shipping_date=shipping_date,
-#             total_number_of_parcels=total_number_of_parcels,
-#         )
-#
-#         for fieldname, value in await get_notes_f_form(await request.form()):
-#             setattr(shipment, fieldname, value)
-#
-#         if direction == ShipDirection.Dropoff:
-#             shipment.make_inbound()
-#         elif direction == ShipDirection.Inbound:
-#             shipment.make_collection(own_label=own_label)
-#
-#         booking.direction = direction
-#         booking.shipment = shipment
-#         session.add(booking)
-#         session.commit()
-#
-#         if failed := await check_dates(booking, request):
-#             return failed
-#
-#         return TEMPLATES.TemplateResponse(
-#             'order_review.html',
-#             {
-#                 'request': request,
-#                 'booking': booking,
-#             },
-#         )
-#     except (ConnectTimeoutError, BackendError) as e:
-#         msg = f'Error: {e.__class__.__name__}. Connection Likely Timed Out.\n{str(e)}'
-#         logger.exception(msg)
-#         return f'<p>{msg}</p><p>Please refresh the page and try again</p>'
-#     except Exception as e:
-#         logger.error(e)
-#         return f'<p>{str(e)}</p><p>Please refresh the page and try again</p>'
-#
