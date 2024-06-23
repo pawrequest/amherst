@@ -1,11 +1,9 @@
-import pytest
 import pytest_asyncio
 from loguru import logger
 
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
-from shipaw.models.booking_states import BookingState
 from shipaw.ship_types import WEEKDAYS_IN_RANGE
 
 FAKE_PHONE = '07666666666'
@@ -106,7 +104,7 @@ customer_record_xmpl = {
     'Supplier / Other': 'FALSE',
     'Telephone': '07',
     'Web Site': 'www.sfrsfsf.com',
-    'cmc_table_name': 'Customer',
+    'category': 'Customer',
     'test for vbscript': '',
 }
 
@@ -168,7 +166,7 @@ hire_record_xmpl = {
     'Unpacked Time': '',
     'Unpacked by': '',
     'Weeks': '1',
-    'cmc_table_name': 'Hire',
+    'category': 'Hire',
 }
 
 sale_record_xmpl = {
@@ -205,14 +203,14 @@ sale_record_xmpl = {
     'Handled By Staff': '',
     'Has Document Log': '',
     'Outbound ID': '',
-    'cmc_table_name': 'Sale',
+    'category': 'Sale',
 }
 
 
 @pytest_asyncio.fixture(params=[hire_record_xmpl, sale_record_xmpl, customer_record_xmpl], scope='session')
 async def amrec_mock(request) -> AmherstRecord:
     record = request.param
-    logger.info(f'testing {record['cmc_table_name']} record: {record["Name"]}')
+    logger.info(f'testing {record['category']} record: {record["Name"]}')
     return await cmc_record_to_amrec(record)
 
 
@@ -227,7 +225,6 @@ async def booking_mock_db(test_session_fxt, booking_mock_fxt):
     test_session_fxt.commit()
     test_session_fxt.refresh(booking_mock_fxt)
     return booking_mock_fxt
-
 
 # @pytest.mark.asyncio
 # async def create_retrieve_mock(booking_mock_db: BookingStateDB):

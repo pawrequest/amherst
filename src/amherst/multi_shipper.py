@@ -50,7 +50,7 @@ async def main():
 
         bookings = []
         for record in records:
-            record['cmc_table_name'] = 'Hire'
+            record['category'] = 'Hire'
             amrec = await cmc_record_to_amrec(record)
             booking = await amrec_to_booking(amrec)
             bookings.append(booking)

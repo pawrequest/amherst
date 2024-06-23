@@ -1,18 +1,24 @@
 from enum import Enum
 from pprint import pprint
-from typing import Generator
-from starlette.testclient import _RequestData
+from collections.abc import Generator
+
 import pytest
 from bs4 import BeautifulSoup
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from suppawt.compare import flatten_generic
 
-from amherst.models.db_models import BookingStateDB
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.ship_types import ShipDirection
-from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE
+from .client import test_client  # noqa: F401
+from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
 from amherst.routes import PostForm
+from amherst.models.db_models import BookingStateDB
+from .fixtures_live import random_booking_in_db  # noqa: F401
+
+b_fxt = booking_mock_db
+
+
+# b_fxt = random_booking_in_db
 
 
 def test_health(test_client):
@@ -22,57 +28,64 @@ def test_health(test_client):
 
 
 @pytest.mark.asyncio
-async def test_initial_booking_state(request, random_booking: BookingStateDB):
-    assert random_booking
-    assert random_booking.record
-    assert random_booking.shipment_request
-    assert random_booking.alerts
-    assert len(random_booking.alerts.alert) == 0
-    cust_rec = random_booking.record.customer_record()
+async def test_initial_booking_state(request, b_fxt: BookingStateDB):
+    assert b_fxt.record
+    assert b_fxt.shipment_request
+    assert b_fxt.alerts
+    assert len(b_fxt.alerts.alert) == 0
+
+
+# noinspection PyShadowingNames
+@pytest.mark.asyncio
+async def customer_record(b_fxt: BookingStateDB):
+    cust_rec = b_fxt.record.customer_record()
     assert cust_rec
 
 
 @pytest.mark.asyncio
-async def test_email_options(random_booking: BookingStateDB):
-    assert random_booking.email_options
-    assert random_booking.email_options[0].email
+async def test_email_options(b_fxt: BookingStateDB):
+    assert b_fxt.email_options
+    assert b_fxt.email_options[0].email
     ...
 
 
 @pytest.mark.asyncio
-async def test_recipient_address(random_booking: BookingStateDB):
-    assert random_booking.shipment_request.recipient_address
-    assert random_booking.shipment_request.recipient_address.address_line1
-    assert random_booking.shipment_request.recipient_address.town
-    assert random_booking.shipment_request.recipient_address.postcode
-    assert random_booking.shipment_request.recipient_address.country
+async def test_recipient_address(b_fxt: BookingStateDB):
+    assert b_fxt.shipment_request.recipient_address
+    assert b_fxt.shipment_request.recipient_address.address_line1
+    assert b_fxt.shipment_request.recipient_address.town
+    assert b_fxt.shipment_request.recipient_address.postcode
+    assert b_fxt.shipment_request.recipient_address.country
 
 
+# noinspection PyUnusedLocal
 @pytest.mark.asyncio
-async def test_input_page(test_client, random_booking_in_db: BookingStateDB):
-    response = test_client.get(f'/{random_booking_in_db.id}')
+async def test_input_page(test_client, b_fxt: BookingStateDB):
+    response = test_client.get(f'/{b_fxt.id}')
     response_text = response.text
 
     soup = BeautifulSoup(response_text, 'html.parser')
     assert soup.title.string == 'Amherst Shipper'
     assert soup.find('div', class_='shipper shipper__sandbox').string == 'Shipper in Sandbox Mode'
     assert not soup.find('div', class_='alert alert__')
-    assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(random_booking_in_db.id)
+    assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(b_fxt.id)
     assert (
-        soup.find('input', {'id': 'ship_date'})['value']
-        == random_booking_in_db.shipment_request.shipping_date.isoformat()
+            soup.find('input', {'id': 'ship_date'})['value']
+            == b_fxt.shipment_request.shipping_date.isoformat()
     )
     assert (
-        int(soup.find('select', {'id': 'total_number_of_parcels'}).find('option', {'selected': True})['value'])
-        == random_booking_in_db.shipment_request.total_number_of_parcels
+            int(soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'])
+            == b_fxt.shipment_request.total_number_of_parcels
     )
     # Check direction options
     assert (
-        soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.Outbound
+            soup.find('select', {'id': 'direction'}).find('option', {'selected': True})[
+                'value'] == ShipDirection.Outbound
     )
     # Check service_code options
     assert (
-        soup.find('select', {'id': 'service_code'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
+            soup.find('select', {'id': 'service'}).find('option', {'selected': True})[
+                'value'] == ServiceCode.EXPRESS24
     )
     # Check contact details
     # assert soup.find('input', {'id': 'business_name'})['value'] == contact_xmpl['business_name']
@@ -86,8 +99,8 @@ async def test_input_page(test_client, random_booking_in_db: BookingStateDB):
     assert soup.find('input', {'id': 'address_line3'})
     assert soup.find('input', {'id': 'town'})
     assert (
-        soup.find('input', {'id': 'postcode'})['value']
-        == random_booking_in_db.shipment_request.recipient_address.postcode
+            soup.find('input', {'id': 'postcode'})['value']
+            == b_fxt.shipment_request.recipient_address.postcode
     )
 
     # Check address select options
@@ -101,7 +114,7 @@ async def test_input_page(test_client, random_booking_in_db: BookingStateDB):
     # assert all(option in actual_options for option in expected_options)
 
     # Check notes and special instructions
-    assert soup.find('input', {'id': 'reference_number1'})['value'] == random_booking_in_db.record.customer[:24]
+    assert soup.find('input', {'id': 'reference_number1'})['value'] == b_fxt.record.customer[:24]
     assert soup.find('input', {'id': 'reference_number2'})
     assert soup.find('input', {'id': 'reference_number3'})
     assert soup.find('input', {'id': 'special_instructions1'})
@@ -123,15 +136,15 @@ def flatten_to_str_tups(data: dict) -> Generator[tuple[str, str], None, None]:
 
 
 @pytest.mark.asyncio
-async def test_post_form(test_client, random_booking_in_db: BookingStateDB):
-    form_data = random_booking_in_db.shipment_request.model_dump()
+async def test_post_form(test_client, b_fxt: BookingStateDB):
+    form_data = b_fxt.shipment_request.model_dump()
     form_flat = dict(flatten_to_str_tups(form_data))
-    form_flat['booking_id'] = random_booking_in_db.id
+    form_flat['booking_id'] = b_fxt.id
     form_flat['direction'] = ShipDirection.Outbound
     valid_form = PostForm.model_validate(form_flat)
     json_form = jsonable_encoder(valid_form)
     assert valid_form
     pprint(valid_form)
-    response = test_client.post('/post_form2/', data=json_form)
+    response = test_client.post('/post_form2/', json=json_form)
     pprint(response.text)
     assert response.status_code == 200

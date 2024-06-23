@@ -31,6 +31,28 @@ class HireStatus(StrEnum):
     SOLD = 'Sold To Customer'
 
 
+class CustomerFields(str, Enum):
+    # SEND_OUT_DATE = 'dummy'
+    # Boxes = 'dummy'
+
+    NAME = 'Name'
+    DELIVERY_ADDRESS = 'Deliv Address'
+    DELIVERY_CONTACT = 'Deliv Contact'
+    DELIVERY_EMAIL = 'Deliv Email'
+    DELIVERY_NAME = 'Deliv Name'
+    DELIVERY_POSTCODE = 'Deliv Postcode'
+    DELIVERY_TELEPHONE = 'Deliv Telephone'
+    INVOICE_ADDRESS = 'Invoice Address'
+    INVOICE_CONTACT = 'Invoice Contact'
+    INVOICE_EMAIL = 'Invoice Email'
+    INVOICE_NAME = 'Invoice Name'
+    INVOICE_POSTCODE = 'Invoice Postcode'
+    INVOICE_TELEPHONE = 'Invoice Telephone'
+    ACCOUNTS_EMAIL = 'Accounts Email'
+    PRIMARY_EMAIL = 'Email'
+    CUSTOMER = 'Name'
+
+
 class HireFields(str, Enum):
     ARRANGED_OUTBOUND = 'DB label printed'
     ARRANGED_INBOUND = 'Pickup Arranged'
@@ -104,32 +126,7 @@ class HireFields(str, Enum):
     WAND_CHARGER = 'Number Wand Charger'
 
 
-class CustomerFields(str, Enum):
-    SEND_OUT_DATE = 'dummy'
-    BOXES = 'dummy'
-
-    NAME = 'Name'
-    DELIVERY_ADDRESS = 'Deliv Address'
-    DELIVERY_CONTACT = 'Deliv Contact'
-    DELIVERY_EMAIL = 'Deliv Email'
-    DELIVERY_NAME = 'Deliv Name'
-    DELIVERY_POSTCODE = 'Deliv Postcode'
-    DELIVERY_TELEPHONE = 'Deliv Telephone'
-    INVOICE_ADDRESS = 'Invoice Address'
-    INVOICE_CONTACT = 'Invoice Contact'
-    INVOICE_EMAIL = 'Invoice Email'
-    INVOICE_NAME = 'Invoice Name'
-    INVOICE_POSTCODE = 'Invoice Postcode'
-    INVOICE_TELEPHONE = 'Invoice Telephone'
-    ACCOUNTS_EMAIL = 'Accounts Email'
-    PRIMARY_EMAIL = 'Email'
-    CUSTOMER = 'Name'
-
-
 class SaleFields(str, Enum):
-    BOXES = 'dummy'
-    SEND_OUT_DATE = 'dummy'
-
     CUSTOMER = 'To Customer'
     NAME = 'Name'
     LOST_EQUIPMENT = 'Lost Equipment'
@@ -179,4 +176,3 @@ def initial_filter(tablename: str) -> FilterArray:
             )
         case _:
             raise ValueError(f'No initial filter for {tablename}')
-

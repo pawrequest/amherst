@@ -1,7 +1,6 @@
 import functools
 
 import pytest
-from fastapi.testclient import TestClient
 from sqlalchemy import StaticPool
 from sqlmodel import SQLModel, Session, create_engine
 
@@ -9,8 +8,8 @@ from amherst.app_file import app
 from amherst.db import get_session
 from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSandboxSettings, pf_sandbox_sett
-from .fixtures_live import pycmc, random_amrec, random_booking, random_booking_in_db
-from .fixtures_mock import address_xmpl, amrec_mock, booking_mock_db, booking_mock_fxt, contact_xmpl
+# from .fixtures_live import pycmc, random_amrec, random_booking, random_booking_in_db
+# from .fixtures_mock import address_xmpl, amrec_mock, booking_mock_db, booking_mock_fxt, contact_xmpl
 
 #
 DB_FILE = 'sqlite:///test.db'
@@ -45,12 +44,6 @@ app.dependency_overrides[get_session] = override_get_db
 
 
 @pytest.fixture(scope='session')
-def test_client():
-    with TestClient(app) as client:
-        yield client
-
-
-@pytest.fixture(scope='session')
 def test_session_fxt():
     yield get_test_session()
 
@@ -77,20 +70,19 @@ def el_client(sett):
 #     yield booking
 
 
-__all__ = [
-    'test_client',
-    'test_session_fxt',
-    'sett',
-    'el_client',
-    'random_booking',
-    'random_booking',
-    'random_booking_in_db',
-    'random_booking',
-    'random_amrec',
-    'pycmc',
-    'contact_xmpl',
-    'address_xmpl',
-    'booking_mock_fxt',
-    'booking_mock_db',
-    'amrec_mock',
-]
+# __all__ = [
+#     'test_session_fxt',
+#     'sett',
+#     'el_client',
+#     'random_booking',
+#     'random_booking',
+#     'random_booking_in_db',
+#     'random_booking',
+#     'random_amrec',
+#     'pycmc',
+#     'contact_xmpl',
+#     'address_xmpl',
+#     'booking_mock_fxt',
+#     'booking_mock_db',
+#     'amrec_mock',
+# ]
