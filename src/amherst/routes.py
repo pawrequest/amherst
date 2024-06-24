@@ -1,14 +1,12 @@
 # from __future__ import annotations
 import base64
 import os
-from datetime import date
 from pathlib import Path
 
 import pawdf
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
-from pydantic import BaseModel, EmailStr, constr, create_model
 from sqlmodel import Session
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
@@ -33,9 +31,8 @@ from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_msg import Alert
-from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import Shipment
-from shipaw.ship_types import AlertType, ExpressLinkError, VALID_POSTCODE
+from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection
+from shipaw.ship_types import AlertType, ExpressLinkError
 
 router = APIRouter()
 
@@ -101,7 +98,7 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(g
         return HTMLResponse(content='<p>Email created and opened</p>')
 
 
-@router.post('/confirm_booking', response_class=HTMLResponse)
+@router.post('/confirm_outbound', response_class=HTMLResponse)
 async def confirm_booking(
     request: Request,
     booking: BookingStateDB = Depends(booking_f_form),
@@ -123,8 +120,13 @@ async def confirm_booking(
         booking.response = book_shipment(el_client, booking.shipment_request)
         booking.booked = True
         record_tracking(booking)
-        if booking.shipment_request.print_own_label is not False:
+        if (
+            not isinstance(booking.shipment_request, ShipmentAwayCollection)
+            or booking.shipment_request.print_own_label is not False
+        ):
             await process_label(booking, el_client)
+        # if booking.shipment_request.print_own_label is not False:
+        #     await process_label(booking, el_client)
         session.add(booking)
         session.commit()
         return TEMPLATES.TemplateResponse('order_confirmed.html', {'request': request, 'booking': booking})
@@ -147,60 +149,6 @@ async def confirm_booking(
         return TEMPLATES.TemplateResponse('alerts_only.html', {'request': request, 'alerts': [al]})
 
 
-def as_form(cls: type[BaseModel]) -> type[BaseModel]:
-    form_params = {
-        field_name: (field_info.annotation, Form(... if field_info.is_required() else None))
-        for field_name, field_info in cls.model_fields.items()
-    }
-    new_model = create_model(cls.__name__, **form_params)
-    return new_model
-
-
-def as_form_decon(cls: type[BaseModel]) -> type[BaseModel]:
-    form_params = {}
-    for field_name, field_info in cls.model_fields:
-        form_params[field_name] = (field_info.annotation, Form(... if field_info.required else None))
-    new_model = create_model(cls.__name__, **form_params)
-    return new_model
-
-
-@as_form
-class PostForm(BaseModel):
-    booking_id: int
-    direction: ship_types.ShipDirection
-    own_label: bool | None = None
-
-    shipping_date: date
-    total_number_of_parcels: int
-    service_code: ServiceCode
-
-    address_line1: str
-    address_line2: str
-    address_line3: str
-    town: str
-    postcode: VALID_POSTCODE
-
-    contact_name: str
-    email_address: EmailStr
-    business_name: str
-    mobile_phone: str
-
-    reference_number1: constr(max_length=24) | None = None
-    reference_number2: constr(max_length=24) | None = None
-    reference_number3: constr(max_length=24) | None = None
-    reference_number4: constr(max_length=24) | None = None
-    reference_number5: constr(max_length=24) | None = None
-    special_instructions1: constr(max_length=25) | None = None
-    special_instructions2: constr(max_length=25) | None = None
-    special_instructions3: constr(max_length=25) | None = None
-    special_instructions4: constr(max_length=25) | None = None
-
-
-@router.post('/post_form2/', response_class=HTMLResponse)
-async def post_form2(post_form: PostForm, session: Session = Depends(get_session)):
-    return HTMLResponse(content=f'<p>Form: {post_form}</p>')
-
-
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
     request: Request,
@@ -209,6 +157,7 @@ async def post_form(
     shipment_request: Shipment = Depends(shipment_request_f_form),
     session: Session = Depends(get_session),
 ):
+    logger.info(f'Form Posted: {await request.form()}')
     try:
         booking.direction = direction
         booking.shipment_request = shipment_request

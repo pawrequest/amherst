@@ -9,7 +9,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 
 from amherst.models.db_models import BookingStateDB
-from amherst.routes import PostForm
+from ..routes_test import PostForm
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment import ShipmentAwayCollection, ShipmentAwayDropoff
 from shipaw.ship_types import ShipDirection

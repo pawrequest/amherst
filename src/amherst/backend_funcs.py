@@ -25,7 +25,7 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import ShipmentReferenceFields, Shipment
+from shipaw.models.pf_shipment import ShipmentAwayCollection, ShipmentAwayDropoff, ShipmentReferenceFields, Shipment
 from shipaw.models.pf_top import ContactCollection, Contact
 from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
 
@@ -118,6 +118,7 @@ async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
 
 
 async def booking_f_form(booking_id: int = Form(), session: Session = Depends(get_session)) -> BookingStateDB:
+    logger.debug(f'Retrieving Booking {booking_id} from form')
     booking = session.get(BookingStateDB, booking_id)
     if not isinstance(booking, BookingStateDB):
         raise ValueError(f'No booking found with id {booking_id}')
@@ -180,12 +181,14 @@ async def address_f_form(
 
 
 async def contact_f_form(
+    request: Request,
     contact_name: str = Form(...),
     email_address: EmailStr = Form(...),
     business_name: str = Form(...),
     mobile_phone: str = Form(...),
     direction: ship_types.ShipDirection = Form(...),
 ):
+    logger.debug(f'form received: {await request.form()}')
     logger.debug(
         f'Contact fields received: direction={direction}, {contact_name=}, {email_address=}, {business_name=}, {mobile_phone=}'
     )
@@ -202,6 +205,7 @@ async def contact_f_form(
 
 
 async def notes_f_form(request: Request) -> list[tuple[str, str]]:
+    logger.debug('Parsing notes from form')
     form_data = await request.form()
     notes = [
         (fieldname, form_data[fieldname])
@@ -213,29 +217,30 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 async def shipment_request_f_form(
     request: Request,
+    contact: Contact = Depends(contact_f_form),
     address: AddressCollection = Depends(address_f_form),
     notes: list[tuple[str, str]] = Depends(notes_f_form),
     shipping_date: date = Form(...),
-    boxes: int = Form(...),
-    service: ServiceCode = Form(...),
+    total_number_of_parcels: int = Form(...),
+    service_code: ServiceCode = Form(...),
     direction: ship_types.ShipDirection = Form(...),
-    # own_label: bool = Form(...),
     own_label: str = Form(...),
-    contact: Contact = Depends(contact_f_form),
 ):
-    logger.warning(f'{request=}')
+    logger.warning(f'Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
     shipment_request = Shipment(
         recipient_address=address,
         recipient_contact=contact,
-        service_code=service,
+        service_code=service_code,
         shipping_date=shipping_date,
-        total_number_of_parcels=boxes,
+        total_number_of_parcels=total_number_of_parcels,
     )
     if direction == ShipDirection.Dropoff:
-        shipment_request.make_inbound()
+        shipment_request = ShipmentAwayDropoff.from_shipment(shipment_request)
+        # shipment_request.make_inbound()
     elif direction == ShipDirection.Inbound:
-        shipment_request.make_away_collection(own_label=own_label)
+        shipment_request = ShipmentAwayCollection.from_shipment(shipment_request, own_label=own_label)
+        # shipment_request.make_away_collection(own_label=own_label)
 
     for fieldname, value in notes:
         setattr(shipment_request, fieldname, value)
