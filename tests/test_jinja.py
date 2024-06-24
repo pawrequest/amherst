@@ -1,19 +1,21 @@
+from collections.abc import Generator
 from enum import Enum
 from pprint import pprint
-from collections.abc import Generator
 
 import pytest
+import pytest_asyncio
 from bs4 import BeautifulSoup
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 
+from amherst.models.db_models import BookingStateDB
+from amherst.routes import PostForm
 from shipaw.models.pf_shared import ServiceCode
+from shipaw.models.pf_shipment import ShipmentAwayCollection, ShipmentAwayDropoff
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa: F401
-from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
-from amherst.routes import PostForm
-from amherst.models.db_models import BookingStateDB
 from .fixtures_live import random_booking_in_db  # noqa: F401
+from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
 
 b_fxt = booking_mock_db
 
@@ -33,6 +35,16 @@ async def test_initial_booking_state(request, b_fxt: BookingStateDB):
     assert b_fxt.shipment_request
     assert b_fxt.alerts
     assert len(b_fxt.alerts.alert) == 0
+
+
+@pytest_asyncio.fixture(scope='session')
+async def away_collect_fxt(b_fxt):
+    return ShipmentAwayCollection.from_shipment(b_fxt.shipment_request)
+
+
+@pytest_asyncio.fixture(scope='session')
+async def away_dropoff_fxt(b_fxt):
+    return ShipmentAwayDropoff.from_shipment(b_fxt.shipment_request)
 
 
 # noinspection PyShadowingNames
@@ -69,24 +81,17 @@ async def test_input_page(test_client, b_fxt: BookingStateDB):
     assert soup.find('div', class_='shipper shipper__sandbox').string == 'Shipper in Sandbox Mode'
     assert not soup.find('div', class_='alert alert__')
     assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(b_fxt.id)
+    assert soup.find('input', {'id': 'ship_date'})['value'] == b_fxt.shipment_request.shipping_date.isoformat()
     assert (
-            soup.find('input', {'id': 'ship_date'})['value']
-            == b_fxt.shipment_request.shipping_date.isoformat()
-    )
-    assert (
-            int(soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'])
-            == b_fxt.shipment_request.total_number_of_parcels
+        int(soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'])
+        == b_fxt.shipment_request.total_number_of_parcels
     )
     # Check direction options
     assert (
-            soup.find('select', {'id': 'direction'}).find('option', {'selected': True})[
-                'value'] == ShipDirection.Outbound
+        soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.Outbound
     )
     # Check service_code options
-    assert (
-            soup.find('select', {'id': 'service'}).find('option', {'selected': True})[
-                'value'] == ServiceCode.EXPRESS24
-    )
+    assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
     # Check contact details
     # assert soup.find('input', {'id': 'business_name'})['value'] == contact_xmpl['business_name']
     # assert soup.find('input', {'id': 'contact_name'})['value'] == contact_xmpl['contact_name']
@@ -98,10 +103,7 @@ async def test_input_page(test_client, b_fxt: BookingStateDB):
     assert soup.find('input', {'id': 'address_line2'})
     assert soup.find('input', {'id': 'address_line3'})
     assert soup.find('input', {'id': 'town'})
-    assert (
-            soup.find('input', {'id': 'postcode'})['value']
-            == b_fxt.shipment_request.recipient_address.postcode
-    )
+    assert soup.find('input', {'id': 'postcode'})['value'] == b_fxt.shipment_request.recipient_address.postcode
 
     # Check address select options
     # address_select = soup.find('select', {'id': 'address-select'})

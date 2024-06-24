@@ -8,7 +8,7 @@ from amherst.models.db_models import BookingStateDB
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment
+from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection, ShipmentAwayDropoff
 from shipaw.ship_types import VALID_POSTCODE
 
 router = APIRouter()
@@ -38,13 +38,34 @@ async def shiprec_post(
 
 @router.post('/confirm_booking', response_class=JSONResponse)
 async def confirm_api(
-    shipment: Shipment,
+    # shipment: Shipment,
+    shipment: Shipment | ShipmentAwayCollection | ShipmentAwayDropoff,
     el_client: ELClient = Depends(get_el_client),
 ) -> ShipmentResponse:
     logger.info(shipment.notifications_str)
-    if shipment.collection_info:
+    if isinstance(shipment, ShipmentAwayCollection):
         logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
 
+    return book_shipment(el_client, shipment)
+
+
+@router.post('/confirm_away_collect', response_class=JSONResponse)
+async def confirm_away_collect(
+    shipment: ShipmentAwayCollection,
+    el_client: ELClient = Depends(get_el_client),
+) -> ShipmentResponse:
+    logger.info(shipment.notifications_str)
+    logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
+    return book_shipment(el_client, shipment)
+
+
+@router.post('/confirm_away_dropoff', response_class=JSONResponse)
+async def confirm_away_dropoff(
+    shipment: ShipmentAwayDropoff,
+    el_client: ELClient = Depends(get_el_client),
+) -> ShipmentResponse:
+    logger.info(shipment.notifications_str)
+    logger.info(shipment.sender_contact.contact_name)
     return book_shipment(el_client, shipment)
 
 

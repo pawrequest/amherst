@@ -103,23 +103,23 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(g
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-        request: Request,
-        booking: BookingStateDB = Depends(booking_f_form),
-        el_client: ELClient = Depends(get_el_client),
-        session: Session = Depends(get_session),
+    request: Request,
+    booking: BookingStateDB = Depends(booking_f_form),
+    el_client: ELClient = Depends(get_el_client),
+    session: Session = Depends(get_session),
 ):
     logger.info(f'Booking {booking.id} for {booking.record.name}.')
 
-    try:
-        if booking.booked:
-            alert = Alert(type=AlertType.WARNING, message=f'Already Booked {booking.record.name}')
-            # booking.alerts.alert.append(alert)
-            # session.add(booking)
-            # session.commit()
-            # return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
-            logger.debug(f'Already booked, alerts = {booking.alerts}')
-            return TEMPLATES.TemplateResponse('alerts_only.html', {'alerts': [alert], 'request': request})
+    if booking.booked:
+        alert = Alert(type=AlertType.WARNING, message=f'Already Booked {booking.record.name}')
+        # booking.alerts.alert.append(alert)
+        # session.add(booking)
+        # session.commit()
+        # return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
+        logger.debug(f'Already booked, alerts = {booking.alerts}')
+        return TEMPLATES.TemplateResponse('alerts_only.html', {'alerts': [alert], 'request': request})
 
+    try:
         booking.response = book_shipment(el_client, booking.shipment_request)
         booking.booked = True
         record_tracking(booking)
@@ -203,11 +203,11 @@ async def post_form2(post_form: PostForm, session: Session = Depends(get_session
 
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-        request: Request,
-        direction: ship_types.ShipDirection = Form(...),
-        booking: BookingStateDB = Depends(booking_f_form),
-        shipment_request: Shipment = Depends(shipment_request_f_form),
-        session: Session = Depends(get_session),
+    request: Request,
+    direction: ship_types.ShipDirection = Form(...),
+    booking: BookingStateDB = Depends(booking_f_form),
+    shipment_request: Shipment = Depends(shipment_request_f_form),
+    session: Session = Depends(get_session),
 ):
     try:
         booking.direction = direction
@@ -236,9 +236,9 @@ async def post_form(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-        request: Request,
-        booking: BookingStateDB = Depends(booking_f_path),
-        el_client: ELClient = Depends(get_el_client_non_strict),
+    request: Request,
+    booking: BookingStateDB = Depends(booking_f_path),
+    el_client: ELClient = Depends(get_el_client_non_strict),
 ):
     addr_choices = el_client.get_choices(
         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address

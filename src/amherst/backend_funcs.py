@@ -26,7 +26,7 @@ from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment import ShipmentReferenceFields, Shipment
-from shipaw.models.pf_top import CollectionContact, Contact
+from shipaw.models.pf_top import ContactCollection, Contact
 from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
 
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
@@ -189,7 +189,7 @@ async def contact_f_form(
     logger.debug(
         f'Contact fields received: direction={direction}, {contact_name=}, {email_address=}, {business_name=}, {mobile_phone=}'
     )
-    contact_class = Contact if direction == 'out' else CollectionContact
+    contact_class = Contact if direction == 'out' else ContactCollection
     cont = contact_class(
         business_name=business_name,
         contact_name=contact_name,
@@ -235,7 +235,7 @@ async def shipment_request_f_form(
     if direction == ShipDirection.Dropoff:
         shipment_request.make_inbound()
     elif direction == ShipDirection.Inbound:
-        shipment_request.make_collection(own_label=own_label)
+        shipment_request.make_away_collection(own_label=own_label)
 
     for fieldname, value in notes:
         setattr(shipment_request, fieldname, value)
