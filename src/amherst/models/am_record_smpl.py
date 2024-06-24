@@ -2,6 +2,7 @@
 import functools
 import typing
 from abc import ABC
+from copy import copy
 from datetime import date
 from enum import Enum, StrEnum
 from functools import cached_property
@@ -69,12 +70,13 @@ class AmherstTable(BaseModel, ABC):
     @_p.model_validator(mode='after')
     def val_customer_record(self):
         if self.customer_record is None:
-            self.customer_record = self if self.category == 'Customer' else get_customer_table(self.customer_name)
+            self.customer_record = copy(self) if self.category == 'Customer' else get_customer_table(self.customer_name)
         return self
 
     @cached_property
     def contact_dict(self) -> dict:
-        return {k.replace('contact_', '', 1): v for k, v in self.model_dump().items() if k.startswith('contact_')}
+        return {k.replace('contact_', '', 1): v for k, v in self.model_dump(exclude={'customer_record'}).items() if
+                k.startswith('contact_')}
 
     @cached_property
     def address_dict(self) -> dict:
@@ -86,7 +88,8 @@ class AmherstTable(BaseModel, ABC):
     @cached_property
     def shipment_details(self):
         return {
-            k.replace('shipment_', '', 1): v for k, v in self.model_dump().items() if k.startswith('shipment_')
+            k.replace('shipment_', '', 1): v for k, v in self.model_dump(exclude={'customer_record'}).items() if
+            k.startswith('shipment_')
         }
 
     @property
@@ -125,9 +128,6 @@ class AmherstOrderIn(AmherstTable):
     str_address: str = Field('', alias='Delivery Address')
     address_postcode: str = Field('', alias='Delivery Postcode')
 
-    # shipment_shipping_date: AM_SHIP_DATE = Field(date.today(), alias='Send Out Date')
-    # shipment_total_number_of_parcels: int = Field(1, alias='Boxes')
-
     delivery_method: str = Field('', alias='Delivery Method')
     arranged_in: bool = Field(False, alias='Pickup Arranged')
     arranged_out: bool = Field(False, alias='DB label printed')
@@ -140,9 +140,6 @@ class AmherstOrderIn(AmherstTable):
 class AmherstHireIn(AmherstOrderIn):
     contact_mobile_phone: str = Field('', alias='Delivery Tel')
     missing_kit_str: str = Field('', alias='Missing Kit')
-
-    # arranged_in_date: AM_SHIP_DATE = Field(date.today(), alias='Pickup Arranged Date')
-    # arranged_out_date: AM_SHIP_DATE = Field(date.today(), alias='DB label')
 
 
 class AmherstSaleIn(AmherstOrderIn):
@@ -202,15 +199,15 @@ class AmherstGenericIn(AmherstOrderIn):
     address_postcode: str
 
     shipment_shipping_date: date
-    shipment_total_number_of_parcels: int
+    shipment_total_number_of_parcels: int = 1
 
     customer_record: typing.Self
 
-    delivery_method: str
-    arranged_in: bool
-    arranged_out: bool
-    track_in: str
-    track_out: str
+    delivery_method: str = ''
+    arranged_in: bool = False
+    arranged_out: bool = False
+    track_in: str = ''
+    track_out: str = ''
 
     invoice_path: str = ''
     missing_kit_str: str = ''
