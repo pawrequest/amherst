@@ -9,18 +9,27 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 
 from amherst.models.db_models import BookingStateDB
-from ..routes_test import PostForm
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment import ShipmentAwayCollection, ShipmentAwayDropoff
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
+from amherst.routes_test import PostForm
 
 b_fxt = booking_mock_db
 
 
 # b_fxt = random_booking_in_db
+
+@pytest_asyncio.fixture(scope='session')
+async def away_collect_fxt(b_fxt):
+    return ShipmentAwayCollection.from_shipment(b_fxt.shipment_request)
+
+
+@pytest_asyncio.fixture(scope='session')
+async def away_dropoff_fxt(b_fxt):
+    return ShipmentAwayDropoff.from_shipment(b_fxt.shipment_request)
 
 
 def test_health(test_client):
@@ -35,16 +44,6 @@ async def test_initial_booking_state(request, b_fxt: BookingStateDB):
     assert b_fxt.shipment_request
     assert b_fxt.alerts
     assert len(b_fxt.alerts.alert) == 0
-
-
-@pytest_asyncio.fixture(scope='session')
-async def away_collect_fxt(b_fxt):
-    return ShipmentAwayCollection.from_shipment(b_fxt.shipment_request)
-
-
-@pytest_asyncio.fixture(scope='session')
-async def away_dropoff_fxt(b_fxt):
-    return ShipmentAwayDropoff.from_shipment(b_fxt.shipment_request)
 
 
 # noinspection PyShadowingNames
@@ -83,12 +82,13 @@ async def test_input_page(test_client, b_fxt: BookingStateDB):
     assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(b_fxt.id)
     assert soup.find('input', {'id': 'ship_date'})['value'] == b_fxt.shipment_request.shipping_date.isoformat()
     assert (
-        int(soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'])
-        == b_fxt.shipment_request.total_number_of_parcels
+            int(soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'])
+            == b_fxt.shipment_request.total_number_of_parcels
     )
     # Check direction options
     assert (
-        soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.Outbound
+            soup.find('select', {'id': 'direction'}).find('option', {'selected': True})[
+                'value'] == ShipDirection.Outbound
     )
     # Check service_code options
     assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
@@ -147,6 +147,15 @@ async def test_post_form(test_client, b_fxt: BookingStateDB):
     json_form = jsonable_encoder(valid_form)
     assert valid_form
     pprint(valid_form)
-    response = test_client.post('/post_form2/', json=json_form)
+    response = test_client.post('/test/post_form2/', json=json_form)
     pprint(response.text)
     assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+def test_dropoff_post(test_client, away_dropoff_fxt):
+    form_data = away_dropoff_fxt.model_dump()
+    form_flat = dict(flatten_to_str_tups(form_data))
+    valid_form = PostForm.model_validate(form_flat)
+    json_form = jsonable_encoder(valid_form)
+    assert valid_form

@@ -1,6 +1,4 @@
 {% set shiprec = booking.shipment_request %}
-{% set col_cont = shiprec.collection_info.collection_contact %}
-{% set col_add = shiprec.collection_info.collection_address %}
 {% set rec_cont = shiprec.recipient_contact %}
 {% set rec_add = shiprec.recipient_address %}
 
@@ -37,6 +35,8 @@
     </section>
 
     {% if booking.direction == 'in' %}
+        {% set col_cont = shiprec.collection_info.collection_contact %}
+        {% set col_add = shiprec.collection_info.collection_address %}
         <section class="requested requested__col_contact">
             <h4>Collection Contact</h4>
             <p>{{ col_cont.contact_name }}</p>

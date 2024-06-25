@@ -36,7 +36,7 @@ async def shiprec_post(
     return shipment_request
 
 
-@router.post('/confirm_outbound', response_class=JSONResponse)
+@router.post('/confirm_booking', response_class=JSONResponse)
 async def confirm_outbound(
     shipment: Shipment,
     el_client: ELClient = Depends(get_el_client),

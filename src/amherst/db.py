@@ -44,7 +44,7 @@ def get_el_client() -> ELClient:
 
 def get_el_client_non_strict() -> ELClient:
     try:
-        return ELClient(strict=True)
+        return ELClient(strict=False)
     except Exception as e:
         logger.error(f'get_pfc: {e}')
         raise

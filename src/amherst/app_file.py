@@ -7,6 +7,7 @@ from starlette.staticfiles import StaticFiles
 
 from amherst.config import settings
 from amherst.routes import router
+from amherst.routes_test import router as test_router
 from amherst.routes_api import router as api_router
 from shipaw import pf_config
 
@@ -31,6 +32,7 @@ app.mount('/static', StaticFiles(directory=str(settings().base_dir / 'front' / '
 
 app.include_router(router)
 app.include_router(api_router, prefix='/api')
+app.include_router(test_router, prefix='/test')
 app.ship_live = pf_config.pf_sett().ship_live
 
 

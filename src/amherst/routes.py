@@ -98,7 +98,7 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(g
         return HTMLResponse(content='<p>Email created and opened</p>')
 
 
-@router.post('/confirm_outbound', response_class=HTMLResponse)
+@router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
     request: Request,
     booking: BookingStateDB = Depends(booking_f_form),
