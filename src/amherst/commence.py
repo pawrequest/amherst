@@ -18,19 +18,6 @@ HIRE_CUSTOMERS = pycmc_types.Connection(
 )
 
 
-class HireStatus(StrEnum):
-    BOOKED_IN = 'Booked in'
-    PACKED = 'Booked in and packed'
-    PARTIALLY_PACKED = 'Partially packed'
-    OUT = 'Out'
-    RTN_OK = 'Returned all OK'
-    RTN_PROBLEMS = 'Returned with problems'
-    QUOTE_GIVEN = 'Quote given'
-    CANCELLED = 'Cancelled'
-    EXTENDED = 'Extended'
-    SOLD = 'Sold To Customer'
-
-
 class CustomerFields(str, Enum):
     # SEND_OUT_DATE = 'dummy'
     # Boxes = 'dummy'
@@ -51,6 +38,19 @@ class CustomerFields(str, Enum):
     ACCOUNTS_EMAIL = 'Accounts Email'
     PRIMARY_EMAIL = 'Email'
     CUSTOMER = 'Name'
+
+
+class HireStatus(StrEnum):
+    BOOKED_IN = 'Booked in'
+    PACKED = 'Booked in and packed'
+    PARTIALLY_PACKED = 'Partially packed'
+    OUT = 'Out'
+    RTN_OK = 'Returned all OK'
+    RTN_PROBLEMS = 'Returned with problems'
+    QUOTE_GIVEN = 'Quote given'
+    CANCELLED = 'Cancelled'
+    EXTENDED = 'Extended'
+    SOLD = 'Sold To Customer'
 
 
 class HireFields(str, Enum):
