@@ -25,8 +25,8 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import ShipmentAwayCollection, ShipmentAwayDropoff, ShipmentReferenceFields, Shipment
-from shipaw.models.pf_top import ContactCollection, Contact
+from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection, ShipmentAwayDropoff, ShipmentReferenceFields
+from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
 
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
@@ -157,12 +157,12 @@ async def get_missing(record: AmherstRecord) -> list[str]:
 
 
 async def address_f_form(
-    address_line1: str = Form(...),
-    address_line2: str = Form(''),
-    address_line3: str = Form(''),
-    town: str = Form(...),
-    postcode: VALID_POSTCODE = Form(...),
-    direction: ShipDirection = Form(...),
+        address_line1: str = Form(...),
+        address_line2: str = Form(''),
+        address_line3: str = Form(''),
+        town: str = Form(...),
+        postcode: VALID_POSTCODE = Form(...),
+        direction: ShipDirection = Form(...),
 ):
     logger.debug(
         f'Address fields received: {direction=}, {address_line1=}, {address_line2=}, {address_line3=}, {town=}, {postcode=}'
@@ -181,12 +181,12 @@ async def address_f_form(
 
 
 async def contact_f_form(
-    request: Request,
-    contact_name: str = Form(...),
-    email_address: EmailStr = Form(...),
-    business_name: str = Form(...),
-    mobile_phone: str = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
+        request: Request,
+        contact_name: str = Form(...),
+        email_address: EmailStr = Form(...),
+        business_name: str = Form(...),
+        mobile_phone: str = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
 ):
     logger.debug(f'form received: {await request.form()}')
     logger.debug(
@@ -216,17 +216,17 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 
 async def shipment_request_f_form(
-    request: Request,
-    contact: Contact = Depends(contact_f_form),
-    address: AddressCollection = Depends(address_f_form),
-    notes: list[tuple[str, str]] = Depends(notes_f_form),
-    shipping_date: date = Form(...),
-    total_number_of_parcels: int = Form(...),
-    service_code: ServiceCode = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    own_label: str = Form(...),
+        request: Request,
+        contact: Contact = Depends(contact_f_form),
+        address: AddressCollection = Depends(address_f_form),
+        notes: list[tuple[str, str]] = Depends(notes_f_form),
+        shipping_date: date = Form(...),
+        total_number_of_parcels: int = Form(...),
+        service_code: ServiceCode = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
+        own_label: str = Form(...),
 ):
-    logger.warning(f'Creating Shipment Request from form')
+    logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
     shipment_request = Shipment(
         recipient_address=address,
