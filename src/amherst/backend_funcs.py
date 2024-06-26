@@ -26,7 +26,7 @@ from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment import (
-    AnyShipment,
+    Shipment,
     Shipment,
     ShipmentAwayCollection,
     ShipmentAwayDropoff,
@@ -38,7 +38,7 @@ from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWar
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 
-def book_shipment(el_client, shipment_request: AnyShipment) -> pf_msg.ShipmentResponse:
+def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentResponse:
     resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment_request)
     for a in resp.alerts.alert if resp.alerts else []:
         try:
@@ -231,7 +231,7 @@ async def shipment_request_f_form(
     service_code: ServiceCode = Form(...),
     direction: ship_types.ShipDirection = Form(...),
     own_label: str = Form(...),
-) -> AnyShipment:
+) -> Shipment:
     logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
     shipment_request = Shipment(

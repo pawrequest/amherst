@@ -38,6 +38,7 @@ class CustomerFields(str, Enum):
     ACCOUNTS_EMAIL = 'Accounts Email'
     PRIMARY_EMAIL = 'Email'
     CUSTOMER = 'Name'
+    DATE_LAST_CONTACTED = 'Date Last Contact'
 
 
 class HireStatus(StrEnum):
