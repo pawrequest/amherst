@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+from time import perf_counter
 from typing import Generator
 
 import matplotlib.dates as mdates
@@ -8,6 +9,7 @@ from pawlogger import get_loguru
 from amherst.commence import HireFields, HireStatus
 from pycommence import PyCommence
 from pycommence.pycmc_types import CmcFilter, ConditionType, FilterArray, RadioType, to_cmc_date
+from pycommence.wrapper.cmc_db import CommenceWrapper
 
 logger = get_loguru(profile='local')
 
@@ -45,11 +47,18 @@ def hires_out_array(datecheck: date, radiotype=RadioType.HYT):
     return FilterArray(filters={i: fil for i, fil in enumerate(fils, 1)})
 
 
-def how_many(datecheck: date):
+def how_many_out(datecheck: date):
     out_filter = hires_out_array(datecheck)
     recs = get_records(out_filter)
     rads_out = sum([int(rec.get(HireFields.UHF)) for rec in recs])
     return rads_out
+
+
+def how_many_in(datecheck: date, radiotype=RadioType.HYT, stock: int = 500):
+    out_filter = hires_out_array(datecheck)
+    recs = get_records(out_filter)
+    rads_out = sum([int(rec.get(HireFields.UHF)) for rec in recs])
+    return stock - rads_out
 
 
 def to_send(datecheck: date, radiotype=RadioType.HYT):
@@ -69,22 +78,35 @@ def get_records(cmc_fil_array):
     return recs
 
 
-def get_date_range(start_date, end_date):
-    return [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
+#
+# def get_date_range(start_date, end_date):
+#     return [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
 
 
 def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
     for x in range((end_date - start_date).days + 1):
-        yield start_date + timedelta(days=x)
+        thisdate = start_date + timedelta(days=x)
+        yield thisdate
+
+
+def custom_date_formatter(x, pos):
+    datecheck = mdates.num2date(x)
+    if datecheck.weekday() < 5:
+        return
+    if datecheck.day == 1:  # Check if the date is the first of a month
+        return datecheck.strftime('%b %A %d')  # Month name and day
+    else:
+        return datecheck.strftime('%A %d')  # Just the day
 
 
 def do_matplot(start_date: date, end_date: date):
     dates_gen = daterang_gen(start_date, end_date)
     data = get_mat_data(dates_gen)
 
-    dates = [d[0].isoformat() for d in data]
+    dates = [d[0] for d in data]
     send = [d[1] for d in data]
-    radios_out = [d[2] for d in data]
+    radios_in = [d[2] for d in data]
+    # radios_out = [d[2] for d in data]
 
     ax1 = plt.gca()
     ax2 = ax1.twinx()
@@ -92,70 +114,49 @@ def do_matplot(start_date: date, end_date: date):
     # Plotting the data
     plt.figure(figsize=(14, 7))
 
+    ax2.set_ylim(0, max(send) * 1.1)
     plt.sca(ax2)
     plt.bar(dates, send, width=0.4, color='blue', label='Send Quantity', alpha=0.7)
 
     plt.sca(ax1)
-    plt.plot(dates, radios_out, label='Radios Out')
+    plt.plot(dates, radios_in, label='Stock Level', color='green', marker='o')
 
-    max_send = max(send)
-    ax2.set_ylim(0, max_send * 1.1)  # Scale up to 110% of max for some headroom
+    ax1.set_xticks(dates)
+    ax1.set_xticklabels([datey.strftime('%a %d %b') for datey in dates], rotation=90, ha='right')
 
-    # Formatting the dates on the x-axis
-    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=1))
+    ax1.xaxis.set_major_locator(mdates.DayLocator(interval=3))
+    ax1.xaxis.set_major_formatter(mdates.ConciseDateFormatter(ax1.xaxis.get_major_locator()))
     plt.gcf().autofmt_xdate()
 
-    plt.axhline(y=500, color='r', linestyle='--', label='Stock Limit (750)')
-    # plt.xlabel('Date')
-    # plt.ylabel('Number of Radios Out')
-    # plt.title('Radio Stock Tracker')
-
     ax1.set_xlabel('Date')
-    ax1.set_ylabel('Number of Radios Out')
-    ax2.set_ylabel('Send Quantity (relative to max)')
+    ax1.set_ylabel('Stock Remaining')
+    ax2.set_ylabel('Send Out Quantity')
 
-    plt.legend(loc='upper left')  # Adjust legend location if needed
+    plt.legend(loc='upper left')
     plt.grid(True)
     plt.show()
 
 
 def get_mat_data(dates_gen):
     data = []
+    start = perf_counter()
     for datecheck in dates_gen:
-        print(f'Checking {datecheck.isoformat()}')
+        print(f'Checking {datecheck.strftime("%a %d %b")}')
         send = to_send(datecheck)
         print(f'To Send: {send}')
-        rads_out = how_many(datecheck)
-        print(f'Radios out = {rads_out}')
-        data.append((datecheck, send, rads_out))
+        # rads_out = how_many_out(datecheck)
+        rads_in = how_many_in(datecheck)
+        print(f'Stock = {rads_in}')
+        data.append((datecheck, send, rads_in))
+    stop = perf_counter()
+    print(f'Elapsed time: {stop - start} seconds')
     return data
 
 
-# def do_matplot(start_date: date, end_date: date):
-#     data = []
-#     dates_gen = daterang_gen(start_date, end_date)
-#     for datecheck in dates_gen:
-#         print(f'Checking {datecheck.isoformat()}')
-#         print(f'To Send: {to_send(datecheck)}')
-#         rads_out = how_many(datecheck)
-#         print(f'Radios out = {rads_out}')
-#         data.append((datecheck, rads_out))
-#
-#     dates = [d[0] for d in data]
-#     radios_out = [d[1] for d in data]
-#
-#     # Plotting the data
-#     plt.figure(figsize=(14, 7))
-#     plt.plot(dates, radios_out, label='Radios Out')
-#     plt.axhline(y=750, color='r', linestyle='--', label='Stock Limit (750)')
-#     plt.xlabel('Date')
-#     plt.ylabel('Number of Radios Out')
-#     plt.title('Radio Stock Tracker')
-#     plt.legend()
-#     plt.grid(True)
-#     plt.show()
+def new_pycommence():
+    wrapper = CommenceWrapper()
+    csr = wrapper.get_cursor('Hire')
 
 
 if __name__ == '__main__':
-    do_matplot(date.today(), date.today() + timedelta(days=3))
+    do_matplot(date.today(), date.today() + timedelta(days=6))

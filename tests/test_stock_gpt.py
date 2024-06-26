@@ -10,7 +10,7 @@ from amherst.stockcheck import (
     good_hires_fils,
     hires_out_array,
     hires_out_fils,
-    how_many,
+    how_many_out,
     rads_in_rec,
     send_on_array,
     send_on_date_fils,
@@ -56,7 +56,7 @@ def test_hires_out_array():
 def test_how_many(mocker):
     mocker.patch('amherst.stockcheck.get_records', return_value=[{HireFields.UHF: '5'}, {HireFields.UHF: '10'}])
     datecheck = date.today()
-    result = how_many(datecheck)
+    result = how_many_out(datecheck)
     assert result == 15
 
 
