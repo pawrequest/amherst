@@ -5,8 +5,6 @@ from matplotlib import pyplot as plt
 from amherst.stockcheck import (
     daterang_gen,
     do_matplot,
-    get_data,
-    get_date_range,
     good_hires_fils,
     hires_out_array,
     hires_out_fils,

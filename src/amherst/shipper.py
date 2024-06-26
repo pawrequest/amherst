@@ -33,7 +33,7 @@ from thefuzz import fuzz
 from amherst.db import create_db, get_session_cm
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.models.am_record import AmherstRecord
-from pycommence import PyCommence
+from pycommence.pyc2 import PyCommence
 from amherst.config import settings
 from amherst.models import am_record
 from amherst import app_file
@@ -56,9 +56,15 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
     booking = None
 
     try:
-        with PyCommence.from_table_name_context(table_name=category) as py_cmc:
-            record: dict[str, str] = py_cmc.one_record(record_name)
+        # with PyCommence.from_table_name_context(table_name=category) as py_cmc:
+        #     record: dict[str, str] = py_cmc.one_record(, record_name
+        # record['category'] = category
+
+        pycmc = PyCommence.with_csr(category)
+        record: dict[str, str] = pycmc.one_record(category, record_name)
         record['category'] = category
+
+
         amrec: AmherstRecord = await cmc_record_to_amrec(record)
 
     except BackendError as e:
