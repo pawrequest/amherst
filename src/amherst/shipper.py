@@ -61,7 +61,7 @@ async def main(category: am_record.AmherstTableEnum, record_name: str):
         # record['category'] = category
 
         pycmc = PyCommence.with_csr(category)
-        record: dict[str, str] = pycmc.one_record(category, record_name)
+        record: dict[str, str] = pycmc.one_record(record_name, category)
         record['category'] = category
 
 

@@ -147,7 +147,7 @@ def get_customer_record(customer: str) -> dict[str, str]:
     """Get a customer record from `:class:PyCommence`"""
     logger.debug(f'Getting customer record for {customer}')
     with PyCommence.from_table_name_context(table_name='Customer') as py_cmc:
-        rec = py_cmc.one_record(customer)
+        rec = py_cmc.one_record(, customer
     return rec
 
 
