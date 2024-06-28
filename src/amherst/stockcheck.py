@@ -28,6 +28,15 @@ def hires_out_fils(datecheck: date, radiotype=RadioType.HYT):
     )
 
 
+def good_hires_in_range_array(start_date: date, end_date: date, radiotype=RadioType.HYT):
+    return FilterArray.from_filters(
+        *good_hires_fils(),
+        CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
+        CmcFilter(cmc_col=HireFields.DUE_BACK_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
+        CmcFilter(cmc_col=HireFields.RADIO_TYPE, condition=ConditionType.EQUAL, value=radiotype),
+    )
+
+
 def due_back_fil(datecheck):
     return CmcFilter(cmc_col=HireFields.DUE_BACK_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(datecheck))
 
@@ -84,8 +93,15 @@ def custom_date_formatter(x, pos):
 
 
 class StockChecker:
-    def __init__(self):
-        self.pycommence: PyCommence = PyCommence.with_csr('Hire')
+    def __init__(self, pycmc=None, start_date: date = date.today(), end_date: date = date.today() + timedelta(days=6)):
+        self.pycommence = pycmc or PyCommence.with_csr(
+            'Hire',
+            filter_array=good_hires_in_range_array(start_date, end_date)
+        )
+        self.start_date = start_date
+        self.end_date = end_date
+        self.date_range_gen = daterang_gen(start_date, end_date)
+        self.data = self.pycommence.records()
 
     def to_send(self, datecheck: date, radiotype=RadioType.HYT):
         """How many radios to send on a given date"""
@@ -100,13 +116,13 @@ class StockChecker:
         return stock - rads_out
 
     def get_records(self, cmc_fil_array: FilterArray):
-        with self.pycommence.temporary_filter_cursor('Hire', cmc_fil_array):
-            recs = self.pycommence.records('Hire')
+        with self.pycommence.temporary_filter_cursor(cmc_fil_array):
+            recs = self.pycommence.records()
         return recs
 
-    def get_mat_data(self, dates_gen):
+    def get_mat_data(self):
         data = []
-        for datecheck in dates_gen:
+        for datecheck in self.date_range_gen:
             print(f'Checking {datecheck.strftime("%a %d %b")}')
             send = self.to_send(datecheck)
             print(f'To Send: {send}')
@@ -115,9 +131,8 @@ class StockChecker:
             data.append((datecheck, send, rads_in))
         return data
 
-    def run(self, start_date: date, end_date: date):
-        dates_gen = daterang_gen(start_date, end_date)
-        data = self.get_mat_data(dates_gen)
+    def run(self):
+        data = self.get_mat_data()
 
         dates = [d[0] for d in data]
         send = [d[1] for d in data]
@@ -154,5 +169,8 @@ class StockChecker:
 
 if __name__ == '__main__':
     # do_matplot(date.today(), date.today() + timedelta(days=6))
-    sc = StockChecker()
-    sc.run(date(2023, 4, 1), date(2023, 7, 1))
+    sc = StockChecker(
+        # start_date=date(2023, 4, 1),
+        # end_date=date(2023, 7, 1)
+    )
+    sc.run()

@@ -1,10 +1,41 @@
+import time
 from datetime import date, timedelta
 from pprint import pprint
 
-from amherst.stockcheck import daterang_gen, hires_out_array, send_on_array
+import pytest
+
+from amherst.stockcheck import StockChecker, daterang_gen, hires_out_array, send_on_array, good_hires_in_range_array
 from pycommence import FilterArray
 
 DATECHECK = date.today()
+
+
+def pyc_hire_old():
+    from pycommence import PyCommence
+    from pycommence.cursor import get_csr
+    csr = get_csr('Hire')
+    if not csr.db_name == 'Radios':
+        raise ValueError('Expected Radio DB')
+    return PyCommence(csr=csr)
+
+
+def pyc_hire_new():
+    from pycommence.pyc2 import PyCommence
+    start_date = date(2023, 4, 1)
+    end_date = date(2023, 7, 1)
+
+    filter_array = good_hires_in_range_array(start_date, end_date)
+
+    pycmc = PyCommence.with_csr('Hire', filter_array=filter_array)
+    if not pycmc.cmc_wrapper.name == 'Radios':
+        raise ValueError('Expected Radio DB')
+    return pycmc
+
+
+@pytest.fixture(scope='session', params=[pyc_hire_old, pyc_hire_new])
+def pyc_hire_prm(request):
+    param = request.param
+    return param()
 
 
 def test_daterange():
@@ -24,3 +55,14 @@ def test_hires_out_array():
     arr = hires_out_array(DATECHECK)
     pprint(arr.filters)
     assert isinstance(arr, FilterArray)
+
+
+def test_sc(pyc_hire_prm):
+    starttime = time.perf_counter()
+    sc = StockChecker(
+        pycmc=pyc_hire_prm,
+    )
+    # data = sc.get_mat_data()
+    endtime = time.perf_counter()
+    print(f'Elapsed time: {endtime - starttime}')
+    assert sc
