@@ -18,7 +18,7 @@ from amherst.config import settings
 from amherst.db import get_session
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
-from pycommence import PyCommence
+from pycommence.bench.pycommence_v1 import PyCommenceV1
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models import pf_msg
@@ -27,9 +27,6 @@ from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment import (
     Shipment,
-    Shipment,
-    ShipmentAwayCollection,
-    ShipmentAwayDropoff,
     ShipmentReferenceFields, to_dropoff, to_collection,
 )
 from shipaw.models.pf_top import Contact, ContactCollection
@@ -79,7 +76,7 @@ def do_record_tracking(booking: BookingStateDB):
         else {HireFields.TRACK_OUTBOUND: tracking_link, HireFields.ARRANGED_OUTBOUND: True}
     )
 
-    with PyCommence.from_table_name_context(table_name=booking.record.category) as py_cmc:
+    with PyCommenceV1.from_table_name_context(table_name=booking.record.category) as py_cmc:
         py_cmc.edit_record(booking.record.name, row_dict=cmc_package)
     booking.tracking_logged = True
     logger.debug(f'Logged {str(cmc_package)} to Commence')

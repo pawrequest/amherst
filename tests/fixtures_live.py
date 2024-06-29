@@ -8,16 +8,16 @@ from amherst.commence import initial_filter
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
-from pycommence import PyCommence
+from pycommence.bench.pycommence_v1 import PyCommenceV1
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE
 
 
 @pytest.fixture(
     params=['Hire', 'Sale'],
 )
-def pycmc(request) -> PyCommence:
+def pycmc(request) -> PyCommenceV1:
     table = request.param
-    with PyCommence.from_table_name_context(table, filter_array=initial_filter(table)) as cmc:
+    with PyCommenceV1.from_table_name_context(table, filter_array=initial_filter(table)) as cmc:
         logger.info(f'testing against {cmc.row_count} {table} records')
         yield cmc
 

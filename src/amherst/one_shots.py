@@ -174,10 +174,10 @@ def cust_array():
 
 def pyc_test():
     pyc2 = PyCommence.with_csr('Hire')
-    pyc2.filter_cursor('Hire', good_hires_array())
+    pyc2.filter_cursor(good_hires_array(), 'Hire')
     assert pyc2.csrs['Hire'].row_count > 0
     pyc2.set_csr('Customer')
-    pyc2.filter_cursor('Customer', cust_array())
+    pyc2.filter_cursor(cust_array(), 'Customer')
     assert pyc2.csrs['Customer'].row_count > 0
 
 

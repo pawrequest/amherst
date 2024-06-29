@@ -10,12 +10,12 @@ DATECHECK = date.today()
 
 
 def pyc_hire_old():
-    from pycommence import PyCommence
+    from pycommence.bench.pycommence_v1 import PyCommenceV1
     from pycommence.cursor import get_csr
     csr = get_csr('Hire')
     if not csr.db_name == 'Radios':
         raise ValueError('Expected Radio DB')
-    return PyCommence(csr=csr)
+    return PyCommenceV1(csr=csr)
 
 
 def pyc_hire_new():
