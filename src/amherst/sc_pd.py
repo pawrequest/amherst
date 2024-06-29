@@ -36,108 +36,6 @@ def good_hires_in_range_array(start_date: date, end_date: date, radiotype=RadioT
     )
 
 
-#
-# class StockChecker:
-#     def __init__(self, pycmc=None, start_date: date = date.today(), end_date: date = date.today() + timedelta(days=6)):
-#         self.pycommence = pycmc or PyCommence.with_csr(
-#             'Hire',
-#             filter_array=good_hires_in_range_array(start_date, end_date)
-#         )
-#         self.start_date = start_date
-#         self.end_date = end_date
-#         self.date_range_gen = daterang_gen(start_date, end_date)
-#         self.data = self._load_data()
-#
-#     def _load_data(self):
-#         records = self.pycommence.records()
-#         return pd.DataFrame(records)
-#
-#     def to_send(self, datecheck: date, radiotype=RadioType.HYT):
-#         """How many radios to send on a given date"""
-#         filtered_data = self.data[
-#             (self.data[HireFields.SEND_OUT_DATE] == datecheck.isoformat()) &
-#             (self.data[HireFields.RADIO_TYPE] == radiotype)
-#             ]
-#         return filtered_data[HireFields.UHF].astype(int).sum()
-#
-#     def how_many_in(self, datecheck: date, radiotype=RadioType.HYT, stock: int = 500):
-#         filtered_data = self.data[
-#             (self.data[HireFields.SEND_OUT_DATE] < datecheck.isoformat()) &
-#             (self.data[HireFields.DUE_BACK_DATE] > datecheck.isoformat()) &
-#             (self.data[HireFields.RADIO_TYPE] == radiotype)
-#             ]
-#         rads_out = filtered_data[HireFields.UHF].astype(int).sum()
-#         return stock - rads_out
-#
-#     def get_mat_data(self):
-#         data = []
-#         for datecheck in self.date_range_gen:
-#             send = self.to_send(datecheck)
-#             rads_in = self.how_many_in(datecheck)
-#             data.append((datecheck, send, rads_in))
-#         return data
-#
-#     def run(self):
-#         data = self.get_mat_data()
-#
-#         dates = [d[0] for d in data]
-#         send = [d[1] for d in data]
-#         radios_in = [d[2] for d in data]
-#
-#         ax1 = plt.gca()
-#         ax2 = ax1.twinx()
-#
-#         # Plotting the data
-#         plt.figure(figsize=(14, 7))
-#
-#         ax2.set_ylim(0, max(send) * 1.1)
-#         plt.sca(ax2)
-#         plt.bar(dates, send, width=0.4, color='blue', label='Send Quantity', alpha=0.7)
-#
-#         plt.sca(ax1)
-#         plt.plot(dates, radios_in, label='Stock Level', color='green', marker='o')
-#
-#         ax1.set_xticks(dates)
-#         ax1.set_xticklabels([datey.strftime('%a %d %b') for datey in dates], rotation=90, ha='right')
-#
-#         ax1.xaxis.set_major_locator(mdates.DayLocator(interval=3))
-#         ax1.xaxis.set_major_formatter(mdates.ConciseDateFormatter(ax1.xaxis.get_major_locator()))
-#         plt.gcf().autofmt_xdate()
-#
-#         ax1.set_xlabel('Date')
-#         ax1.set_ylabel('Stock Remaining')
-#         ax2.set_ylabel('Send Out Quantity')
-#
-#         plt.legend(loc='upper left')
-#         plt.grid(True)
-#         plt.show()
-
-# ax1 = plt.gca()
-# ax2 = ax1.twinx()
-#
-# plt.figure(figsize=(14, 7))
-#
-# ax2.set_ylim(0, max(send) * 1.1)
-# plt.sca(ax2)
-# plt.bar(dates, send, width=0.4, color='blue', label='Send Quantity', alpha=0.7)
-#
-# plt.sca(ax1)
-# plt.plot(dates, radios_in, label='Stock Level', color='green', marker='o')
-#
-# ax1.set_xticks(dates)
-# ax1.set_xticklabels([datey.strftime('%a %d %b') for datey in dates], rotation=90, ha='right')
-#
-# ax1.xaxis.set_major_locator(mdates.DayLocator(interval=3))
-# ax1.xaxis.set_major_formatter(mdates.ConciseDateFormatter(ax1.xaxis.get_major_locator()))
-# plt.gcf().autofmt_xdate()
-#
-# ax1.set_xlabel('Date')
-# ax1.set_ylabel('Stock Remaining')
-# ax2.set_ylabel('Send Out Quantity')
-#
-# plt.legend(loc='upper left')
-# plt.grid(True)
-# plt.show()
 
 class StockChecker:
     def __init__(
@@ -247,7 +145,8 @@ class StockChecker:
 
 if __name__ == '__main__':
     sc = StockChecker(
-        start_date=date(2021, 4, 1),
+        radiotype=RadioType.HYT,
+        start_date=date(2018, 4, 1),
         end_date=date(2024, 7, 1),
     )
     sc.run()
