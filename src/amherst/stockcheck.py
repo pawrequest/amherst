@@ -114,19 +114,14 @@ class StockChecker:
         return recs
 
     def get_mat_data(self):
-        data = []
-        for datecheck in self.date_range_gen:
-            print(f'Checking {datecheck.strftime("%a %d %b")}')
-            send = self.to_send(datecheck)
-            print(f'To Send: {send}')
-            rads_in = self.how_many_in(datecheck)
-            print(f'Stock = {rads_in}')
-            data.append((datecheck, send, rads_in))
-        return data
+        return [(datecheck, self.to_send(datecheck), self.how_many_in(datecheck)) for datecheck in self.date_range_gen]
+
 
     def run(self):
         data = self.get_mat_data()
 
+        # dates, send, radios_in = zip(*data, strict=True)
+        #
         dates = [d[0] for d in data]
         send = [d[1] for d in data]
         radios_in = [d[2] for d in data]

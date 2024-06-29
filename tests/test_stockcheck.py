@@ -1,12 +1,10 @@
 import time
 from datetime import date, timedelta
-from pprint import pprint
 
 import pytest
 
-from amherst.stockcheck import StockChecker, daterang_gen, hires_out_array, send_on_array, good_hires_in_range_array
+from amherst.stockcheck import StockChecker, good_hires_in_range_array, hires_out_array, send_on_array
 from pycommence import FilterArray
-from pycommence.wrapper.enums_cmc import CursorType
 
 DATECHECK = date.today()
 
@@ -63,6 +61,8 @@ def test_sc(pyc_hire_prm):
     starttime = time.perf_counter()
     sc = StockChecker(
         pycmc=pyc_hire_prm,
+        start_date=date(2023, 4, 1),
+        end_date=date(2023, 7, 1),
     )
     # data = sc.get_mat_data()
     endtime = time.perf_counter()

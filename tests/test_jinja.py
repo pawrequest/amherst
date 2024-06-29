@@ -10,26 +10,34 @@ from pydantic import BaseModel
 
 from amherst.models.db_models import BookingStateDB
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import ShipmentAwayCollection, ShipmentAwayDropoff
+from shipaw.models.pf_shipment import to_collection, to_dropoff
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
 from amherst.routes_test import PostForm
 
+
 b_fxt = booking_mock_db
+
+# @pytest.mark.usefixtures('booking_mock_db')
+# @pytest_asyncio.fixture(scope='session')
+# async def b_fxt() -> BookingStateDB:
+#     return booking_mock_db
 
 
 # b_fxt = random_booking_in_db
 
 @pytest_asyncio.fixture(scope='session')
 async def away_collect_fxt(b_fxt):
-    return ShipmentAwayCollection.from_shipment(b_fxt.shipment_request)
+    return to_collection(b_fxt.shipment_request)
+    # return ShipmentAwayCollection.from_shipment(b_fxt.shipment_request)
 
 
 @pytest_asyncio.fixture(scope='session')
-async def away_dropoff_fxt(b_fxt):
-    return ShipmentAwayDropoff.from_shipment(b_fxt.shipment_request)
+async def away_dropoff_fxt(b_fxt: BookingStateDB):
+    return to_dropoff(b_fxt.shipment_request)
+    # return ShipmentAwayDropoff.from_shipment(b_fxt.shipment_request)
 
 
 def test_health(test_client):
@@ -156,6 +164,8 @@ async def test_post_form(test_client, b_fxt: BookingStateDB):
 def test_dropoff_post(test_client, away_dropoff_fxt):
     form_data = away_dropoff_fxt.model_dump()
     form_flat = dict(flatten_to_str_tups(form_data))
+    form_flat['booking_id'] = 1
+    form_flat['direction'] = ShipDirection.Dropoff
     valid_form = PostForm.model_validate(form_flat)
     json_form = jsonable_encoder(valid_form)
     assert valid_form

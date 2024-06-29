@@ -175,7 +175,7 @@ def get_customer_table(customer: str) -> AmherstTable:
     logger.debug(f'Getting customer record for {customer}')
     try:
         with PyCommence.from_table_name_context(table_name='Customer') as py_cmc:
-            rec = py_cmc.one_record(, customer
+            rec = py_cmc.one_record(customer)
             rec['category'] = 'Customer'
             return get_am_record(rec)
     except Exception as e:

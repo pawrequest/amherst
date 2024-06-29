@@ -30,7 +30,7 @@ from shipaw.models.pf_shipment import (
     Shipment,
     ShipmentAwayCollection,
     ShipmentAwayDropoff,
-    ShipmentReferenceFields,
+    ShipmentReferenceFields, to_dropoff, to_collection,
 )
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
@@ -242,9 +242,10 @@ async def shipment_request_f_form(
         total_number_of_parcels=total_number_of_parcels,
     )
     if direction == ShipDirection.Dropoff:
-        shipment_request = ShipmentAwayDropoff.from_shipment(shipment_request)
+        shipment_request = to_dropoff(shipment_request)
+        # shipment_request = ShipmentAwayDropoff.from_shipment(shipment_request)
     elif direction == ShipDirection.Inbound:
-        shipment_request = ShipmentAwayCollection.from_shipment(shipment_request, own_label=own_label)
+        shipment_request = to_collection(shipment_request, own_label=own_label)
 
     for fieldname, value in notes:
         setattr(shipment_request, fieldname, value)

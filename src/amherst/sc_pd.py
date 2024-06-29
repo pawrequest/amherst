@@ -1,3 +1,5 @@
+import functools
+import time
 from collections.abc import Generator
 from datetime import date, timedelta
 
@@ -19,37 +21,16 @@ def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
         yield thisdate
 
 
-def good_hires_fils():
-    return (
-        CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-    )
-
-
-def good_hires_in_range_array(start_date: date, end_date: date, radiotype=RadioType.HYT):
-    return FilterArray.from_filters(
-        *good_hires_fils(),
-        CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
-        CmcFilter(cmc_col=HireFields.DUE_BACK_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
-        CmcFilter(cmc_col=HireFields.RADIO_TYPE, condition=ConditionType.EQUAL, value=radiotype),
-    )
-
-
-
 class StockChecker:
     def __init__(
             self, pycmc=None, radiotype: RadioType = RadioType.HYT,
             start_date: date = date.today(), end_date: date = date.today() + timedelta(days=6)
     ):
-        self.pycommence = pycmc or PyCommence.with_csr(
-            'Hire',
-            filter_array=good_hires_in_range_array(start_date, end_date)
-        )
         self.radiotype = radiotype
         self.start_date = start_date
         self.end_date = end_date
         self.date_range_gen = daterang_gen(start_date, end_date)
+        self.pycommence = pycmc or PyCommence.with_csr('Hire', filter_array=self.filters)
         self.data = self._prepare_data()
 
     def _prepare_data(self):
@@ -67,6 +48,25 @@ class StockChecker:
         )
         df[HireFields.UHF] = df[HireFields.UHF].astype(int)
         return df
+
+    @property
+    def filters(self):
+        return FilterArray.from_filters(
+            CmcFilter(cmc_col=HireFields.RADIO_TYPE, condition=ConditionType.EQUAL, value=self.radiotype),
+            CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
+            CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+            CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+            CmcFilter(
+                cmc_col=HireFields.SEND_OUT_DATE,
+                condition=ConditionType.BEFORE,
+                value=to_cmc_date(self.end_date)
+            ),
+            CmcFilter(
+                cmc_col=HireFields.SEND_OUT_DATE,
+                condition=ConditionType.AFTER,
+                value=to_cmc_date(self.start_date)
+            ),
+        )
 
     def run(self):
         dates = list(self.date_range_gen)
@@ -86,29 +86,25 @@ class StockChecker:
         self.plot_data(data_df)
 
     def to_send(self, datecheck: date):
-        filtered_data = self.data[
-            (self.data[HireFields.SEND_OUT_DATE].dt.date == datecheck) &
-            (self.data[HireFields.RADIO_TYPE] == self.radiotype)
-            ]
+        filtered_data = self.data[(self.data[HireFields.SEND_OUT_DATE].dt.date == datecheck)]
         return filtered_data[HireFields.UHF].sum()
+
+    @functools.lru_cache
+    def how_many_out(self, datecheck):
+        filtered_data = self.data[
+            (self.data[HireFields.SEND_OUT_DATE].dt.date < datecheck) &
+            (self.data[HireFields.DUE_BACK_DATE].dt.date > datecheck)
+            ]
+        rads_out = filtered_data[HireFields.UHF].sum()
+        return rads_out
 
     def how_many_in(self, datecheck: date, stock: int = 500):
         rads_out = self.how_many_out(datecheck)
         return stock - rads_out
 
-    def how_many_out(self, datecheck):
-        filtered_data = self.data[
-            (self.data[HireFields.SEND_OUT_DATE].dt.date < datecheck) &
-            (self.data[HireFields.DUE_BACK_DATE].dt.date > datecheck) &
-            (self.data[HireFields.RADIO_TYPE] == self.radiotype)
-            ]
-        rads_out = filtered_data[HireFields.UHF].sum()
-        return rads_out
-
     def plot_data(self, data_df):
         dates = data_df['Date']
         send = data_df['Send']
-        radios_in = data_df['Stock']
         radios_out = data_df['Out']
 
         ax1 = plt.gca()
@@ -119,7 +115,7 @@ class StockChecker:
 
         ax2.set_ylim(0, max(send) * 1.1)
         plt.sca(ax2)
-        plt.bar(dates, send, width=0.4, color='blue', label='Send Quantity', alpha=0.7)
+        plt.bar(dates, send, width=2, color='blue', label='Send Quantity', alpha=0.7)
 
         plt.sca(ax1)
         plt.plot(dates, radios_out, label='Rads Out', color='green', marker='o')
@@ -144,9 +140,13 @@ class StockChecker:
 
 
 if __name__ == '__main__':
+    starttime = time.perf_counter()
     sc = StockChecker(
-        radiotype=RadioType.HYT,
-        start_date=date(2018, 4, 1),
-        end_date=date(2024, 7, 1),
+        radiotype=RadioType.K_VHF,
+        start_date=date(2023, 4, 1),
+        end_date=date(2023, 7, 1),
     )
     sc.run()
+    endtime = time.perf_counter()
+    print(f'THERE WERE {len(sc.data)} RECORDS')
+    print(f'Elapsed time: {endtime - starttime}')
