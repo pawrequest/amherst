@@ -86,7 +86,7 @@ def custom_date_formatter(x, pos):
 
 
 class StockChecker:
-    def __init__(self, pycmc=None, start_date: date = date.today(), end_date: date = date.today() + timedelta(days=6)):
+    def __init__(self, start_date: date, end_date: date, pycmc=None):
         self.pycommence = pycmc or PyCommence.with_csr(
             'Hire',
             filter_array=good_hires_in_range_array(start_date, end_date)
@@ -161,5 +161,8 @@ class StockChecker:
 
 
 if __name__ == '__main__':
-    sc = StockChecker()
+    sc = StockChecker(
+        start_date=date(2023, 4, 1),
+        end_date=date(2023, 7, 1),
+    )
     sc.run()
