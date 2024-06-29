@@ -65,13 +65,6 @@ def hires_out_array(datecheck: date, radiotype=RadioType.HYT):
     )
 
 
-# def how_many_out(datecheck: date):
-#     out_filter = hires_out_array(datecheck)
-#     recs = get_records(out_filter)
-#     rads_out = sum([int(rec.get(HireFields.UHF)) for rec in recs])
-#     return rads_out
-
-
 def rads_in_rec(rec):
     return int(rec.get(HireFields.UHF))
 
@@ -168,9 +161,5 @@ class StockChecker:
 
 
 if __name__ == '__main__':
-    # do_matplot(date.today(), date.today() + timedelta(days=6))
-    sc = StockChecker(
-        # start_date=date(2023, 4, 1),
-        # end_date=date(2023, 7, 1)
-    )
+    sc = StockChecker()
     sc.run()

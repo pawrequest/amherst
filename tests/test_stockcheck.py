@@ -6,6 +6,7 @@ import pytest
 
 from amherst.stockcheck import StockChecker, daterang_gen, hires_out_array, send_on_array, good_hires_in_range_array
 from pycommence import FilterArray
+from pycommence.wrapper.enums_cmc import CursorType
 
 DATECHECK = date.today()
 
@@ -26,13 +27,14 @@ def pyc_hire_new():
 
     filter_array = good_hires_in_range_array(start_date, end_date)
 
+    # pycmc = PyCommence.with_csr('paul hires', mode=CursorType.VIEW)
     pycmc = PyCommence.with_csr('Hire', filter_array=filter_array)
     if not pycmc.cmc_wrapper.name == 'Radios':
         raise ValueError('Expected Radio DB')
     return pycmc
 
 
-@pytest.fixture(scope='session', params=[pyc_hire_old, pyc_hire_new])
+@pytest.fixture(scope='session', params=[pyc_hire_new])
 def pyc_hire_prm(request):
     param = request.param
     return param()
@@ -41,19 +43,19 @@ def pyc_hire_prm(request):
 def test_daterange():
     start_date = date.today()
     end_date = start_date + timedelta(days=3)
-    for i in daterang_gen(start_date, end_date):
-        print(i)
+    # for i in daterang_gen(start_date, end_date):
+    #     print(i)
 
 
 def test_send_on_array():
     arr = send_on_array(DATECHECK)
-    pprint(arr.filters)
+    # print([fil for fil in arr.filters.values()])
     assert isinstance(arr, FilterArray)
 
 
 def test_hires_out_array():
     arr = hires_out_array(DATECHECK)
-    pprint(arr.filters)
+    # print([fil for fil in arr.filters.values()])
     assert isinstance(arr, FilterArray)
 
 
@@ -64,5 +66,6 @@ def test_sc(pyc_hire_prm):
     )
     # data = sc.get_mat_data()
     endtime = time.perf_counter()
+    print(f'THERE WERE {len(sc.data)} RECORDS')
     print(f'Elapsed time: {endtime - starttime}')
     assert sc
