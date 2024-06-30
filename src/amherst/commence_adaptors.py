@@ -3,8 +3,11 @@ from __future__ import annotations
 import functools
 from datetime import date
 from enum import Enum, StrEnum
+from typing import Annotated
 
-from pycommence.pycmc_types import CmcFilter, ConditionType, Connection, FilterArray, to_cmc_date
+import pydantic as _p
+
+from pycommence.pycmc_types import CmcFilter, ConditionType, Connection, FilterArray, to_cmc_date, get_cmc_date
 
 SALE_CUSTOMERS = Connection(
     name='SaleCustomers',
@@ -444,3 +447,9 @@ def get_customer_alias(field_name: str) -> str:
 
 def get_sale_alias(field_name: str) -> str:
     return SALE_FIELDS_MAP.get(field_name, '')
+
+
+AM_DATE = Annotated[
+    date,
+    _p.BeforeValidator(get_cmc_date),
+]

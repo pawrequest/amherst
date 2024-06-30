@@ -1,11 +1,10 @@
 # from __future__ import annotations
 
 import sqlmodel as sqm
-from pawdantic.pawsql import required_json_field, optional_json_field
+from pawdantic.pawsql import optional_json_field
 
 from amherst.models.am_record import AmherstRecord, EmailOption
 from shipaw.models.booking_states import BookingState
-
 
 
 class BookingStateDB(BookingState, table=True):

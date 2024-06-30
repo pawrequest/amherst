@@ -9,16 +9,9 @@ from pydantic import BaseModel, ConfigDict
 from sqlmodel import SQLModel
 
 from amherst.commence_adaptors import get_customer_alias, get_hire_alias, get_sale_alias
-from amherst.importer import split_addr_str
-from amherst.models.db_models import BookingStateDB
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models.pf_shipment import Shipment, to_collection, to_dropoff
 from shipaw.ship_types import limit_daterange_no_weekends
-
-AM_DATE = Annotated[
-    date,
-    _p.BeforeValidator(get_cmc_date),
-]
 
 SHIP_DATE = Annotated[
     date,
@@ -29,6 +22,17 @@ AM_SHIP_DATE = Annotated[
     SHIP_DATE,
     _p.BeforeValidator(get_cmc_date),
 ]
+
+
+def split_addr_str(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    used_lines = [_ for _ in addr_lines if _]
+    town = used_lines.pop() if len(used_lines) > 1 else ''
+    return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
 
 
 class AmherstTableEnum(str, Enum):
@@ -136,7 +140,7 @@ class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
     row_id: str = sqlmodel.Field(primary_key=True)
 
 
-def get_am_record_smpl(data: dict[str, str]) -> AmherstTableDB:
+def get_amrec_db_smpl(data: dict[str, str]) -> AmherstTableDB:
     match data['category']:
         case AmherstTableEnum.Hire:
             res = AmherstHireIn.model_validate(data)
@@ -147,8 +151,3 @@ def get_am_record_smpl(data: dict[str, str]) -> AmherstTableDB:
         case _:
             raise ValueError(f'Unknown table {data['categor']}')
     return AmherstTableDB.model_validate(res, from_attributes=True)
-
-
-def amrec_booking(amrec: AmherstTableDB):
-    bk = {'shipment_request': amrec.shipment_dict}
-    return BookingStateDB.model_validate(bk)

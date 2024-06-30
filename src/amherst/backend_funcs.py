@@ -16,7 +16,6 @@ from suppawt.office_ps.email_handler import Email
 from amherst.commence_adaptors import HireAliases
 from amherst.config import settings
 from amherst.db import get_session
-from amherst.models.am_record import AmherstRecord
 from amherst.models.am_record_smpl import AmherstTableDB
 from amherst.models.db_models import BookingStateDB
 from pycommence.pycommence_v2 import PyCommence
@@ -140,6 +139,7 @@ async def amgen_from_path(row_id: str = Path(), session: Session = Depends(get_s
         raise ValueError(f'No record found with id {row_id}')
     return ret
 
+
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
     label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
     for i in range(20):
@@ -152,16 +152,16 @@ def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
         raise ValueError(f'file not created after 20 seconds {label_path=}')
 
 
-async def get_invoice_path(record: AmherstRecord) -> pathlib.Path | None:
-    if record.category == 'Customer':
-        raise ValueError('invoice not for customer')
-    return record.invoice_path
-
-
-async def get_missing(record: AmherstRecord) -> list[str]:
-    if not record.category == 'Hire':
-        raise ValueError('missing kit only for hire')
-    return record.missing_kit()
+# async def get_invoice_path(record: AmherstRecord) -> pathlib.Path | None:
+#     if record.category == 'Customer':
+#         raise ValueError('invoice not for customer')
+#     return record.invoice_path
+# 
+# 
+# async def get_missing(record: AmherstRecord) -> list[str]:
+#     if not record.category == 'Hire':
+#         raise ValueError('missing kit only for hire')
+#     return record.missing_kit()
 
 
 async def address_f_form(

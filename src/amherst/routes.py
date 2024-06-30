@@ -28,7 +28,6 @@ from amherst.backend_funcs import (
     shipment_request_f_form,
 )
 from amherst.db import get_el_client, get_el_client_non_strict, get_session
-from amherst.importer import amrec_to_booking
 from amherst.models.am_record_smpl import AmherstTableDB
 from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types

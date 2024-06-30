@@ -25,7 +25,7 @@ from loguru import logger
 from amherst.commence_adaptors import initial_filter
 from amherst.db import create_db, get_session_cm
 from amherst import app_file
-from amherst.models.am_record_smpl import AmherstTableDB, get_am_record_smpl
+from amherst.models.am_record_smpl import AmherstTableDB, get_amrec_db_smpl
 from pycommence.pycommence_v2 import PyCommence
 
 CATEGORY = 'Hire'
@@ -39,7 +39,7 @@ async def main():
         with get_session_cm() as session:
             for record in py_cmc.generate_records_ids():
                 record['category'] = CATEGORY
-                am_table_in = get_am_record_smpl(record)
+                am_table_in = get_amrec_db_smpl(record)
                 if indb := session.get(AmherstTableDB, am_table_in.row_id):
                     [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
                 else:

@@ -6,7 +6,7 @@ import pytest_asyncio
 from loguru import logger
 
 from amherst.commence_adaptors import initial_filter
-from amherst.models.am_record_smpl import AmherstTableBase, amrec_booking, get_am_record_smpl, AmherstTableDB
+from amherst.models.am_record_smpl import AmherstTableBase, amrec_booking, get_amrec_db_smpl, AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models.pf_shipment import Shipment
 
@@ -27,7 +27,7 @@ async def amrec(pycmc: PyCommence):
     logger.info(f'testing {record["Name"]}')
     record['category'] = pycmc.get_csr().category
     pprint(record)
-    amrec = get_am_record_smpl(record)
+    amrec = get_amrec_db_smpl(record)
     return amrec
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from amherst.models import db_models
 from amherst.models.am_record import AmherstRecord, AmherstRecordIn
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddTypes, AddressTemporary, AddressChoice
+from shipaw.models.pf_models import AddTypes, AddressChoice
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipmentType
 
@@ -23,8 +23,8 @@ def split_reference_numbers(record: AmherstRecord):
 
 
 def amherst_shipment_request(
-    record: AmherstRecord,
-    address: AddTypes,
+        record: AmherstRecord,
+        address: AddTypes,
 ) -> Shipment:
     return Shipment(
         recipient_contact=record.contact(),
