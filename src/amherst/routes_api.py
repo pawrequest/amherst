@@ -21,8 +21,8 @@ async def ping():
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
 async def fetch_candidates(
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(get_el_client),
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -30,18 +30,18 @@ async def fetch_candidates(
 
 @router.post('/shiprec', response_class=JSONResponse)
 async def shiprec_post(
-    shipment_request: Shipment = Depends(shipment_request_f_form),
+        shipment_request: Shipment = Depends(shipment_request_f_form),
 ) -> Shipment:
-    logger.info(shipment_request.notifications_str)
+    logger.info(shipment_request.recipient_contact.notifications)
+    # logger.info(shipment_request.notifications_str)
     return shipment_request
 
 
 @router.post('/confirm_booking', response_class=JSONResponse)
 async def confirm_outbound(
-    shipment: Shipment,
-    el_client: ELClient = Depends(get_el_client),
+        shipment: Shipment,
+        el_client: ELClient = Depends(get_el_client),
 ) -> ShipmentResponse:
-    logger.info(shipment.notifications_str)
     if isinstance(shipment, ShipmentAwayCollection):
         logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
 
@@ -50,8 +50,8 @@ async def confirm_outbound(
 
 @router.post('/confirm_away_collect', response_class=JSONResponse)
 async def confirm_away_collect(
-    shipment: ShipmentAwayCollection,
-    el_client: ELClient = Depends(get_el_client),
+        shipment: ShipmentAwayCollection,
+        el_client: ELClient = Depends(get_el_client),
 ) -> ShipmentResponse:
     logger.info(shipment.notifications_str)
     logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
@@ -60,8 +60,8 @@ async def confirm_away_collect(
 
 @router.post('/confirm_away_dropoff', response_class=JSONResponse)
 async def confirm_away_dropoff(
-    shipment: ShipmentAwayDropoff,
-    el_client: ELClient = Depends(get_el_client),
+        shipment: ShipmentAwayDropoff,
+        el_client: ELClient = Depends(get_el_client),
 ) -> ShipmentResponse:
     logger.info(shipment.notifications_str)
     logger.info(shipment.sender_contact.contact_name)
@@ -70,6 +70,12 @@ async def confirm_away_dropoff(
 
 @router.get('/{booking_id}', response_class=JSONResponse)
 async def fetch_booking(
-    booking: BookingStateDB = Depends(booking_f_path),
+        booking: BookingStateDB = Depends(booking_f_path),
 ) -> BookingStateDB:
     return booking
+
+# @router.get('/amrec/{row_id}', response_model=AmherstTable)
+# async def fetch_amrec(
+#     amrec: AmherstTable = Depends(amgen_from_path),
+# ) -> AmherstGeneric:
+#     return amrec

@@ -46,11 +46,10 @@ async def test_retrieve_random_booking(test_client, b_fxt: BookingStateDB):
 async def away_collect_fxt(b_fxt):
     outfxt = b_fxt.copy()
     outfxt.shipment_request = to_collection(b_fxt.shipment_request)
-    # outfxt.shipment_request = ShipmentAwayCollection.from_shipment(b_fxt.shipment_request)
-    outfxt = outfxt.model_validate(outfxt)
-    # outfxt.shipment_request.recipient_contact.notifications = None
     outfxt.shipment_request.recipient_contact.email_address = FAKE_EMAIL
     outfxt.shipment_request.recipient_contact.mobile_phone = FAKE_PHONE
+    outfxt.shipment_request.collection_info.collection_contact.email_address = FAKE_EMAIL
+    outfxt.shipment_request.collection_info.collection_contact.mobile_phone = FAKE_PHONE
     return outfxt
 
 
@@ -58,7 +57,6 @@ async def away_collect_fxt(b_fxt):
 async def away_dropoff_fxt(b_fxt: BookingStateDB):
     outfxt = b_fxt.copy()
     outfxt.shipment_request = to_dropoff(b_fxt.shipment_request)
-    # outfxt.shipment_request = ShipmentAwayDropoff.from_shipment(b_fxt.shipment_request)
     outfxt.shipment_request.recipient_contact.email_address = FAKE_EMAIL
     outfxt.shipment_request.recipient_contact.mobile_phone = FAKE_PHONE
     return outfxt

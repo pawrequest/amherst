@@ -1,19 +1,21 @@
 # from __future__ import annotations
 
 import sqlmodel as sqm
-from pawdantic.pawsql import required_json_field
+from pawdantic.pawsql import required_json_field, optional_json_field
 
 from amherst.models.am_record import AmherstRecord, EmailOption
 from shipaw.models.booking_states import BookingState
 
 
+
 class BookingStateDB(BookingState, table=True):
     id: int | None = sqm.Field(default=None, primary_key=True)
-    record: AmherstRecord = required_json_field(AmherstRecord)
+    record: AmherstRecord | None = optional_json_field(AmherstRecord)
 
     # @property
     def all_alerts(self):
-        return [_ for _ in self.response.alerts.alert] if self.response and self.response.alerts else [] + self.record.alerts.alert if self.record.alerts else []
+        return [_ for _ in
+                self.response.alerts.alert] if self.response and self.response.alerts else [] + self.record.alerts.alert if self.record.alerts else []
 
     @property
     def email_options(self):

@@ -1,5 +1,4 @@
 # from __future__ import annotations
-import functools
 from datetime import date
 from enum import StrEnum
 from typing import Annotated
@@ -10,7 +9,8 @@ from loguru import logger
 from pawdantic.pawsql import default_json_field
 from pydantic import AliasChoices, ConfigDict, Field
 
-from amherst.commence_adaptors import CustomerFields
+from amherst.commence_adaptors import CustomerAliases
+from amherst.importer import split_addr_str
 from pycommence.pycmc_types import get_cmc_date
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models import pf_lists, pf_models, pf_top
@@ -60,13 +60,14 @@ class AmherstRecordIn(sqm.SQLModel):
     track_out: str | None = Field(None, alias='Track Outbound')
     address_choice: AddressChoice | None = None
 
-    @functools.cached_property
+    @property
     def email_options(self):
+        cust = self.customer_record()
         email_dict = {
-            self.customer_record().get(CustomerFields.ACCOUNTS_EMAIL): ('accounts', 'Customer Accounts'),
-            self.customer_record().get(CustomerFields.PRIMARY_EMAIL): ('primary', 'Customer Primary'),
-            self.customer_record().get(CustomerFields.DELIVERY_EMAIL): ('cust_del', 'Customer Default Delivery'),
-            self.customer_record().get(CustomerFields.INVOICE_EMAIL): ('invoice', 'Customer Invoice'),
+            cust.get(CustomerAliases.ACCOUNTS_EMAIL): ('accounts', 'Customer Accounts'),
+            cust.get(CustomerAliases.PRIMARY_EMAIL): ('primary', 'Customer Primary'),
+            cust.get(CustomerAliases.DELIVERY_EMAIL): ('cust_del', 'Customer Default Delivery'),
+            cust.get(CustomerAliases.INVOICE_EMAIL): ('invoice', 'Customer Invoice'),
             self.email: ('rec_del', f'{self.category.title()} Delivery'),
         }
         options = [
@@ -82,7 +83,7 @@ class AmherstRecordIn(sqm.SQLModel):
     @property
     def input_address(self):
         return pf_models.AddressRecipient(
-            **addr_town_lines_maybe(self.address_str),
+            **split_addr_str(self.address_str),
             postcode=self.postcode,
         )
 
@@ -114,6 +115,11 @@ class AmherstRecord(AmherstRecordIn):
     send_date: date
 
 
+# class AmherstRecordDB(AmherstRecord, table=True):
+#     id: int | None = sqlmodel.Field(default=None, primary_key=True)
+#     address_choice: AddressChoice | None = optional_json_field(AddressChoice)
+
+
 def addr_lines_dict_am(address: str) -> dict[str, str]:
     addr_lines = address.splitlines()
     if len(addr_lines) < 3:
@@ -123,26 +129,6 @@ def addr_lines_dict_am(address: str) -> dict[str, str]:
     return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
 
 
-def addr_town_lines_maybe(address: str) -> dict[str, str]:
-    addr_lines = address.splitlines()
-    if len(addr_lines) < 3:
-        addr_lines.extend([''] * (3 - len(addr_lines)))
-    elif len(addr_lines) > 3:
-        addr_lines[2] = ','.join(addr_lines[2:])
-    used_lines = [_ for _ in addr_lines if _]
-    town = used_lines.pop() if len(used_lines) > 1 else ''
-    return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
-
-
-def get_email(fields_enum, record):
-    return (
-            record.get(fields_enum.DELIVERY_EMAIL)
-            or record.get(fields_enum.PRIMARY_EMAIL)
-            or r'EMAIL_NOT_FOUND@FILLMEIN.COM'
-    )
-
-
-@functools.lru_cache
 def get_customer_record(customer: str) -> dict[str, str]:
     """Get a customer record from `:class:PyCommence`"""
     logger.debug(f'Getting customer record for {customer}')

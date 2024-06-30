@@ -10,7 +10,7 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from pawlogger import get_loguru
 
-from amherst.commence_adaptors import HireFields, initial_filter
+from amherst.commence_adaptors import HireAliases, initial_filter
 from pycommence.pycmc_types import CmcDateFormat, RadioType
 from pycommence.pycommence_v2 import PyCommence
 
@@ -19,17 +19,17 @@ logger = get_loguru(profile='local')
 
 def prep_df(records):
     df = pd.DataFrame(records)
-    df[HireFields.SEND_OUT_DATE] = pd.to_datetime(
-        df[HireFields.SEND_OUT_DATE],
+    df[HireAliases.SEND_OUT_DATE] = pd.to_datetime(
+        df[HireAliases.SEND_OUT_DATE],
         format=CmcDateFormat,
         errors='coerce'
     )
-    df[HireFields.DUE_BACK_DATE] = pd.to_datetime(
-        df[HireFields.DUE_BACK_DATE],
+    df[HireAliases.DUE_BACK_DATE] = pd.to_datetime(
+        df[HireAliases.DUE_BACK_DATE],
         format=CmcDateFormat,
         errors='coerce'
     )
-    df[HireFields.UHF] = df[HireFields.UHF].astype(int)
+    df[HireAliases.UHF] = df[HireAliases.UHF].astype(int)
     return df
 
 
@@ -82,16 +82,16 @@ class StockChecker:
         self.plot_data(data_df)
 
     def to_send(self, datecheck: date):
-        filtered_data = self.data[(self.data[HireFields.SEND_OUT_DATE].dt.date == datecheck)]
-        return filtered_data[HireFields.UHF].sum()
+        filtered_data = self.data[(self.data[HireAliases.SEND_OUT_DATE].dt.date == datecheck)]
+        return filtered_data[HireAliases.UHF].sum()
 
     @functools.lru_cache
     def how_many_out(self, datecheck):
         filtered_data = self.data[
-            (self.data[HireFields.SEND_OUT_DATE].dt.date < datecheck) &
-            (self.data[HireFields.DUE_BACK_DATE].dt.date > datecheck)
+            (self.data[HireAliases.SEND_OUT_DATE].dt.date < datecheck) &
+            (self.data[HireAliases.DUE_BACK_DATE].dt.date > datecheck)
             ]
-        rads_out = filtered_data[HireFields.UHF].sum()
+        rads_out = filtered_data[HireAliases.UHF].sum()
         return rads_out
 
     def how_many_in(self, datecheck: date, stock: int = 500):

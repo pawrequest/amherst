@@ -16,6 +16,7 @@ from urllib3.exceptions import ConnectTimeoutError
 
 from amherst.backend_funcs import (
     TEMPLATES,
+    amgen_from_path,
     book_shipment,
     booking_f_form,
     booking_f_path,
@@ -27,8 +28,9 @@ from amherst.backend_funcs import (
     shipment_request_f_form,
 )
 from amherst.db import get_el_client, get_el_client_non_strict, get_session
+from amherst.importer import amrec_to_booking
+from amherst.models.am_record_smpl import AmherstTableDB
 from amherst.models.db_models import BookingStateDB
-from amherst.models.multi_check import MultiDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_msg import Alert
@@ -38,10 +40,33 @@ from shipaw.ship_types import AlertType, ExpressLinkError
 router = APIRouter()
 
 
+@router.get('/amrec/{row_id}', response_class=HTMLResponse)
+async def fetch_amrec(
+        request: Request,
+        amrec: AmherstTableDB = Depends(amgen_from_path),
+) -> HTMLResponse:
+    return TEMPLATES.TemplateResponse('record_detail.html', {'request': request, 'record': amrec})
+
+
+# @router.get('/getform/{row_id}', response_class=HTMLResponse)
+# async def get_form_row_id(
+#         request: Request,
+#         amrec: AmherstTable = Depends(amgen_from_path),
+#         el_client: ELClient = Depends(get_el_client_non_strict),
+# ):
+#     booking = amrec_to_booking(amrec)
+#     addr_choices = el_client.get_choices(
+#         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
+#     )
+#     logger.warning(f'address_choice = {booking.record.address_choice}')
+#     return TEMPLATES.TemplateResponse(
+#         'shipping_form.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
+#     )
+
 @router.get('/multi', response_class=HTMLResponse)
 async def multi_shipper(request: Request, session=Depends(get_session)):
-    multi = session.query(MultiDB).first()
-    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'multi': multi})
+    records = session.query(AmherstTableDB).all()
+    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'records': records})
 
 
 @router.get('/fail/{alert}', response_class=HTMLResponse)

@@ -204,6 +204,7 @@ sale_record_xmpl = {
     'Has Document Log': '',
     'Outbound ID': '',
     'category': 'Sale',
+    'DB label printed': 'FALSE',
 }
 
 

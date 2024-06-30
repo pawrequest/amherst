@@ -26,7 +26,7 @@ def pycmc(request) -> PyCommence:
 async def random_amrec(pycmc) -> AmherstRecord:
     record = random.choice(pycmc.records())
     logger.info(f'testing {record["Name"]}')
-    record['category'] = pycmc.csr.category
+    record['category'] = pycmc.get_csr().category
     amrec = await cmc_record_to_amrec(record)
     amrec.telephone = FAKE_PHONE
     amrec.email = FAKE_EMAIL

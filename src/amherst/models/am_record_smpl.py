@@ -1,18 +1,18 @@
 # from __future__ import annotations
-import functools
-import typing
-from abc import ABC
-from copy import copy
 from datetime import date
-from enum import Enum, StrEnum
-from functools import cached_property
-from typing import Annotated, Self
+from enum import Enum
+from typing import Annotated
 
 import pydantic as _p
-from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field
+import sqlmodel
+from pydantic import BaseModel, ConfigDict
+from sqlmodel import SQLModel
 
+from amherst.commence_adaptors import get_customer_alias, get_hire_alias, get_sale_alias
+from amherst.importer import split_addr_str
+from amherst.models.db_models import BookingStateDB
 from pycommence.pycmc_types import get_cmc_date
+from shipaw.models.pf_shipment import Shipment, to_collection, to_dropoff
 from shipaw.ship_types import limit_daterange_no_weekends
 
 AM_DATE = Annotated[
@@ -31,64 +31,63 @@ AM_SHIP_DATE = Annotated[
 ]
 
 
-class AmherstTableEnum(StrEnum):
+class AmherstTableEnum(str, Enum):
     Hire = 'Hire'
     Sale = 'Sale'
     Customer = 'Customer'
 
 
-class AmherstTableEnum2(str, Enum):
-    Hire = 'Hire'
-    Sale = 'Sale'
-    Customer = 'Customer'
-
-
-class AmherstTable(BaseModel, ABC):
+class AmherstTableBase(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
         validate_default=True,
     )
-    name: str = Field('', alias='Name')
-    category: AmherstTableEnum2
+    # fields for all
+    name: str
+    category: AmherstTableEnum
+    row_id: str
 
-    customer_name: str
+    customer_name: str = ''
 
-    contact_contact_name: str
-    contact_business_name: str
-    contact_mobile_phone: str
-    contact_email_address: str
+    delivery_contact_name: str
+    delivery_contact_business: str
+    delivery_contact_phone: str
+    delivery_contact_email: str
 
-    str_address: str
-    address_postcode: str
+    delivery_address_str: str
+    delivery_address_pc: str
 
-    shipment_shipping_date: AM_SHIP_DATE = Field(date.today(), alias='Send Out Date')
-    shipment_total_number_of_parcels: int = Field(1, alias='Boxes')
+    # fields for customers
+    invoice_email: str = ''
+    accounts_email: str = ''
 
-    customer_record: Self | None = None
+    # fields for orders
+    boxes: int = 1
+    send_date: SHIP_DATE = date.today()
+    invoice: str = ''
+    track_out: str = ''
+    track_in: str = ''
+    arranged_out: bool = False
+    arranged_in: bool = False
+    delivery_method: str = ''
 
-    @_p.model_validator(mode='after')
-    def val_customer_record(self):
-        if self.customer_record is None:
-            self.customer_record = copy(self) if self.category == 'Customer' else get_customer_table(self.customer_name)
-        return self
+    # fields for hires
+    missing_kit_str: str = ''
 
-    @cached_property
+    @property
     def contact_dict(self) -> dict:
-        return {k.replace('contact_', '', 1): v for k, v in self.model_dump(exclude={'customer_record'}).items() if
-                k.startswith('contact_')}
-
-    @cached_property
-    def address_dict(self) -> dict:
         return {
-            **addr_town_lines_maybe(self.str_address),
-            'postcode': self.address_postcode,
+            'contact_name': self.delivery_contact_name,
+            'business_name': self.delivery_contact_business,
+            'mobile_phone': self.delivery_contact_phone,
+            'email_address': self.delivery_contact_email,
         }
 
-    @cached_property
-    def shipment_details(self):
+    @property
+    def address_dict(self) -> dict:
         return {
-            k.replace('shipment_', '', 1): v for k, v in self.model_dump(exclude={'customer_record'}).items() if
-            k.startswith('shipment_')
+            **split_addr_str(self.delivery_address_str),
+            'postcode': self.delivery_address_pc,
         }
 
     @property
@@ -96,121 +95,60 @@ class AmherstTable(BaseModel, ABC):
         return {
             'recipient_address': self.address_dict,
             'recipient_contact': self.contact_dict,
-            **self.shipment_details
+            'total_number_of_parcels': self.boxes,
+            'shipping_date': self.send_date,
         }
 
+    def to_outbound(self):
+        return Shipment.model_validate(self.shipment_dict)
 
-class AmherstCustomerIn(AmherstTable):
-    customer_name: str = Field('', alias='Name')
+    def to_inbound(self):
+        ship = Shipment.model_validate(self.shipment_dict)
+        return to_collection(ship)
 
-    contact_contact_name: str = Field('', alias='Deliv Contact')
-    contact_business_name: str = Field('', alias='Deliv Name')
-    contact_mobile_phone: str = Field('', alias='Deliv Tel')
-    contact_email_address: str = Field('', alias='Deliv Email')
-
-    str_address: str = Field('', alias='Deliv Address')
-    address_postcode: str = Field('', alias='Deliv Postcode')
-
-    invoice_email_address: str = Field('', alias='Invoice Email')
-    default_email_address: str = Field('', alias='Default Email')
-    accounts_email_address: str = Field('', alias='Accounts Email')
+    def to_dropoff(self):
+        ship = Shipment.model_validate(self.shipment_dict)
+        return to_dropoff(ship)
 
 
-class AmherstOrderIn(AmherstTable):
-    customer_name: str = Field('', alias='To Customer')
-
-    contact_contact_name: str = Field('', alias='Delivery Contact')
-    contact_business_name: str = Field('', alias='Delivery Name')
-    contact_email_address: str = Field('', alias='Delivery Email')
-    contact_mobile_phone: str
-
-    str_address: str = Field('', alias='Delivery Address')
-    address_postcode: str = Field('', alias='Delivery Postcode')
-
-    delivery_method: str = Field('', alias='Delivery Method')
-    arranged_in: bool = Field(False, alias='Pickup Arranged')
-    arranged_out: bool = Field(False, alias='DB label printed')
-    track_in: str = Field('', alias='Track Inbound')
-    track_out: str = Field('', alias='Track Outbound')
-
-    invoice_path: str = Field('', alias='Invoice')
+class AmherstCustomerIn(AmherstTableBase):
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=get_customer_alias
+    )
 
 
-class AmherstHireIn(AmherstOrderIn):
-    contact_mobile_phone: str = Field('', alias='Delivery Tel')
-    missing_kit_str: str = Field('', alias='Missing Kit')
+class AmherstHireIn(AmherstTableBase):
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=get_hire_alias
+    )
 
 
-class AmherstSaleIn(AmherstOrderIn):
-    contact_mobile_phone: str = Field('', alias='Delivery Telephone')
+class AmherstSaleIn(AmherstTableBase):
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=get_sale_alias
+    )
 
 
-def get_am_record(data: dict[str, str]) -> AmherstTable:
+class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
+    row_id: str = sqlmodel.Field(primary_key=True)
+
+
+def get_am_record_smpl(data: dict[str, str]) -> AmherstTableDB:
     match data['category']:
-        case AmherstTableEnum2.Hire:
-            return AmherstHireIn.model_validate(data)
-        case AmherstTableEnum2.Sale:
-            return AmherstSaleIn.model_validate(data)
-        case AmherstTableEnum2.Customer:
-            return AmherstCustomerIn.model_validate(data)
+        case AmherstTableEnum.Hire:
+            res = AmherstHireIn.model_validate(data)
+        case AmherstTableEnum.Sale:
+            res = AmherstSaleIn.model_validate(data)
+        case AmherstTableEnum.Customer:
+            res = AmherstCustomerIn.model_validate(data)
         case _:
             raise ValueError(f'Unknown table {data['categor']}')
+    return AmherstTableDB.model_validate(res, from_attributes=True)
 
 
-def addr_town_lines_maybe(address: str) -> dict[str, str]:
-    addr_lines = address.splitlines()
-    if len(addr_lines) < 3:
-        addr_lines.extend([''] * (3 - len(addr_lines)))
-    elif len(addr_lines) > 3:
-        addr_lines[2] = ','.join(addr_lines[2:])
-    used_lines = [_ for _ in addr_lines if _]
-    town = used_lines.pop() if len(used_lines) > 1 else ''
-    return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
-
-
-@functools.lru_cache
-def get_customer_table(customer: str) -> AmherstTable:
-    """Get a customer record from `:class:PyCommence`"""
-    logger.debug(f'Getting customer record for {customer}')
-    try:
-        with PyCommence.with_csr(csrname='Customer') as py_cmc:
-            rec = py_cmc.one_record(customer)
-            rec['category'] = 'Customer'
-            return get_am_record(rec)
-    except Exception as e:
-        logger.error(f'Error getting customer record for {customer}')
-        logger.exception(e)
-        raise
-
-
-class AmherstGenericIn(AmherstOrderIn):
-    name: str
-    category: AmherstTableEnum2
-
-    customer_name: str
-
-    contact_contact_name: str
-    contact_business_name: str
-    contact_mobile_phone: str
-    contact_email_address: str
-
-    str_address: str
-    address_postcode: str
-
-    shipment_shipping_date: date
-    shipment_total_number_of_parcels: int = 1
-
-    customer_record: typing.Self
-
-    delivery_method: str = ''
-    arranged_in: bool = False
-    arranged_out: bool = False
-    track_in: str = ''
-    track_out: str = ''
-
-    invoice_path: str = ''
-    missing_kit_str: str = ''
-
-    # invoice_email_address: str
-    # default_email_address: str
-    # accounts_email_address: str
+def amrec_booking(amrec: AmherstTableDB):
+    bk = {'shipment_request': amrec.shipment_dict}
+    return BookingStateDB.model_validate(bk)

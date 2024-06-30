@@ -81,6 +81,11 @@ h1 {
     font-size: 1.4rem;
 }
 
+.ship-form {
+    display: flex;
+    flex-direction: column;
+}
+
 .wrapper {
     display: grid;
     border-radius: 1rem;
@@ -171,6 +176,7 @@ span {
 
 
 }
+
 .high-score {
     background-color: var(--clr-success);
 }
@@ -182,6 +188,7 @@ span {
 .low-score {
     background-color: var(--clr-danger);
 }
+
 .inputs__notes {
     grid-area: notes;
 }

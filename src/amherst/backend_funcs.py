@@ -13,10 +13,11 @@ from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
-from amherst.commence_adaptors import HireFields
+from amherst.commence_adaptors import HireAliases
 from amherst.config import settings
 from amherst.db import get_session
 from amherst.models.am_record import AmherstRecord
+from amherst.models.am_record_smpl import AmherstTableDB
 from amherst.models.db_models import BookingStateDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw import ship_types
@@ -43,6 +44,7 @@ def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentRespo
             raise NotImplementedError(noted)
         if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
             logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
+            logger.debug(f'Notifications: {shipment_request.notifications_str}')
     return resp
 
 
@@ -65,12 +67,12 @@ def do_record_tracking(booking: BookingStateDB):
     tracking_link = booking.response.tracking_link()
     cmc_package = (
         {
-            HireFields.TRACK_INBOUND: tracking_link,
-            HireFields.ARRANGED_INBOUND: True,
-            HireFields.PICKUP_DATE: f'{booking.shipment_request.shipping_date:%Y-%m-%d}',
+            HireAliases.TRACK_INBOUND: tracking_link,
+            HireAliases.ARRANGED_INBOUND: True,
+            HireAliases.PICKUP_DATE: f'{booking.shipment_request.shipping_date:%Y-%m-%d}',
         }
         if booking.direction in ['in', 'dropoff']
-        else {HireFields.TRACK_OUTBOUND: tracking_link, HireFields.ARRANGED_OUTBOUND: True}
+        else {HireAliases.TRACK_OUTBOUND: tracking_link, HireAliases.ARRANGED_OUTBOUND: True}
     )
 
     with PyCommence.with_csr(csrname=booking.record.category) as py_cmc:
@@ -131,6 +133,12 @@ async def booking_f_path(booking_id: int = Path(), session: Session = Depends(ge
         raise ValueError(f'No booking found with id {booking_id}')
     return booking
 
+
+async def amgen_from_path(row_id: str = Path(), session: Session = Depends(get_session)) -> AmherstTableDB:
+    ret = session.get(AmherstTableDB, row_id)
+    if not isinstance(ret, AmherstTableDB):
+        raise ValueError(f'No record found with id {row_id}')
+    return ret
 
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
     label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()

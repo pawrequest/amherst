@@ -9,6 +9,7 @@ import sqlmodel as sqm
 from loguru import logger
 
 from amherst.config import settings
+from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
 
@@ -32,6 +33,10 @@ def get_session_cm(engine=None):
     with sqm.Session(engine) as session:
         yield session
     session.close()
+
+
+def get_a_pycmc(csrname: str):
+    return PyCommence.with_csr(csrname=csrname)
 
 
 def get_el_client() -> ELClient:

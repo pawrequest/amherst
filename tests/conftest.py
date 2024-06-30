@@ -8,10 +8,7 @@ from amherst.app_file import app
 from amherst.db import get_session
 from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSandboxSettings, pf_sandbox_sett
-# from .fixtures_live import pycmc, random_amrec, random_booking, random_booking_in_db
-# from .fixtures_mock import address_xmpl, amrec_mock, booking_mock_db, booking_mock_fxt, contact_xmpl
 
-#
 DB_FILE = 'sqlite:///test.db'
 DB_MEMORY = 'sqlite:///:memory:'
 

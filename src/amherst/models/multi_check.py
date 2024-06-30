@@ -6,7 +6,7 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict
 from sqlalchemy import Column, JSON
 from sqlmodel import Field, SQLModel
 
-from amherst.commence_adaptors import CustomerFields, HireFields, SaleFields
+from amherst.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
 
 
 def dataframe_to_json(v) -> str:
@@ -36,11 +36,11 @@ class Multi2(BaseModel):
 @functools.lru_cache
 def get_enum_key(category: str):
     if category == 'Customer':
-        return CustomerFields
+        return CustomerAliases
     elif category == 'Hire':
-        return HireFields
+        return HireAliases
     elif category == 'Sale':
-        return SaleFields
+        return SaleAliases
     else:
         raise ValueError(f'Invalid category: {category}')
 

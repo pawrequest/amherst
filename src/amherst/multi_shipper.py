@@ -18,40 +18,34 @@ Environment variables:
 
 """
 import asyncio
-import os
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
-from amherst.commence_adaptors import initial_filter, HireFields
+from amherst.commence_adaptors import initial_filter
 from amherst.db import create_db, get_session_cm
-from amherst.config import settings
 from amherst import app_file
-from amherst.models.multi_check import ARecord, ARecordDB
+from amherst.models.am_record_smpl import AmherstTableDB, get_am_record_smpl
 from pycommence.pycommence_v2 import PyCommence
+
+CATEGORY = 'Hire'
 
 
 async def main():
+
     create_db()
-    print('Template directory:', os.path.abspath(settings().base_dir / 'front' / 'templates'))
-    category = 'Hire'
-    fiter_array = initial_filter(category)
     try:
-        py_cmc = PyCommence.with_csr(csrname='Hire', filter_array=fiter_array)
+        py_cmc = PyCommence.with_csr(csrname=CATEGORY, filter_array=initial_filter(CATEGORY))
         with get_session_cm() as session:
-            for record in py_cmc.generate_records():
-                arecord = ARecord(
-                    category=category,
-                    data=record,
-                )
-                arecord_db = ARecordDB.model_validate(arecord, from_attributes=True)
-                session.add(arecord_db)
-        session.commit()
-        # records = py_cmc.records()
-        # df = prep_df(records)
-        # multi = Multi(category=category, df=df)
-        # multi_db = MultiDB.model_validate(multi, from_attributes=True)
-        # logger.info(f'{len(df)} records found from filters = {fiter_array}')
+            for record in py_cmc.generate_records_ids():
+                record['category'] = CATEGORY
+                am_table_in = get_am_record_smpl(record)
+                if indb := session.get(AmherstTableDB, am_table_in.row_id):
+                    [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
+                else:
+                    indb = AmherstTableDB(**am_table_in.model_dump())
+                session.add(indb)
+            session.commit()
 
         fui = FlaskUI(
             fullscreen=True,
