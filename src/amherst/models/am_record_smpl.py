@@ -12,7 +12,6 @@ import pydantic as _p
 from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field
 
-from pycommence.bench.pycommence_v1 import PyCommenceV1
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.ship_types import limit_daterange_no_weekends
 
@@ -174,7 +173,7 @@ def get_customer_table(customer: str) -> AmherstTable:
     """Get a customer record from `:class:PyCommence`"""
     logger.debug(f'Getting customer record for {customer}')
     try:
-        with PyCommenceV1.from_table_name_context(table_name='Customer') as py_cmc:
+        with PyCommence.with_csr(csrname='Customer') as py_cmc:
             rec = py_cmc.one_record(customer)
             rec['category'] = 'Customer'
             return get_am_record(rec)

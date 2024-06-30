@@ -4,22 +4,15 @@ from datetime import date, timedelta
 import pytest
 
 from amherst.stockcheck import StockChecker, good_hires_in_range_array, hires_out_array, send_on_array
-from pycommence import FilterArray
+from pycommence.pycmc_types import FilterArray
+from pycommence.pycommence_v2 import PyCommence
 
 DATECHECK = date.today()
 
 
-def pyc_hire_old():
-    from pycommence.bench.pycommence_v1 import PyCommenceV1
-    from pycommence.cursor import get_csr
-    csr = get_csr('Hire')
-    if not csr.db_name == 'Radios':
-        raise ValueError('Expected Radio DB')
-    return PyCommenceV1(csr=csr)
 
 
 def pyc_hire_new():
-    from pycommence.pyc2 import PyCommence
     start_date = date(2023, 4, 1)
     end_date = date(2023, 7, 1)
 

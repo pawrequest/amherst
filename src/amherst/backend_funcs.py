@@ -13,22 +13,19 @@ from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
-from amherst.commence import HireFields
+from amherst.commence_adaptors import HireFields
 from amherst.config import settings
 from amherst.db import get_session
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
-from pycommence.bench.pycommence_v1 import PyCommenceV1
+from pycommence.pycommence_v2 import PyCommence
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import (
-    Shipment,
-    ShipmentReferenceFields, to_dropoff, to_collection,
-)
+from shipaw.models.pf_shipment import (Shipment, ShipmentReferenceFields, to_collection, to_dropoff)
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
 
@@ -76,7 +73,7 @@ def do_record_tracking(booking: BookingStateDB):
         else {HireFields.TRACK_OUTBOUND: tracking_link, HireFields.ARRANGED_OUTBOUND: True}
     )
 
-    with PyCommenceV1.from_table_name_context(table_name=booking.record.category) as py_cmc:
+    with PyCommence.with_csr(csrname=booking.record.category) as py_cmc:
         py_cmc.edit_record(booking.record.name, row_dict=cmc_package)
     booking.tracking_logged = True
     logger.debug(f'Logged {str(cmc_package)} to Commence')
@@ -160,12 +157,12 @@ async def get_missing(record: AmherstRecord) -> list[str]:
 
 
 async def address_f_form(
-    address_line1: str = Form(...),
-    address_line2: str = Form(''),
-    address_line3: str = Form(''),
-    town: str = Form(...),
-    postcode: VALID_POSTCODE = Form(...),
-    direction: ShipDirection = Form(...),
+        address_line1: str = Form(...),
+        address_line2: str = Form(''),
+        address_line3: str = Form(''),
+        town: str = Form(...),
+        postcode: VALID_POSTCODE = Form(...),
+        direction: ShipDirection = Form(...),
 ):
     logger.debug(
         f'Address fields received: {direction=}, {address_line1=}, {address_line2=}, {address_line3=}, {town=}, {postcode=}'
@@ -184,12 +181,12 @@ async def address_f_form(
 
 
 async def contact_f_form(
-    request: Request,
-    contact_name: str = Form(...),
-    email_address: EmailStr = Form(...),
-    business_name: str = Form(...),
-    mobile_phone: str = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
+        request: Request,
+        contact_name: str = Form(...),
+        email_address: EmailStr = Form(...),
+        business_name: str = Form(...),
+        mobile_phone: str = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
 ):
     logger.debug(f'form received: {await request.form()}')
     logger.debug(
@@ -219,15 +216,15 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 
 async def shipment_request_f_form(
-    request: Request,
-    contact: Contact = Depends(contact_f_form),
-    address: AddressCollection = Depends(address_f_form),
-    notes: list[tuple[str, str]] = Depends(notes_f_form),
-    shipping_date: date = Form(...),
-    total_number_of_parcels: int = Form(...),
-    service_code: ServiceCode = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    own_label: str = Form(...),
+        request: Request,
+        contact: Contact = Depends(contact_f_form),
+        address: AddressCollection = Depends(address_f_form),
+        notes: list[tuple[str, str]] = Depends(notes_f_form),
+        shipping_date: date = Form(...),
+        total_number_of_parcels: int = Form(...),
+        service_code: ServiceCode = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
+        own_label: str = Form(...),
 ) -> Shipment:
     logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'

@@ -23,40 +23,35 @@ import os
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
-from amherst.db import get_session_cm
-from amherst.commence import (
-    INITIAL_HIRE_FILTER,
-)
-from amherst.importer import amrec_to_booking, cmc_record_to_amrec
-# from amherst.models.am_record import AmherstRecordDB
-from pycommence.bench.pycommence_v1 import PyCommenceV1
+from amherst.commence_adaptors import initial_filter, HireFields
+from amherst.db import create_db, get_session_cm
 from amherst.config import settings
 from amherst import app_file
+from amherst.models.multi_check import ARecord, ARecordDB
+from pycommence.pycommence_v2 import PyCommence
 
 
 async def main():
-    # CoInitialize()
-    alert = None
-    booking = None
-    am_db.create_db()
-    print("Template directory:", os.path.abspath(settings().base_dir / 'front' / 'templates'))
-
+    create_db()
+    print('Template directory:', os.path.abspath(settings().base_dir / 'front' / 'templates'))
+    category = 'Hire'
+    fiter_array = initial_filter(category)
     try:
-        with PyCommenceV1.from_table_name_context(table_name='Hire') as py_cmc:
-            records = py_cmc.records_by_array(INITIAL_HIRE_FILTER)
-        logger.info(f'{len(records)} records found from filters = {INITIAL_HIRE_FILTER}')
-
-        bookings = []
-        for record in records:
-            record['category'] = 'Hire'
-            amrec = await cmc_record_to_amrec(record)
-            booking = await amrec_to_booking(amrec)
-            bookings.append(booking)
-
+        py_cmc = PyCommence.with_csr(csrname='Hire', filter_array=fiter_array)
         with get_session_cm() as session:
-            session.add_all(bookings)
-            session.commit()
-            logger.info(f'Added {len(bookings)} bookings to database')
+            for record in py_cmc.generate_records():
+                arecord = ARecord(
+                    category=category,
+                    data=record,
+                )
+                arecord_db = ARecordDB.model_validate(arecord, from_attributes=True)
+                session.add(arecord_db)
+        session.commit()
+        # records = py_cmc.records()
+        # df = prep_df(records)
+        # multi = Multi(category=category, df=df)
+        # multi_db = MultiDB.model_validate(multi, from_attributes=True)
+        # logger.info(f'{len(df)} records found from filters = {fiter_array}')
 
         fui = FlaskUI(
             fullscreen=True,

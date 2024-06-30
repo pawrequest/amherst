@@ -1,3 +1,9 @@
-{% for booking in bookings %}
-    <p> {{ booking.record.name }}</p>
+{#{% for record in multi.df %}#}
+{#    <div class="record">#}
+{#    </div>#}
+{#{% endfor %}#}
+
+{% set df = multi.df %}
+{% for record in multi %}
+    <p>{{ record }}</p>
 {% endfor %}

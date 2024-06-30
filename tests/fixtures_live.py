@@ -4,20 +4,20 @@ import pytest
 import pytest_asyncio
 from loguru import logger
 
-from amherst.commence import initial_filter
+from amherst.commence_adaptors import initial_filter
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
-from pycommence.bench.pycommence_v1 import PyCommenceV1
+from pycommence.pycommence_v2 import PyCommence
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE
 
 
 @pytest.fixture(
     params=['Hire', 'Sale'],
 )
-def pycmc(request) -> PyCommenceV1:
+def pycmc(request) -> PyCommence:
     table = request.param
-    with PyCommenceV1.from_table_name_context(table, filter_array=initial_filter(table)) as cmc:
+    with PyCommence.with_csr(table, filter_array=initial_filter(table)) as cmc:
         logger.info(f'testing against {cmc.row_count} {table} records')
         yield cmc
 

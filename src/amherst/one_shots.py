@@ -147,7 +147,7 @@
 #     do_matplot(date.today(), date.today() + timedelta(days=3))
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
-from amherst.commence import CustomerFields, HireFields, HireStatus
+from amherst.commence_adaptors import CustomerFields, HireFields, HireStatus
 from pycommence.pyc2 import PyCommence
 from pycommence.pycmc_types import CmcFilter, ConditionType, FilterArray
 

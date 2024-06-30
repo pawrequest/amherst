@@ -10,9 +10,9 @@ from loguru import logger
 from pawdantic.pawsql import default_json_field
 from pydantic import AliasChoices, ConfigDict, Field
 
-from amherst.commence import CustomerFields
-from pycommence.bench.pycommence_v1 import PyCommenceV1
+from amherst.commence_adaptors import CustomerFields
 from pycommence.pycmc_types import get_cmc_date
+from pycommence.pycommence_v2 import PyCommence
 from shipaw.models import pf_lists, pf_models, pf_top
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import Alert, Alerts
@@ -146,7 +146,7 @@ def get_email(fields_enum, record):
 def get_customer_record(customer: str) -> dict[str, str]:
     """Get a customer record from `:class:PyCommence`"""
     logger.debug(f'Getting customer record for {customer}')
-    with PyCommenceV1.from_table_name_context(table_name='Customer') as py_cmc:
+    with PyCommence.with_csr(csrname='Customer') as py_cmc:
         rec = py_cmc.one_record(customer)
     return rec
 

@@ -28,10 +28,11 @@ from amherst.backend_funcs import (
 )
 from amherst.db import get_el_client, get_el_client_non_strict, get_session
 from amherst.models.db_models import BookingStateDB
+from amherst.models.multi_check import MultiDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_msg import Alert
-from shipaw.models.pf_shipment import Shipment, Shipment, ShipmentAwayCollection
+from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection
 from shipaw.ship_types import AlertType, ExpressLinkError
 
 router = APIRouter()
@@ -39,8 +40,8 @@ router = APIRouter()
 
 @router.get('/multi', response_class=HTMLResponse)
 async def multi_shipper(request: Request, session=Depends(get_session)):
-    bookings = session.query(BookingStateDB).all()
-    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'bookings': bookings})
+    multi = session.query(MultiDB).first()
+    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'multi': multi})
 
 
 @router.get('/fail/{alert}', response_class=HTMLResponse)
@@ -100,10 +101,10 @@ async def email(request: Request, booking_id: int = Form(...), session=Depends(g
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
-    request: Request,
-    booking: BookingStateDB = Depends(booking_f_form),
-    el_client: ELClient = Depends(get_el_client),
-    session: Session = Depends(get_session),
+        request: Request,
+        booking: BookingStateDB = Depends(booking_f_form),
+        el_client: ELClient = Depends(get_el_client),
+        session: Session = Depends(get_session),
 ):
     logger.info(f'Booking {booking.id} for {booking.record.name}.')
 
@@ -121,8 +122,8 @@ async def confirm_booking(
         booking.booked = True
         record_tracking(booking)
         if (
-            not isinstance(booking.shipment_request, ShipmentAwayCollection)
-            or booking.shipment_request.print_own_label is not False
+                not isinstance(booking.shipment_request, ShipmentAwayCollection)
+                or booking.shipment_request.print_own_label is not False
         ):
             await process_label(booking, el_client)
         # if booking.shipment_request.print_own_label is not False:
@@ -151,11 +152,11 @@ async def confirm_booking(
 
 @router.post('/post_form/', response_class=HTMLResponse)
 async def post_form(
-    request: Request,
-    direction: ship_types.ShipDirection = Form(...),
-    booking: BookingStateDB = Depends(booking_f_form),
-    shipment_request: Shipment = Depends(shipment_request_f_form),
-    session: Session = Depends(get_session),
+        request: Request,
+        direction: ship_types.ShipDirection = Form(...),
+        booking: BookingStateDB = Depends(booking_f_form),
+        shipment_request: Shipment = Depends(shipment_request_f_form),
+        session: Session = Depends(get_session),
 ):
     logger.info(f'Form Posted: {await request.form()}')
     try:
@@ -185,9 +186,9 @@ async def post_form(
 
 @router.get('/{booking_id}', response_class=HTMLResponse)
 async def index(
-    request: Request,
-    booking: BookingStateDB = Depends(booking_f_path),
-    el_client: ELClient = Depends(get_el_client_non_strict),
+        request: Request,
+        booking: BookingStateDB = Depends(booking_f_path),
+        el_client: ELClient = Depends(get_el_client_non_strict),
 ):
     addr_choices = el_client.get_choices(
         booking.shipment_request.recipient_address.postcode, booking.shipment_request.recipient_address
