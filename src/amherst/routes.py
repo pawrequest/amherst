@@ -14,10 +14,12 @@ from urllib3.exceptions import ConnectTimeoutError
 
 from amherst.backend_funcs import (
     TEMPLATES,
-    new_amrec_f_path, shipment_request_f_form,
+    new_amrec_f_path,
+    shipment_request_f_form,
 )
 from amherst.db import get_session
 from amherst.models.am_record_smpl import AmherstTableDB
+from amherst.multi_shipper import drop_all, import_cmc_data
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipDirection
 
@@ -26,8 +28,8 @@ router = APIRouter()
 
 @router.get('/get_shipment/{row_id}', response_class=HTMLResponse)
 async def fetch_amrec(
-        request: Request,
-        amrec: AmherstTableDB = Depends(new_amrec_f_path),
+    request: Request,
+    amrec: AmherstTableDB = Depends(new_amrec_f_path),
 ) -> HTMLResponse:
     return TEMPLATES.TemplateResponse('record_detail.html', {'request': request, 'record': amrec})
 
@@ -47,8 +49,11 @@ async def fetch_amrec(
 #         'shipping_form.html', {'request': request, 'booking': booking, 'candidates': addr_choices}
 #     )
 
+
 @router.get('/multi', response_class=HTMLResponse)
 async def multi_shipper(request: Request, session=Depends(get_session)):
+    await drop_all()
+    await import_cmc_data()
     records = session.query(AmherstTableDB).all()
     return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'records': records})
 
@@ -73,6 +78,7 @@ async def open_label(request: Request, label_path: str = Form(...)):
     os.startfile(label_path)
     return HTMLResponse(content=f'<p>Opened {label_path}</p>')
 
+
 # @router.post('/email', response_class=HTMLResponse)
 # async def email(request: Request, booking_id: int = Form(...), session=Depends(get_session)):
 #     """Endpoint to handle email options."""
@@ -81,7 +87,7 @@ async def open_label(request: Request, label_path: str = Form(...)):
 #     # addresses = [value for key, value in form_data.items() if value and key.startswith('email-')]
 #     addresses = form_data.getlist('email-options')
 #     addresses = '; '.join(addresses)
-# 
+#
 #     att_choices = [key.lstrip('att-') for key, value in form_data.items() if value and key.startswith('att-')]
 #     if invoice := 'invoice' in att_choices:
 #         logger.debug(f'fetching invoice path {booking.record.invoice_path}')
@@ -92,9 +98,9 @@ async def open_label(request: Request, label_path: str = Form(...)):
 #     if missing := 'missing' in att_choices:
 #         missing = booking.record.missing_kit()
 #         logger.debug(f'fetching missing kit data {missing}')
-# 
+#
 #     email_obj = await make_email(addresses, invoice, label, missing, booking)
-# 
+#
 #     try:
 #         emailer(email_obj, html=True)
 #     except EmailError as e:
@@ -115,7 +121,7 @@ async def open_label(request: Request, label_path: str = Form(...)):
 #         session: Session = Depends(get_session),
 # ):
 #     logger.info(f'Booking {booking.id} for {booking.record.name}.')
-# 
+#
 #     if booking.booked:
 #         alert = Alert(type=AlertType.WARNING, message=f'Already Booked {booking.record.name}')
 #         # booking.alerts.alert.append(alert)
@@ -124,7 +130,7 @@ async def open_label(request: Request, label_path: str = Form(...)):
 #         # return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
 #         logger.debug(f'Already booked, alerts = {booking.alerts}')
 #         return TEMPLATES.TemplateResponse('alerts_only.html', {'alerts': [alert], 'request': request})
-# 
+#
 #     try:
 #         booking.response = book_shipment(el_client, booking.shipment_request)
 #         booking.booked = True
@@ -139,12 +145,12 @@ async def open_label(request: Request, label_path: str = Form(...)):
 #         session.add(booking)
 #         session.commit()
 #         return TEMPLATES.TemplateResponse('order_confirmed.html', {'request': request, 'booking': booking})
-# 
+#
 #     except (ConnectTimeoutError, BackendError) as e:
 #         msg = f'Error: {e.__class__.__name__}. Connection Likely Timed Out.\n{str(e)}'
 #         logger.exception(msg)
 #         return f'<p>{msg}</p><p>Please refresh the page and try again</p>'
-# 
+#
 #     except ExpressLinkError as e:
 #         logger.exception(e)
 #         al = Alert.from_exception(e)
@@ -156,11 +162,11 @@ async def open_label(request: Request, label_path: str = Form(...)):
 #             return TEMPLATES.TemplateResponse('order_confirmed.html', {'request': request, 'booking': booking})
 #         # return TEMPLATES.TemplateResponse('alerts.html', {'request': request, 'booking':booking})
 #         return TEMPLATES.TemplateResponse('alerts_only.html', {'request': request, 'alerts': [al]})
-# 
-# 
+#
+#
 
 #
-# 
+#
 # @router.get('/{booking_id}', response_class=HTMLResponse)
 # async def index(
 #         request: Request,

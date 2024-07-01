@@ -36,7 +36,7 @@ async def amrec(pycmc: PyCommence):
 
 @pytest.fixture(params=[ShipDirection.Inbound, ShipDirection.Outbound, ShipDirection.Dropoff])
 def test_shipment(request, amrec):
-    """ Get a Shipment from the random fixture, parameterized for direction."""
+    """Get a Shipment from the random fixture, parameterized for direction."""
     direction = request.param
     ship = amrec.to_shipment(direction=direction)
     ship.recipient_contact.notifications = None
@@ -51,7 +51,7 @@ def test_shipment(request, amrec):
 
 
 def test_get_shipment(test_shipment: Shipment):
-    """ Test amrec and test_shipment fixtures. shows that importing random records yields valid Shipment instances."""
+    """Test amrec and test_shipment fixtures. shows that importing random records yields valid Shipment instances."""
     assert isinstance(test_shipment, Shipment)
 
 
@@ -76,8 +76,10 @@ def test_get_shipment_api(test_client: TestClient, session_with_amrec, direction
     ship = no_notifications(ship)
     assert isinstance(ship, Shipment)
     assert not any(
-        [ship.recipient_contact.notifications,
-         (ship.collection_info.collection_contact.notifications if ship.collection_info else None)]
+        [
+            ship.recipient_contact.notifications,
+            (ship.collection_info.collection_contact.notifications if ship.collection_info else None),
+        ]
     )
 
 
@@ -86,3 +88,21 @@ def no_notifications(ship: Shipment):
         ship.collection_info.collection_contact.notifications = None
     ship.recipient_contact.notifications = None
     return ship
+
+
+def test_gererate_with_ids(pycmc):
+    for rec in pycmc.generate_records_ids(count=10):
+        assert isinstance(rec, dict)
+
+
+def test_genids_add_sesh(test_session_fxt, pycmc):
+    csrname = pycmc.get_csr().category
+    for record in pycmc.generate_records_ids(count=10):
+        record['category'] = csrname
+        am_table_in = get_amrec_db_smpl(record)
+        if indb := test_session_fxt.get(AmherstTableDB, am_table_in.row_id):
+            [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
+        else:
+            indb = AmherstTableDB(**am_table_in.model_dump())
+        test_session_fxt.add(indb)
+    test_session_fxt.commit()

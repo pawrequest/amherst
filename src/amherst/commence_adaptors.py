@@ -266,19 +266,17 @@ class SaleAliases2(StrEnum):
 @functools.lru_cache
 def initial_filter(tablename: str) -> FilterArray:
     match tablename:
+        case 'sdfgdg':
+            ...
         case 'Hire':
-            fils = hires_in_range_fils(
-                date(2023, 5, 1), date(2023, 7, 31)
-            )
+            fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 7, 31))
 
         case 'Sale':
             fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='2 years ago'),)
         case 'Customer':
             fils = (
                 CmcFilter(
-                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED,
-                    condition=ConditionType.AFTER,
-                    value='2 years ago'
+                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2 years ago'
                 ),
             )
 
@@ -314,9 +312,8 @@ DELIV_FIELDS_MAP = {
     'delivery_contact_email': 'Deliv Email',
     'delivery_contact_business': 'Deliv Name',
     'delivery_contact_phone': 'Deliv Telephone',
-
     'delivery_address_str': 'Deliv Address',
-    'delivery_address_pc': 'Deliv Postcode'
+    'delivery_address_pc': 'Deliv Postcode',
 }
 
 DELIVERY_FIELDS_MAP = {
@@ -325,7 +322,7 @@ DELIVERY_FIELDS_MAP = {
     'delivery_contact_business': 'Delivery Name',
     'delivery_contact_phone': 'Delivery Telephone',
     'delivery_address_str': 'Delivery Address',
-    'delivery_address_pc': 'Delivery Postcode'
+    'delivery_address_pc': 'Delivery Postcode',
 }
 
 INVOICE_FIELDS_MAP = {
@@ -334,7 +331,7 @@ INVOICE_FIELDS_MAP = {
     'invoice_business': 'Invoice Name',
     'invoice_telephone': 'Invoice Telephone',
     'invoice_address_str': 'Invoice Address',
-    'invoice_postcode': 'Invoice Postcode'
+    'invoice_postcode': 'Invoice Postcode',
 }
 
 CUSTOMER_FIELDS_MAP = COMMON_FIELDS_MAP | INVOICE_FIELDS_MAP | DELIV_FIELDS_MAP
@@ -343,8 +340,7 @@ CUSTOMER_FIELDS_MAP.update(
         'customer_name': 'Name',
         'accounts_email': 'Accounts Email',
         'primary_email': 'Email',
-
-        'date_last_contact': 'Date Last Contact'
+        'date_last_contact': 'Date Last Contact',
     }
 )
 
@@ -358,7 +354,7 @@ ORDER_FIELDS_MAP.update(
         'track_in': 'Track Inbound',
         'status': 'Status',
         'invoice': 'Invoice',
-        'purchase_order': 'Purchase Order'
+        'purchase_order': 'Purchase Order',
     }
 )
 
@@ -374,7 +370,6 @@ HIRE_FIELDS_MAP.update(
         'send_date': 'Send Out Date',
         'arranged_in': 'Pickup Arranged',
         'boxes': 'Boxes',
-
         # unused unique to hire
         'actual_return_date': 'Actual Return Date',
         'aerial_adapt': 'Number Aerial Adapt',
@@ -435,7 +430,7 @@ SALE_FIELDS_MAP.update(
         'serial_numbers': 'Serial Numbers',
         'order_packed_by': 'Order Packed By',
         'order_taken_by': 'Order Taken By',
-        'delivery_notes': 'Delivery Notes'
+        'delivery_notes': 'Delivery Notes',
     }
 )
 

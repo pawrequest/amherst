@@ -497,11 +497,16 @@ select:focus {
 }
 
 .sidebar {
+    /*position: fixed;*/
+    /*top: 0;*/
+    /*left: 0;*/
+    width: 300px;
     display: flex;
     flex-direction: column;
     padding: 10px;
     background-color: #f9f9f9;
     gap: 10px;
+    overflow: hidden;
 }
 
 #searchInput {
@@ -512,6 +517,9 @@ select:focus {
 }
 
 #recordsContainer {
+    height: 100%;
+    /*height: calc(100vh - 2rem);*/
+
     flex: 1 1 auto;
     display: grid;
     grid-template-columns: 1fr;

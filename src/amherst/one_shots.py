@@ -9,12 +9,18 @@
 # from shipaw.pf_config import PFSettings
 #
 #
-# def expresslink_live():
-#     return ELClient(
-#         settings=PFSettings(
-#             _env_file=r'R:\paul_r\.internal\envs\pf_live.env',
-#         ),
-#     )
+from shipaw.expresslink_client import ELClient
+from shipaw.pf_config import PFSettings
+
+
+def expresslink_live():
+    return ELClient(
+        settings=PFSettings(
+            _env_file=r'R:\paul_r\.internal\envs\pf_live.env',
+        ),
+    )
+
+
 #
 #
 # # el_client = expresslink_live()
@@ -148,8 +154,8 @@
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
 from amherst.commence_adaptors import CustomerAliases, HireAliases, HireStatus
-from pycommence.pyc2 import PyCommence
 from pycommence.pycmc_types import CmcFilter, ConditionType, FilterArray
+from pycommence.pycommence_v2 import PyCommence
 
 
 def good_hires_fils():
@@ -182,4 +188,10 @@ def pyc_test():
 
 
 if __name__ == '__main__':
-    pyc_test()
+    el_client = expresslink_live()
+    resp = el_client.cancel_shipment('PBUD5990505001')
+    ...
+
+    # print(el_client.get_candidates('PE25 2QH'))
+
+# pyc_test()
