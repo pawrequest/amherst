@@ -264,9 +264,10 @@ class SaleAliases2(StrEnum):
 
 
 @functools.lru_cache
-def initial_filter(tablename: str) -> FilterArray:
-    match tablename:
-        case 'sdfgdg':
+def initial_filter(filtername: str) -> FilterArray:
+    match filtername:
+        case 'Hire Barcode':
+            fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 7, 31))
             ...
         case 'Hire':
             fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 7, 31))
@@ -281,7 +282,7 @@ def initial_filter(tablename: str) -> FilterArray:
             )
 
         case _:
-            raise ValueError(f'No initial filter for {tablename}')
+            raise ValueError(f'No filter for {filtername}')
 
     return FilterArray.from_filters(*fils)
 

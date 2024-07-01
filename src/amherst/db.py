@@ -6,10 +6,12 @@ import functools
 import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
+from comtypes import CoInitialize, CoUninitialize
 from loguru import logger
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session
 
+from amherst.commence_adaptors import initial_filter
 from amherst.config import settings
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
@@ -51,8 +53,16 @@ def get_temporary_session_cm(engine=None):
             SQLModel.metadata.drop_all(engine)
 
 
-def get_a_pycmc(csrname: str):
-    return PyCommence.with_csr(csrname=csrname)
+def get_pycmc() -> PyCommence:
+    CoInitialize()
+    pyc = PyCommence()
+    pyc.set_csr('Hire')
+    pyc.set_csr('Sale')
+    pyc.set_csr('Customer')
+    for cat in ['Hire', 'Sale', 'Customer']:
+        [pyc.filter_cursor(initial_filter(cat), csrname=cat)]
+    yield pyc
+    CoUninitialize()
 
 
 def get_el_client() -> ELClient:
