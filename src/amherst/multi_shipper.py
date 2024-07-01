@@ -30,9 +30,7 @@ from pycommence.pycommence_v2 import PyCommence
 
 CATEGORY = 'Hire'
 
-
 async def main():
-
     create_db()
     try:
         py_cmc = PyCommence.with_csr(csrname=CATEGORY, filter_array=initial_filter(CATEGORY))

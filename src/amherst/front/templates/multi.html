@@ -5,10 +5,27 @@
         <label for="searchInput">Search</label>
         <input type="text" id="searchInput" placeholder="Search records..." onkeyup="filterRecords()">
         <div id="recordsContainer">
+            {#            {% for record in records %}#}
+            {#                <div class="record">#}
+            {#                    <p hx-get="/amrec/{{ record.row_id }}" hx-trigger="click" hx-target="#recordDetail"#}
+            {#                       hx-swap="innerHTML">#}
+            {#                        {{ record.customer_name }}-{{ record.shipment_shipping_date }}#}
+            {#                    </p>#}
+            {#                </div>#}
+            {#            {% endfor %}#}
+
+            {#            {% for record in records %}#}
+            {#                <div class="record">#}
+            {#                    <p hx-get="/api/get_amrec/{{ record.row_id }}" hx-trigger="click"#}
+            {#                       hx-on="htmx:afterSwap:populateForm('{{ record.row_id }}')">#}
+            {#                        {{ record.customer_name }}-{{ record.shipment_shipping_date }}#}
+            {#                    </p>#}
+            {#                </div>#}
+            {#            {% endfor %}#}
+
             {% for record in records %}
                 <div class="record">
-                    <p hx-get="/amrec/{{ record.row_id }}" hx-trigger="click" hx-target="#recordDetail"
-                       hx-swap="innerHTML">
+                    <p onclick="populateForm('{{ record.row_id }}')">
                         {{ record.customer_name }}-{{ record.shipment_shipping_date }}
                     </p>
                 </div>
@@ -29,4 +46,43 @@
 {% endblock %}
 
 {% block scripts %}
+    <script>
+        function filterRecords() {
+            let input = document.getElementById('searchInput');
+            let filter = input.value.toLowerCase();
+            let recordsContainer = document.getElementById('recordsContainer');
+            let records = recordsContainer.getElementsByClassName('record');
+
+            for (let i = 0; i < records.length; i++) {
+                let record = records[i];
+                if (record.textContent.toLowerCase().indexOf(filter) > -1) {
+                    record.style.display = "";
+                } else {
+                    record.style.display = "none";
+                }
+            }
+        }
+
+        async function populateForm(rowId) {
+            const resp = await fetch(`/api/get_amrec/${rowId}`)
+            const amherst_table = await resp.json()
+            document.getElementById('ship_date').value = amherst_table.send_date;
+            document.getElementById('boxes').value = amherst_table.boxes;
+            document.getElementById('business_name').value = amherst_table.delivery_contact_business;
+            document.getElementById('contact_name').value = amherst_table.delivery_contact_name;
+            document.getElementById('email').value = amherst_table.delivery_contact_email;
+            document.getElementById('mobile_phone').value = amherst_table.delivery_contact_phone;
+            document.getElementById('reference_number1').value = amherst_table.reference_number1;
+            document.getElementById('reference_number2').value = amherst_table.reference_number2;
+            document.getElementById('reference_number3').value = amherst_table.reference_number3;
+            document.getElementById('special_instructions1').value = amherst_table.special_instructions1;
+            document.getElementById('special_instructions2').value = amherst_table.special_instructions2;
+            document.getElementById('special_instructions3').value = amherst_table.special_instructions3;
+            document.getElementById('address_line1').value = amherst_table.delivery_address_line1;
+            document.getElementById('address_line2').value = amherst_table.delivery_address_line2;
+            document.getElementById('address_line3').value = amherst_table.delivery_address_line3;
+            document.getElementById('town').value = amherst_table.delivery_town;
+            document.getElementById('postcode').value = amherst_table.delivery_address_pc;
+        }
+    </script>
 {% endblock %}

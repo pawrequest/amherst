@@ -19,21 +19,6 @@ function initPage() {
     });
 }
 
-function filterRecords() {
-    let input = document.getElementById('searchInput');
-    let filter = input.value.toLowerCase();
-    let recordsContainer = document.getElementById('recordsContainer');
-    let records = recordsContainer.getElementsByClassName('record');
-
-    for (let i = 0; i < records.length; i++) {
-        let record = records[i];
-        if (record.textContent.toLowerCase().indexOf(filter) > -1) {
-            record.style.display = "";
-        } else {
-            record.style.display = "none";
-        }
-    }
-}
 
 function updateManualFields() {
     const selectedOption = document.getElementById('address-select').value;

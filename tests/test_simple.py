@@ -4,26 +4,29 @@ from pprint import pprint
 import pytest
 import pytest_asyncio
 from loguru import logger
+from starlette.testclient import TestClient
 
 from amherst.commence_adaptors import initial_filter
-from amherst.models.am_record_smpl import AmherstTableBase, amrec_booking, get_amrec_db_smpl, AmherstTableDB
+from amherst.models.am_record_smpl import AmherstTableDB, get_amrec_db_smpl
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models.pf_shipment import Shipment
+from shipaw.ship_types import ShipDirection
+from .client import test_client  # noqa
 
 
-@pytest.fixture(
-    params=['Hire', 'Sale', 'Customer'],
-)
+@pytest.fixture(params=['Hire', 'Sale', 'Customer'])
 def pycmc(request) -> PyCommence:
+    """Fixture for PyCommence instance with a CSR of the parameterized tablename."""
     table = request.param
     cmc = PyCommence.with_csr(table, filter_array=initial_filter(table))
     logger.info(f'testing against {cmc.get_csr().row_count} {table} records')
     yield cmc
 
 
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope='function')
 async def amrec(pycmc: PyCommence):
-    record = random.choice(list(pycmc.generate_records_ids()))
+    """Fixture for a random AmherstTableDB record via validation with appropriate subclass of AmherstTable"""
+    record = random.choice(list(pycmc.generate_records_ids(count=10)))
     logger.info(f'testing {record["Name"]}')
     record['category'] = pycmc.get_csr().category
     pprint(record)
@@ -31,32 +34,55 @@ async def amrec(pycmc: PyCommence):
     return amrec
 
 
-# @pytest.fixture(params=[('Hire', hire_record_xmpl), ('Sale', sale_record_xmpl), ('Customer', customer_record_xmpl)])
-# def amrec(request) -> AmherstTable:
-#     table, record = request.param
-#     record['category'] = table
-#     record = get_am_record_smpl(record)
-#     record = AmherstTable.model_validate(record, from_attributes=True)
-#     return record
+@pytest.fixture(params=[ShipDirection.Inbound, ShipDirection.Outbound, ShipDirection.Dropoff])
+def test_shipment(request, amrec):
+    """ Get a Shipment from the random fixture, parameterized for direction."""
+    direction = request.param
+    ship = amrec.to_shipment(direction=direction)
+    ship.recipient_contact.notifications = None
+    if ship.collection_info:
+        ship.collection_info.collection_contact.notifications = None
+    assert isinstance(ship, Shipment)
+    assert not ship.recipient_contact.notifications
+    if ship.collection_info:
+        assert not ship.collection_info.collection_contact.notifications
+    print('NOTIFICATIONS:', ship.notifications_str)
+    return ship
 
 
-def test_get_amrec(amrec: AmherstTableBase):
-    assert isinstance(amrec, AmherstTableBase)
+def test_get_shipment(test_shipment: Shipment):
+    """ Test amrec and test_shipment fixtures. shows that importing random records yields valid Shipment instances."""
+    assert isinstance(test_shipment, Shipment)
 
 
-def test_get_shiprec(amrec: AmherstTableBase):
-    ship = amrec.shipment_dict
-    shipment = Shipment.model_validate(ship)
-    assert isinstance(shipment, Shipment)
-
-
-def test_add_simple(test_session_fxt, amrec):
+@pytest.fixture(scope='function')
+def session_with_amrec(test_session_fxt, amrec):
+    """Fixture for a test session with an AmherstTableDB record."""
     amrecdb = AmherstTableDB.model_validate(amrec, from_attributes=True)
     test_session_fxt.add(amrecdb)
     test_session_fxt.commit()
     test_session_fxt.refresh(amrecdb)
-    assert amrec.row_id
+    try:
+        yield test_session_fxt
+    finally:
+        test_session_fxt.delete(amrecdb)
 
 
-def test_():
-    pass
+@pytest.mark.parametrize('direction', [ShipDirection.Inbound, ShipDirection.Outbound, ShipDirection.Dropoff])
+def test_get_shipment_api(test_client: TestClient, session_with_amrec, direction):
+    arec = session_with_amrec.query(AmherstTableDB).first()
+    resp = test_client.get(f'/api/get_shipment/{direction}/{arec.row_id}')
+    ship = Shipment.model_validate(resp.json())
+    ship = no_notifications(ship)
+    assert isinstance(ship, Shipment)
+    assert not any(
+        [ship.recipient_contact.notifications,
+         (ship.collection_info.collection_contact.notifications if ship.collection_info else None)]
+    )
+
+
+def no_notifications(ship: Shipment):
+    if ship.collection_info:
+        ship.collection_info.collection_contact.notifications = None
+    ship.recipient_contact.notifications = None
+    return ship

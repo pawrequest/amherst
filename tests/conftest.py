@@ -26,6 +26,7 @@ def get_test_session():
         try:
             return session
         finally:
+            ...
             session.rollback()
 
 
@@ -40,9 +41,13 @@ def override_get_db():
 app.dependency_overrides[get_session] = override_get_db
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def test_session_fxt():
-    yield get_test_session()
+    session = get_test_session()
+    try:
+        return session
+    finally:
+        session.rollback()
 
 
 @pytest.fixture(scope='session')

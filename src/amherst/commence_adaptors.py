@@ -7,7 +7,7 @@ from typing import Annotated
 
 import pydantic as _p
 
-from pycommence.pycmc_types import CmcFilter, ConditionType, Connection, FilterArray, to_cmc_date, get_cmc_date
+from pycommence.pycmc_types import CmcFilter, ConditionType, Connection, FilterArray, get_cmc_date, to_cmc_date
 
 SALE_CUSTOMERS = Connection(
     name='SaleCustomers',
@@ -275,7 +275,11 @@ def initial_filter(tablename: str) -> FilterArray:
             fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='2 years ago'),)
         case 'Customer':
             fils = (
-                CmcFilter(cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2 years ago'),
+                CmcFilter(
+                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED,
+                    condition=ConditionType.AFTER,
+                    value='2 years ago'
+                ),
             )
 
         case _:
@@ -289,8 +293,8 @@ def hires_in_range_fils(start_date: date, end_date: date):
         CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
         CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
         CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-        CmcFilter(cmc_col=HireAliases.SEND_OUT_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
         CmcFilter(cmc_col=HireAliases.SEND_OUT_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
+        CmcFilter(cmc_col=HireAliases.SEND_OUT_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
     )
 
 
@@ -437,7 +441,6 @@ SALE_FIELDS_MAP.update(
 
 
 def get_hire_alias(field_name: str) -> str:
-    print(f'get_hire_alias({field_name})')
     return HIRE_FIELDS_MAP.get(field_name, '')
 
 

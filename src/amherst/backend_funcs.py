@@ -13,12 +13,10 @@ from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
-from amherst.commence_adaptors import HireAliases
 from amherst.config import settings
 from amherst.db import get_session
 from amherst.models.am_record_smpl import AmherstTableDB
-from amherst.models.db_models import BookingStateDB
-from pycommence.pycommence_v2 import PyCommence
+# from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models import pf_msg
@@ -47,37 +45,37 @@ def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentRespo
     return resp
 
 
-def record_tracking(booking_state: BookingStateDB):
-    record = booking_state.record
-    try:
-        category = record.category
-        if category == 'Customer':
-            logger.error('CANT LOG TO CUSTOMER')
-            return
-        do_record_tracking(booking_state)
-        logger.debug(f'Logged tracking for {category} {record.name}')
+# def record_tracking(booking_state: BookingStateDB):
+#     record = booking_state.record
+#     try:
+#         category = record.category
+#         if category == 'Customer':
+#             logger.error('CANT LOG TO CUSTOMER')
+#             return
+#         do_record_tracking(booking_state)
+#         logger.debug(f'Logged tracking for {category} {record.name}')
+#
+#     except Exception as exce:
+#         logger.exception(exce)
+#         raise
 
-    except Exception as exce:
-        logger.exception(exce)
-        raise
 
-
-def do_record_tracking(booking: BookingStateDB):
-    tracking_link = booking.response.tracking_link()
-    cmc_package = (
-        {
-            HireAliases.TRACK_INBOUND: tracking_link,
-            HireAliases.ARRANGED_INBOUND: True,
-            HireAliases.PICKUP_DATE: f'{booking.shipment_request.shipping_date:%Y-%m-%d}',
-        }
-        if booking.direction in ['in', 'dropoff']
-        else {HireAliases.TRACK_OUTBOUND: tracking_link, HireAliases.ARRANGED_OUTBOUND: True}
-    )
-
-    with PyCommence.with_csr(csrname=booking.record.category) as py_cmc:
-        py_cmc.edit_record(booking.record.name, row_dict=cmc_package)
-    booking.tracking_logged = True
-    logger.debug(f'Logged {str(cmc_package)} to Commence')
+# def do_record_tracking(booking: BookingStateDB):
+#     tracking_link = booking.response.tracking_link()
+#     cmc_package = (
+#         {
+#             HireAliases.TRACK_INBOUND: tracking_link,
+#             HireAliases.ARRANGED_INBOUND: True,
+#             HireAliases.PICKUP_DATE: f'{booking.shipment_request.shipping_date:%Y-%m-%d}',
+#         }
+#         if booking.direction in ['in', 'dropoff']
+#         else {HireAliases.TRACK_OUTBOUND: tracking_link, HireAliases.ARRANGED_OUTBOUND: True}
+#     )
+#
+#     with PyCommence.with_csr(csrname=booking.record.category) as py_cmc:
+#         py_cmc.edit_record(booking.record.name, row_dict=cmc_package)
+#     booking.tracking_logged = True
+#     logger.debug(f'Logged {str(cmc_package)} to Commence')
 
 
 async def subject(invoice_num: str | None = None, missing=None, label=None):
@@ -111,29 +109,29 @@ async def make_email(addresses, invoice, label, missing, booking_state):
 TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templates'))
 
 
-async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
-    record = session.get(BookingStateDB, booking_id)
-    if not isinstance(record, BookingStateDB):
-        raise ValueError(f'No booking found with id {booking_id}')
-    return record
+# async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
+#     record = session.get(BookingStateDB, booking_id)
+#     if not isinstance(record, BookingStateDB):
+#         raise ValueError(f'No booking found with id {booking_id}')
+#     return record
 
 
-async def booking_f_form(booking_id: int = Form(), session: Session = Depends(get_session)) -> BookingStateDB:
-    logger.debug(f'Retrieving Booking {booking_id} from form')
-    booking = session.get(BookingStateDB, booking_id)
-    if not isinstance(booking, BookingStateDB):
-        raise ValueError(f'No booking found with id {booking_id}')
-    return booking
+# async def booking_f_form(booking_id: int = Form(), session: Session = Depends(get_session)) -> BookingStateDB:
+#     logger.debug(f'Retrieving Booking {booking_id} from form')
+#     booking = session.get(BookingStateDB, booking_id)
+#     if not isinstance(booking, BookingStateDB):
+#         raise ValueError(f'No booking found with id {booking_id}')
+#     return booking
 
 
-async def booking_f_path(booking_id: int = Path(), session: Session = Depends(get_session)) -> BookingStateDB:
-    booking = session.get(BookingStateDB, booking_id)
-    if not isinstance(booking, BookingStateDB):
-        raise ValueError(f'No booking found with id {booking_id}')
-    return booking
+# async def booking_f_path(booking_id: int = Path(), session: Session = Depends(get_session)) -> BookingStateDB:
+#     booking = session.get(BookingStateDB, booking_id)
+#     if not isinstance(booking, BookingStateDB):
+#         raise ValueError(f'No booking found with id {booking_id}')
+#     return booking
 
 
-async def amgen_from_path(row_id: str = Path(), session: Session = Depends(get_session)) -> AmherstTableDB:
+async def new_amrec_f_path(row_id: str = Path(), session: Session = Depends(get_session)) -> AmherstTableDB:
     ret = session.get(AmherstTableDB, row_id)
     if not isinstance(ret, AmherstTableDB):
         raise ValueError(f'No record found with id {row_id}')
@@ -255,11 +253,11 @@ async def shipment_request_f_form(
     return shipment_request
 
 
-async def process_label(booking: BookingStateDB, el_client):
-    label_path = booking.get_label_path()
-    wait_label(shipment_num=booking.response.shipment_num, dl_path=label_path, el_client=el_client)
-    booking.label_downloaded = True
-    booking.label_path = str(label_path)
+# async def process_label(booking: BookingStateDB, el_client):
+#     label_path = booking.get_label_path()
+#     wait_label(shipment_num=booking.response.shipment_num, dl_path=label_path, el_client=el_client)
+#     booking.label_downloaded = True
+#     booking.label_path = str(label_path)
 
 
 async def check_dates(booking, request):
@@ -282,3 +280,7 @@ async def _from_req_json(request: Request, model_type: type[BaseModel]):
     logger.warning(form_data)
     res = model_type.model_validate(c_data)
     return res
+
+
+async def amrec_from_path(row_id: str = Path(), session: Session = Depends(get_session)):
+    return session.get(AmherstTableDB, row_id)

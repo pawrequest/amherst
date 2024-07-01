@@ -5,13 +5,14 @@ from typing import Annotated
 
 import pydantic as _p
 import sqlmodel
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, model_validator
 from sqlmodel import SQLModel
 
 from amherst.commence_adaptors import get_customer_alias, get_hire_alias, get_sale_alias
+from amherst.importer import split_refs_from_str
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models.pf_shipment import Shipment, to_collection, to_dropoff
-from shipaw.ship_types import limit_daterange_no_weekends
+from shipaw.ship_types import ShipDirection, limit_daterange_no_weekends
 
 SHIP_DATE = Annotated[
     date,
@@ -30,6 +31,8 @@ def split_addr_str(address: str) -> dict[str, str]:
         addr_lines.extend([''] * (3 - len(addr_lines)))
     elif len(addr_lines) > 3:
         addr_lines[2] = ','.join(addr_lines[2:])
+        addr_lines = addr_lines[:3]
+
     used_lines = [_ for _ in addr_lines if _]
     town = used_lines.pop() if len(used_lines) > 1 else ''
     return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
@@ -51,7 +54,7 @@ class AmherstTableBase(BaseModel):
     category: AmherstTableEnum
     row_id: str
 
-    customer_name: str = ''
+    customer_name: str
 
     delivery_contact_name: str
     delivery_contact_business: str
@@ -60,6 +63,21 @@ class AmherstTableBase(BaseModel):
 
     delivery_address_str: str
     delivery_address_pc: str
+    delivery_address_line1: str | None = None
+    delivery_address_line2: str | None = None
+    delivery_address_line3: str | None = None
+    delivery_town: str | None = None
+
+    # notes
+    reference_number1: str | None = None
+    reference_number2: str | None = None
+    reference_number3: str | None = None
+    reference_number4: str | None = None
+    reference_number5: str | None = None
+    special_instructions1: str | None = None
+    special_instructions2: str | None = None
+    special_instructions3: str | None = None
+    special_instructions4: str | None = None
 
     # fields for customers
     invoice_email: str = ''
@@ -77,6 +95,25 @@ class AmherstTableBase(BaseModel):
 
     # fields for hires
     missing_kit_str: str = ''
+
+    @model_validator(mode='after')
+    def split_address(self):
+        if not any([self.delivery_address_line1, self.delivery_address_line2, self.delivery_address_line3]):
+            addr_dict = split_addr_str(self.delivery_address_str)
+            for key, value in addr_dict.items():
+                setattr(self, f'delivery_{key}', value)
+        return self
+
+    @model_validator(mode='after')
+    def split_refs(self):
+        if not any(
+                [self.reference_number1, self.reference_number2, self.reference_number3, self.reference_number4,
+                 self.reference_number5]
+        ):
+            ref_dict = split_refs_from_str(self.customer_name)
+            for key, value in ref_dict.items():
+                setattr(self, key, value)
+        return self
 
     @property
     def contact_dict(self) -> dict:
@@ -101,18 +138,19 @@ class AmherstTableBase(BaseModel):
             'recipient_contact': self.contact_dict,
             'total_number_of_parcels': self.boxes,
             'shipping_date': self.send_date,
+            **split_refs_from_str(self.customer_name),
         }
 
-    def to_outbound(self):
-        return Shipment.model_validate(self.shipment_dict)
-
-    def to_inbound(self):
-        ship = Shipment.model_validate(self.shipment_dict)
-        return to_collection(ship)
-
-    def to_dropoff(self):
-        ship = Shipment.model_validate(self.shipment_dict)
-        return to_dropoff(ship)
+    def to_shipment(self, direction: ShipDirection):
+        match direction:
+            case ShipDirection.Outbound:
+                return Shipment.model_validate(self.shipment_dict)
+            case ShipDirection.Inbound:
+                return to_collection(Shipment.model_validate(self.shipment_dict))
+            case ShipDirection.Dropoff:
+                return to_dropoff(Shipment.model_validate(self.shipment_dict))
+            case _:
+                raise ValueError(f'Unknown direction {direction}')
 
 
 class AmherstCustomerIn(AmherstTableBase):

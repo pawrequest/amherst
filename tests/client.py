@@ -8,3 +8,6 @@ from amherst.app_file import app
 def test_client():
     with TestClient(app) as client:
         yield client
+
+
+__all__ = ['test_client']
