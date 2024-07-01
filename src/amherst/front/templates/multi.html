@@ -7,7 +7,7 @@
         <div id="recordsContainer">
 
             {% for record in records %}
-                <div class="record">
+                <div class="record  record__{{ record.category | lower }}">
                     <p onclick="populateForm('{{ record.row_id }}')">
                         {{ record.customer_name }}-{{ record.shipment_shipping_date }}
                     </p>

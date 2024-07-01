@@ -530,6 +530,14 @@ select:focus {
     align-items: center;
 }
 
+.record__hire {
+    background-color: var(--clr-success);
+}
+
+.record__sale {
+    background-color: var(--clr-warning);
+}
+
 .record:hover {
     background-color: #f0f0f0;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
