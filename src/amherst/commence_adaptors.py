@@ -266,11 +266,8 @@ class SaleAliases2(StrEnum):
 @functools.lru_cache
 def initial_filter(filtername: str) -> FilterArray:
     match filtername:
-        case 'Hire Barcode':
-            fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 7, 31))
-            ...
         case 'Hire':
-            fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 7, 31))
+            fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 8, 31))
 
         case 'Sale':
             fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='2 years ago'),)
@@ -287,14 +284,20 @@ def initial_filter(filtername: str) -> FilterArray:
     return FilterArray.from_filters(*fils)
 
 
-def hires_in_range_fils(start_date: date, end_date: date):
-    return (
+def hires_in_range_fils(start_date: date, end_date: date | None = None) -> tuple[CmcFilter, ...]:
+    fils = (
         CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
         CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
         CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
         CmcFilter(cmc_col=HireAliases.SEND_OUT_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
-        CmcFilter(cmc_col=HireAliases.SEND_OUT_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
     )
+    if end_date:
+        fils += CmcFilter(
+            cmc_col=HireAliases.SEND_OUT_DATE,
+            condition=ConditionType.BEFORE,
+            value=to_cmc_date(end_date)
+        ),
+    return fils
 
 
 def get_alias(tablename: str, field_name: str) -> str:
