@@ -5,23 +5,6 @@
         <label for="searchInput">Search</label>
         <input type="text" id="searchInput" placeholder="Search records..." onkeyup="filterRecords()">
         <div id="recordsContainer">
-            {#            {% for record in records %}#}
-            {#                <div class="record">#}
-            {#                    <p hx-get="/amrec/{{ record.row_id }}" hx-trigger="click" hx-target="#recordDetail"#}
-            {#                       hx-swap="innerHTML">#}
-            {#                        {{ record.customer_name }}-{{ record.shipment_shipping_date }}#}
-            {#                    </p>#}
-            {#                </div>#}
-            {#            {% endfor %}#}
-
-            {#            {% for record in records %}#}
-            {#                <div class="record">#}
-            {#                    <p hx-get="/api/get_amrec/{{ record.row_id }}" hx-trigger="click"#}
-            {#                       hx-on="htmx:afterSwap:populateForm('{{ record.row_id }}')">#}
-            {#                        {{ record.customer_name }}-{{ record.shipment_shipping_date }}#}
-            {#                    </p>#}
-            {#                </div>#}
-            {#            {% endfor %}#}
 
             {% for record in records %}
                 <div class="record">
