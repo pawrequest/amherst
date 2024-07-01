@@ -9,7 +9,7 @@
             {% for record in records %}
                 <div class="record  record__{{ record.category | lower }}">
                     <p onclick="populateForm('{{ record.row_id }}')">
-                        {{ record.customer_name }}-{{ record.shipment_shipping_date }}
+                        {{ record.customer_name }}-{{ record.send_date }}
                     </p>
                 </div>
             {% endfor %}

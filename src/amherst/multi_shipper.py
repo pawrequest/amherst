@@ -41,8 +41,8 @@ async def import_cmc_data():
     CoInitialize()
     with get_session_cm() as session:
         py_cmc = PyCommence()
-        for csrname in ['Hire']:
-            # for csrname in ['Hire', 'Sale', 'Customer']:
+        # for csrname in ['Hire']:
+        for csrname in ['Hire', 'Sale', 'Customer']:
             py_cmc.set_csr(csrname)
             py_cmc.filter_cursor(initial_filter(csrname), csrname=csrname)
             for record in py_cmc.generate_records_ids(count=10, csrname=csrname):
