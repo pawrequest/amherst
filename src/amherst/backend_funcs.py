@@ -13,32 +13,27 @@ from starlette.requests import Request
 from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
-from amherst.commence import HireFields
+from amherst.commence_adaptors import HireAliases
 from amherst.config import settings
 from amherst.db import get_session
 from amherst.models.am_record import AmherstRecord
+from amherst.models.am_record_smpl import AmherstTableDB
 from amherst.models.db_models import BookingStateDB
-from pycommence import PyCommence
+from pycommence.pycommence_v2 import PyCommence
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import (
-    AnyShipment,
-    Shipment,
-    ShipmentAwayCollection,
-    ShipmentAwayDropoff,
-    ShipmentReferenceFields,
-)
+from shipaw.models.pf_shipment import (Shipment, ShipmentReferenceFields, to_collection, to_dropoff)
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
 
 type EmailChoices = _t.Literal['invoice', 'label', 'missing_kit']
 
 
-def book_shipment(el_client, shipment_request: AnyShipment) -> pf_msg.ShipmentResponse:
+def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentResponse:
     resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment_request)
     for a in resp.alerts.alert if resp.alerts else []:
         try:
@@ -49,6 +44,7 @@ def book_shipment(el_client, shipment_request: AnyShipment) -> pf_msg.ShipmentRe
             raise NotImplementedError(noted)
         if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
             logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
+            logger.debug(f'Notifications: {shipment_request.notifications_str}')
     return resp
 
 
@@ -71,15 +67,15 @@ def do_record_tracking(booking: BookingStateDB):
     tracking_link = booking.response.tracking_link()
     cmc_package = (
         {
-            HireFields.TRACK_INBOUND: tracking_link,
-            HireFields.ARRANGED_INBOUND: True,
-            HireFields.PICKUP_DATE: f'{booking.shipment_request.shipping_date:%Y-%m-%d}',
+            HireAliases.TRACK_INBOUND: tracking_link,
+            HireAliases.ARRANGED_INBOUND: True,
+            HireAliases.PICKUP_DATE: f'{booking.shipment_request.shipping_date:%Y-%m-%d}',
         }
         if booking.direction in ['in', 'dropoff']
-        else {HireFields.TRACK_OUTBOUND: tracking_link, HireFields.ARRANGED_OUTBOUND: True}
+        else {HireAliases.TRACK_OUTBOUND: tracking_link, HireAliases.ARRANGED_OUTBOUND: True}
     )
 
-    with PyCommence.from_table_name_context(table_name=booking.record.category) as py_cmc:
+    with PyCommence.with_csr(csrname=booking.record.category) as py_cmc:
         py_cmc.edit_record(booking.record.name, row_dict=cmc_package)
     booking.tracking_logged = True
     logger.debug(f'Logged {str(cmc_package)} to Commence')
@@ -138,6 +134,12 @@ async def booking_f_path(booking_id: int = Path(), session: Session = Depends(ge
     return booking
 
 
+async def amgen_from_path(row_id: str = Path(), session: Session = Depends(get_session)) -> AmherstTableDB:
+    ret = session.get(AmherstTableDB, row_id)
+    if not isinstance(ret, AmherstTableDB):
+        raise ValueError(f'No record found with id {row_id}')
+    return ret
+
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
     label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
     for i in range(20):
@@ -163,12 +165,12 @@ async def get_missing(record: AmherstRecord) -> list[str]:
 
 
 async def address_f_form(
-    address_line1: str = Form(...),
-    address_line2: str = Form(''),
-    address_line3: str = Form(''),
-    town: str = Form(...),
-    postcode: VALID_POSTCODE = Form(...),
-    direction: ShipDirection = Form(...),
+        address_line1: str = Form(...),
+        address_line2: str = Form(''),
+        address_line3: str = Form(''),
+        town: str = Form(...),
+        postcode: VALID_POSTCODE = Form(...),
+        direction: ShipDirection = Form(...),
 ):
     logger.debug(
         f'Address fields received: {direction=}, {address_line1=}, {address_line2=}, {address_line3=}, {town=}, {postcode=}'
@@ -187,12 +189,12 @@ async def address_f_form(
 
 
 async def contact_f_form(
-    request: Request,
-    contact_name: str = Form(...),
-    email_address: EmailStr = Form(...),
-    business_name: str = Form(...),
-    mobile_phone: str = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
+        request: Request,
+        contact_name: str = Form(...),
+        email_address: EmailStr = Form(...),
+        business_name: str = Form(...),
+        mobile_phone: str = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
 ):
     logger.debug(f'form received: {await request.form()}')
     logger.debug(
@@ -222,16 +224,16 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 
 async def shipment_request_f_form(
-    request: Request,
-    contact: Contact = Depends(contact_f_form),
-    address: AddressCollection = Depends(address_f_form),
-    notes: list[tuple[str, str]] = Depends(notes_f_form),
-    shipping_date: date = Form(...),
-    total_number_of_parcels: int = Form(...),
-    service_code: ServiceCode = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    own_label: str = Form(...),
-) -> AnyShipment:
+        request: Request,
+        contact: Contact = Depends(contact_f_form),
+        address: AddressCollection = Depends(address_f_form),
+        notes: list[tuple[str, str]] = Depends(notes_f_form),
+        shipping_date: date = Form(...),
+        total_number_of_parcels: int = Form(...),
+        service_code: ServiceCode = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
+        own_label: str = Form(...),
+) -> Shipment:
     logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
     shipment_request = Shipment(
@@ -242,9 +244,10 @@ async def shipment_request_f_form(
         total_number_of_parcels=total_number_of_parcels,
     )
     if direction == ShipDirection.Dropoff:
-        shipment_request = ShipmentAwayDropoff.from_shipment(shipment_request)
+        shipment_request = to_dropoff(shipment_request)
+        # shipment_request = ShipmentAwayDropoff.from_shipment(shipment_request)
     elif direction == ShipDirection.Inbound:
-        shipment_request = ShipmentAwayCollection.from_shipment(shipment_request, own_label=own_label)
+        shipment_request = to_collection(shipment_request, own_label=own_label)
 
     for fieldname, value in notes:
         setattr(shipment_request, fieldname, value)

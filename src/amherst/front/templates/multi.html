@@ -1,3 +1,32 @@
-{% for booking in bookings %}
-    <p> {{ booking.record.name }}</p>
-{% endfor %}
+{% extends "base.html" %}
+{% block title %}Amherst MultiShipper{% endblock %}
+{% block sidebar %}
+    <div class="sidebar">
+        <label for="searchInput">Search</label>
+        <input type="text" id="searchInput" placeholder="Search records..." onkeyup="filterRecords()">
+        <div id="recordsContainer">
+            {% for record in records %}
+                <div class="record">
+                    <p hx-get="/amrec/{{ record.row_id }}" hx-trigger="click" hx-target="#recordDetail"
+                       hx-swap="innerHTML">
+                        {{ record.customer_name }}-{{ record.shipment_shipping_date }}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+        <div id="recordDetail">
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="ship-form">
+        {% include 'shipping_form_empty.html' %}}
+        <div class="returned-request"></div>
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

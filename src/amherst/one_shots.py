@@ -147,3 +147,39 @@
 #     do_matplot(date.today(), date.today() + timedelta(days=3))
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
+from amherst.commence_adaptors import CustomerAliases, HireAliases, HireStatus
+from pycommence.pyc2 import PyCommence
+from pycommence.pycmc_types import CmcFilter, ConditionType, FilterArray
+
+
+def good_hires_fils():
+    return (
+        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
+        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+    )
+
+
+def good_hires_array():
+    return FilterArray(filters={i: fil for i, fil in enumerate(good_hires_fils(), 1)})
+
+
+def cust_array():
+    return FilterArray(
+        filters={
+            1: CmcFilter(cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2022'),
+        }
+    )
+
+
+def pyc_test():
+    pyc2 = PyCommence.with_csr('Hire')
+    pyc2.filter_cursor(good_hires_array(), 'Hire')
+    assert pyc2.csrs['Hire'].row_count > 0
+    pyc2.set_csr('Customer')
+    pyc2.filter_cursor(cust_array(), 'Customer')
+    assert pyc2.csrs['Customer'].row_count > 0
+
+
+if __name__ == '__main__':
+    pyc_test()

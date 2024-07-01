@@ -18,47 +18,34 @@ Environment variables:
 
 """
 import asyncio
-import os
 
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 
-from amherst.db import get_session_cm
-from amherst.commence import (
-    INITIAL_HIRE_FILTER,
-)
-from amherst.importer import amherst_shipment_request, amrec_to_booking, cmc_record_to_amrec
-# from amherst.models.am_record import AmherstRecordDB
-from amherst.models.db_models import BookingStateDB
-from pycommence import PyCommence
-from amherst.config import settings
-from amherst.models import am_record
-from amherst import db, app_file
+from amherst.commence_adaptors import initial_filter
+from amherst.db import create_db, get_session_cm
+from amherst import app_file
+from amherst.models.am_record_smpl import AmherstTableDB, get_am_record_smpl
+from pycommence.pycommence_v2 import PyCommence
+
+CATEGORY = 'Hire'
 
 
 async def main():
-    # CoInitialize()
-    alert = None
-    booking = None
-    am_db.create_db()
-    print("Template directory:", os.path.abspath(settings().base_dir / 'front' / 'templates'))
 
+    create_db()
     try:
-        with PyCommence.from_table_name_context(table_name='Hire') as py_cmc:
-            records = py_cmc.records_by_array(INITIAL_HIRE_FILTER)
-        logger.info(f'{len(records)} records found from filters = {INITIAL_HIRE_FILTER}')
-
-        bookings = []
-        for record in records:
-            record['category'] = 'Hire'
-            amrec = await cmc_record_to_amrec(record)
-            booking = await amrec_to_booking(amrec)
-            bookings.append(booking)
-
+        py_cmc = PyCommence.with_csr(csrname=CATEGORY, filter_array=initial_filter(CATEGORY))
         with get_session_cm() as session:
-            session.add_all(bookings)
+            for record in py_cmc.generate_records_ids():
+                record['category'] = CATEGORY
+                am_table_in = get_am_record_smpl(record)
+                if indb := session.get(AmherstTableDB, am_table_in.row_id):
+                    [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
+                else:
+                    indb = AmherstTableDB(**am_table_in.model_dump())
+                session.add(indb)
             session.commit()
-            logger.info(f'Added {len(bookings)} bookings to database')
 
         fui = FlaskUI(
             fullscreen=True,

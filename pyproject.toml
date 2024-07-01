@@ -32,6 +32,7 @@ dependencies = [
     'httpx',
     "pywin32",
     'jinja2',
+    'pandas',
 ]
 
 [project.optional-dependencies]

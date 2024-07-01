@@ -1,86 +1,36 @@
-from datetime import date, timedelta
-from time import perf_counter
-from typing import Generator
+from __future__ import annotations
 
+import functools
+import time
+from collections.abc import Generator
+from datetime import date, timedelta
+
+import pandas as pd
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from pawlogger import get_loguru
 
-from amherst.commence import HireFields, HireStatus
-from pycommence import PyCommence
-from pycommence.pycmc_types import CmcFilter, ConditionType, FilterArray, RadioType, to_cmc_date
-from pycommence.wrapper.cmc_db import CommenceWrapper
+from amherst.commence_adaptors import HireAliases, initial_filter
+from pycommence.pycmc_types import CmcDateFormat, RadioType
+from pycommence.pycommence_v2 import PyCommence
 
 logger = get_loguru(profile='local')
 
 
-def good_hires_fils():
-    return (
-        CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        CmcFilter(cmc_col=HireFields.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+def prep_df(records):
+    df = pd.DataFrame(records)
+    df[HireAliases.SEND_OUT_DATE] = pd.to_datetime(
+        df[HireAliases.SEND_OUT_DATE],
+        format=CmcDateFormat,
+        errors='coerce'
     )
-
-
-def hires_out_fils(datecheck: date, radiotype=RadioType.HYT):
-    return (
-        CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition='Before', value=datecheck.isoformat()),
-        CmcFilter(cmc_col=HireFields.DUE_BACK_DATE, condition='After', value=datecheck.isoformat()),
-        CmcFilter(cmc_col=HireFields.RADIO_TYPE, condition='Equal To', value=radiotype),
+    df[HireAliases.DUE_BACK_DATE] = pd.to_datetime(
+        df[HireAliases.DUE_BACK_DATE],
+        format=CmcDateFormat,
+        errors='coerce'
     )
-
-
-def send_on_date_fils(datecheck: date, radiotype=RadioType.HYT):
-    return (
-        CmcFilter(cmc_col=HireFields.SEND_OUT_DATE, condition=ConditionType.ON, value=to_cmc_date(datecheck)),
-        CmcFilter(cmc_col=HireFields.RADIO_TYPE, condition=ConditionType.EQUAL, value=radiotype),
-    )
-
-
-def send_on_array(datecheck: date, radiotype=RadioType.HYT) -> FilterArray:
-    fils = good_hires_fils() + send_on_date_fils(datecheck, radiotype)
-    return FilterArray(filters={i: fil for i, fil in enumerate(fils, 1)})
-
-
-def hires_out_array(datecheck: date, radiotype=RadioType.HYT):
-    fils = good_hires_fils() + hires_out_fils(datecheck, radiotype)
-    return FilterArray(filters={i: fil for i, fil in enumerate(fils, 1)})
-
-
-def how_many_out(datecheck: date):
-    out_filter = hires_out_array(datecheck)
-    recs = get_records(out_filter)
-    rads_out = sum([int(rec.get(HireFields.UHF)) for rec in recs])
-    return rads_out
-
-
-def how_many_in(datecheck: date, radiotype=RadioType.HYT, stock: int = 500):
-    out_filter = hires_out_array(datecheck)
-    recs = get_records(out_filter)
-    rads_out = sum([int(rec.get(HireFields.UHF)) for rec in recs])
-    return stock - rads_out
-
-
-def to_send(datecheck: date, radiotype=RadioType.HYT):
-    to_send_fil = send_on_array(datecheck, radiotype)
-    recs = get_records(to_send_fil)
-    res = sum([rads_in_rec(rec) for rec in recs])
-    return res
-
-
-def rads_in_rec(rec):
-    return int(rec.get(HireFields.UHF))
-
-
-def get_records(cmc_fil_array):
-    with PyCommence.from_table_name_context('Hire', filter_array=cmc_fil_array) as pyc:
-        recs = pyc.records()
-    return recs
-
-
-#
-# def get_date_range(start_date, end_date):
-#     return [start_date + timedelta(days=x) for x in range((end_date - start_date).days + 1)]
+    df[HireAliases.UHF] = df[HireAliases.UHF].astype(int)
+    return df
 
 
 def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
@@ -89,74 +39,110 @@ def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
         yield thisdate
 
 
-def custom_date_formatter(x, pos):
-    datecheck = mdates.num2date(x)
-    if datecheck.weekday() < 5:
-        return
-    if datecheck.day == 1:  # Check if the date is the first of a month
-        return datecheck.strftime('%b %A %d')  # Month name and day
-    else:
-        return datecheck.strftime('%A %d')  # Just the day
+class StockChecker:
+    def __init__(
+            self, pycmc=None, radiotype: RadioType = RadioType.HYT,
+            start_date: date = date.today(), end_date: date = date.today() + timedelta(days=6)
+    ):
+        self.radiotype = radiotype
+        self.start_date = start_date
+        self.end_date = end_date
+        self.date_range_gen = daterang_gen(start_date, end_date)
+        self.pycommence = pycmc or PyCommence.with_csr('Hire', filter_array=self.filters)
+        self.data = self._prepare_data()
 
+    def _prepare_data(self):
+        records = self.pycommence.records()
+        df = prep_df(records)
+        return df
 
-def do_matplot(start_date: date, end_date: date):
-    dates_gen = daterang_gen(start_date, end_date)
-    data = get_mat_data(dates_gen)
+    @property
+    def filters(self):
+        return initial_filter('Hire')
+        # return FilterArray.from_filters(
+        #     CmcFilter(cmc_col=HireFields.RADIO_TYPE, condition=ConditionType.EQUAL, value=self.radiotype),
+        #     *hires_in_range_fils(self.start_date, self.end_date)
+        # )
 
-    dates = [d[0] for d in data]
-    send = [d[1] for d in data]
-    radios_in = [d[2] for d in data]
-    # radios_out = [d[2] for d in data]
+    def run(self):
+        dates = list(self.date_range_gen)
+        send_data = [self.to_send(datecheck) for datecheck in dates]
+        stock_data = [self.how_many_in(datecheck) for datecheck in dates]
+        rads_out = [self.how_many_out(datecheck) for datecheck in dates]
 
-    ax1 = plt.gca()
-    ax2 = ax1.twinx()
+        data_df = pd.DataFrame(
+            {
+                'Date': dates,
+                'Send': send_data,
+                'Stock': stock_data,
+                'Out': rads_out
+            }
+        )
 
-    # Plotting the data
-    plt.figure(figsize=(14, 7))
+        self.plot_data(data_df)
 
-    ax2.set_ylim(0, max(send) * 1.1)
-    plt.sca(ax2)
-    plt.bar(dates, send, width=0.4, color='blue', label='Send Quantity', alpha=0.7)
+    def to_send(self, datecheck: date):
+        filtered_data = self.data[(self.data[HireAliases.SEND_OUT_DATE].dt.date == datecheck)]
+        return filtered_data[HireAliases.UHF].sum()
 
-    plt.sca(ax1)
-    plt.plot(dates, radios_in, label='Stock Level', color='green', marker='o')
+    @functools.lru_cache
+    def how_many_out(self, datecheck):
+        filtered_data = self.data[
+            (self.data[HireAliases.SEND_OUT_DATE].dt.date < datecheck) &
+            (self.data[HireAliases.DUE_BACK_DATE].dt.date > datecheck)
+            ]
+        rads_out = filtered_data[HireAliases.UHF].sum()
+        return rads_out
 
-    ax1.set_xticks(dates)
-    ax1.set_xticklabels([datey.strftime('%a %d %b') for datey in dates], rotation=90, ha='right')
+    def how_many_in(self, datecheck: date, stock: int = 500):
+        rads_out = self.how_many_out(datecheck)
+        return stock - rads_out
 
-    ax1.xaxis.set_major_locator(mdates.DayLocator(interval=3))
-    ax1.xaxis.set_major_formatter(mdates.ConciseDateFormatter(ax1.xaxis.get_major_locator()))
-    plt.gcf().autofmt_xdate()
+    def plot_data(self, data_df):
+        dates = data_df['Date']
+        send = data_df['Send']
+        radios_out = data_df['Out']
 
-    ax1.set_xlabel('Date')
-    ax1.set_ylabel('Stock Remaining')
-    ax2.set_ylabel('Send Out Quantity')
+        ax1 = plt.gca()
+        ax2 = ax1.twinx()
 
-    plt.legend(loc='upper left')
-    plt.grid(True)
-    plt.show()
+        plt.figure()
+        # plt.figure(figsize=(14, 7))
 
+        ax2.set_ylim(0, max(send) * 1.1)
+        plt.sca(ax2)
+        plt.bar(dates, send, width=2, color='blue', label='Send Quantity', alpha=0.7)
 
-def get_mat_data(dates_gen):
-    data = []
-    start = perf_counter()
-    for datecheck in dates_gen:
-        print(f'Checking {datecheck.strftime("%a %d %b")}')
-        send = to_send(datecheck)
-        print(f'To Send: {send}')
-        # rads_out = how_many_out(datecheck)
-        rads_in = how_many_in(datecheck)
-        print(f'Stock = {rads_in}')
-        data.append((datecheck, send, rads_in))
-    stop = perf_counter()
-    print(f'Elapsed time: {stop - start} seconds')
-    return data
+        plt.sca(ax1)
+        plt.plot(dates, radios_out, label='Rads Out', color='green', marker='o')
+        #
+        # plt.sca(ax1)
+        # plt.plot(dates, radios_in, label='Stock Level', color='green', marker='o')
 
+        ax1.set_xticks(dates)
+        ax1.set_xticklabels([datey.strftime('%a %d %b') for datey in dates], rotation=90, ha='right')
 
-def new_pycommence():
-    wrapper = CommenceWrapper()
-    csr = wrapper.get_cursor('Hire')
+        ax1.xaxis.set_major_locator(mdates.DayLocator(interval=3))
+        ax1.xaxis.set_major_formatter(mdates.ConciseDateFormatter(ax1.xaxis.get_major_locator()))
+        plt.gcf().autofmt_xdate()
+
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel(f'{self.radiotype} Radios Out')
+        ax2.set_ylabel('Send Out Quantity')
+
+        plt.legend(loc='upper left')
+        plt.grid(True)
+        plt.show()
 
 
 if __name__ == '__main__':
-    do_matplot(date.today(), date.today() + timedelta(days=6))
+    starttime = time.perf_counter()
+    sc = StockChecker(
+        radiotype=RadioType.HYT,
+        start_date=date(2023, 1, 1),
+        end_date=date(2024, 7, 1),
+    )
+    sc.run()
+    endtime = time.perf_counter()
+    print(f'THERE WERE {len(sc.data)} RECORDS')
+    print(f'Elapsed time: {endtime - starttime}')

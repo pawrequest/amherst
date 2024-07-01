@@ -1,0 +1,26 @@
+<!--suppress HtmlFormInputWithoutLabel -->
+<div class="addr-head">
+    <h1>Address</h1>
+    <span id="score-span" data-score=""> Match Confidence %:
+        <br>(No address selected)
+    </span>
+</div>
+
+<label for="address_line1">Address Lines:</label>
+<input type="text" id="address_line1" name="address_line1" required>
+<input type="text" id="address_line2" name="address_line2" aria-labelledby="address_line1">
+<input type="text" id="address_line3" name="address_line3" aria-labelledby="address_line1">
+<label for="town">Town:</label>
+<input type="text" id="town" name="town" required>
+<label for="postcode">Postcode:</label>
+<input type="text" id="postcode" name="postcode" required>
+
+<button type="button" class="update-address-btn" onclick="loadCandidates()">Update Address Choices</button>
+<label for="address-select">Choose Address</label>
+<select id="address-select" name="address" onchange="updateManualFields()">
+    <!-- Options will be populated dynamically -->
+</select>
+
+<script>
+
+</script>

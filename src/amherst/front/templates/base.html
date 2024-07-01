@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Form Page{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@1.5.0/dist/htmx.min.js"></script>
-    <script src="{{ url_for('static', path='script.js') }}"></script>
+    <script src="{{ url_for('static', path='script.js') }} defer"></script>
     <link href="{{ url_for('static', path='style.css') }}" rel="stylesheet">
 
 
@@ -29,6 +29,7 @@
     {% endif %}
 </header>
 <main>
+    {% block sidebar %}{% endblock %}
     {% block content %}{% endblock %}
 </main>
 {% block scripts %}{% endblock %}

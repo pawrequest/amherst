@@ -56,11 +56,21 @@ async def amrec_to_booking(amrec: AmherstRecord):
 
 async def cmc_record_to_amrec(record, el_client: ELClient | None = None) -> AmherstRecord:
     el_client = el_client or ELClient(strict=False)
-    amrec_in = AmherstRecordIn(**record)
+    amrec_in = AmherstRecordIn.model_validate(record)
     try:
         amrec_in.address_choice = el_client.address_choice(amrec_in.input_address)
     except:
         amrec_in.address_choice = AddressChoice(address=amrec_in.input_address, score=0)
-    amrec_in = amrec_in.model_validate(amrec_in)
-    amrec = AmherstRecord(**amrec_in.model_dump())
+    amrec = AmherstRecord.model_validate(amrec_in, from_attributes=True)
     return amrec
+
+
+def split_addr_str(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    used_lines = [_ for _ in addr_lines if _]
+    town = used_lines.pop() if len(used_lines) > 1 else ''
+    return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
