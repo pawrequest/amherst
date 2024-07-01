@@ -3,11 +3,10 @@ from __future__ import annotations
 import contextlib
 import functools
 from datetime import date, datetime
-from typing import NamedTuple
+from typing import NamedTuple, Self
 
 import httpx
 import sqlalchemy as sqa
-import sqlmodel
 import sqlmodel as sqm
 from comtypes import CoInitialize, CoUninitialize
 from fastapi import Query
@@ -17,7 +16,6 @@ from sqlmodel import SQLModel, Session, col, select
 
 from amherst.commence_adaptors import initial_filter
 from amherst.config import settings
-from amherst.models.am_record_smpl import AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
@@ -100,19 +98,27 @@ def create_db(engine=None):
 PAGE_SIZE = 10
 
 
-def get_pagination(limit: int = Query(PAGE_SIZE, gt=0), offset: int = Query(0, ge=0)):
-    return Pagination(limit=limit, offset=offset)
-
-
 class Pagination(NamedTuple):
-    limit: int
-    offset: int
+    offset: int | None = None
+    limit: int | None = PAGE_SIZE
+
+    @classmethod
+    def from_query(cls, limit: int | None = Query(None), offset: int | None = Query(None)) -> Self:
+        logger.debug(f'Pagination.from_query({limit=}, {offset=})')
+        return cls(limit=limit, offset=offset)
+
+    @classmethod
+    def all_(cls) -> Self:
+        return cls(limit=None, offset=None)
 
 
 async def select_page_more(session, sqlselect, pagination: Pagination) -> tuple[list, bool]:
-    stmt = sqlselect.offset(pagination.offset).limit(pagination.limit + 1)
-    res = session.exec(stmt).all()
-    more = len(res) > pagination.limit
+    if pagination.offset:
+        sqlselect = sqlselect.offset(pagination.offset)
+    if pagination.limit:
+        sqlselect = sqlselect.limit(pagination.limit + 1)
+    res = session.exec(sqlselect).all()
+    more = len(res) > pagination.limit if pagination.limit else False
     return res[: pagination.limit], more
 
 
@@ -124,8 +130,16 @@ def dt_ordinal(dt: datetime | date) -> str:
     return dt.strftime('%a {th} %b %Y').replace('{th}', ordinal(dt.day))
 
 
-async def search_column(table, column, search_str: str):
+async def search_column_stmt1(table: type[SQLModel], column: str, search_str: str):
     search = f'%{search_str}%'
-    return select(table).where(col(column).ilike(search))
+    colly = getattr(table, column)
+    return select(table).where(col(colly).ilike(search))
 
 
+def search_column_stmt(model, column: str | None, search_str: str | None = None):
+    if not column or not search_str:
+        return select(model)
+    search_ = f'%{search_str}%'
+    colly = getattr(model, column)
+    stmt = select(model).where(colly.ilike(search_))
+    return stmt

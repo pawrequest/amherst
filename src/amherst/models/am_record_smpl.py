@@ -178,7 +178,7 @@ class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
     row_id: str = sqlmodel.Field(primary_key=True)
 
 
-def get_amrec_db_smpl(data: dict[str, str]) -> AmherstTableDB:
+def dict_to_amtable(data: dict[str, str]) -> AmherstTableDB:
     match data['category']:
         case AmherstTableEnum.Hire:
             res = AmherstHireIn.model_validate(data)

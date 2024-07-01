@@ -6,8 +6,10 @@ from enum import Enum, StrEnum
 from typing import Annotated
 
 import pydantic as _p
+from pydantic import Field
 
 from pycommence.pycmc_types import CmcFilter, ConditionType, Connection, FilterArray, get_cmc_date, to_cmc_date
+from shipaw.ship_types import limit_daterange_no_weekends
 
 SALE_CUSTOMERS = Connection(
     name='SaleCustomers',
@@ -270,11 +272,11 @@ def initial_filter(filtername: str) -> FilterArray:
             fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 8, 31))
 
         case 'Sale':
-            fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='2 years ago'),)
+            fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='january 2023'),)
         case 'Customer':
             fils = (
                 CmcFilter(
-                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2 years ago'
+                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='march 2023'
                 ),
             )
 
@@ -455,3 +457,33 @@ AM_DATE = Annotated[
     date,
     _p.BeforeValidator(get_cmc_date),
 ]
+AM_SHIP_DATE = Annotated[
+    date,
+    Field(date.today(), alias='Send Out Date'),
+    _p.BeforeValidator(limit_daterange_no_weekends),
+    _p.BeforeValidator(get_cmc_date),
+]
+
+
+class AmherstTableEnum(StrEnum):
+    Hire = 'Hire'
+    Sale = 'Sale'
+    Customer = 'Customer'
+
+
+def addr_lines_dict_am(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+    return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
+
+
+class EmailOption(_p.BaseModel):
+    email: str
+    description: str
+    name: str
+
+    def __eq__(self, other: 'EmailOption'):
+        return self.email == other.email

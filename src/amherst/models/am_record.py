@@ -1,7 +1,5 @@
 # from __future__ import annotations
 from datetime import date
-from enum import StrEnum
-from typing import Annotated
 
 import pydantic as _p
 import sqlmodel as sqm
@@ -9,27 +7,13 @@ from loguru import logger
 from pawdantic.pawsql import default_json_field
 from pydantic import AliasChoices, ConfigDict, Field
 
-from amherst.commence_adaptors import CustomerAliases
+from amherst.commence_adaptors import CustomerAliases, AM_SHIP_DATE, AmherstTableEnum, EmailOption
 from amherst.importer import split_addr_str
-from pycommence.pycmc_types import get_cmc_date
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models import pf_lists, pf_models, pf_top
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import Alert, Alerts
-from shipaw.ship_types import AlertType, limit_daterange_no_weekends
-
-AM_SHIP_DATE = Annotated[
-    date,
-    Field(date.today(), alias='Send Out Date'),
-    _p.BeforeValidator(limit_daterange_no_weekends),
-    _p.BeforeValidator(get_cmc_date),
-]
-
-
-class AmherstTableEnum(StrEnum):
-    Hire = 'Hire'
-    Sale = 'Sale'
-    Customer = 'Customer'
+from shipaw.ship_types import AlertType
 
 
 class AmherstRecordIn(sqm.SQLModel):
@@ -120,15 +104,6 @@ class AmherstRecord(AmherstRecordIn):
 #     address_choice: AddressChoice | None = optional_json_field(AddressChoice)
 
 
-def addr_lines_dict_am(address: str) -> dict[str, str]:
-    addr_lines = address.splitlines()
-    if len(addr_lines) < 3:
-        addr_lines.extend([''] * (3 - len(addr_lines)))
-    elif len(addr_lines) > 3:
-        addr_lines[2] = ','.join(addr_lines[2:])
-    return {f'address_line{num}': line for num, line in enumerate(addr_lines, start=1)}
-
-
 def get_customer_record(customer: str) -> dict[str, str]:
     """Get a customer record from `:class:PyCommence`"""
     logger.debug(f'Getting customer record for {customer}')
@@ -137,10 +112,3 @@ def get_customer_record(customer: str) -> dict[str, str]:
     return rec
 
 
-class EmailOption(_p.BaseModel):
-    email: str
-    description: str
-    name: str
-
-    def __eq__(self, other: 'EmailOption'):
-        return self.email == other.email

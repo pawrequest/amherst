@@ -7,7 +7,7 @@ from loguru import logger
 from amherst import app_file
 from amherst.commence_adaptors import initial_filter
 from amherst.db import create_db, get_session_cm
-from amherst.models.am_record_smpl import AmherstTableDB, get_amrec_db_smpl
+from amherst.models.am_record_smpl import AmherstTableDB, dict_to_amtable
 from pycommence.pycommence_v2 import PyCommence
 
 PORT = 10550
@@ -48,26 +48,28 @@ async def import_cmc_data():
         for csrname in ['Hire', 'Sale', 'Customer']:
             py_cmc.set_csr(csrname)
             py_cmc.filter_cursor(initial_filter(csrname), csrname=csrname)
-            for record in py_cmc.generate_records_ids(count=10, csrname=csrname):
+            for record in py_cmc.generate_records_ids(csrname=csrname):
                 record['category'] = csrname
-                am_table = get_amrec_db_smpl(record)
-                await add_or_update_amtable(am_table, session)
+                am_table = dict_to_amtable(record)
+                table = await make_or_update_amtable(am_table, session)
+                session.add(table)
         session.commit()
     CoUninitialize()
 
 
-async def add_or_update_amtable(am_table_in, session):
+async def make_or_update_amtable(am_table_in, session):
     indb = session.get(AmherstTableDB, am_table_in.row_id)
     if indb:
         [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
     else:
         indb = AmherstTableDB(**am_table_in.model_dump())
-    session.add(indb)
+    return indb
 
 
-async def drop_all():
+async def drop_all(db_model=AmherstTableDB):
+    logger.warning('Dropping all records from database.')
     with get_session_cm() as session:
-        session.query(AmherstTableDB).delete()
+        session.query(db_model).delete()
         session.commit()
 
 

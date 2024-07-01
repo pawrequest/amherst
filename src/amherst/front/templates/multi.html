@@ -1,29 +1,37 @@
 {% extends "base.html" %}
+{% block head %}
+    <link href="{{ url_for('static', path='multi.css') }}" rel="stylesheet">
+{% endblock %}
 {% block title %}Amherst MultiShipper{% endblock %}
 {% block sidebar %}
     <div class="sidebar">
         <label for="searchInput">Search</label>
         <input type="text" id="searchInput" placeholder="Search records..." onkeyup="filterRecords()">
-        <div id="recordsContainer">
 
-            {% for record in records %}
-                <div class="record  record__{{ record.category | lower }}">
-                    <p onclick="populateForm('{{ record.row_id }}')">
-                        {{ record.customer_name }}-{{ record.send_date }}
-                    </p>
-                </div>
-            {% endfor %}
+        <div class="record-container" id="hiresContainer">
+            <h2 onclick="toggleContainer('hiresContainer')">Hires</h2>
+            <div class="records" hx-get="/search?column=category&q=Hire" hx-trigger="load"
+                 hx-target="this" hx-swap="innerHTML">
+            </div>
+        </div>
+
+        <div class="record-container" id="salesContainer">
+            <h2 onclick="toggleContainer('salesContainer')">Sales</h2>
+            <div class="records" hx-get="/search?column=category&q=Sale" hx-trigger="load"
+                 hx-target="this" hx-swap="innerHTML">
+            </div>
+        </div>
+
+        <div class="record-container" id="customersContainer">
+            <h2 onclick="toggleContainer('customersContainer')">Customers</h2>
+            <div class="records" hx-get="/search?column=category&q=Customer" hx-trigger="load"
+                 hx-target="this" hx-swap="innerHTML">
+            </div>
         </div>
     </div>
 {% endblock %}
 
 {% block content %}
-    <div class="ship-form">
-        {% include 'shipping_form_empty.html' %}
-        <div class="returned-request"></div>
-    </div>
-
-
 {% endblock %}
 
 {% block scripts %}
@@ -64,6 +72,21 @@
             document.getElementById('address_line3').value = amherst_table.delivery_address_line3;
             document.getElementById('town').value = amherst_table.delivery_town;
             document.getElementById('postcode').value = amherst_table.delivery_address_pc;
+        }
+
+        function closePopup() {
+            document.getElementById('popupDetails').style.display = 'none';
+        }
+
+        function toggleContainer(containerId) {
+            const containers = document.querySelectorAll('.record-container');
+            containers.forEach(container => {
+                if (container.id === containerId) {
+                    container.classList.toggle('expanded');
+                } else {
+                    container.classList.remove('expanded');
+                }
+            });
         }
     </script>
 {% endblock %}

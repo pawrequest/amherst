@@ -7,29 +7,10 @@
     <title>{% block title %}Form Page{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@1.5.0/dist/htmx.min.js"></script>
     <script src="{{ url_for('static', path='script.js') }}" defer></script>
-
-
     <link href="{{ url_for('static', path='style.css') }}" rel="stylesheet">
-
-
     {% block head %}{% endblock %}
 </head>
 <body>
-<header>
-    {% if request.app.ship_live %}
-        <div class="shipper shipper__live">Shipper in Live Mode</div>
-    {% else %}
-        <div class="shipper shipper__sandbox">Shipper in Sandbox Mode</div>
-    {% endif %}
-
-    {% if booking %}
-        <div class="alerts">
-            {% for alert in booking.all_alerts() %}
-                <div class="alert alert__{{ alert.type }}">{{ alert.message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %}
-</header>
 <main>
     <div class="multi">
         {% block sidebar %}{% endblock %}

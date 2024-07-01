@@ -7,7 +7,7 @@ from loguru import logger
 from starlette.testclient import TestClient
 
 from amherst.commence_adaptors import initial_filter
-from amherst.models.am_record_smpl import AmherstTableDB, get_amrec_db_smpl
+from amherst.models.am_record_smpl import AmherstTableDB, dict_to_amtable
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipDirection
@@ -30,7 +30,7 @@ async def amrec(pycmc: PyCommence):
     logger.info(f'testing {record["Name"]}')
     record['category'] = pycmc.get_csr().category
     pprint(record)
-    amrec = get_amrec_db_smpl(record)
+    amrec = dict_to_amtable(record)
     return amrec
 
 
@@ -99,7 +99,7 @@ def test_genids_add_sesh(test_session_fxt, pycmc):
     csrname = pycmc.get_csr().category
     for record in pycmc.generate_records_ids(count=10):
         record['category'] = csrname
-        am_table_in = get_amrec_db_smpl(record)
+        am_table_in = dict_to_amtable(record)
         if indb := test_session_fxt.get(AmherstTableDB, am_table_in.row_id):
             [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
         else:
