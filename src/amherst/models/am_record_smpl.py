@@ -188,4 +188,4 @@ def get_amrec_db_smpl(data: dict[str, str]) -> AmherstTableDB:
             res = AmherstCustomerIn.model_validate(data)
         case _:
             raise ValueError(f'Unknown table {data['categor']}')
-    return AmherstTableDB.model_validate(res, from_attributes=True)
+    return AmherstTableDB(**res.model_dump())

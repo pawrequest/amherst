@@ -2,17 +2,22 @@ from __future__ import annotations
 
 import contextlib
 import functools
+from datetime import date, datetime
+from typing import NamedTuple
 
 import httpx
 import sqlalchemy as sqa
+import sqlmodel
 import sqlmodel as sqm
 from comtypes import CoInitialize, CoUninitialize
+from fastapi import Query
 from loguru import logger
 from sqlalchemy import create_engine
-from sqlmodel import SQLModel, Session
+from sqlmodel import SQLModel, Session, col, select
 
 from amherst.commence_adaptors import initial_filter
 from amherst.config import settings
+from amherst.models.am_record_smpl import AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
@@ -61,8 +66,8 @@ def get_pycmc() -> PyCommence:
     pyc.set_csr('Customer')
     for cat in ['Hire', 'Sale', 'Customer']:
         [pyc.filter_cursor(initial_filter(cat), csrname=cat)]
-    yield pyc
     CoUninitialize()
+    return pyc
 
 
 def get_el_client() -> ELClient:
@@ -90,3 +95,37 @@ def create_db(engine=None):
     if engine is None:
         engine = get_engine()
     sqm.SQLModel.metadata.create_all(engine)
+
+
+PAGE_SIZE = 10
+
+
+def get_pagination(limit: int = Query(PAGE_SIZE, gt=0), offset: int = Query(0, ge=0)):
+    return Pagination(limit=limit, offset=offset)
+
+
+class Pagination(NamedTuple):
+    limit: int
+    offset: int
+
+
+async def select_page_more(session, sqlselect, pagination: Pagination) -> tuple[list, bool]:
+    stmt = sqlselect.offset(pagination.offset).limit(pagination.limit + 1)
+    res = session.exec(stmt).all()
+    more = len(res) > pagination.limit
+    return res[: pagination.limit], more
+
+
+def ordinal(n):
+    return str(n) + ('th' if 4 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th'))
+
+
+def dt_ordinal(dt: datetime | date) -> str:
+    return dt.strftime('%a {th} %b %Y').replace('{th}', ordinal(dt.day))
+
+
+async def search_column(table, column, search_str: str):
+    search = f'%{search_str}%'
+    return select(table).where(col(column).ilike(search))
+
+

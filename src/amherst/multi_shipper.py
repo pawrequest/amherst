@@ -10,6 +10,8 @@ from amherst.db import create_db, get_session_cm
 from amherst.models.am_record_smpl import AmherstTableDB, get_amrec_db_smpl
 from pycommence.pycommence_v2 import PyCommence
 
+PORT = 10550
+
 
 async def main():
     create_db()
@@ -20,6 +22,7 @@ async def main():
             app=app_file.app,
             server='fastapi',
             url_suffix='multi',
+            port=PORT,
             # url_suffix=f'ship/select/{shiprec_id}',
         )
         fui.run()
