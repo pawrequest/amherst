@@ -40,9 +40,10 @@ async def main():
         close_application()
 
 
-async def import_cmc_data():
+async def fresh_cmc_data():
     CoInitialize()
     with get_session_cm() as session:
+        await drop_all(AmherstTableDB)
         py_cmc = PyCommence()
         # for csrname in ['Hire']:
         for csrname in ['Hire', 'Sale', 'Customer']:
@@ -51,10 +52,31 @@ async def import_cmc_data():
             for record in py_cmc.generate_records_ids(csrname=csrname):
                 record['category'] = csrname
                 am_table = dict_to_amtable(record)
-                table = await make_or_update_amtable(am_table, session)
+                # table = await make_or_update_amtable(am_table, session)
+                table = AmherstTableDB(**am_table.model_dump())
+
                 session.add(table)
         session.commit()
     CoUninitialize()
+
+
+# async def import_cmc_data1():
+#     CoInitialize()
+#     with get_session_cm() as session:
+#         py_cmc = PyCommence()
+#         # for csrname in ['Hire']:
+#         for csrname in ['Hire', 'Sale', 'Customer']:
+#             py_cmc.set_csr(csrname)
+#             py_cmc.filter_cursor(initial_filter(csrname), csrname=csrname)
+#             for record in py_cmc.generate_records_ids(csrname=csrname):
+#                 record['category'] = csrname
+#                 am_table = dict_to_amtable(record)
+#                 # table = await make_or_update_amtable(am_table, session)
+#                 table = AmherstTableDB(**am_table.model_dump())
+#
+#                 session.add(table)
+#         session.commit()
+#     CoUninitialize()
 
 
 async def make_or_update_amtable(am_table_in, session):

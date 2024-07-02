@@ -15,7 +15,7 @@ from amherst.backend_funcs import (
 )
 from amherst.db import get_session
 from amherst.models.am_record_smpl import AmherstTableDB
-from amherst.multi_shipper import drop_all, import_cmc_data
+from amherst.multi_shipper import fresh_cmc_data
 from amherst.routes_api import amrecs_from_query
 
 router = APIRouter()
@@ -36,8 +36,7 @@ async def fetch_amrec(
 
 @router.get('/multi', response_class=HTMLResponse)
 async def multi_shipper(request: Request, session=Depends(get_session)):
-    await drop_all(AmherstTableDB)
-    await import_cmc_data()
+    await fresh_cmc_data()
     records = session.query(AmherstTableDB).all()
     return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'records': records})
 

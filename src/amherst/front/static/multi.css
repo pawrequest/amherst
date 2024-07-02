@@ -128,7 +128,7 @@
 }
 
 .record-container.expanded .records {
-    max-height: none; /* Removes the max-height to show all content when expanded */
+    /*max-height: none; !* Removes the max-height to show all content when expanded *!*/
 }
 
 .popup-details {
@@ -144,9 +144,9 @@
 }
 
 .record-container.expanded {
-    flex: 3;
+    flex: 10;
 }
 
 .record-container.collapsed {
-    flex: 0.5;
+    flex: 0;
 }

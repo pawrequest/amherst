@@ -39,17 +39,18 @@
         function filterRecords() {
             let input = document.getElementById('searchInput');
             let filter = input.value.toLowerCase();
-            let recordsContainer = document.getElementById('recordsContainer');
-            let records = recordsContainer.getElementsByClassName('record');
+            let recordsContainers = document.querySelectorAll('.record-container');
 
-            for (let i = 0; i < records.length; i++) {
-                let record = records[i];
-                if (record.textContent.toLowerCase().indexOf(filter) > -1) {
-                    record.style.display = "";
-                } else {
-                    record.style.display = "none";
-                }
-            }
+            recordsContainers.forEach(container => {
+                let records = container.getElementsByClassName('record');
+                Array.from(records).forEach(record => {
+                    if (record.textContent.toLowerCase().includes(filter)) {
+                        record.style.display = "";
+                    } else {
+                        record.style.display = "none";
+                    }
+                });
+            });
         }
 
         async function populateForm(rowId) {

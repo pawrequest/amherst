@@ -95,21 +95,17 @@ def create_db(engine=None):
     sqm.SQLModel.metadata.create_all(engine)
 
 
-PAGE_SIZE = 10
+PAGE_SIZE = None
 
 
 class Pagination(NamedTuple):
-    offset: int | None = None
+    offset: int = 0
     limit: int | None = PAGE_SIZE
 
     @classmethod
-    def from_query(cls, limit: int | None = Query(None), offset: int | None = Query(None)) -> Self:
+    def from_query(cls, limit: int | None = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
         logger.debug(f'Pagination.from_query({limit=}, {offset=})')
         return cls(limit=limit, offset=offset)
-
-    @classmethod
-    def all_(cls) -> Self:
-        return cls(limit=None, offset=None)
 
 
 async def select_page_more(session, sqlselect, pagination: Pagination) -> tuple[list, bool]:

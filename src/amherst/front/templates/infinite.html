@@ -1,0 +1,7 @@
+<div class="infinite"
+     hx-get="{{ route }}/?offset={{ pagination.offset + pagination.limit }}&limit={{ pagination.limit }}"
+     hx-trigger="revealed"
+     hx-target="this"
+     hx-swap="outerHTML"
+>
+</div>

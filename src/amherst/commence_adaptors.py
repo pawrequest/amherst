@@ -270,7 +270,6 @@ def initial_filter(filtername: str) -> FilterArray:
     match filtername:
         case 'Hire':
             fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 8, 31))
-
         case 'Sale':
             fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='january 2023'),)
         case 'Customer':
