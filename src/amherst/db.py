@@ -9,10 +9,10 @@ import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from comtypes import CoInitialize, CoUninitialize
-from fastapi import Query, Depends
+from fastapi import Body, Depends, Query
 from loguru import logger
 from sqlalchemy import create_engine
-from sqlmodel import SQLModel, Session, col, select, and_, or_
+from sqlmodel import SQLModel, Session, and_, col, or_, select
 from starlette.exceptions import HTTPException
 
 from amherst.commence_adaptors import initial_filter
@@ -143,11 +143,10 @@ def search_column_stmt(model, column: str | None, search_str: str | None = None)
     return stmt
 
 
-async def query_multi(
-        queries: dict[str, str] = Query(...),
-        logic_operator: str = Query('and', regex='^(and|or)$')
+async def query_stmt_multi(
+    queries: dict[str, str] = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
 ) -> select:
-    filters = [getattr(AmherstTableDB, col) == val for col, val in queries.items()]
+    filters = [getattr(AmherstTableDB, colname).ilike(f'%{val}%') for colname, val in queries.items()]
     if logic_operator == 'and':
         stmt = select(AmherstTableDB).where(and_(*filters))
     else:
@@ -155,11 +154,19 @@ async def query_multi(
     return stmt
 
 
+async def amrecs_from_queries_multi(
+    stmt: select = Depends(query_stmt_multi),
+    session: Session = Depends(get_session),
+):
+    page, more = await select_page_more(session, stmt, Pagination())
+    return page
+
+
 async def amrecs_from_query(
-        column: str = Query(None),
-        q: str = Query(None),
-        session: Session = Depends(get_session),
-        pagination: Pagination = Depends(Pagination.from_query)
+    column: str = Query(None),
+    q: str = Query(None),
+    session: Session = Depends(get_session),
+    pagination: Pagination = Depends(Pagination.from_query),
 ) -> list[AmherstTableDB]:
     stmt = search_column_stmt(AmherstTableDB, column, q)
     page, more = await select_page_more(session, stmt, pagination)

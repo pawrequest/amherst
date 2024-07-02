@@ -16,6 +16,7 @@ from suppawt.office_ps.email_handler import Email
 from amherst.config import settings
 from amherst.db import get_session
 from amherst.models.am_record_smpl import AmherstTableDB
+
 # from amherst.models.db_models import BookingStateDB
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
@@ -23,7 +24,7 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import (Shipment, ShipmentReferenceFields, to_collection, to_dropoff)
+from shipaw.models.pf_shipment import Shipment, ShipmentReferenceFields, to_collection, to_dropoff
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import AlertType, ExpressLinkNotification, ExpressLinkWarning, ShipDirection, VALID_POSTCODE
 
@@ -109,28 +110,6 @@ async def make_email(addresses, invoice, label, missing, booking_state):
 TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templates'))
 
 
-# async def get_booking(booking_id: int, session: Session) -> BookingStateDB:
-#     record = session.get(BookingStateDB, booking_id)
-#     if not isinstance(record, BookingStateDB):
-#         raise ValueError(f'No booking found with id {booking_id}')
-#     return record
-
-
-# async def booking_f_form(booking_id: int = Form(), session: Session = Depends(get_session)) -> BookingStateDB:
-#     logger.debug(f'Retrieving Booking {booking_id} from form')
-#     booking = session.get(BookingStateDB, booking_id)
-#     if not isinstance(booking, BookingStateDB):
-#         raise ValueError(f'No booking found with id {booking_id}')
-#     return booking
-
-
-# async def booking_f_path(booking_id: int = Path(), session: Session = Depends(get_session)) -> BookingStateDB:
-#     booking = session.get(BookingStateDB, booking_id)
-#     if not isinstance(booking, BookingStateDB):
-#         raise ValueError(f'No booking found with id {booking_id}')
-#     return booking
-
-
 async def new_amrec_f_path(row_id: str = Path(), session: Session = Depends(get_session)) -> AmherstTableDB:
     ret = session.get(AmherstTableDB, row_id)
     if not isinstance(ret, AmherstTableDB):
@@ -154,8 +133,8 @@ def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
 #     if record.category == 'Customer':
 #         raise ValueError('invoice not for customer')
 #     return record.invoice_path
-# 
-# 
+#
+#
 # async def get_missing(record: AmherstRecord) -> list[str]:
 #     if not record.category == 'Hire':
 #         raise ValueError('missing kit only for hire')
@@ -163,12 +142,12 @@ def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
 
 
 async def address_f_form(
-        address_line1: str = Form(...),
-        address_line2: str = Form(''),
-        address_line3: str = Form(''),
-        town: str = Form(...),
-        postcode: VALID_POSTCODE = Form(...),
-        direction: ShipDirection = Form(...),
+    address_line1: str = Form(...),
+    address_line2: str = Form(''),
+    address_line3: str = Form(''),
+    town: str = Form(...),
+    postcode: VALID_POSTCODE = Form(...),
+    direction: ShipDirection = Form(...),
 ):
     logger.debug(
         f'Address fields received: {direction=}, {address_line1=}, {address_line2=}, {address_line3=}, {town=}, {postcode=}'
@@ -187,12 +166,12 @@ async def address_f_form(
 
 
 async def contact_f_form(
-        request: Request,
-        contact_name: str = Form(...),
-        email_address: EmailStr = Form(...),
-        business_name: str = Form(...),
-        mobile_phone: str = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
+    request: Request,
+    contact_name: str = Form(...),
+    email_address: EmailStr = Form(...),
+    business_name: str = Form(...),
+    mobile_phone: str = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
 ):
     logger.debug(f'form received: {await request.form()}')
     logger.debug(
@@ -222,15 +201,15 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 
 async def shipment_request_f_form(
-        request: Request,
-        contact: Contact = Depends(contact_f_form),
-        address: AddressCollection = Depends(address_f_form),
-        notes: list[tuple[str, str]] = Depends(notes_f_form),
-        shipping_date: date = Form(...),
-        total_number_of_parcels: int = Form(...),
-        service_code: ServiceCode = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
-        own_label: str = Form(...),
+    request: Request,
+    contact: Contact = Depends(contact_f_form),
+    address: AddressCollection = Depends(address_f_form),
+    notes: list[tuple[str, str]] = Depends(notes_f_form),
+    shipping_date: date = Form(...),
+    total_number_of_parcels: int = Form(...),
+    service_code: ServiceCode = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
+    own_label: str = Form(...),
 ) -> Shipment:
     logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
