@@ -5,11 +5,23 @@
 {% block title %}Amherst MultiShipper{% endblock %}
 {% block sidebar %}
     <div class="sidebar">
+        <label for="filterInput">Filter</label>
+        <input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">
+
         <label for="searchInput">Search</label>
-        <input type="text" id="searchInput" placeholder="Search records..." onkeyup="filterRecords()">
+        <input type="text" id="searchInput" placeholder="Fetch New Records..." onkeyup="searchRecords()">
+
+        <div class="record-container" id="customersContainer">
+            <h2 onclick="toggleContainer('customersContainer')">Customers</h2>
+            <div class="records" hx-get="/search?column=category&q=Customer" hx-trigger="load"
+                 hx-target="this" hx-swap="innerHTML">
+            </div>
+        </div>
+
 
         <div class="record-container" id="hiresContainer">
             <h2 onclick="toggleContainer('hiresContainer')">Hires</h2>
+{#            <div class="records" hx-get="/search?column=category&q=Hire" hx-trigger="load"#}
             <div class="records" hx-get="/search?column=category&q=Hire" hx-trigger="load"
                  hx-target="this" hx-swap="innerHTML">
             </div>
@@ -22,12 +34,7 @@
             </div>
         </div>
 
-        <div class="record-container" id="customersContainer">
-            <h2 onclick="toggleContainer('customersContainer')">Customers</h2>
-            <div class="records" hx-get="/search?column=category&q=Customer" hx-trigger="load"
-                 hx-target="this" hx-swap="innerHTML">
-            </div>
-        </div>
+
     </div>
 {% endblock %}
 

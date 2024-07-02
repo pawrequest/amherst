@@ -27,8 +27,8 @@ async def search(request: Request, page: list[AmherstTableDB] = Depends(amrecs_f
 
 @router.get('/get_shipment/{row_id}', response_class=HTMLResponse)
 async def fetch_amrec(
-        request: Request,
-        amrec: AmherstTableDB = Depends(new_amrec_f_path),
+    request: Request,
+    amrec: AmherstTableDB = Depends(new_amrec_f_path),
 ) -> HTMLResponse:
     return TEMPLATES.TemplateResponse('record_detail.html', {'request': request, 'record': amrec})
 

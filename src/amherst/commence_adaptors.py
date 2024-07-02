@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import functools
-from datetime import date
+from datetime import date, timedelta
 from enum import Enum, StrEnum
 from typing import Annotated
 
@@ -10,6 +10,27 @@ from pydantic import Field
 
 from pycommence.pycmc_types import CmcFilter, ConditionType, Connection, FilterArray, get_cmc_date, to_cmc_date
 from shipaw.ship_types import limit_daterange_no_weekends
+
+
+@functools.lru_cache
+def initial_filter(filtername: str) -> FilterArray:
+    match filtername:
+        case 'Hire':
+            fils = hires_in_range_fils(date.today() - timedelta(days=30), date.today() + timedelta(days=30))
+        case 'Sale':
+            fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='1 month ago'),)
+        case 'Customer':
+            fils = (
+                CmcFilter(
+                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='1 day ago'
+                ),
+            )
+
+        case _:
+            raise ValueError(f'No filter for {filtername}')
+
+    return FilterArray.from_filters(*fils)
+
 
 SALE_CUSTOMERS = Connection(
     name='SaleCustomers',
@@ -265,26 +286,6 @@ class SaleAliases2(StrEnum):
     INVOICE_TELEPHONE = 'Invoice Telephone'
 
 
-@functools.lru_cache
-def initial_filter(filtername: str) -> FilterArray:
-    match filtername:
-        case 'Hire':
-            fils = hires_in_range_fils(date(2023, 5, 1), date(2024, 8, 31))
-        case 'Sale':
-            fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='january 2023'),)
-        case 'Customer':
-            fils = (
-                CmcFilter(
-                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='march 2023'
-                ),
-            )
-
-        case _:
-            raise ValueError(f'No filter for {filtername}')
-
-    return FilterArray.from_filters(*fils)
-
-
 def hires_in_range_fils(start_date: date, end_date: date | None = None) -> tuple[CmcFilter, ...]:
     fils = (
         CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
@@ -293,11 +294,9 @@ def hires_in_range_fils(start_date: date, end_date: date | None = None) -> tuple
         CmcFilter(cmc_col=HireAliases.SEND_OUT_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
     )
     if end_date:
-        fils += CmcFilter(
-            cmc_col=HireAliases.SEND_OUT_DATE,
-            condition=ConditionType.BEFORE,
-            value=to_cmc_date(end_date)
-        ),
+        fils += (
+            CmcFilter(cmc_col=HireAliases.SEND_OUT_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
+        )
     return fils
 
 
@@ -486,3 +485,12 @@ class EmailOption(_p.BaseModel):
 
     def __eq__(self, other: 'EmailOption'):
         return self.email == other.email
+
+
+"""
+hires in range
+sales in range
+customers in hires
+customers in sales
+customers in range
+"""

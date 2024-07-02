@@ -144,9 +144,11 @@ def search_column_stmt(model, column: str | None, search_str: str | None = None)
 
 
 async def query_stmt_multi(
-    queries: dict[str, str] = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
+    queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
 ) -> select:
-    filters = [getattr(AmherstTableDB, colname).ilike(f'%{val}%') for colname, val in queries.items()]
+    filters = (
+        [getattr(AmherstTableDB, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
+    )
     if logic_operator == 'and':
         stmt = select(AmherstTableDB).where(and_(*filters))
     else:
