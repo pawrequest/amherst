@@ -1,11 +1,18 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from loguru import logger
-from sqlmodel import Session
+from sqlmodel import Session, select
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
 
 from amherst.backend_funcs import amrec_from_path, book_shipment, shipment_request_f_form
-from amherst.db import Pagination, get_el_client, get_session, search_column_stmt, select_page_more
+from amherst.db import (
+    Pagination,
+    get_el_client,
+    get_session,
+    select_page_more,
+    query_multi,
+    amrecs_from_query,
+)
 from amherst.models.am_record_smpl import AmherstTableDB
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
@@ -16,17 +23,15 @@ from shipaw.ship_types import ShipDirection, VALID_POSTCODE
 router = APIRouter()
 
 
-async def amrecs_from_query(
-        column: str = Query(None),
-        q: str = Query(None),
+@router.get('/multi_search', response_model=list[AmherstTableDB])
+async def multi_search(
+        stmt: select = Depends(query_multi),
         session: Session = Depends(get_session),
-        pagination: Pagination = Depends(Pagination.from_query)
+        pagination: Pagination = Depends(Pagination.from_query),
 ) -> list[AmherstTableDB]:
-    stmt = search_column_stmt(AmherstTableDB, column, q)
     page, more = await select_page_more(session, stmt, pagination)
-    logger.info(f'returned {len(page)} records with {column} = {q}. (There are{' no' if not more else ''} more)')
     if not page:
-        raise HTTPException(status_code=404, detail=f'No records found for {q}')
+        raise HTTPException(status_code=404, detail='No records found')
     return page
 
 

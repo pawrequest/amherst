@@ -9,13 +9,15 @@ import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from comtypes import CoInitialize, CoUninitialize
-from fastapi import Query
+from fastapi import Query, Depends
 from loguru import logger
 from sqlalchemy import create_engine
-from sqlmodel import SQLModel, Session, col, select
+from sqlmodel import SQLModel, Session, col, select, and_, or_
+from starlette.exceptions import HTTPException
 
 from amherst.commence_adaptors import initial_filter
 from amherst.config import settings
+from amherst.models.am_record_smpl import AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
@@ -139,3 +141,29 @@ def search_column_stmt(model, column: str | None, search_str: str | None = None)
     colly = getattr(model, column)
     stmt = select(model).where(colly.ilike(search_))
     return stmt
+
+
+async def query_multi(
+        queries: dict[str, str] = Query(...),
+        logic_operator: str = Query('and', regex='^(and|or)$')
+) -> select:
+    filters = [getattr(AmherstTableDB, col) == val for col, val in queries.items()]
+    if logic_operator == 'and':
+        stmt = select(AmherstTableDB).where(and_(*filters))
+    else:
+        stmt = select(AmherstTableDB).where(or_(*filters))
+    return stmt
+
+
+async def amrecs_from_query(
+        column: str = Query(None),
+        q: str = Query(None),
+        session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query)
+) -> list[AmherstTableDB]:
+    stmt = search_column_stmt(AmherstTableDB, column, q)
+    page, more = await select_page_more(session, stmt, pagination)
+    logger.info(f'returned {len(page)} records with {column} = {q}. (There are{' no' if not more else ''} more)')
+    if not page:
+        raise HTTPException(status_code=404, detail=f'No records found for {q}')
+    return page

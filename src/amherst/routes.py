@@ -13,10 +13,9 @@ from amherst.backend_funcs import (
     TEMPLATES,
     new_amrec_f_path,
 )
-from amherst.db import get_session
+from amherst.db import get_session, amrecs_from_query
 from amherst.models.am_record_smpl import AmherstTableDB
 from amherst.multi_shipper import fresh_cmc_data
-from amherst.routes_api import amrecs_from_query
 
 router = APIRouter()
 
