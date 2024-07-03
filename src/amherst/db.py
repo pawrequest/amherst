@@ -17,7 +17,7 @@ from starlette.exceptions import HTTPException
 
 from amherst.config import settings
 from amherst.models.am_record_smpl import AmherstTableDB
-from pycommence.pycommence_v1 import PyCommence
+from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
 

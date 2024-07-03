@@ -45,14 +45,10 @@ async def fresh_cmc_data():
     with get_session_cm() as session:
         await drop_all(AmherstTableDB)
         py_cmc = PyCommence()
-        # for csrname in ['Hire']:
         for csrname in ['Hire', 'Sale', 'Customer']:
-            py_cmc.set_csr(csrname)
-            py_cmc.filter_cursor(initial_filter(csrname), csrname=csrname)
-            for record in py_cmc.generate_records_ids(csrname=csrname):
-                record['category'] = csrname
+            py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
+            for record in py_cmc.get_csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
                 am_table = dict_to_amtable(record)
-                # table = await make_or_update_amtable(am_table, session)
                 table = AmherstTableDB(**am_table.model_dump())
 
                 session.add(table)

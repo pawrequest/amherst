@@ -5,7 +5,7 @@ from starlette.responses import JSONResponse
 from amherst.backend_funcs import amrec_from_path, book_shipment, shipment_request_f_form
 from amherst.db import amrecs_from_queries_multi, amrecs_from_query, get_el_client, get_pyc2
 from amherst.models.am_record_smpl import AmherstTableDB
-from pycommence.pycommence_v1 import PyCommence
+from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
@@ -18,7 +18,7 @@ router = APIRouter()
 @router.get('/getpyc/{csrname}/{row_id}', response_class=JSONResponse)
 async def getpyc(csrname: str, row_id: str, pycmc: PyCommence = Depends(get_pyc2)):
     csr = pycmc.csrs.get(csrname)
-    record = csr.get_row_by_id(row_id)
+    record = csr.read_row_by_id(row_id)
     return record
 
 
