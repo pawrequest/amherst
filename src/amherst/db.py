@@ -17,7 +17,7 @@ from starlette.exceptions import HTTPException
 
 from amherst.config import settings
 from amherst.models.am_record_smpl import AmherstTableDB
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence_v1 import PyCommence
 from shipaw.expresslink_client import ELClient
 
 
@@ -70,7 +70,7 @@ def getpycmc() -> PyCommence:
 
 
 async def get_pyc2(
-        csrname: str = Path(...),
+    csrname: str = Path(...),
 ) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname)
@@ -152,7 +152,7 @@ def search_column_stmt(model, column: str | None, search_str: str | None = None)
 
 
 async def query_stmt_multi(
-        queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
+    queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
 ) -> select:
     filters = (
         [getattr(AmherstTableDB, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
@@ -165,18 +165,18 @@ async def query_stmt_multi(
 
 
 async def amrecs_from_queries_multi(
-        stmt: select = Depends(query_stmt_multi),
-        session: Session = Depends(get_session),
+    stmt: select = Depends(query_stmt_multi),
+    session: Session = Depends(get_session),
 ):
     page, more = await select_page_more(session, stmt, Pagination())
     return page
 
 
 async def amrecs_from_query(
-        column: str = Query(None),
-        q: str = Query(None),
-        session: Session = Depends(get_session),
-        pagination: Pagination = Depends(Pagination.from_query),
+    column: str = Query(None),
+    q: str = Query(None),
+    session: Session = Depends(get_session),
+    pagination: Pagination = Depends(Pagination.from_query),
 ) -> list[AmherstTableDB]:
     stmt = search_column_stmt(AmherstTableDB, column, q)
     page, more = await select_page_more(session, stmt, pagination)

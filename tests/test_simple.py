@@ -8,7 +8,7 @@ from starlette.testclient import TestClient
 
 from amherst.commence_adaptors import initial_filter
 from amherst.models.am_record_smpl import AmherstTableDB, dict_to_amtable
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence_v1 import PyCommence
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa

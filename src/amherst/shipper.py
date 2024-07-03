@@ -35,7 +35,7 @@ from amherst.db import create_db, get_session_cm
 from amherst.config import settings
 from amherst import app_file
 from amherst.models.am_record_smpl import AmherstTableBase, dict_to_amtable
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence_v1 import PyCommence
 
 SCORER = fuzz.partial_ratio
 

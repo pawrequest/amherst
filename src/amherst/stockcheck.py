@@ -12,23 +12,15 @@ from pawlogger import get_loguru
 
 from amherst.commence_adaptors import HireAliases, initial_filter
 from pycommence.pycmc_types import CmcDateFormat, RadioType
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence_v1 import PyCommence
 
 logger = get_loguru(profile='local')
 
 
 def prep_df(records):
     df = pd.DataFrame(records)
-    df[HireAliases.SEND_OUT_DATE] = pd.to_datetime(
-        df[HireAliases.SEND_OUT_DATE],
-        format=CmcDateFormat,
-        errors='coerce'
-    )
-    df[HireAliases.DUE_BACK_DATE] = pd.to_datetime(
-        df[HireAliases.DUE_BACK_DATE],
-        format=CmcDateFormat,
-        errors='coerce'
-    )
+    df[HireAliases.SEND_OUT_DATE] = pd.to_datetime(df[HireAliases.SEND_OUT_DATE], format=CmcDateFormat, errors='coerce')
+    df[HireAliases.DUE_BACK_DATE] = pd.to_datetime(df[HireAliases.DUE_BACK_DATE], format=CmcDateFormat, errors='coerce')
     df[HireAliases.UHF] = df[HireAliases.UHF].astype(int)
     return df
 
@@ -41,8 +33,11 @@ def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
 
 class StockChecker:
     def __init__(
-            self, pycmc=None, radiotype: RadioType = RadioType.HYT,
-            start_date: date = date.today(), end_date: date = date.today() + timedelta(days=6)
+        self,
+        pycmc=None,
+        radiotype: RadioType = RadioType.HYT,
+        start_date: date = date.today(),
+        end_date: date = date.today() + timedelta(days=6),
     ):
         self.radiotype = radiotype
         self.start_date = start_date
@@ -52,7 +47,7 @@ class StockChecker:
         self.data = self._prepare_data()
 
     def _prepare_data(self):
-        records = self.pycommence.records()
+        records = self.pycommence.rows()
         df = prep_df(records)
         return df
 
@@ -70,14 +65,7 @@ class StockChecker:
         stock_data = [self.how_many_in(datecheck) for datecheck in dates]
         rads_out = [self.how_many_out(datecheck) for datecheck in dates]
 
-        data_df = pd.DataFrame(
-            {
-                'Date': dates,
-                'Send': send_data,
-                'Stock': stock_data,
-                'Out': rads_out
-            }
-        )
+        data_df = pd.DataFrame({'Date': dates, 'Send': send_data, 'Stock': stock_data, 'Out': rads_out})
 
         self.plot_data(data_df)
 
@@ -88,9 +76,9 @@ class StockChecker:
     @functools.lru_cache
     def how_many_out(self, datecheck):
         filtered_data = self.data[
-            (self.data[HireAliases.SEND_OUT_DATE].dt.date < datecheck) &
-            (self.data[HireAliases.DUE_BACK_DATE].dt.date > datecheck)
-            ]
+            (self.data[HireAliases.SEND_OUT_DATE].dt.date < datecheck)
+            & (self.data[HireAliases.DUE_BACK_DATE].dt.date > datecheck)
+        ]
         rads_out = filtered_data[HireAliases.UHF].sum()
         return rads_out
 

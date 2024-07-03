@@ -8,7 +8,7 @@ from amherst.commence_adaptors import initial_filter
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence_v1 import PyCommence
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE
 
 

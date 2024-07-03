@@ -9,7 +9,7 @@ from pydantic import AliasChoices, ConfigDict, Field
 
 from amherst.commence_adaptors import CustomerAliases, AM_SHIP_DATE, AmherstTableEnum, EmailOption
 from amherst.importer import split_addr_str
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence_v1 import PyCommence
 from shipaw.models import pf_lists, pf_models, pf_top
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import Alert, Alerts
@@ -110,5 +110,3 @@ def get_customer_record(customer: str) -> dict[str, str]:
     with PyCommence.with_csr(csrname='Customer') as py_cmc:
         rec = py_cmc.one_record(customer)
     return rec
-
-
