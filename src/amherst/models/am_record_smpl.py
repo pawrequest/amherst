@@ -1,7 +1,7 @@
 # from __future__ import annotations
 from datetime import date
 from enum import Enum
-from typing import Annotated, Self
+from typing import Annotated
 
 import pydantic as _p
 import sqlmodel
@@ -153,52 +153,49 @@ class AmherstTableBase(BaseModel):
                 raise ValueError(f'Unknown direction {direction}')
 
 
-class AmherstCustomerIn(AmherstTableBase):
+# class AmherstCustomer(AmherstTableBase, SQLModel, table=True):
+class AmherstCustomer(AmherstTableBase):
+    row_id: str = sqlmodel.Field(primary_key=True)
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=customer_alias
     )
 
 
-class AmherstHireIn(AmherstTableBase):
+class AmherstHire(AmherstTableBase):
+# class AmherstHire(AmherstTableBase, SQLModel, table=True):
+    row_id: str = sqlmodel.Field(primary_key=True)
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=hire_alias
     )
 
 
-class AmherstSaleIn(AmherstTableBase):
+class AmherstSale(AmherstTableBase):
+# class AmherstSale(AmherstTableBase, SQLModel, table=True):
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=sale_alias
     )
-
+    row_id: str = sqlmodel.Field(primary_key=True)
 
 class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
     row_id: str = sqlmodel.Field(primary_key=True)
 
-    @classmethod
-    def from_dict(cls, data: dict[str, str]) -> Self:
-        match data['category']:
-            case AmherstTableEnum.Hire:
-                res = AmherstHireIn.model_validate(data)
-            case AmherstTableEnum.Sale:
-                res = AmherstSaleIn.model_validate(data)
-            case AmherstTableEnum.Customer:
-                res = AmherstCustomerIn.model_validate(data)
-            case _:
-                raise ValueError(f'Unknown table {data['categor']}')
-        return AmherstTableDB(**res.model_dump())
+
+TABLE_TYPES = AmherstSale, AmherstCustomer, AmherstHire
+# AmherstTableDB = AmherstCustomer | AmherstHire | AmherstSale
 
 
 def dict_to_amtable(data: dict[str, str]) -> AmherstTableDB:
     match data['category']:
         case AmherstTableEnum.Hire:
-            res = AmherstHireIn.model_validate(data)
+            res = AmherstHire.model_validate(data)
         case AmherstTableEnum.Sale:
-            res = AmherstSaleIn.model_validate(data)
+            res = AmherstSale.model_validate(data)
         case AmherstTableEnum.Customer:
-            res = AmherstCustomerIn.model_validate(data)
+            res = AmherstCustomer.model_validate(data)
         case _:
             raise ValueError(f'Unknown table {data['categor']}')
-    return AmherstTableDB(**res.model_dump())
+    res = AmherstTableDB(**res.model_dump())
+    return res

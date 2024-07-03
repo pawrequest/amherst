@@ -6,6 +6,7 @@ from enum import Enum, StrEnum
 from typing import Annotated
 
 import pydantic as _p
+from loguru import logger
 from pydantic import Field
 
 from pycommence.pycmc_types import (
@@ -13,7 +14,7 @@ from pycommence.pycmc_types import (
     get_cmc_date,
     to_cmc_date,
 )
-from pycommence.filters import ConditionType, CmcFilter, SortOrder, FilterArray
+from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, SortOrder
 from shipaw.ship_types import limit_daterange_no_weekends
 
 LOCATION = 'HM'
@@ -68,19 +69,50 @@ def initial_filter(filtername: str) -> FilterArray:
         case 'Hire':
             fils = hires_in_range_fils(hire_start, hire_end)
             sorts = ((HireAliases.SEND_DATE, SortOrder.ASC),)
+            res = FilterArray.from_filters(*fils, sorts=sorts)
+
         case 'Sale':
-            fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=sale_start),)
+            fils = (FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=sale_start),)
+            res = FilterArray.from_filters(*fils, sorts=sorts)
+
         case 'Customer':
+            # fils = (
+            #     FieldFilter(
+            #         column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value=lastcontact
+            #     ),
+            # )
             fils = (
-                CmcFilter(
-                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value=lastcontact
+                ConnectedFieldFilter.model_validate(
+                    dict(
+                        column='Has Hired',
+                        connection_category='Hire',
+                        connected_column=HireAliases.SEND_DATE,
+                        condition=ConditionType.AFTER,
+                        value='12 months ago'
+                    )
                 ),
+                ConnectedFieldFilter.model_validate(
+                    dict(
+                        column='Involves',
+                        connection_category='Sale',
+                        connected_column=SaleAliases.DATE_ORDERED,
+                        condition=ConditionType.AFTER,
+                        value='12 months ago'
+                    )
+                ),
+            )
+            res = FilterArray.from_filters(
+                *fils,
+                sorts=sorts,
+                logic='Or, And, And'
+                # logic='And, And, And'
             )
 
         case _:
             raise ValueError(f'No filter for {filtername}')
 
-    return FilterArray.from_filters(*fils, sorts=sorts)
+    logger.info(f'Created FilterArray with strs = \n{'\n'.join(res.filter_strs)}')
+    return res
 
 
 class CustomerAliases(str, Enum):
@@ -227,16 +259,16 @@ class SaleAliases(StrEnum):
     INVOICE_TELEPHONE = 'Invoice Telephone'
 
 
-def hires_in_range_fils(start_date: date, end_date: date | None = None) -> tuple[CmcFilter, ...]:
+def hires_in_range_fils(start_date: date, end_date: date | None = None) -> tuple[FieldFilter, ...]:
     fils = (
-        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-        CmcFilter(cmc_col=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+        FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
     )
     if end_date:
         fils += (
-            CmcFilter(cmc_col=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
+            FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
         )
     return fils
 

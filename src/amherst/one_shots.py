@@ -154,15 +154,15 @@ def expresslink_live():
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
 from amherst.commence_adaptors import CustomerAliases, HireAliases, HireStatus
-from pycommence.filters import ConditionType, CmcFilter, FilterArray
+from pycommence.filters import ConditionType, FieldFilter, FilterArray
 from pycommence.pycommence_v1 import PyCommence
 
 
 def good_hires_fils():
     return (
-        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        CmcFilter(cmc_col=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
     )
 
 
@@ -173,7 +173,7 @@ def good_hires_array():
 def cust_array():
     return FilterArray(
         filters={
-            1: CmcFilter(cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2022'),
+            1: FieldFilter(column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2022'),
         }
     )
 

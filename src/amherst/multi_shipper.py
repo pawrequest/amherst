@@ -7,7 +7,7 @@ from loguru import logger
 from amherst import app_file
 from amherst.commence_adaptors import initial_filter
 from amherst.db import create_db, get_session_cm
-from amherst.models.am_record_smpl import AmherstTableDB
+from amherst.models.am_record_smpl import AmherstTableDB, dict_to_amtable
 from pycommence.pycommence_v2 import PyCommence
 
 PORT = 10550
@@ -45,12 +45,22 @@ async def fresh_cmc_data():
     with get_session_cm() as session:
         await drop_all(AmherstTableDB)
         py_cmc = PyCommence()
-        for csrname in ['Hire', 'Sale', 'Customer']:
+        customer_names = set()
+        for csrname in ['Customer']:
+        # for csrname in ['Hire', 'Sale']:
             py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
-            for record in py_cmc.csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
-                am_table = AmherstTableDB.from_dict(record)
-
+            for record in py_cmc.csr(csrname=csrname).rows(with_id=True, with_category=True):
+            # for record in py_cmc.csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
+                am_table = dict_to_amtable(record)
+                customer_names.add(am_table.customer_name)
                 session.add(am_table)
+
+        # py_cmc.set_csr('Customer')
+        # for customer_name in customer_names:
+        #     record = py_cmc.csr('Customer').read_row_by_pk(customer_name, with_id=True, with_category=True)
+        #     am_table = dict_to_amtable(record)
+        #     session.add(am_table)
+
         session.commit()
     CoUninitialize()
 
