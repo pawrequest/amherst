@@ -34,8 +34,8 @@ import amherst.commence_adaptors
 from amherst.db import create_db, get_session_cm
 from amherst.config import settings
 from amherst import app_file
-from amherst.models.am_record_smpl import AmherstTableBase, dict_to_amtable
-from pycommence.pycommence_v1 import PyCommence
+from amherst.models.am_record_smpl import AmherstTableDB
+from pycommence.pycommence_v2 import PyCommence
 
 SCORER = fuzz.partial_ratio
 
@@ -47,7 +47,7 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-async def main(category: amherst.commence_adaptors.AmherstTableEnum, record_name: str):
+async def main(category: amherst.commence_adaptors.AmherstTableName, record_name: str):
     logger.info(f'Starting Shipper with {category} record: {record_name}')
     alert = None
     create_db()
@@ -59,7 +59,7 @@ async def main(category: amherst.commence_adaptors.AmherstTableEnum, record_name
         record: dict[str, str] = pycmc.one_record(record_name, category)
         record['category'] = category
 
-        amrec: AmherstTableBase = dict_to_amtable(record)
+        amrec: AmherstTableDB = AmherstTableDB.from_dict(record)
 
     except BackendError:
         alert = 'Backend Error. Likely Address details are conflicted (wrong postcode?).'

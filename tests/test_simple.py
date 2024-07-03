@@ -7,8 +7,8 @@ from loguru import logger
 from starlette.testclient import TestClient
 
 from amherst.commence_adaptors import initial_filter
-from amherst.models.am_record_smpl import AmherstTableDB, dict_to_amtable
-from pycommence.pycommence_v1 import PyCommence
+from amherst.models.am_record_smpl import AmherstTableDB
+from pycommence.pycommence_v2 import PyCommence
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa
@@ -19,18 +19,18 @@ def pycmc(request) -> PyCommence:
     """Fixture for PyCommence instance with a CSR of the parameterized tablename."""
     table = request.param
     cmc = PyCommence.with_csr(table, filter_array=initial_filter(table))
-    logger.info(f'testing against {cmc.get_csr().row_count} {table} records')
+    logger.info(f'testing against {cmc.csr().row_count} {table} records')
     yield cmc
 
 
 @pytest_asyncio.fixture(scope='function')
 async def amrec(pycmc: PyCommence):
     """Fixture for a random AmherstTableDB record via validation with appropriate subclass of AmherstTable"""
-    record = random.choice(list(pycmc.generate_records_ids(count=10)))
+    record = random.choice(list(pycmc.csr().rows(count=10)))
     logger.info(f'testing {record["Name"]}')
-    record['category'] = pycmc.get_csr().category
+    record['category'] = pycmc.csr().category
     pprint(record)
-    amrec = dict_to_amtable(record)
+    amrec = AmherstTableDB.from_dict(record)
     return amrec
 
 
@@ -91,15 +91,15 @@ def no_notifications(ship: Shipment):
 
 
 def test_gererate_with_ids(pycmc):
-    for rec in pycmc.generate_records_ids(count=10):
+    for rec in pycmc.csr().rows(with_id=True, count=10):
         assert isinstance(rec, dict)
 
 
 def test_genids_add_sesh(test_session_fxt, pycmc):
-    csrname = pycmc.get_csr().category
-    for record in pycmc.generate_records_ids(count=10):
+    csrname = pycmc.csr().category
+    for record in pycmc.csr().rows(with_id=True, count=10):
         record['category'] = csrname
-        am_table_in = dict_to_amtable(record)
+        am_table_in = AmherstTableDB.from_dict(record)
         if indb := test_session_fxt.get(AmherstTableDB, am_table_in.row_id):
             [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
         else:

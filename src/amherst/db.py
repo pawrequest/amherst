@@ -9,10 +9,10 @@ import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from comtypes import CoInitialize, CoUninitialize
-from fastapi import Body, Depends, Query, Path
+from fastapi import Body, Depends, Path, Query
 from loguru import logger
 from sqlalchemy import create_engine
-from sqlmodel import SQLModel, Session, and_, col, or_, select
+from sqlmodel import SQLModel, Session, and_, or_, select
 from starlette.exceptions import HTTPException
 
 from amherst.config import settings
@@ -69,8 +69,15 @@ def getpycmc() -> PyCommence:
     return pyc
 
 
+def get_pycmc_hire() -> PyCommence:
+    CoInitialize()
+    pyc = PyCommence.with_csr('Hire')
+    yield pyc
+    CoUninitialize()
+
+
 async def get_pyc2(
-    csrname: str = Path(...),
+        csrname: str = Path(...),
 ) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname)
@@ -136,13 +143,7 @@ def dt_ordinal(dt: datetime | date) -> str:
     return dt.strftime('%a {th} %b %Y').replace('{th}', ordinal(dt.day))
 
 
-async def search_column_stmt1(table: type[SQLModel], column: str, search_str: str):
-    search = f'%{search_str}%'
-    colly = getattr(table, column)
-    return select(table).where(col(colly).ilike(search))
-
-
-def search_column_stmt(model, column: str | None, search_str: str | None = None):
+def search_column_stmt(model: type[SQLModel], column: str | None, search_str: str | None = None):
     if not column or not search_str:
         return select(model)
     search_ = f'%{search_str}%'
@@ -152,7 +153,7 @@ def search_column_stmt(model, column: str | None, search_str: str | None = None)
 
 
 async def query_stmt_multi(
-    queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
+        queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
 ) -> select:
     filters = (
         [getattr(AmherstTableDB, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
@@ -165,18 +166,18 @@ async def query_stmt_multi(
 
 
 async def amrecs_from_queries_multi(
-    stmt: select = Depends(query_stmt_multi),
-    session: Session = Depends(get_session),
+        stmt: select = Depends(query_stmt_multi),
+        session: Session = Depends(get_session),
 ):
     page, more = await select_page_more(session, stmt, Pagination())
     return page
 
 
 async def amrecs_from_query(
-    column: str = Query(None),
-    q: str = Query(None),
-    session: Session = Depends(get_session),
-    pagination: Pagination = Depends(Pagination.from_query),
+        column: str = Query(None),
+        q: str = Query(None),
+        session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query),
 ) -> list[AmherstTableDB]:
     stmt = search_column_stmt(AmherstTableDB, column, q)
     page, more = await select_page_more(session, stmt, pagination)
@@ -186,9 +187,9 @@ async def amrecs_from_query(
     return page
 
 
-# async def record_from_pyc(
-#         row_id: str = Query(...),
-#         pycmc: PyCommence = Depends(get_pycmc2),
-# ) -> AmherstTableDB:
-#     record = pycmc.get_record(row_id)
-#     return AmherstTableDB.from_pycmc(record)
+async def record_from_pk(
+        row_id: str = Query(...),
+        pycmc: PyCommence = Depends(get_pycmc_hire),
+) -> AmherstTableDB:
+    record = pycmc.csr().read_row_by_id(row_id)
+    return AmherstTableDB.from_dict(record)

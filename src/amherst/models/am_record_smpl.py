@@ -1,14 +1,14 @@
 # from __future__ import annotations
 from datetime import date
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Self
 
 import pydantic as _p
 import sqlmodel
 from pydantic import BaseModel, ConfigDict, model_validator
 from sqlmodel import SQLModel
 
-from amherst.commence_adaptors import get_customer_alias, get_hire_alias, get_sale_alias
+from amherst.commence_adaptors import customer_alias, hire_alias, sale_alias
 from amherst.importer import split_refs_from_str
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models.pf_shipment import Shipment, to_collection, to_dropoff
@@ -156,26 +156,39 @@ class AmherstTableBase(BaseModel):
 class AmherstCustomerIn(AmherstTableBase):
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=get_customer_alias
+        alias_generator=customer_alias
     )
 
 
 class AmherstHireIn(AmherstTableBase):
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=get_hire_alias
+        alias_generator=hire_alias
     )
 
 
 class AmherstSaleIn(AmherstTableBase):
     model_config = ConfigDict(
         populate_by_name=True,
-        alias_generator=get_sale_alias
+        alias_generator=sale_alias
     )
 
 
 class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
     row_id: str = sqlmodel.Field(primary_key=True)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str]) -> Self:
+        match data['category']:
+            case AmherstTableEnum.Hire:
+                res = AmherstHireIn.model_validate(data)
+            case AmherstTableEnum.Sale:
+                res = AmherstSaleIn.model_validate(data)
+            case AmherstTableEnum.Customer:
+                res = AmherstCustomerIn.model_validate(data)
+            case _:
+                raise ValueError(f'Unknown table {data['categor']}')
+        return AmherstTableDB(**res.model_dump())
 
 
 def dict_to_amtable(data: dict[str, str]) -> AmherstTableDB:

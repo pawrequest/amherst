@@ -7,7 +7,7 @@ from loguru import logger
 from pawdantic.pawsql import default_json_field
 from pydantic import AliasChoices, ConfigDict, Field
 
-from amherst.commence_adaptors import CustomerAliases, AM_SHIP_DATE, AmherstTableEnum, EmailOption
+from amherst.commence_adaptors import CustomerAliases, AM_SHIP_DATE, AmherstTableName, EmailOption
 from amherst.importer import split_addr_str
 from pycommence.pycommence_v1 import PyCommence
 from shipaw.models import pf_lists, pf_models, pf_top
@@ -21,7 +21,7 @@ class AmherstRecordIn(sqm.SQLModel):
         populate_by_name=True,
         validate_default=True,
     )
-    category: AmherstTableEnum
+    category: AmherstTableName
     alerts: Alerts = default_json_field(Alerts, Alerts.empty)
     # alerts: list[Alert] | None = optional_json_field(Alert)
     name: str = Field(..., alias='Name')

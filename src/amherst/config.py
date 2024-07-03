@@ -10,6 +10,7 @@ import typing as _t
 import pydantic as _p
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pawlogger import get_loguru
+
 AM_ENV = os.getenv('AM_ENV')
 if not Path(AM_ENV).exists():
     raise ValueError(f'AM_ENV .env file doies not exist: {AM_ENV}')
@@ -32,7 +33,6 @@ class Settings(BaseSettings):
     base_dir: _t.Annotated[Path, _p.BeforeValidator(set_base_dir)] = None
     data_dir: Path = Path(__file__).parent / '_data'
 
-
     @cached_property
     def db_url(self):
         return f'sqlite:///{self.db_loc.as_posix()}'
@@ -47,10 +47,12 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AM_ENV)
 
+
 @functools.lru_cache
 def settings():
     return Settings()
 
-logger = get_loguru(log_file=settings().log_file, profile='local')
+
+logger = get_loguru(log_file=settings().log_file, profile='local', level='DEBUG')
 
 logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))
