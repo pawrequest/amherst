@@ -4,7 +4,7 @@ from datetime import date, timedelta
 import pytest
 
 from amherst.stockcheck import StockChecker, good_hires_in_range_array, hires_out_array, send_on_array
-from pycommence.pycmc_types import FilterArray
+from pycommence.filters import FilterArray
 from pycommence.pycommence_v1 import PyCommence
 
 DATECHECK = date.today()

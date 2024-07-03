@@ -154,7 +154,7 @@ def expresslink_live():
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
 from amherst.commence_adaptors import CustomerAliases, HireAliases, HireStatus
-from pycommence.pycmc_types import CmcFilter, ConditionType, FilterArray
+from pycommence.filters import ConditionType, CmcFilter, FilterArray
 from pycommence.pycommence_v1 import PyCommence
 
 

@@ -9,14 +9,11 @@ import pydantic as _p
 from pydantic import Field
 
 from pycommence.pycmc_types import (
-    CmcFilter,
-    ConditionType,
     Connection,
-    FilterArray,
     get_cmc_date,
     to_cmc_date,
-    SortOrder,
 )
+from pycommence.filters import ConditionType, CmcFilter, SortOrder, FilterArray
 from shipaw.ship_types import limit_daterange_no_weekends
 
 LOCATION = 'HM'
