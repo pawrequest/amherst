@@ -11,18 +11,29 @@ from pydantic import Field
 from pycommence.pycmc_types import CmcFilter, ConditionType, Connection, FilterArray, get_cmc_date, to_cmc_date
 from shipaw.ship_types import limit_daterange_no_weekends
 
+LOCATION = 'HM'
 
 @functools.lru_cache
 def initial_filter(filtername: str) -> FilterArray:
+    hire_start = date.today() - timedelta(days=30)
+    hire_end = date.today() + timedelta(days=30)
+    sale_start = '1 month ago'
+    lastcontact = '1 day ago'
+    if LOCATION == 'HM':
+        hire_start = date.today() - timedelta(days=400)
+        hire_end = date.today() + timedelta(days=30)
+        sale_start = '2 years ago'
+        lastcontact = '2 years ago'
+
     match filtername:
         case 'Hire':
-            fils = hires_in_range_fils(date.today() - timedelta(days=30), date.today() + timedelta(days=30))
+            fils = hires_in_range_fils(hire_start, hire_end)
         case 'Sale':
-            fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='1 month ago'),)
+            fils = (CmcFilter(cmc_col=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=sale_start),)
         case 'Customer':
             fils = (
                 CmcFilter(
-                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='1 day ago'
+                    cmc_col=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value=lastcontact
                 ),
             )
 

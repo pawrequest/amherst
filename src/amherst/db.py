@@ -9,13 +9,12 @@ import httpx
 import sqlalchemy as sqa
 import sqlmodel as sqm
 from comtypes import CoInitialize, CoUninitialize
-from fastapi import Body, Depends, Query
+from fastapi import Body, Depends, Query, Path
 from loguru import logger
 from sqlalchemy import create_engine
 from sqlmodel import SQLModel, Session, and_, col, or_, select
 from starlette.exceptions import HTTPException
 
-from amherst.commence_adaptors import initial_filter
 from amherst.config import settings
 from amherst.models.am_record_smpl import AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
@@ -58,16 +57,25 @@ def get_temporary_session_cm(engine=None):
             SQLModel.metadata.drop_all(engine)
 
 
-def get_pycmc() -> PyCommence:
+def getpycmc() -> PyCommence:
     CoInitialize()
     pyc = PyCommence()
     pyc.set_csr('Hire')
     pyc.set_csr('Sale')
     pyc.set_csr('Customer')
-    for cat in ['Hire', 'Sale', 'Customer']:
-        [pyc.filter_cursor(initial_filter(cat), csrname=cat)]
+    # for cat in ['Hire', 'Sale', 'Customer']:
+    #     [pyc.filter_cursor(initial_filter(cat), csrname=cat)]
     CoUninitialize()
     return pyc
+
+
+async def get_pyc2(
+        csrname: str = Path(...),
+) -> PyCommence:
+    CoInitialize()
+    pyc = PyCommence.with_csr(csrname)
+    yield pyc
+    CoUninitialize()
 
 
 def get_el_client() -> ELClient:
@@ -144,7 +152,7 @@ def search_column_stmt(model, column: str | None, search_str: str | None = None)
 
 
 async def query_stmt_multi(
-    queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
+        queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
 ) -> select:
     filters = (
         [getattr(AmherstTableDB, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
@@ -157,18 +165,18 @@ async def query_stmt_multi(
 
 
 async def amrecs_from_queries_multi(
-    stmt: select = Depends(query_stmt_multi),
-    session: Session = Depends(get_session),
+        stmt: select = Depends(query_stmt_multi),
+        session: Session = Depends(get_session),
 ):
     page, more = await select_page_more(session, stmt, Pagination())
     return page
 
 
 async def amrecs_from_query(
-    column: str = Query(None),
-    q: str = Query(None),
-    session: Session = Depends(get_session),
-    pagination: Pagination = Depends(Pagination.from_query),
+        column: str = Query(None),
+        q: str = Query(None),
+        session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query),
 ) -> list[AmherstTableDB]:
     stmt = search_column_stmt(AmherstTableDB, column, q)
     page, more = await select_page_more(session, stmt, pagination)
@@ -176,3 +184,11 @@ async def amrecs_from_query(
     if not page:
         raise HTTPException(status_code=404, detail=f'No records found for {q}')
     return page
+
+
+# async def record_from_pyc(
+#         row_id: str = Query(...),
+#         pycmc: PyCommence = Depends(get_pycmc2),
+# ) -> AmherstTableDB:
+#     record = pycmc.get_record(row_id)
+#     return AmherstTableDB.from_pycmc(record)
