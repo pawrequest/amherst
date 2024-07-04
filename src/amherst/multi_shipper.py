@@ -3,7 +3,7 @@ import asyncio
 from comtypes import CoInitialize, CoUninitialize
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
-from sqlmodel import select
+from sqlmodel import SQLModel, select
 
 from amherst import app_file
 from amherst.commence_adaptors import initial_filter
@@ -12,8 +12,7 @@ from amherst.models.am_record_smpl import (
     AmherstCustomerDB,
     AmherstHireDB,
     AmherstSaleDB,
-    AmherstTableDB,
-    dict_to_amtable,
+    dict_to_amtable, AMHERST_TABLE_TYPES,
 )
 from pycommence.filters import FieldFilter, FilterArray
 from pycommence.pycommence_v2 import PyCommence
@@ -91,19 +90,19 @@ async def get_cust(am_table, session, py_cmc):
 #     CoUninitialize()
 
 
-async def make_or_update_amtable(am_table_in, session):
-    indb = session.get(AmherstTableDB, am_table_in.id)
+async def make_or_update_amtable(model_type: type[SQLModel], am_table_in, session):
+    indb = session.get(model_type, am_table_in.id)
     if indb:
         [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
     else:
-        indb = AmherstTableDB(**am_table_in.model_dump())
+        indb = model_type(**am_table_in.model_dump())
     return indb
 
 
 async def drop_all():
     logger.warning('Dropping all records from database.')
     with get_session_cm() as session:
-        for db_model in [AmherstCustomerDB, AmherstHireDB, AmherstSaleDB, AmherstTableDB]:
+        for db_model in [AmherstHireDB, AmherstSaleDB, AmherstCustomerDB]:
             session.query(db_model).delete()
             session.commit()
 

@@ -16,7 +16,7 @@ from sqlmodel import SQLModel, Session, and_, or_, select
 from starlette.exceptions import HTTPException
 
 from amherst.config import settings
-from amherst.models.am_record_smpl import AmherstCustomerDB, AmherstHireDB, AmherstSaleDB, AmherstTableDB
+from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstCustomerDB, AmherstHireDB, AmherstSaleDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
@@ -152,27 +152,6 @@ def search_column_stmt(model: type[SQLModel], column: str | None, search_str: st
     return stmt
 
 
-async def query_stmt_multi(
-        queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
-) -> select:
-    filters = (
-        [getattr(AmherstTableDB, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
-    )
-    if logic_operator == 'and':
-        stmt = select(AmherstTableDB).where(and_(*filters))
-    else:
-        stmt = select(AmherstTableDB).where(or_(*filters))
-    return stmt
-
-
-async def amrecs_from_queries_multi(
-        stmt: select = Depends(query_stmt_multi),
-        session: Session = Depends(get_session),
-):
-    page, more = await select_page_more(session, stmt, Pagination())
-    return page
-
-
 async def model_type_from_path(category: str = Path(...)) -> type[SQLModel]:
     match category:
         case 'hire':
@@ -189,22 +168,25 @@ async def amrecs_from_query2(
         q: str = Query(None),
         session: Session = Depends(get_session),
         pagination: Pagination = Depends(Pagination.from_query),
-) -> list[AmherstTableDB]:
+) -> list[AMHERST_TABLE_TYPES]:
     stmt = search_column_stmt(category, column, q)
     page, more = await select_page_more(session, stmt, pagination)
-    logger.info(f'returned {len(page)} {category.__name__} records with {column} = {q}. (There are{' no' if not more else ''} more)')
+    logger.info(
+        f'returned {len(page)} {category.__name__} records with {column} = {q}. (There are{' no' if not more else ''} more)'
+    )
     if not page:
         raise HTTPException(status_code=404, detail=f'No records found for {q}')
     return page
 
 
 async def amrecs_from_query(
+        category: type[SQLModel] = Depends(model_type_from_path),
         column: str = Query(None),
         q: str = Query(None),
         session: Session = Depends(get_session),
         pagination: Pagination = Depends(Pagination.from_query),
-) -> list[AmherstTableDB]:
-    stmt = search_column_stmt(AmherstTableDB, column, q)
+) -> list[AMHERST_TABLE_TYPES]:
+    stmt = search_column_stmt(category, column, q)
     page, more = await select_page_more(session, stmt, pagination)
     logger.info(f'returned {len(page)} records with {column} = {q}. (There are{' no' if not more else ''} more)')
     if not page:
@@ -213,8 +195,32 @@ async def amrecs_from_query(
 
 
 async def record_from_pk(
+        category: type[SQLModel] = Depends(model_type_from_path),
         row_id: str = Query(...),
         pycmc: PyCommence = Depends(get_pycmc_hire),
-) -> AmherstTableDB:
+) -> AMHERST_TABLE_TYPES:
     record = pycmc.csr().read_row_by_id(row_id)
-    return AmherstTableDB.from_dict(record)
+    return category.from_dict(record)
+
+
+async def query_stmt_multi(
+        category: type[SQLModel] = Depends(model_type_from_path),
+
+        queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
+) -> select:
+    filters = (
+        [getattr(category, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
+    )
+    if logic_operator == 'and':
+        stmt = select(category).where(and_(*filters))
+    else:
+        stmt = select(category).where(or_(*filters))
+    return stmt
+
+
+async def amrecs_from_queries_multi(
+        stmt: select = Depends(query_stmt_multi),
+        session: Session = Depends(get_session),
+):
+    page, more = await select_page_more(session, stmt, Pagination())
+    return page

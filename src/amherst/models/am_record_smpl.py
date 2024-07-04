@@ -47,14 +47,10 @@ class AmherstTableEnum(str, Enum):
 class AmherstTableBase(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
-        validate_default=True,
     )
-    # fields for all
+    row_id: str | None = None
     name: str
     category: AmherstTableEnum
-    id: str
-
-    customer_name: str
 
     delivery_contact_name: str
     delivery_contact_business: str
@@ -63,9 +59,6 @@ class AmherstTableBase(BaseModel):
 
     delivery_address_str: str
     delivery_address_pc: str
-
-    invoice_email: str = ''
-    accounts_email: str = ''
 
     @property
     def contact_dict(self) -> dict:
@@ -126,14 +119,20 @@ class AmherstOrderBase(AmherstTableBase):
 
 class AmherstCustomer(AmherstOrderBase):
     model_config = ConfigDict(
-        populate_by_name=True,
         alias_generator=customer_alias
+    )
+    invoice_email: str = ''
+    accounts_email: str = ''
+
+
+class AmherstSale(AmherstOrderBase):
+    model_config = ConfigDict(
+        alias_generator=sale_alias
     )
 
 
 class AmherstHire(AmherstOrderBase):
     model_config = ConfigDict(
-        populate_by_name=True,
         alias_generator=hire_alias
     )
     boxes: int = 1
@@ -147,35 +146,29 @@ class AmherstHire(AmherstOrderBase):
         }
 
 
-class AmherstSale(AmherstTableBase):
-    model_config = ConfigDict(
-        populate_by_name=True,
-        alias_generator=sale_alias
-    )
-
-
 class AmherstCustomerDB(AmherstCustomer, SQLModel, table=True):
-    id: str = sqlmodel.Field(primary_key=True)
+    id: int | None = sqlmodel.Field(primary_key=True)
 
     hires: list['AmherstHireDB'] = Relationship(back_populates='customer')
     sales: list['AmherstSaleDB'] = Relationship(back_populates='customer')
 
 
 class AmherstHireDB(AmherstHire, SQLModel, table=True):
-    id: str = sqlmodel.Field(primary_key=True)
-    customer_id: str | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
+    id: int | None = sqlmodel.Field(primary_key=True)
+
+    customer_id: int | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
     customer: AmherstCustomerDB | None = Relationship(back_populates='hires')
 
 
 class AmherstSaleDB(AmherstSale, SQLModel, table=True):
-    id: str = sqlmodel.Field(primary_key=True)
+    id: int | None = sqlmodel.Field(primary_key=True)
 
-    customer_id: str | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
+    customer_id: int | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
     customer: AmherstCustomerDB = Relationship(back_populates='sales')
 
 
-class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
-    id: str = sqlmodel.Field(primary_key=True)
+# class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
+#     row_id: str = sqlmodel.Field(primary_key=True)
 
 
 AMHERST_ORDER_TYPES = AmherstHireDB | AmherstSaleDB

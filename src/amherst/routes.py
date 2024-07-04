@@ -6,6 +6,7 @@ from pathlib import Path
 import pawdf
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
+from sqlmodel import SQLModel
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
@@ -13,37 +14,42 @@ from amherst.backend_funcs import (
     TEMPLATES,
     new_amrec_f_path,
 )
-from amherst.db import get_session, amrecs_from_query, amrecs_from_query2
-from amherst.models.am_record_smpl import AmherstTableDB
+from amherst.db import amrecs_from_query, amrecs_from_query2, get_session, model_type_from_path
+from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstHireDB, AmherstCustomerDB, AmherstSaleDB
 from amherst.multi_shipper import fresh_cmc_data
 
 router = APIRouter()
 
 
-
 @router.get('/search2/{category}', response_class=HTMLResponse)
-async def search2(request: Request, page: list[AmherstTableDB] = Depends(amrecs_from_query2)):
+async def search2(request: Request, page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query2)):
     return TEMPLATES.TemplateResponse('customers.html', {'request': request, 'customers': page})
     # return TEMPLATES.TemplateResponse('records.html', {'request': request, 'records': page})
 
 
 @router.get('/search', response_class=HTMLResponse)
-async def search(request: Request, page: list[AmherstTableDB] = Depends(amrecs_from_query)):
+async def search(request: Request, page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query)):
     return TEMPLATES.TemplateResponse('records.html', {'request': request, 'records': page})
 
 
 @router.get('/get_shipment/{row_id}', response_class=HTMLResponse)
 async def fetch_amrec(
-    request: Request,
-    amrec: AmherstTableDB = Depends(new_amrec_f_path),
+        request: Request,
+        amrec: AMHERST_TABLE_TYPES = Depends(new_amrec_f_path),
 ) -> HTMLResponse:
     return TEMPLATES.TemplateResponse('record_detail.html', {'request': request, 'record': amrec})
 
 
 @router.get('/multi', response_class=HTMLResponse)
-async def multi_shipper(request: Request, session=Depends(get_session)):
+async def multi_shipper(
+        request: Request,
+        session=Depends(get_session)
+):
     await fresh_cmc_data()
-    records = session.query(AmherstTableDB).all()
+    hires = session.query(AmherstHireDB).all()
+    customers = session.query(AmherstCustomerDB).all()
+    sales = session.query(AmherstSaleDB).all()
+    records = hires + customers + sales
     return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'records': records})
 
 

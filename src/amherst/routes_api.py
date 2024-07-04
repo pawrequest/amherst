@@ -3,8 +3,8 @@ from loguru import logger
 from starlette.responses import JSONResponse
 
 from amherst.backend_funcs import amrec_from_path, book_shipment, shipment_request_f_form
-from amherst.db import amrecs_from_queries_multi, amrecs_from_query, get_el_client, get_pyc2, amrecs_from_query2
-from amherst.models.am_record_smpl import AmherstTableDB, AmherstTableBase
+from amherst.db import amrecs_from_queries_multi, amrecs_from_query, amrecs_from_query2, get_el_client, get_pyc2
+from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstTableBase
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
@@ -22,24 +22,24 @@ async def getpyc(csrname: str, row_id: str, pycmc: PyCommence = Depends(get_pyc2
     return record
 
 
-@router.post('/searchmulti', response_model=list[AmherstTableDB])
+@router.post('/searchmulti', response_model=list[AMHERST_TABLE_TYPES])
 async def searchmulti(
-    page: list[AmherstTableDB] = Depends(amrecs_from_queries_multi),
-) -> list[AmherstTableDB]:
+        page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_queries_multi),
+) -> list[AMHERST_TABLE_TYPES]:
     return page
 
 
 @router.get('/search-anon/{category}', response_model=list[AmherstTableBase])
 async def search2(
-    page: list[AmherstTableBase] = Depends(amrecs_from_query2),
+        page: list[AmherstTableBase] = Depends(amrecs_from_query2),
 ) -> list[AmherstTableBase]:
     return page
 
 
-@router.get('/search', response_model=list[AmherstTableDB])
+@router.get('/search', response_model=list[AMHERST_TABLE_TYPES])
 async def search(
-    page: list[AmherstTableDB] = Depends(amrecs_from_query),
-) -> list[AmherstTableDB]:
+        page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query),
+) -> list[AMHERST_TABLE_TYPES]:
     return page
 
 
@@ -78,18 +78,18 @@ async def search(
 
 @router.post('/form_to_ship/', response_model=Shipment)
 async def form_to_shipment(
-    shipment_request: Shipment = Depends(shipment_request_f_form),
+        shipment_request: Shipment = Depends(shipment_request_f_form),
 ):
     return shipment_request
 
 
 @router.get('/get_shipment/{direction}/{row_id}', response_model=Shipment)
-async def fetch_amrec_shipment(direction: ShipDirection, amrec: AmherstTableDB = Depends(amrec_from_path)):
+async def fetch_amrec_shipment(direction: ShipDirection, amrec: AMHERST_TABLE_TYPES = Depends(amrec_from_path)):
     return amrec.to_shipment(direction)
 
 
-@router.get('/get_amrec/{row_id}', response_model=AmherstTableDB)
-async def fetch_amrec(amrec: AmherstTableDB = Depends(amrec_from_path)):
+@router.get('/get_amrec/{row_id}', response_model=AMHERST_TABLE_TYPES)
+async def fetch_amrec(amrec: AMHERST_TABLE_TYPES = Depends(amrec_from_path)):
     return amrec
 
 
@@ -100,8 +100,8 @@ async def ping():
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
 async def fetch_candidates(
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(get_el_client),
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -109,7 +109,7 @@ async def fetch_candidates(
 
 @router.post('/shiprec', response_class=JSONResponse)
 async def shiprec_post(
-    shipment_request: Shipment = Depends(shipment_request_f_form),
+        shipment_request: Shipment = Depends(shipment_request_f_form),
 ) -> Shipment:
     logger.info(shipment_request.recipient_contact.notifications)
     return shipment_request
@@ -117,8 +117,8 @@ async def shiprec_post(
 
 @router.post('/confirm_booking', response_class=JSONResponse)
 async def confirm_booking(
-    shipment: Shipment,
-    el_client: ELClient = Depends(get_el_client),
+        shipment: Shipment,
+        el_client: ELClient = Depends(get_el_client),
 ) -> ShipmentResponse:
     if isinstance(shipment, ShipmentAwayCollection):
         logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
