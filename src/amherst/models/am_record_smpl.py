@@ -69,32 +69,19 @@ class AmherstTableBase(BaseModel):
     delivery_town: str | None = None
 
     # notes
-    reference_number1: str | None = None
-    reference_number2: str | None = None
-    reference_number3: str | None = None
-    reference_number4: str | None = None
-    reference_number5: str | None = None
-    special_instructions1: str | None = None
-    special_instructions2: str | None = None
-    special_instructions3: str | None = None
-    special_instructions4: str | None = None
+    # reference_number1: str | None = None
+    # reference_number2: str | None = None
+    # reference_number3: str | None = None
+    # reference_number4: str | None = None
+    # reference_number5: str | None = None
+    # special_instructions1: str | None = None
+    # special_instructions2: str | None = None
+    # special_instructions3: str | None = None
+    # special_instructions4: str | None = None
 
     # fields for customers
     invoice_email: str = ''
     accounts_email: str = ''
-
-    # fields for orders
-    boxes: int = 1
-    send_date: SHIP_DATE = date.today()
-    invoice: str = ''
-    track_out: str = ''
-    track_in: str = ''
-    arranged_out: bool = False
-    arranged_in: bool = False
-    delivery_method: str = ''
-
-    # fields for hires
-    missing_kit_str: str = ''
 
     @model_validator(mode='after')
     def split_address(self):
@@ -104,16 +91,16 @@ class AmherstTableBase(BaseModel):
                 setattr(self, f'delivery_{key}', value)
         return self
 
-    @model_validator(mode='after')
-    def split_refs(self):
-        if not any(
-                [self.reference_number1, self.reference_number2, self.reference_number3, self.reference_number4,
-                 self.reference_number5]
-        ):
-            ref_dict = split_refs_from_str(self.customer_name)
-            for key, value in ref_dict.items():
-                setattr(self, key, value)
-        return self
+    # @model_validator(mode='after')
+    # def split_refs(self):
+    #     if not any(
+    #             [self.reference_number1, self.reference_number2, self.reference_number3, self.reference_number4,
+    #              self.reference_number5]
+    #     ):
+    #         ref_dict = split_refs_from_str(self.customer_name)
+    #         for key, value in ref_dict.items():
+    #             setattr(self, key, value)
+    #     return self
 
     @property
     def contact_dict(self) -> dict:
@@ -136,9 +123,9 @@ class AmherstTableBase(BaseModel):
         return {
             'recipient_address': self.address_dict,
             'recipient_contact': self.contact_dict,
-            'total_number_of_parcels': self.boxes,
-            'shipping_date': self.send_date,
-            **split_refs_from_str(self.customer_name),
+            'total_number_of_parcels': 1,
+            'shipping_date': date.today(),
+            **split_refs_from_str(self.name),
         }
 
     def to_shipment(self, direction: ShipDirection):
@@ -153,7 +140,31 @@ class AmherstTableBase(BaseModel):
                 raise ValueError(f'Unknown direction {direction}')
 
 
-class AmherstCustomer(AmherstTableBase):
+class AmherstOrderBase(AmherstTableBase):
+    boxes: int = 1
+    send_date: AM_SHIP_DATE = date.today()
+    invoice: str = ''
+    track_out: str = ''
+    track_in: str = ''
+    arranged_out: bool = False
+    arranged_in: bool = False
+    delivery_method: str = ''
+
+    # fields for hires
+    missing_kit_str: str = ''
+
+    @property
+    def shipment_dict(self):
+        return {
+            'recipient_address': self.address_dict,
+            'recipient_contact': self.contact_dict,
+            'total_number_of_parcels': self.boxes,
+            'shipping_date': self.send_date,
+            **split_refs_from_str(self.name),
+        }
+
+
+class AmherstCustomer(AmherstOrderBase):
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=customer_alias
@@ -167,7 +178,7 @@ class AmherstCustomerDB(AmherstCustomer, SQLModel, table=True):
     sales: list['AmherstSaleDB'] = Relationship(back_populates='customer')
 
 
-class AmherstHire(AmherstTableBase):
+class AmherstHire(AmherstOrderBase):
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=hire_alias
