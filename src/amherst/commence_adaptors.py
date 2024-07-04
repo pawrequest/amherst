@@ -53,22 +53,19 @@ class HireStatus(StrEnum):
 
 @functools.lru_cache
 def initial_filter(filtername: str) -> FilterArray:
-    hire_start = date.today() - timedelta(days=30)
-    hire_end = date.today() + timedelta(days=30)
-    sale_start = '1 month ago'
-    if LOCATION == 'HM':
-        hire_start = date.today() - timedelta(days=400)
-        hire_end = date.today() + timedelta(days=30)
-        sale_start = '18 months ago'
-
+    hire_start = date.today() - timedelta(days=300)
+    hire_end = date.today() + timedelta(days=300)
+    sale_start = date.today() - timedelta(days=300)
     sorts = None
     match filtername:
         case 'Hire':
-            sorts = ((HireAliases.SEND_DATE, SortOrder.ASC),)
+            sorts = ((HireAliases.SEND_DATE, SortOrder.DESC),)
             res = FilterArray.from_filters(*(hires_in_range_fils(hire_start, hire_end)), sorts=sorts)
 
         case 'Sale':
-            fils = (FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=sale_start),)
+            fils = (
+            FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=to_cmc_date(sale_start)),)
+            sorts = ((SaleAliases.DATE_ORDERED, SortOrder.DESC),)
             res = FilterArray.from_filters(*fils, sorts=sorts)
 
         case 'Customer':
@@ -79,7 +76,7 @@ def initial_filter(filtername: str) -> FilterArray:
                         connection_category='Hire',
                         connected_column=HireAliases.SEND_DATE,
                         condition=ConditionType.AFTER,
-                        value='12 months ago',
+                        value=to_cmc_date(hire_start),
                     )
                 ),
                 ConnectedFieldFilter.model_validate(
@@ -88,10 +85,11 @@ def initial_filter(filtername: str) -> FilterArray:
                         connection_category='Sale',
                         connected_column=SaleAliases.DATE_ORDERED,
                         condition=ConditionType.AFTER,
-                        value='12 months ago',
+                        value=to_cmc_date(sale_start),
                     )
                 ),
             )
+            # sorts = ((CustomerAliases.DATE_LAST_CONTACTED, SortOrder.DESC),)
             res = FilterArray.from_filters(
                 *fils,
                 sorts=sorts,

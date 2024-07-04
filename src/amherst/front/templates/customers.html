@@ -1,21 +1,30 @@
-{% for customer in customers %}
-    <div class="record">
-        <p>{{ customer.name }}</p>
-    </div>
-    {% if customer.hires %}
-        {% for hire in customer.hires %}
-            <div>
-                Hire - {{ hire.send_date }}
-            </div>
-        {% endfor %}
-    {% endif %}
+{#{% for customer in customers %}#}
+{#    <div class="record">#}
+{#        <p>{{ customer.name }}</p>#}
+{#    </div>#}
+{#    {% if customer.hires %}#}
+{#        {% for hire in customer.hires %}#}
+{#            <div>#}
+{#                Hire - {{ hire.send_date }}#}
+{#            </div>#}
+{#        {% endfor %}#}
+{#    {% endif %}#}
+{##}
+{#    {% if customer.sales %}#}
+{#        {% for sale in customer.sales %}#}
+{#            <div>#}
+{#                Sale - {{ sale.send_date }}#}
+{#            </div>#}
+{#        {% endfor %}#}
+{#    {% endif %}#}
+{##}
+{#{% endfor %}#}
 
-    {% if customer.sales %}
-        {% for sale in customer.sales %}
-            <div>
-                Sale - {{ sale.send_date }}
-            </div>
-        {% endfor %}
+{% for order in customers %}
+    {% if order.customer %}
+        <div>
+            {{ order.category }} - {{ order.customer.name }}
+        </div>
     {% endif %}
 
 {% endfor %}
