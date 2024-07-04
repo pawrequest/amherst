@@ -153,6 +153,16 @@ async def model_type_from_path(category: str = Path(...)) -> type[SQLModel]:
             return AmherstCustomerDB
 
 
+async def template_name_from_path(category: str = Path(...)):
+    match category.title():
+        case 'Hire' | 'Sale':
+            return 'orders.html'
+        case 'Customer':
+            return 'customers.html'
+        case _:
+            raise ValueError(f'No template for {category}')
+
+
 async def amrecs_from_query2(
         category: type[SQLModel] = Depends(model_type_from_path),
         column: str = Query(None),

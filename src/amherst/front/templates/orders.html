@@ -1,0 +1,6 @@
+{% for order in data %}
+    <div class="order">
+        {{ order.customer.name }}
+        ({{ order.send_date }})
+    </div>
+{% endfor %}
