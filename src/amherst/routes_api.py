@@ -3,8 +3,8 @@ from loguru import logger
 from starlette.responses import JSONResponse
 
 from amherst.backend_funcs import amrec_from_path, book_shipment, shipment_request_f_form
-from amherst.db import amrecs_from_queries_multi, amrecs_from_query, get_el_client, get_pyc2
-from amherst.models.am_record_smpl import AmherstTableDB
+from amherst.db import amrecs_from_queries_multi, amrecs_from_query, get_el_client, get_pyc2, amrecs_from_query2
+from amherst.models.am_record_smpl import AmherstTableDB, AmherstTableBase
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
@@ -26,6 +26,13 @@ async def getpyc(csrname: str, row_id: str, pycmc: PyCommence = Depends(get_pyc2
 async def searchmulti(
     page: list[AmherstTableDB] = Depends(amrecs_from_queries_multi),
 ) -> list[AmherstTableDB]:
+    return page
+
+
+@router.get('/search-anon/{category}', response_model=list[AmherstTableBase])
+async def search2(
+    page: list[AmherstTableBase] = Depends(amrecs_from_query2),
+) -> list[AmherstTableBase]:
     return page
 
 

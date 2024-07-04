@@ -13,11 +13,18 @@ from amherst.backend_funcs import (
     TEMPLATES,
     new_amrec_f_path,
 )
-from amherst.db import get_session, amrecs_from_query
+from amherst.db import get_session, amrecs_from_query, amrecs_from_query2
 from amherst.models.am_record_smpl import AmherstTableDB
 from amherst.multi_shipper import fresh_cmc_data
 
 router = APIRouter()
+
+
+
+@router.get('/search2/{category}', response_class=HTMLResponse)
+async def search2(request: Request, page: list[AmherstTableDB] = Depends(amrecs_from_query2)):
+    return TEMPLATES.TemplateResponse('customers.html', {'request': request, 'customers': page})
+    # return TEMPLATES.TemplateResponse('records.html', {'request': request, 'records': page})
 
 
 @router.get('/search', response_class=HTMLResponse)

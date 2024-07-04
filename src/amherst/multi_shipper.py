@@ -3,11 +3,19 @@ import asyncio
 from comtypes import CoInitialize, CoUninitialize
 from flaskwebgui import FlaskUI, close_application
 from loguru import logger
+from sqlmodel import select
 
 from amherst import app_file
 from amherst.commence_adaptors import initial_filter
 from amherst.db import create_db, get_session_cm
-from amherst.models.am_record_smpl import AmherstTableDB, dict_to_amtable
+from amherst.models.am_record_smpl import (
+    AmherstCustomerDB,
+    AmherstHireDB,
+    AmherstSaleDB,
+    AmherstTableDB,
+    dict_to_amtable,
+)
+from pycommence.filters import FieldFilter, FilterArray
 from pycommence.pycommence_v2 import PyCommence
 
 PORT = 10550
@@ -42,25 +50,33 @@ async def main():
 
 async def fresh_cmc_data():
     CoInitialize()
-    with get_session_cm() as session:
-        await drop_all(AmherstTableDB)
+    with (get_session_cm() as session):
+        await drop_all()
         py_cmc = PyCommence()
-        customer_names = set()
-        for csrname in ['Customer']:
-        # for csrname in ['Hire', 'Sale']:
+
+        csrnames = ['Hire', 'Sale']
+        for csrname in csrnames:
             py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
             for record in py_cmc.csr(csrname=csrname).rows(with_id=True, with_category=True):
-            # for record in py_cmc.csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
+                c_name = record['To Customer']
+                if not c_name:
+                    logger.error(f'No customer name for {record}')
+                    continue
                 am_table = dict_to_amtable(record)
-                customer_names.add(am_table.customer_name)
+                stmt = select(AmherstCustomerDB).where(AmherstCustomerDB.name == c_name)
+                inb = session.exec(stmt).first()
+                if inb:
+                    am_table.customer = inb
+                else:
+                    filter_array = FilterArray.from_filters(FieldFilter(column='Name', value=c_name))
+                    csr = py_cmc.get_new_cursor(csrname='Customer', filter_array=filter_array)
+                    rows = list(csr.rows(with_id=True, with_category=True))
+                    assert len(rows) == 1
+                    customer = rows[0]
+                    cust_table = dict_to_amtable(customer)
+                    am_table.customer = cust_table
+
                 session.add(am_table)
-
-        # py_cmc.set_csr('Customer')
-        # for customer_name in customer_names:
-        #     record = py_cmc.csr('Customer').read_row_by_pk(customer_name, with_id=True, with_category=True)
-        #     am_table = dict_to_amtable(record)
-        #     session.add(am_table)
-
         session.commit()
     CoUninitialize()
 
@@ -85,7 +101,7 @@ async def fresh_cmc_data():
 
 
 async def make_or_update_amtable(am_table_in, session):
-    indb = session.get(AmherstTableDB, am_table_in.row_id)
+    indb = session.get(AmherstTableDB, am_table_in.id)
     if indb:
         [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
     else:
@@ -93,11 +109,12 @@ async def make_or_update_amtable(am_table_in, session):
     return indb
 
 
-async def drop_all(db_model=AmherstTableDB):
+async def drop_all():
     logger.warning('Dropping all records from database.')
     with get_session_cm() as session:
-        session.query(db_model).delete()
-        session.commit()
+        for db_model in [AmherstCustomerDB, AmherstHireDB, AmherstSaleDB, AmherstTableDB]:
+            session.query(db_model).delete()
+            session.commit()
 
 
 if __name__ == '__main__':

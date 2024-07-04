@@ -71,7 +71,7 @@ def session_with_amrec(test_session_fxt, amrec):
 @pytest.mark.parametrize('direction', [ShipDirection.Inbound, ShipDirection.Outbound, ShipDirection.Dropoff])
 def test_get_shipment_api(test_client: TestClient, session_with_amrec, direction):
     arec = session_with_amrec.query(AmherstTableDB).first()
-    resp = test_client.get(f'/api/get_shipment/{direction}/{arec.row_id}')
+    resp = test_client.get(f'/api/get_shipment/{direction}/{arec.id}')
     ship = Shipment.model_validate(resp.json())
     ship = no_notifications(ship)
     assert isinstance(ship, Shipment)
@@ -100,7 +100,7 @@ def test_genids_add_sesh(test_session_fxt, pycmc):
     for record in pycmc.csr().rows(with_id=True, count=10):
         record['category'] = csrname
         am_table_in = AmherstTableDB.from_dict(record)
-        if indb := test_session_fxt.get(AmherstTableDB, am_table_in.row_id):
+        if indb := test_session_fxt.get(AmherstTableDB, am_table_in.id):
             [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
         else:
             indb = AmherstTableDB(**am_table_in.model_dump())

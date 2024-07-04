@@ -111,7 +111,7 @@ TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templ
 
 
 async def new_amrec_f_path(row_id: str = Path(), session: Session = Depends(get_session)) -> AmherstTableDB:
-    ret = session.get(AmherstTableDB, row_id)
+    ret = session.get(AmherstTableDB, id)
     if not isinstance(ret, AmherstTableDB):
         raise ValueError(f'No record found with id {row_id}')
     return ret
@@ -262,4 +262,4 @@ async def _from_req_json(request: Request, model_type: type[BaseModel]):
 
 
 async def amrec_from_path(row_id: str = Path(), session: Session = Depends(get_session)):
-    return session.get(AmherstTableDB, row_id)
+    return session.get(AmherstTableDB, id)

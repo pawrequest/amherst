@@ -57,12 +57,10 @@ def initial_filter(filtername: str) -> FilterArray:
     hire_start = date.today() - timedelta(days=30)
     hire_end = date.today() + timedelta(days=30)
     sale_start = '1 month ago'
-    lastcontact = '1 day ago'
     if LOCATION == 'HM':
         hire_start = date.today() - timedelta(days=400)
         hire_end = date.today() + timedelta(days=30)
-        sale_start = '2 years ago'
-        lastcontact = '2 years ago'
+        sale_start = '18 months ago'
 
     sorts = None
     match filtername:
@@ -111,7 +109,6 @@ def initial_filter(filtername: str) -> FilterArray:
         case _:
             raise ValueError(f'No filter for {filtername}')
 
-    logger.info(f'Created FilterArray with strs = \n{'\n'.join(res.filter_strs)}')
     return res
 
 

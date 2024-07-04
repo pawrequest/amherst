@@ -6,7 +6,7 @@ from typing import Annotated
 import pydantic as _p
 import sqlmodel
 from pydantic import BaseModel, ConfigDict, model_validator
-from sqlmodel import SQLModel
+from sqlmodel import Relationship, SQLModel
 
 from amherst.commence_adaptors import customer_alias, hire_alias, sale_alias
 from amherst.importer import split_refs_from_str
@@ -52,7 +52,7 @@ class AmherstTableBase(BaseModel):
     # fields for all
     name: str
     category: AmherstTableEnum
-    row_id: str
+    id: str
 
     customer_name: str
 
@@ -153,49 +153,71 @@ class AmherstTableBase(BaseModel):
                 raise ValueError(f'Unknown direction {direction}')
 
 
-# class AmherstCustomer(AmherstTableBase, SQLModel, table=True):
 class AmherstCustomer(AmherstTableBase):
-    row_id: str = sqlmodel.Field(primary_key=True)
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=customer_alias
     )
 
 
+class AmherstCustomerDB(AmherstCustomer, SQLModel, table=True):
+    id: str = sqlmodel.Field(primary_key=True)
+
+    hires: list['AmherstHireDB'] = Relationship(back_populates='customer')
+    sales: list['AmherstSaleDB'] = Relationship(back_populates='customer')
+
+
 class AmherstHire(AmherstTableBase):
-# class AmherstHire(AmherstTableBase, SQLModel, table=True):
-    row_id: str = sqlmodel.Field(primary_key=True)
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=hire_alias
     )
 
 
+class AmherstHireDB(AmherstHire, SQLModel, table=True):
+    id: str = sqlmodel.Field(primary_key=True)
+    customer_id: str | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
+    customer: AmherstCustomerDB | None = Relationship(back_populates='hires')
+
+
 class AmherstSale(AmherstTableBase):
-# class AmherstSale(AmherstTableBase, SQLModel, table=True):
     model_config = ConfigDict(
         populate_by_name=True,
         alias_generator=sale_alias
     )
-    row_id: str = sqlmodel.Field(primary_key=True)
+
+
+class AmherstSaleDB(AmherstSale, SQLModel, table=True):
+    id: str = sqlmodel.Field(primary_key=True)
+
+    customer_id: str | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
+    customer: AmherstCustomerDB = Relationship(back_populates='sales')
+
 
 class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
-    row_id: str = sqlmodel.Field(primary_key=True)
+    id: str = sqlmodel.Field(primary_key=True)
 
 
-TABLE_TYPES = AmherstSale, AmherstCustomer, AmherstHire
-# AmherstTableDB = AmherstCustomer | AmherstHire | AmherstSale
+AMHERST_ORDER_TYPES = AmherstHireDB | AmherstSaleDB
+AMHERST_TABLE_TYPES = AMHERST_ORDER_TYPES | AmherstCustomerDB
+
+types_map = {
+    'Hire': {
+        'input_type': AmherstHire,
+        'output_type': AmherstHireDB,
+    },
+    'Sale': {
+        'input_type': AmherstSale,
+        'output_type': AmherstSaleDB,
+    },
+    'Customer': {
+        'input_type': AmherstCustomer,
+        'output_type': AmherstCustomerDB,
+    },
+}
 
 
-def dict_to_amtable(data: dict[str, str]) -> AmherstTableDB:
-    match data['category']:
-        case AmherstTableEnum.Hire:
-            res = AmherstHire.model_validate(data)
-        case AmherstTableEnum.Sale:
-            res = AmherstSale.model_validate(data)
-        case AmherstTableEnum.Customer:
-            res = AmherstCustomer.model_validate(data)
-        case _:
-            raise ValueError(f'Unknown table {data['categor']}')
-    res = AmherstTableDB(**res.model_dump())
-    return res
+def dict_to_amtable(data: dict[str, str]) -> AMHERST_TABLE_TYPES:
+    res = types_map[data['category']]['input_type'].model_validate(data)
+    tbl = types_map[data['category']]['output_type'](**res.model_dump())
+    return tbl

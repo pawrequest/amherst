@@ -16,7 +16,7 @@ from sqlmodel import SQLModel, Session, and_, or_, select
 from starlette.exceptions import HTTPException
 
 from amherst.config import settings
-from amherst.models.am_record_smpl import AmherstTableDB
+from amherst.models.am_record_smpl import AmherstCustomerDB, AmherstHireDB, AmherstSaleDB, AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
@@ -170,6 +170,31 @@ async def amrecs_from_queries_multi(
         session: Session = Depends(get_session),
 ):
     page, more = await select_page_more(session, stmt, Pagination())
+    return page
+
+
+async def model_type_from_path(category: str = Path(...)) -> type[SQLModel]:
+    match category:
+        case 'hire':
+            return AmherstHireDB
+        case 'sale':
+            return AmherstSaleDB
+        case 'customer':
+            return AmherstCustomerDB
+
+
+async def amrecs_from_query2(
+        category: type[SQLModel] = Depends(model_type_from_path),
+        column: str = Query(None),
+        q: str = Query(None),
+        session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query),
+) -> list[AmherstTableDB]:
+    stmt = search_column_stmt(category, column, q)
+    page, more = await select_page_more(session, stmt, pagination)
+    logger.info(f'returned {len(page)} {category.__name__} records with {column} = {q}. (There are{' no' if not more else ''} more)')
+    if not page:
+        raise HTTPException(status_code=404, detail=f'No records found for {q}')
     return page
 
 
