@@ -106,6 +106,7 @@ class AmherstTableBase(BaseModel):
 
 
 class AmherstOrderBase(AmherstTableBase):
+    customer_name: str
     invoice: str = ''
     track_out: str = ''
     track_in: str = ''
