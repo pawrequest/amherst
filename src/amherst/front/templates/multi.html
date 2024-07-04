@@ -2,37 +2,22 @@
 {% block head %}
     <link href="{{ url_for('static', path='multi.css') }}" rel="stylesheet">
 {% endblock %}
-{% block title %}Amherst MultiShipper{% endblock %}
 {% block sidebar %}
     <div class="sidebar">
         <label for="filterInput">Filter</label>
         <input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">
 
-        <label for="searchInput">Search</label>
-        <input type="text" id="searchInput" placeholder="Fetch New Records..." onkeyup="searchRecords()">
+        {#        <label for="searchInput">Search</label>#}
+        {#        <input type="text" id="searchInput" placeholder="Fetch New Records..." onkeyup="searchRecords()">#}
 
-        <div class="record-container" id="customersContainer">
-            <h2 onclick="toggleContainer('customersContainer')">Customers</h2>
-            <div class="records" hx-get="/search2/customer" hx-trigger="load"
-                 hx-target="this" hx-swap="innerHTML">
-            </div>
+        <nav class="nav-bar">
+            <a href="#" hx-get="/search2/customer" hx-target="#contentContainer" hx-swap="innerHTML">Customers</a>
+            <a href="#" hx-get="/search2/hire" hx-target="#contentContainer" hx-swap="innerHTML">Hires</a>
+            <a href="#" hx-get="/search2/sale" hx-target="#contentContainer" hx-swap="innerHTML">Sales</a>
+        </nav>
+        <div class="record-container" id="contentContainer" hx-get="/search2/customer" hx-trigger="load"
+             hx-target="this" hx-swap="innerHTML">
         </div>
-
-
-        <div class="record-container" id="hiresContainer">
-            <h2 onclick="toggleContainer('hiresContainer')">Hires</h2>
-            <div class="records" hx-get="/search2/hire" hx-trigger="load"
-                 hx-target="this" hx-swap="innerHTML">
-            </div>
-        </div>
-
-        <div class="record-container" id="salesContainer">
-            <h2 onclick="toggleContainer('salesContainer')">Sales</h2>
-            <div class="records" hx-get="/search2/sale" hx-trigger="load"
-                 hx-target="this" hx-swap="innerHTML">
-            </div>
-        </div>
-
 
     </div>
 {% endblock %}
@@ -42,58 +27,6 @@
 
 {% block scripts %}
     <script>
-        function filterRecords() {
-            let input = document.getElementById('searchInput');
-            let filter = input.value.toLowerCase();
-            let recordsContainers = document.querySelectorAll('.record-container');
 
-            recordsContainers.forEach(container => {
-                let records = container.getElementsByClassName('record');
-                Array.from(records).forEach(record => {
-                    if (record.textContent.toLowerCase().includes(filter)) {
-                        record.style.display = "";
-                    } else {
-                        record.style.display = "none";
-                    }
-                });
-            });
-        }
-
-        async function populateForm(rowId) {
-            const resp = await fetch(`/api/get_amrec/${rowId}`)
-            const amherst_table = await resp.json()
-            document.getElementById('ship_date').value = amherst_table.send_date;
-            document.getElementById('boxes').value = amherst_table.boxes;
-            document.getElementById('business_name').value = amherst_table.delivery_contact_business;
-            document.getElementById('contact_name').value = amherst_table.delivery_contact_name;
-            document.getElementById('email').value = amherst_table.delivery_contact_email;
-            document.getElementById('mobile_phone').value = amherst_table.delivery_contact_phone;
-            document.getElementById('reference_number1').value = amherst_table.reference_number1;
-            document.getElementById('reference_number2').value = amherst_table.reference_number2;
-            document.getElementById('reference_number3').value = amherst_table.reference_number3;
-            document.getElementById('special_instructions1').value = amherst_table.special_instructions1;
-            document.getElementById('special_instructions2').value = amherst_table.special_instructions2;
-            document.getElementById('special_instructions3').value = amherst_table.special_instructions3;
-            document.getElementById('address_line1').value = amherst_table.delivery_address_line1;
-            document.getElementById('address_line2').value = amherst_table.delivery_address_line2;
-            document.getElementById('address_line3').value = amherst_table.delivery_address_line3;
-            document.getElementById('town').value = amherst_table.delivery_town;
-            document.getElementById('postcode').value = amherst_table.delivery_address_pc;
-        }
-
-        function closePopup() {
-            document.getElementById('popupDetails').style.display = 'none';
-        }
-
-        function toggleContainer(containerId) {
-            const containers = document.querySelectorAll('.record-container');
-            containers.forEach(container => {
-                if (container.id === containerId) {
-                    container.classList.toggle('expanded');
-                } else {
-                    container.classList.remove('expanded');
-                }
-            });
-        }
     </script>
 {% endblock %}

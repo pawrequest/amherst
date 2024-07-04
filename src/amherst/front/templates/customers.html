@@ -1,13 +1,15 @@
 {% for customer in data %}
     <div>
-        {{ customer.name }}
         {% for order in customer.hires + customer.sales %}
             <div class="order">
+                <div class="cust_name">
+                    {{ customer.name }}
+                </div>
                 <div class="ordercat">
-                    {{ order.category.value }} - (
+                    {{ order.category.value }}
                 </div>
                 <div class="orderdate">
-                    {{ order.dt_ordinal(order.send_date) }})
+                    {{ order.dt_ordinal(order.send_date) }}
                 </div>
             </div>
         {% endfor %}
