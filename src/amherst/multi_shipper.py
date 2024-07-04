@@ -130,7 +130,7 @@ async def fresh_cmc_data():
         await drop_all()
         py_cmc = PyCommence()
         py_cmc.set_csr('Customer', filter_array=initial_filter('Customer'))
-        for record in py_cmc.csr(csrname='Customer').rows(count=20, with_id=True, with_category=True):
+        for record in py_cmc.csr(csrname='Customer').rows(with_id=True, with_category=True):
             order = await get_or_make_customer(record, session)
             session.add(order)
 
