@@ -58,7 +58,7 @@ def custoemr_fils_logic(hire_start, hire_end, sale_start) -> tuple[tuple[Connect
                 value=to_cmc_date(sale_start),
             ),
         ),
-        'And, Or, Or',
+        'And, Or',
     )
 
 
