@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import contextlib
 import functools
-from datetime import date, datetime
 from typing import NamedTuple, Self
 
 import httpx
@@ -133,14 +132,6 @@ async def select_page_more(session, sqlselect, pagination: Pagination) -> tuple[
     res = session.exec(sqlselect).all()
     more = len(res) > pagination.limit if pagination.limit else False
     return res[: pagination.limit], more
-
-
-def ordinal(n):
-    return str(n) + ('th' if 4 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th'))
-
-
-def dt_ordinal(dt: datetime | date) -> str:
-    return dt.strftime('%a {th} %b %Y').replace('{th}', ordinal(dt.day))
 
 
 def search_column_stmt(model: type[SQLModel], column: str | None, search_str: str | None = None):

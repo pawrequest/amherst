@@ -1,5 +1,6 @@
 # from __future__ import annotations
-from datetime import date
+
+from datetime import date, datetime
 from enum import Enum
 from typing import Annotated
 
@@ -65,6 +66,10 @@ class AmherstTableBase(BaseModel):
 
     delivery_address_str: str
     delivery_address_pc: str
+
+    @staticmethod
+    def dt_ordinal(date_or_dt: datetime | date) -> str:
+        return dt_ordinal(date_or_dt)
 
     @property
     def contact_dict(self) -> dict:
@@ -199,3 +204,12 @@ def dict_to_amtable(data: dict[str, str]) -> AMHERST_TABLE_TYPES:
     res = types_map[data['category']]['input_type'].model_validate(data)
     tbl = types_map[data['category']]['output_type'](**res.model_dump())
     return tbl
+
+
+def date_int_w_ordinal(n):
+    return str(n) + ('th' if 4 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th'))
+
+
+def dt_ordinal(dt: datetime | date) -> str:
+    return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b')
+    # return dt.strftime('%a {th} %b %Y').replace('{th}', date_int_w_ordinal(dt.day))
