@@ -10,7 +10,8 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from pawlogger import get_loguru
 
-from amherst.commence_adaptors import HireAliases, initial_filter
+from amherst.commence_adaptors import HireAliases
+from amherst.commence_filters import initial_filter
 from pycommence.pycmc_types import CmcDateFormat, RadioType
 from pycommence.pycommence_v1 import PyCommence
 

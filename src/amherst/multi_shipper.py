@@ -6,7 +6,7 @@ from loguru import logger
 from sqlmodel import SQLModel, select
 
 from amherst import app_file
-from amherst.commence_adaptors import initial_filter
+from amherst.commence_filters import initial_filter
 from amherst.db import create_db, get_session_cm
 from amherst.models.am_record_smpl import (
     AmherstCustomerDB,

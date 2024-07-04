@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-import functools
-from datetime import date, timedelta
+from datetime import date
 from enum import Enum, StrEnum
 from typing import Annotated
 
 import pydantic as _p
 from pydantic import Field
 
-from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, SortOrder
 from pycommence.pycmc_types import (
     Connection,
     get_cmc_date,
-    to_cmc_date,
 )
 from shipaw.ship_types import limit_daterange_no_weekends
 
@@ -50,57 +47,6 @@ class HireStatus(StrEnum):
     EXTENDED = 'Extended'
     SOLD = 'Sold To Customer'
 
-
-@functools.lru_cache
-def initial_filter(filtername: str) -> FilterArray:
-    hire_start = date.today() - timedelta(days=300)
-    hire_end = date.today() + timedelta(days=300)
-    sale_start = date.today() - timedelta(days=300)
-    sorts = None
-    match filtername:
-        case 'Hire':
-            sorts = ((HireAliases.SEND_DATE, SortOrder.DESC),)
-            res = FilterArray.from_filters(*(hires_in_range_fils(hire_start, hire_end)), sorts=sorts)
-
-        case 'Sale':
-            fils = (
-            FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=to_cmc_date(sale_start)),)
-            sorts = ((SaleAliases.DATE_ORDERED, SortOrder.DESC),)
-            res = FilterArray.from_filters(*fils, sorts=sorts)
-
-        case 'Customer':
-            fils = (
-                ConnectedFieldFilter.model_validate(
-                    dict(
-                        column='Has Hired',
-                        connection_category='Hire',
-                        connected_column=HireAliases.SEND_DATE,
-                        condition=ConditionType.AFTER,
-                        value=to_cmc_date(hire_start),
-                    )
-                ),
-                ConnectedFieldFilter.model_validate(
-                    dict(
-                        column='Involves',
-                        connection_category='Sale',
-                        connected_column=SaleAliases.DATE_ORDERED,
-                        condition=ConditionType.AFTER,
-                        value=to_cmc_date(sale_start),
-                    )
-                ),
-            )
-            # sorts = ((CustomerAliases.DATE_LAST_CONTACTED, SortOrder.DESC),)
-            res = FilterArray.from_filters(
-                *fils,
-                sorts=sorts,
-                logic='Or, And, And',
-                # logic='And, And, And'
-            )
-
-        case _:
-            raise ValueError(f'No filter for {filtername}')
-
-    return res
 
 
 class CustomerAliases(str, Enum):
@@ -216,7 +162,7 @@ class SaleAliases(StrEnum):
     DELIVERY_ADDRESS_PC = 'Delivery Postcode'
 
     BOXES = 'Boxes'
-    SEND_DATE = 'Send Out Date'
+    SEND_DATE = 'Date Ordered'
     DELIVERY_METHOD = 'Delivery Method'
     INVOICE = 'Invoice'
     ARRANGED_OUT = 'DB label printed'
@@ -246,19 +192,6 @@ class SaleAliases(StrEnum):
     INVOICE_POSTCODE = 'Invoice Postcode'
     INVOICE_TELEPHONE = 'Invoice Telephone'
 
-
-def hires_in_range_fils(start_date: date, end_date: date | None = None) -> tuple[FieldFilter, ...]:
-    fils = (
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-        FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),
-    )
-    if end_date:
-        fils += (
-            FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
-        )
-    return fils
 
 
 def get_alias(tablename: str, field_name: str) -> str:
@@ -325,3 +258,4 @@ customers in hires
 customers in sales
 customers in range
 """
+

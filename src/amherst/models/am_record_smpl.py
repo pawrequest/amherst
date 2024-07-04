@@ -8,7 +8,7 @@ import sqlmodel
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Relationship, SQLModel
 
-from amherst.commence_adaptors import customer_alias, hire_alias, sale_alias
+from amherst.commence_adaptors import AM_DATE, customer_alias, hire_alias, sale_alias
 from amherst.importer import split_refs_from_str
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models.pf_shipment import Shipment, to_collection, to_dropoff
@@ -23,6 +23,12 @@ AM_SHIP_DATE = Annotated[
     SHIP_DATE,
     _p.BeforeValidator(get_cmc_date),
 ]
+
+
+def constrain_date(datestr):
+    datey = get_cmc_date(datestr)
+    datey2 = limit_daterange_no_weekends(datey)
+    return datey2
 
 
 def split_addr_str(address: str) -> dict[str, str]:
@@ -80,7 +86,7 @@ class AmherstTableBase(BaseModel):
     def ship_details_dict(self):
         return {
             'total_number_of_parcels': 1,
-            'shipping_date': date.today(),
+            'shipping_date': limit_daterange_no_weekends(date.today()),
         }
 
     @property
@@ -114,8 +120,7 @@ class AmherstOrderBase(AmherstTableBase):
     arranged_in: bool = False
     delivery_method: str = ''
 
-    # fields for hires
-    missing_kit_str: str = ''
+    send_date: AM_DATE = date.today()
 
 
 class AmherstCustomer(AmherstOrderBase):
@@ -137,13 +142,12 @@ class AmherstHire(AmherstOrderBase):
         alias_generator=hire_alias
     )
     boxes: int = 1
-    send_date: AM_SHIP_DATE = date.today()
 
     @property
     def ship_details_dict(self):
         return {
             'total_number_of_parcels': self.boxes,
-            'shipping_date': self.send_date,
+            'shipping_date': limit_daterange_no_weekends(self.send_date),
         }
 
 

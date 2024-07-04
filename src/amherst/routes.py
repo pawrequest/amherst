@@ -23,7 +23,7 @@ router = APIRouter()
 
 @router.get('/search2/{category}', response_class=HTMLResponse)
 async def search2(request: Request, page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query2)):
-    return TEMPLATES.TemplateResponse('customers.html', {'request': request, 'customers': page})
+    return TEMPLATES.TemplateResponse('customers.html', {'request': request, 'data': page})
     # return TEMPLATES.TemplateResponse('records.html', {'request': request, 'records': page})
 
 
@@ -46,11 +46,12 @@ async def multi_shipper(
         session=Depends(get_session)
 ):
     await fresh_cmc_data()
-    hires = session.query(AmherstHireDB).all()
     customers = session.query(AmherstCustomerDB).all()
+    hires = session.query(AmherstHireDB).all()
     sales = session.query(AmherstSaleDB).all()
-    records = hires + customers + sales
-    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'records': records})
+    orders = hires + sales
+
+    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'customers': customers, 'orders': orders})
 
 
 @router.get('/fail/{alert}', response_class=HTMLResponse)
