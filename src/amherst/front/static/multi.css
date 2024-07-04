@@ -150,3 +150,9 @@
 .record-container.collapsed {
     flex: 0;
 }
+
+.order {
+    display:flex;
+    flex-direction: column;
+    background-color: purple;
+}

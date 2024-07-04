@@ -6,7 +6,6 @@ from pathlib import Path
 import pawdf
 from fastapi import APIRouter, Depends, Form
 from loguru import logger
-from sqlmodel import SQLModel
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
@@ -14,8 +13,8 @@ from amherst.backend_funcs import (
     TEMPLATES,
     new_amrec_f_path,
 )
-from amherst.db import amrecs_from_query, amrecs_from_query2, get_session, model_type_from_path
-from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstHireDB, AmherstCustomerDB, AmherstSaleDB
+from amherst.db import amrecs_from_query, amrecs_from_query2, get_session
+from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstCustomerDB, AmherstHireDB, AmherstSaleDB
 from amherst.multi_shipper import fresh_cmc_data
 
 router = APIRouter()
@@ -24,7 +23,6 @@ router = APIRouter()
 @router.get('/search2/{category}', response_class=HTMLResponse)
 async def search2(request: Request, page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query2)):
     return TEMPLATES.TemplateResponse('customers.html', {'request': request, 'data': page})
-    # return TEMPLATES.TemplateResponse('records.html', {'request': request, 'records': page})
 
 
 @router.get('/search', response_class=HTMLResponse)

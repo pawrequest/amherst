@@ -1,8 +1,17 @@
-{% for order in data %}
+{#{% for order in data %}#}
+{#    <div>#}
+{#        {{ order.customer.name }}#}
+{#        ({{ order.send_date }})#}
+{#    </div>#}
+{#{% endfor %}#}
+
+{% for customer in data %}
     <div>
-        {{ order.customer.name }}
-        ({{ order.send_date }})
+        {{ customer.name }}
+        {% for order in customer.hires + customer.sales %}
+            <div class="order">
+                {{ order.category.value }} ({{ order.send_date }})
+            </div>
+        {% endfor %}
     </div>
-
-
 {% endfor %}
