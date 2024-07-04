@@ -11,28 +11,27 @@
         <label for="searchInput">Search</label>
         <input type="text" id="searchInput" placeholder="Fetch New Records..." onkeyup="searchRecords()">
 
-        <div class="record-container" id="customersContainer">
-            <h2 onclick="toggleContainer('customersContainer')">Customers</h2>
-            <div class="records" hx-get="/search2/customer" hx-trigger="load"
+{#        <div class="record-container" id="customersContainer">#}
+{#            <h2 onclick="toggleContainer('customersContainer')">Customers</h2>#}
+{#            <div class="records" hx-get="/search2/customer" hx-trigger="load"#}
+{#                 hx-target="this" hx-swap="innerHTML">#}
+{#            </div>#}
+{#        </div>#}
+
+
+        <div class="record-container" id="hiresContainer">
+            <h2 onclick="toggleContainer('hiresContainer')">Hires</h2>
+            <div class="records" hx-get="/search2/hire" hx-trigger="load"
                  hx-target="this" hx-swap="innerHTML">
             </div>
         </div>
 
-
-{#        <div class="record-container" id="hiresContainer">#}
-{#            <h2 onclick="toggleContainer('hiresContainer')">Hires</h2>#}
-{#            <div class="records" hx-get="/search?column=category&q=Hire" hx-trigger="load"#}
-{#            <div class="records" hx-get="/search2/hire" hx-trigger="load"#}
-{#                 hx-target="this" hx-swap="innerHTML">#}
-{#            </div>#}
-{#        </div>#}
-{##}
-{#        <div class="record-container" id="salesContainer">#}
-{#            <h2 onclick="toggleContainer('salesContainer')">Sales</h2>#}
-{#            <div class="records" hx-get="/search2/sale" hx-trigger="load"#}
-{#                 hx-target="this" hx-swap="innerHTML">#}
-{#            </div>#}
-{#        </div>#}
+        <div class="record-container" id="salesContainer">
+            <h2 onclick="toggleContainer('salesContainer')">Sales</h2>
+            <div class="records" hx-get="/search2/sale" hx-trigger="load"
+                 hx-target="this" hx-swap="innerHTML">
+            </div>
+        </div>
 
 
     </div>

@@ -6,15 +6,14 @@ from enum import Enum, StrEnum
 from typing import Annotated
 
 import pydantic as _p
-from loguru import logger
 from pydantic import Field
 
+from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, SortOrder
 from pycommence.pycmc_types import (
     Connection,
     get_cmc_date,
     to_cmc_date,
 )
-from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, SortOrder
 from shipaw.ship_types import limit_daterange_no_weekends
 
 LOCATION = 'HM'
@@ -65,20 +64,14 @@ def initial_filter(filtername: str) -> FilterArray:
     sorts = None
     match filtername:
         case 'Hire':
-            fils = hires_in_range_fils(hire_start, hire_end)
             sorts = ((HireAliases.SEND_DATE, SortOrder.ASC),)
-            res = FilterArray.from_filters(*fils, sorts=sorts)
+            res = FilterArray.from_filters(*(hires_in_range_fils(hire_start, hire_end)), sorts=sorts)
 
         case 'Sale':
             fils = (FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=sale_start),)
             res = FilterArray.from_filters(*fils, sorts=sorts)
 
         case 'Customer':
-            # fils = (
-            #     FieldFilter(
-            #         column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value=lastcontact
-            #     ),
-            # )
             fils = (
                 ConnectedFieldFilter.model_validate(
                     dict(
@@ -86,7 +79,7 @@ def initial_filter(filtername: str) -> FilterArray:
                         connection_category='Hire',
                         connected_column=HireAliases.SEND_DATE,
                         condition=ConditionType.AFTER,
-                        value='12 months ago'
+                        value='12 months ago',
                     )
                 ),
                 ConnectedFieldFilter.model_validate(
@@ -95,14 +88,14 @@ def initial_filter(filtername: str) -> FilterArray:
                         connection_category='Sale',
                         connected_column=SaleAliases.DATE_ORDERED,
                         condition=ConditionType.AFTER,
-                        value='12 months ago'
+                        value='12 months ago',
                     )
                 ),
             )
             res = FilterArray.from_filters(
                 *fils,
                 sorts=sorts,
-                logic='Or, And, And'
+                logic='Or, And, And',
                 # logic='And, And, And'
             )
 

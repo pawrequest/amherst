@@ -48,37 +48,28 @@ async def main():
         close_application()
 
 
-async def fresh_cmc_data():
-    CoInitialize()
-    with (get_session_cm() as session):
-        await drop_all()
-        py_cmc = PyCommence()
+async def getrec(record):
+    c_name = record['To Customer']
+    if not c_name:
+        logger.error(f'No customer name for {record}')
+        return
+    return dict_to_amtable(record)
 
-        csrnames = ['Hire', 'Sale']
-        for csrname in csrnames:
-            py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
-            for record in py_cmc.csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
-                c_name = record['To Customer']
-                if not c_name:
-                    logger.error(f'No customer name for {record}')
-                    continue
-                am_table = dict_to_amtable(record)
-                stmt = select(AmherstCustomerDB).where(AmherstCustomerDB.name == c_name)
-                inb = session.exec(stmt).first()
-                if inb:
-                    am_table.customer = inb
-                else:
-                    filter_array = FilterArray.from_filters(FieldFilter(column='Name', value=c_name))
-                    csr = py_cmc.get_new_cursor(csrname='Customer', filter_array=filter_array)
-                    rows = list(csr.rows(with_id=True, with_category=True))
-                    assert len(rows) == 1
-                    customer = rows[0]
-                    cust_table = dict_to_amtable(customer)
-                    am_table.customer = cust_table
 
-                session.add(am_table)
-        session.commit()
-    CoUninitialize()
+async def get_cust(am_table, session, py_cmc):
+    stmt = select(AmherstCustomerDB).where(AmherstCustomerDB.name == am_table.customer_name)
+    inb = session.exec(stmt).first()
+    if inb:
+        am_table.customer = inb
+    else:
+        filter_array = FilterArray.from_filters(FieldFilter(column='Name', value=am_table.customer_name))
+        csr = py_cmc.get_new_cursor(csrname='Customer', filter_array=filter_array)
+        rows = list(csr.rows(with_id=True, with_category=True))
+        assert len(rows) == 1
+        customer = rows[0]
+        cust_table = dict_to_amtable(customer)
+        am_table.customer = cust_table
+        return am_table
 
 
 # async def import_cmc_data1():
@@ -121,3 +112,21 @@ if __name__ == '__main__':
     asyncio.run(main())
 
     # main(args.category, args.record_name)
+
+
+async def fresh_cmc_data():
+    CoInitialize()
+    with get_session_cm() as session:
+        await drop_all()
+        py_cmc = PyCommence()
+        cust_names = {}
+
+        csrnames = ['Hire', 'Sale']
+        for csrname in csrnames:
+            py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
+            for record in py_cmc.csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
+                am_table = await getrec(record)
+                # am_table = get_cust(record, session, py_cmc)
+                session.add(am_table)
+        session.commit()
+    CoUninitialize()
