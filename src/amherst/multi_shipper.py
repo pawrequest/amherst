@@ -57,7 +57,7 @@ async def fresh_cmc_data():
         csrnames = ['Hire', 'Sale']
         for csrname in csrnames:
             py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
-            for record in py_cmc.csr(csrname=csrname).rows(with_id=True, with_category=True):
+            for record in py_cmc.csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
                 c_name = record['To Customer']
                 if not c_name:
                     logger.error(f'No customer name for {record}')
