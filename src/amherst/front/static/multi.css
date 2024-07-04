@@ -153,6 +153,8 @@
 
 .order {
     display:flex;
-    flex-direction: column;
-    background-color: purple;
+    flex-direction: row;
+    font-size: .8rem;
+    justify-content: end;
+    /*width: fit-content;*/
 }

@@ -10,7 +10,12 @@
         {{ customer.name }}
         {% for order in customer.hires + customer.sales %}
             <div class="order">
-                {{ order.category.value }} ({{ order.dt_ordinal(order.send_date) }})
+                <div class="ordercat">
+                    {{ order.category.value }} - (
+                </div>
+                <div class="orderdate">
+                    {{ order.dt_ordinal(order.send_date) }})
+                </div>
             </div>
         {% endfor %}
     </div>
