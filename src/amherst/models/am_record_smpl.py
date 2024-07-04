@@ -9,7 +9,16 @@ import sqlmodel
 from pydantic import BaseModel, ConfigDict
 from sqlmodel import Relationship, SQLModel
 
-from amherst.commence_adaptors import AM_DATE, customer_alias, hire_alias, sale_alias
+from amherst.commence_adaptors import (
+    AM_DATE,
+    CustomerAliases,
+    HireAliases,
+    HireStatus,
+    SaleAliases,
+    customer_alias,
+    hire_alias,
+    sale_alias,
+)
 from amherst.importer import split_refs_from_str
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models.pf_shipment import Shipment, to_collection, to_dropoff
@@ -147,6 +156,7 @@ class AmherstHire(AmherstOrderBase):
         alias_generator=hire_alias
     )
     boxes: int = 1
+    status: HireStatus
 
     @property
     def ship_details_dict(self):
@@ -157,6 +167,7 @@ class AmherstHire(AmherstOrderBase):
 
 
 class AmherstCustomerDB(AmherstCustomer, SQLModel, table=True):
+    __tablename__ = 'customer'
     id: int | None = sqlmodel.Field(primary_key=True)
 
     hires: list['AmherstHireDB'] = Relationship(back_populates='customer')
@@ -164,16 +175,20 @@ class AmherstCustomerDB(AmherstCustomer, SQLModel, table=True):
 
 
 class AmherstHireDB(AmherstHire, SQLModel, table=True):
+    __tablename__ = 'hire'
+
     id: int | None = sqlmodel.Field(primary_key=True)
 
-    customer_id: int | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
+    customer_id: int | None = sqlmodel.Field(foreign_key='customer.id')
     customer: AmherstCustomerDB | None = Relationship(back_populates='hires')
 
 
 class AmherstSaleDB(AmherstSale, SQLModel, table=True):
+    __tablename__ = 'sale'
+
     id: int | None = sqlmodel.Field(primary_key=True)
 
-    customer_id: int | None = sqlmodel.Field(foreign_key='amherstcustomerdb.id')
+    customer_id: int | None = sqlmodel.Field(foreign_key='customer.id')
     customer: AmherstCustomerDB = Relationship(back_populates='sales')
 
 
@@ -187,22 +202,26 @@ AMHERST_TABLE_TYPES = AMHERST_ORDER_TYPES | AmherstCustomerDB
 types_map = {
     'Hire': {
         'input_type': AmherstHire,
-        'output_type': AmherstHireDB,
+        'db_table': AmherstHireDB,
+        'aliases': HireAliases,
     },
     'Sale': {
         'input_type': AmherstSale,
-        'output_type': AmherstSaleDB,
+        'db_table': AmherstSaleDB,
+        'aliases': SaleAliases,
+
     },
     'Customer': {
         'input_type': AmherstCustomer,
-        'output_type': AmherstCustomerDB,
+        'db_table': AmherstCustomerDB,
+        'aliases': CustomerAliases,
     },
 }
 
 
 def dict_to_amtable(data: dict[str, str]) -> AMHERST_TABLE_TYPES:
-    res = types_map[data['category']]['input_type'].model_validate(data)
-    tbl = types_map[data['category']]['output_type'](**res.model_dump())
+    validated = types_map[data['category']]['input_type'].model_validate(data)
+    tbl = types_map[data['category']]['db_table'](**validated.model_dump())
     return tbl
 
 

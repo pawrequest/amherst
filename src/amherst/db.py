@@ -56,18 +56,6 @@ def get_temporary_session_cm(engine=None):
             SQLModel.metadata.drop_all(engine)
 
 
-def getpycmc() -> PyCommence:
-    CoInitialize()
-    pyc = PyCommence()
-    pyc.set_csr('Hire')
-    pyc.set_csr('Sale')
-    pyc.set_csr('Customer')
-    # for cat in ['Hire', 'Sale', 'Customer']:
-    #     [pyc.filter_cursor(initial_filter(cat), csrname=cat)]
-    CoUninitialize()
-    return pyc
-
-
 def get_pycmc_hire() -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr('Hire')
@@ -124,6 +112,14 @@ class Pagination(NamedTuple):
         return cls(limit=limit, offset=offset)
 
 
+def select_more_f_q(stmt, pagination: Pagination = Depends(Pagination.from_query)):
+    if pagination.offset:
+        stmt = stmt.offset(pagination.offset)
+    if pagination.limit:
+        stmt = stmt.limit(pagination.limit + 1)
+    return stmt
+
+
 async def select_page_more(session, sqlselect, pagination: Pagination) -> tuple[list, bool]:
     if pagination.offset:
         sqlselect = sqlselect.offset(pagination.offset)
@@ -163,7 +159,7 @@ async def template_name_from_path(category: str = Path(...)):
             raise ValueError(f'No template for {category}')
 
 
-async def amrecs_from_query2(
+async def amrecs_from_query(
         category: type[SQLModel] = Depends(model_type_from_path),
         column: str = Query(None),
         q: str = Query(None),
@@ -180,34 +176,10 @@ async def amrecs_from_query2(
     return page
 
 
-async def amrecs_from_query(
-        category: type[SQLModel] = Depends(model_type_from_path),
-        column: str = Query(None),
-        q: str = Query(None),
-        session: Session = Depends(get_session),
-        pagination: Pagination = Depends(Pagination.from_query),
-) -> list[AMHERST_TABLE_TYPES]:
-    stmt = search_column_stmt(category, column, q)
-    page, more = await select_page_more(session, stmt, pagination)
-    logger.info(f'returned {len(page)} records with {column} = {q}. (There are{' no' if not more else ''} more)')
-    if not page:
-        raise HTTPException(status_code=404, detail=f'No records found for {q}')
-    return page
-
-
-async def record_from_pk(
-        category: type[SQLModel] = Depends(model_type_from_path),
-        row_id: str = Query(...),
-        pycmc: PyCommence = Depends(get_pycmc_hire),
-) -> AMHERST_TABLE_TYPES:
-    record = pycmc.csr().read_row_by_id(row_id)
-    return category.from_dict(record)
-
-
 async def query_stmt_multi(
         category: type[SQLModel] = Depends(model_type_from_path),
-
-        queries: dict[str, str] | None = Body(...), logic_operator: str = Body('and', regex='^(and|or)$')
+        queries: dict[str, str] | None = Body(...),
+        logic_operator: str = Body('and', regex='^(and|or)$')
 ) -> select:
     filters = (
         [getattr(category, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
@@ -222,6 +194,43 @@ async def query_stmt_multi(
 async def amrecs_from_queries_multi(
         stmt: select = Depends(query_stmt_multi),
         session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query),
 ):
-    page, more = await select_page_more(session, stmt, Pagination())
+    page, more = await select_page_more(session, stmt, pagination)
     return page
+
+
+
+
+##
+
+
+async def query_filters(
+        category: type[SQLModel] = Depends(model_type_from_path),
+        queries: dict[str, str] | None = Body(None),
+) -> select:
+    return [getattr(category, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
+
+
+async def stmt_from_q(
+        filters: select = Depends(query_filters),
+        category: type[SQLModel] = Depends(model_type_from_path),
+        logic_operator: str = Body('and', regex='^(and|or)$')
+) -> select:
+    stmt = select(category)
+    if filters:
+        match logic_operator:
+            case 'and':
+                stmt = stmt.where(and_(*filters))
+            case 'or':
+                stmt = stmt.where(or_(*filters))
+
+    return stmt
+
+
+async def get_them(
+        stmt: select = Depends(stmt_from_q),
+        session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query),
+) -> tuple[list[AMHERST_TABLE_TYPES], bool]:
+    return await select_page_more(session, stmt, pagination)

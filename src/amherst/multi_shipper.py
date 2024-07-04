@@ -6,7 +6,7 @@ from loguru import logger
 from sqlmodel import SQLModel, select
 
 from amherst import app_file
-from amherst.commence_filters import initial_filter
+from amherst.filters import initial_filter
 from amherst.db import create_db, get_session_cm
 from amherst.models.am_record_smpl import (
     AmherstCustomerDB,
@@ -137,7 +137,7 @@ async def fresh_cmc_data():
         csrnames = ['Hire', 'Sale']
         for csrname in csrnames:
             py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
-            for record in py_cmc.csr(csrname=csrname).rows(count=20, with_id=True, with_category=True):
+            for record in py_cmc.csr(csrname=csrname).rows(with_id=True, with_category=True):
                 order = await get_order(record)
                 order.customer = await cust_by_name(order.customer_name, session)
                 session.add(order)

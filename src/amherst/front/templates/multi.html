@@ -11,11 +11,12 @@
         {#        <input type="text" id="searchInput" placeholder="Fetch New Records..." onkeyup="searchRecords()">#}
 
         <nav class="nav-bar">
-            <a href="#" hx-get="/search2/customer" hx-target="#contentContainer" hx-swap="innerHTML">Customers</a>
-            <a href="#" hx-get="/search2/hire" hx-target="#contentContainer" hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="/search2/sale" hx-target="#contentContainer" hx-swap="innerHTML">Sales</a>
+            <a href="#" hx-get="/search/customer" hx-target="#contentContainer" hx-swap="innerHTML">Customers</a>
+            <a href="#" hx-get="/search/hire" hx-target="#contentContainer" hx-swap="innerHTML">Hires</a>
+            <a href="#" hx-get="/search/sale" hx-target="#contentContainer" hx-swap="innerHTML">Sales</a>
         </nav>
-        <div class="record-container" id="contentContainer" hx-get="/search2/customer" hx-trigger="load"
+
+        <div class="record-container" id="contentContainer" hx-get="/search/customer" hx-trigger="load"
              hx-target="this" hx-swap="innerHTML">
         </div>
 

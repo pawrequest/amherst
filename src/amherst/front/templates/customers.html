@@ -1,10 +1,10 @@
 {% for customer in data %}
-    <div>
-        {% for order in customer.hires + customer.sales %}
-            <div class="order">
-                <div class="cust_name">
-                    {{ customer.name }}
-                </div>
+    {% for order in customer.hires + customer.sales %}
+        <div class="record record-customer">
+            <div class="cust_name">
+                {{ customer.name }}
+            </div>
+            <div class="customer-order">
                 <div class="ordercat">
                     {{ order.category.value }}
                 </div>
@@ -12,6 +12,6 @@
                     {{ order.dt_ordinal(order.send_date) }}
                 </div>
             </div>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
 {% endfor %}

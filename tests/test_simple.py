@@ -6,7 +6,7 @@ import pytest_asyncio
 from loguru import logger
 from starlette.testclient import TestClient
 
-from amherst.commence_filters import initial_filter
+from amherst.filters import initial_filter
 from amherst.models.am_record_smpl import AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models.pf_shipment import Shipment

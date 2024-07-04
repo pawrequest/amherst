@@ -11,35 +11,23 @@ from starlette.responses import HTMLResponse
 
 from amherst.backend_funcs import (
     TEMPLATES,
-    new_amrec_f_path,
 )
-from amherst.db import amrecs_from_query, amrecs_from_query2, get_session, template_name_from_path
+from amherst.db import get_session, get_them, template_name_from_path
 from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstCustomerDB, AmherstHireDB, AmherstSaleDB
 from amherst.multi_shipper import fresh_cmc_data
+from amherst.routes_api import TABLE_LIST_More
 
 router = APIRouter()
 
 
-@router.get('/search2/{category}', response_class=HTMLResponse)
-async def search2(
+@router.get('/search/{category}', response_class=HTMLResponse)
+async def search(
         request: Request,
+        res: TABLE_LIST_More = Depends(get_them),
         template_name: str = Depends(template_name_from_path),
-        page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query2)
-):
+) -> list[AMHERST_TABLE_TYPES]:
+    page, more = res
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'data': page})
-
-
-@router.get('/search', response_class=HTMLResponse)
-async def search(request: Request, page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query)):
-    return TEMPLATES.TemplateResponse('records.html', {'request': request, 'records': page})
-
-
-@router.get('/get_shipment/{row_id}', response_class=HTMLResponse)
-async def fetch_amrec(
-        request: Request,
-        amrec: AMHERST_TABLE_TYPES = Depends(new_amrec_f_path),
-) -> HTMLResponse:
-    return TEMPLATES.TemplateResponse('record_detail.html', {'request': request, 'record': amrec})
 
 
 @router.get('/multi', response_class=HTMLResponse)

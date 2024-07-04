@@ -2,78 +2,36 @@ from fastapi import APIRouter, Depends
 from loguru import logger
 from starlette.responses import JSONResponse
 
-from amherst.backend_funcs import amrec_from_path, book_shipment, shipment_request_f_form
-from amherst.db import amrecs_from_queries_multi, amrecs_from_query, amrecs_from_query2, get_el_client, get_pyc2
-from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstTableBase
+from amherst.shipment_funcs import book_shipment, shipment_request_f_form
+from amherst.db import (
+    get_el_client,
+    get_pyc2,
+    get_them,
+)
+from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection
-from shipaw.ship_types import ShipDirection, VALID_POSTCODE
+from shipaw.ship_types import VALID_POSTCODE
 
+TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
 
 
-@router.get('/getpyc/{csrname}/{row_id}', response_class=JSONResponse)
-async def getpyc(csrname: str, row_id: str, pycmc: PyCommence = Depends(get_pyc2)):
-    csr = pycmc.csrs.get(csrname)
-    record = csr.read_row_by_id(row_id)
-    return record
+@router.get('/pyc_pk/{csrname}/{pk_value}', response_class=JSONResponse)
+async def getpyc(csrname: str, pk_value: str, pycmc: PyCommence = Depends(get_pyc2)) -> list[dict]:
+    csr = pycmc.csr(csrname)
+    return csr.read_rows_pk_contains(pk_value)
 
 
-@router.post('/searchmulti', response_model=list[AMHERST_TABLE_TYPES])
-async def searchmulti(
-        page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_queries_multi),
-) -> list[AMHERST_TABLE_TYPES]:
-    return page
-
-
-@router.get('/search-anon/{category}', response_model=list[AmherstTableBase])
-async def search2(
-        page: list[AmherstTableBase] = Depends(amrecs_from_query2),
-) -> list[AmherstTableBase]:
-    return page
-
-
-@router.get('/search', response_model=list[AMHERST_TABLE_TYPES])
+@router.post('/search/{category}', response_model=list[AMHERST_TABLE_TYPES])
 async def search(
-        page: list[AMHERST_TABLE_TYPES] = Depends(amrecs_from_query),
+        res: TABLE_LIST_More = Depends(get_them),
 ) -> list[AMHERST_TABLE_TYPES]:
+    page, more = res
     return page
-
-
-#
-# @router.get('/search2', response_model=list[AmherstTableDB])
-# async def search2(
-#         column: str | None = Query(None),
-#         q: str | None = Query(None),
-#         session: Session = Depends(get_session),
-#         pagination: Pagination = Depends(get_pagination)
-# ) -> list[AmherstTableDB]:
-#     stmt = search_column_stmt(AmherstTableDB, column, q)
-#     page, more = await select_page_more(session, stmt, pagination)
-#     if not page:
-#         raise HTTPException(status_code=404, detail=f'No records found for {q}')
-#     return page
-
-
-#
-# @router.get('/search2', response_model=list[AmherstTableDB])
-# async def search2(
-#         column: str | None = Query(None),
-#         search_str: str | None = Query(None),
-#         session: Session = Depends(get_session)
-# ) -> list[AmherstTableDB]:
-#     stmt = search_column_stmt(AmherstTableDB, column, search_str)
-#     res = session.exec(stmt).all()
-#     if not res:
-#         stmt = search_column_stmt(AmherstTableDB, 'name', search_str)
-#         res = session.exec(stmt).all()
-#     if not res:
-#         raise ValueError(f'No records found for {search_str}')
-#     return res[:10]
-#
 
 
 @router.post('/form_to_ship/', response_model=Shipment)
@@ -81,21 +39,6 @@ async def form_to_shipment(
         shipment_request: Shipment = Depends(shipment_request_f_form),
 ):
     return shipment_request
-
-
-@router.get('/get_shipment/{direction}/{row_id}', response_model=Shipment)
-async def fetch_amrec_shipment(direction: ShipDirection, amrec: AMHERST_TABLE_TYPES = Depends(amrec_from_path)):
-    return amrec.to_shipment(direction)
-
-
-@router.get('/get_amrec/{row_id}', response_model=AMHERST_TABLE_TYPES)
-async def fetch_amrec(amrec: AMHERST_TABLE_TYPES = Depends(amrec_from_path)):
-    return amrec
-
-
-@router.get('/ping', response_class=JSONResponse)
-async def ping():
-    return {'ping': 'pong'}
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)

@@ -4,7 +4,7 @@ import pytest
 import pytest_asyncio
 from loguru import logger
 
-from amherst.commence_filters import initial_filter
+from amherst.filters import initial_filter
 from amherst.importer import amrec_to_booking, cmc_record_to_amrec
 from amherst.models.am_record import AmherstRecord
 from amherst.models.db_models import BookingStateDB

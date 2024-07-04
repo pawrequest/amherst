@@ -96,7 +96,7 @@
 .record-container {
     border: 1px solid #ddd;
     border-radius: 4px;
-    overflow: hidden;
+    overflow: auto;
     transition: flex 0.3s ease, max-height 0.3s ease;
     flex: 1;
     display: flex;
@@ -104,13 +104,16 @@
 }
 
 .record {
+    display: flex;
+    flex-direction: column;
+
     flex: 1;
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
     cursor: pointer;
-    align-items: center;
 }
+
 
 .record-container h2 {
     margin: 0;
@@ -119,17 +122,6 @@
     border-bottom: 1px solid #ddd;
 }
 
-.record-container .records {
-    padding: 10px;
-    display: block;
-    /*max-height: 150px;*/
-    overflow-y: auto; /* Ensures a scrollbar if the content exceeds the container height */
-    flex-grow: 1;
-}
-
-.record-container.expanded .records {
-    /*max-height: none; !* Removes the max-height to show all content when expanded *!*/
-}
 
 .popup-details {
     display: none;
@@ -143,19 +135,9 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.record-container.expanded {
-    flex: 10;
-}
 
-.record-container.collapsed {
-    flex: 0;
-}
-
-.order {
-    display:flex;
+.customer-order {
+    display: flex;
     flex-direction: row;
-    font-size: .8rem;
     justify-content: space-evenly;
-    flex-wrap: wrap;
-    /*width: fit-content;*/
 }
