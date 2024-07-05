@@ -55,12 +55,12 @@ async def get_order(record):
 
 
 async def get_or_make_customer(customer_dict, session):
-    if inb := await cust_by_name(customer_dict['Name'], session):
+    if inb := await cust_frm_sql(customer_dict['Name'], session):
         return inb
     return dict_to_amtable(customer_dict)
 
 
-async def cust_by_name(customer_name: str, session):
+async def cust_frm_sql(customer_name: str, session):
     stmt = select(AmherstCustomerDB).where(AmherstCustomerDB.name == customer_name)
     inb = session.exec(stmt).first()
     return inb
@@ -139,7 +139,7 @@ async def fresh_cmc_data():
             py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
             for record in py_cmc.csr(csrname=csrname).rows(with_id=True, with_category=True):
                 order = await get_order(record)
-                order.customer = await cust_by_name(order.customer_name, session)
+                order.customer = await cust_frm_sql(order.customer_name, session)
                 session.add(order)
         session.commit()
     CoUninitialize()
