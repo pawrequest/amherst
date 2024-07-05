@@ -8,7 +8,8 @@ from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
 from amherst.config import settings
-from amherst.db import get_session, model_type_from_path
+from amherst.db import get_session
+from amherst.route_depends import model_type_from_path
 from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
 
 # from amherst.models.db_models import BookingStateDB
@@ -82,11 +83,11 @@ TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templ
 
 async def new_amrec_f_path(
         row_id: str = Path(),
-        category: type[SQLModel] = Depends(model_type_from_path),
+        model_type: type[SQLModel] = Depends(model_type_from_path),
         session: Session = Depends(get_session)
 ) -> AMHERST_TABLE_TYPES:
-    ret = session.get(category, id)
-    if not isinstance(ret, category):
+    ret = session.get(model_type, id)
+    if not isinstance(ret, model_type):
         raise ValueError(f'No record found with id {row_id}')
     return ret
 

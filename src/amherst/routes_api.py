@@ -3,13 +3,9 @@ from loguru import logger
 from starlette.responses import JSONResponse
 
 from amherst.shipment_funcs import book_shipment, shipment_request_f_form
-from amherst.db import (
-    get_el_client,
-    get_pyc2,
-    get_them,
-)
+from amherst.db import (get_el_client, get_rows_contain_pk)
+from amherst.route_depends import amrecs_and_more, import_rows_contain_pk
 from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
-from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
@@ -20,15 +16,19 @@ TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
 
 
-@router.get('/pyc_pk/{csrname}/{pk_value}', response_class=JSONResponse)
-async def getpyc(csrname: str, pk_value: str, pycmc: PyCommence = Depends(get_pyc2)) -> list[dict]:
-    csr = pycmc.csr(csrname)
-    return csr.read_rows_pk_contains(pk_value)
+@router.get('/import_pyc/{csrname}/{pk_value}', response_model=list[AMHERST_TABLE_TYPES])
+async def importpyc(amrecs: list[AMHERST_TABLE_TYPES] = Depends(import_rows_contain_pk)) -> list[AMHERST_TABLE_TYPES]:
+    return amrecs
+
+
+@router.get('/search_cmc/{csrname}/{pk_value}', response_model=list[dict])
+async def getpyc(rows: list[dict] = Depends(get_rows_contain_pk)) -> list[dict]:
+    return rows
 
 
 @router.post('/search/{category}', response_model=list[AMHERST_TABLE_TYPES])
 async def search(
-        res: TABLE_LIST_More = Depends(get_them),
+        res: TABLE_LIST_More = Depends(amrecs_and_more),
 ) -> list[AMHERST_TABLE_TYPES]:
     page, more = res
     return page

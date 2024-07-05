@@ -12,7 +12,8 @@ from starlette.responses import HTMLResponse
 from amherst.backend_funcs import (
     TEMPLATES,
 )
-from amherst.db import get_session, get_them, template_name_from_path
+from amherst.db import get_rows_contain_pk, get_session
+from amherst.route_depends import amrecs_and_more, template_name_from_path
 from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstCustomerDB, AmherstHireDB, AmherstSaleDB
 from amherst.multi_shipper import fresh_cmc_data
 from amherst.routes_api import TABLE_LIST_More
@@ -20,14 +21,23 @@ from amherst.routes_api import TABLE_LIST_More
 router = APIRouter()
 
 
-@router.get('/search/{category}', response_class=HTMLResponse)
+@router.get('/search_cmc/{csrname}/{pk_value}', response_class=HTMLResponse)
+async def search_cmc(
+        rows: list[dict] = Depends(get_rows_contain_pk),
+        template_name: str = Depends(template_name_from_path)
+) -> list[dict]:
+    resolved = list(rows)
+    return TEMPLATES.TemplateResponse(template_name, {'data': resolved})
+
+
+@router.get('/search/{csrname}', response_class=HTMLResponse)
 async def search(
         request: Request,
-        res: TABLE_LIST_More = Depends(get_them),
+        recs_and_more: TABLE_LIST_More = Depends(amrecs_and_more),
         template_name: str = Depends(template_name_from_path),
 ) -> list[AMHERST_TABLE_TYPES]:
-    page, more = res
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'data': page})
+    records, more = recs_and_more
+    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'data': records})
 
 
 @router.get('/multi', response_class=HTMLResponse)
