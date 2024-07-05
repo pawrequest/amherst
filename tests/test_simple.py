@@ -7,11 +7,11 @@ from loguru import logger
 from starlette.testclient import TestClient
 
 from amherst.filters import initial_filter
-from amherst.models.am_record_smpl import AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa
+from ..models.am_record_smpl import dict_to_amtable
 
 
 @pytest.fixture(params=['Hire', 'Sale', 'Customer'])
@@ -26,11 +26,12 @@ def pycmc(request) -> PyCommence:
 @pytest_asyncio.fixture(scope='function')
 async def amrec(pycmc: PyCommence):
     """Fixture for a random AmherstTableDB record via validation with appropriate subclass of AmherstTable"""
-    record = random.choice(list(pycmc.csr().rows(count=10)))
+    record = random.choice(list(pycmc.read_rows(count=10)))
     logger.info(f'testing {record["Name"]}')
-    record['category'] = pycmc.csr().category
+    category = pycmc.csr().category
+    record['category'] = category
     pprint(record)
-    amrec = AmherstTableDB.from_dict(record)
+    amrec = dict_to_amtable(record)
     return amrec
 
 
@@ -58,14 +59,13 @@ def test_get_shipment(test_shipment: Shipment):
 @pytest.fixture(scope='function')
 def session_with_amrec(test_session_fxt, amrec):
     """Fixture for a test session with an AmherstTableDB record."""
-    amrecdb = AmherstTableDB.model_validate(amrec, from_attributes=True)
-    test_session_fxt.add(amrecdb)
+    test_session_fxt.add(amrec)
     test_session_fxt.commit()
-    test_session_fxt.refresh(amrecdb)
+    test_session_fxt.refresh(amrec)
     try:
         yield test_session_fxt
     finally:
-        test_session_fxt.delete(amrecdb)
+        test_session_fxt.delete(amrec)
 
 
 @pytest.mark.parametrize('direction', [ShipDirection.Inbound, ShipDirection.Outbound, ShipDirection.Dropoff])
@@ -91,17 +91,17 @@ def no_notifications(ship: Shipment):
 
 
 def test_gererate_with_ids(pycmc):
-    for rec in pycmc.csr().rows(with_id=True, count=10):
+    for rec in pycmc.read_rows(with_id=True, count=10):
         assert isinstance(rec, dict)
 
 
 def test_genids_add_sesh(test_session_fxt, pycmc):
     csrname = pycmc.csr().category
-    for record in pycmc.csr().rows(with_id=True, count=10):
+    for record in pycmc.read_rows(with_id=True, count=10):
         record['category'] = csrname
         am_table_in = AmherstTableDB.from_dict(record)
         if indb := test_session_fxt.get(AmherstTableDB, am_table_in.id):
-            [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
+            [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('id', 'category')]
         else:
             indb = AmherstTableDB(**am_table_in.model_dump())
         test_session_fxt.add(indb)

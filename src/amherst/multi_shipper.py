@@ -104,7 +104,7 @@ async def cust_frm_sql(customer_name: str, session):
 async def make_or_update_amtable(model_type: type[SQLModel], am_table_in, session):
     indb = session.get(model_type, am_table_in.id)
     if indb:
-        [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('row_id', 'category')]
+        [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('id', 'category')]
     else:
         indb = model_type(**am_table_in.model_dump())
     return indb
@@ -130,14 +130,14 @@ async def fresh_cmc_data():
         await drop_all()
         py_cmc = PyCommence()
         py_cmc.set_csr('Customer', filter_array=initial_filter('Customer'))
-        for record in py_cmc.csr(csrname='Customer').rows(with_id=True, with_category=True):
+        for record in py_cmc.read_rows(csrname='Customer', with_category=True):
             order = await get_or_make_customer(record, session)
             session.add(order)
 
         csrnames = ['Hire', 'Sale']
         for csrname in csrnames:
             py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
-            for record in py_cmc.csr(csrname=csrname).rows(with_id=True, with_category=True):
+            for record in py_cmc.read_rows(csrname=csrname, with_category=True):
                 order = await get_order(record)
                 order.customer = await cust_frm_sql(order.customer_name, session)
                 session.add(order)

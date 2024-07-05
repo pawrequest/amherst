@@ -48,7 +48,7 @@ class StockChecker:
         self.data = self._prepare_data()
 
     def _prepare_data(self):
-        records = self.pycommence.rows()
+        records = self.pycommence._read_rows()
         df = prep_df(records)
         return df
 

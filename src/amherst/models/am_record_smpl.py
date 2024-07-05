@@ -138,23 +138,17 @@ class AmherstOrderBase(AmherstTableBase):
 
 
 class AmherstCustomer(AmherstOrderBase):
-    model_config = ConfigDict(
-        alias_generator=customer_alias
-    )
+    model_config = ConfigDict(alias_generator=customer_alias)
     invoice_email: str = ''
     accounts_email: str = ''
 
 
 class AmherstSale(AmherstOrderBase):
-    model_config = ConfigDict(
-        alias_generator=sale_alias
-    )
+    model_config = ConfigDict(alias_generator=sale_alias)
 
 
 class AmherstHire(AmherstOrderBase):
-    model_config = ConfigDict(
-        alias_generator=hire_alias
-    )
+    model_config = ConfigDict(alias_generator=hire_alias)
     boxes: int = 1
     status: HireStatus
 
@@ -193,13 +187,13 @@ class AmherstSaleDB(AmherstSale, SQLModel, table=True):
 
 
 # class AmherstTableDB(AmherstTableBase, SQLModel, table=True):
-#     row_id: str = sqlmodel.Field(primary_key=True)
+#     id: str = sqlmodel.Field(primary_key=True)
 
 
 AMHERST_ORDER_TYPES = AmherstHireDB | AmherstSaleDB
 AMHERST_TABLE_TYPES = AMHERST_ORDER_TYPES | AmherstCustomerDB
 
-types_map = {
+TYPES_MAP = {
     'Hire': {
         'input_type': AmherstHire,
         'db_table': AmherstHireDB,
@@ -209,7 +203,6 @@ types_map = {
         'input_type': AmherstSale,
         'db_table': AmherstSaleDB,
         'aliases': SaleAliases,
-
     },
     'Customer': {
         'input_type': AmherstCustomer,
@@ -220,8 +213,8 @@ types_map = {
 
 
 def dict_to_amtable(data: dict[str, str]) -> AMHERST_TABLE_TYPES:
-    validated = types_map[data['category']]['input_type'].model_validate(data)
-    tbl = types_map[data['category']]['db_table'](**validated.model_dump())
+    validated = TYPES_MAP[data['category']]['input_type'].model_validate(data)
+    tbl = TYPES_MAP[data['category']]['db_table'](**validated.model_dump())
     return tbl
 
 
