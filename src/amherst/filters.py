@@ -11,7 +11,7 @@ from pycommence.filters import (
     FilterArray,
     SortOrder,
 )
-from pycommence.pycmc_types import to_cmc_date
+from pycommence.pycmc_types import Connection2, to_cmc_date
 
 CUSTOMER_SORTS = None
 
@@ -43,50 +43,65 @@ def sale_date_fils(sale_start):
     return (FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=to_cmc_date(sale_start)),)
 
 
-def customer_initial_array(hire_start: date, hire_end: date, sale_start: date) -> FilterArray:
+def customer_initial_array() -> FilterArray:
     return FilterArray.from_filters(
         ConnectedFieldFilter(
             column='Has Hired',
             connection_category='Hire',
             connected_column='Send Out Date',
             condition=ConditionType.AFTER,
-            value=to_cmc_date(hire_start),
+            value=to_cmc_date(INITIAL_HIRE_START),
         ),
         ConnectedFieldFilter(
             column='Has Hired',
             connection_category='Hire',
             connected_column='Send Out Date',
             condition=ConditionType.BEFORE,
-            value=to_cmc_date(hire_end),
+            value=to_cmc_date(INITIAL_HIRE_END),
         ),
         ConnectedFieldFilter(
             column='Involves',
             connection_category='Sale',
             connected_column='Date Ordered',
             condition=ConditionType.AFTER,
-            value=to_cmc_date(sale_start),
+            value=to_cmc_date(INITIAL_SALE_START),
         ),
         logic='And, Or',
         sorts=CUSTOMER_SORTS,
     )
 
 
-def hire_fils_initial_array(start_date: date, end_date: date) -> FilterArray:
-    return FilterArray.from_filters(*hire_status_fils(), *hire_date_fils(start_date, end_date), sorts=HIRE_SORTS)
+def cust_init_2():
+    hconnect = Connection2(name='Has Hired', category='Hire', column='Name')
+    sconnect = Connection2(name='Involves', category='Sale', column='Name')
+    cust_con_fils = [
+        ConnectedFieldFilter.from_field_fil(f, hconnect) for f in hire_fils_initial_array().filters.values()
+    ]
+    sale_con_fils = [
+        ConnectedFieldFilter.from_field_fil(f, sconnect) for f in sale_fils_initial_array().filters.values()
+    ]
+    return FilterArray.from_filters(*cust_con_fils, *sale_con_fils, logic='And, And, And, Or', sorts=CUSTOMER_SORTS)
 
 
-def sale_fils_initial_array(sale_start: date) -> FilterArray:
-    return FilterArray.from_filters(*sale_date_fils(sale_start), sorts=SALE_SORTS)
+def hire_fils_initial_array() -> FilterArray:
+    return FilterArray.from_filters(
+        *hire_status_fils(), *hire_date_fils(INITIAL_HIRE_START, INITIAL_HIRE_END), sorts=HIRE_SORTS
+    )
+
+
+def sale_fils_initial_array() -> FilterArray:
+    return FilterArray.from_filters(*sale_date_fils(INITIAL_SALE_START), sorts=SALE_SORTS)
 
 
 @functools.lru_cache
 def initial_filter(filtername: str) -> FilterArray:
     match filtername:
         case 'Hire':
-            return hire_fils_initial_array(INITIAL_HIRE_START, INITIAL_HIRE_END)
+            return hire_fils_initial_array()
         case 'Sale':
-            return sale_fils_initial_array(INITIAL_SALE_START)
+            return sale_fils_initial_array()
         case 'Customer':
-            return customer_initial_array(INITIAL_HIRE_START, INITIAL_HIRE_END, INITIAL_SALE_START)
+            # return customer_initial_array()
+            return cust_init_2()
         case _:
             raise ValueError(f'No filter for {filtername}')
