@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Generator
 
 from fastapi import Body, Depends, Path
+from loguru import logger
 from sqlmodel import SQLModel, Session, and_, or_, select
 
 from amherst.db import Pagination, get_pyc, get_session
@@ -50,7 +51,7 @@ def search_column_stmt(model: type[SQLModel], column: str | None, search_str: st
 
 
 async def model_type_from_path(csrname: str = Path(...)) -> type[SQLModel]:
-    match csrname:
+    match csrname.lower():
         case 'hire':
             return AmherstHireDB
         case 'sale':
@@ -106,15 +107,24 @@ async def import_rows_contain_pk(
         pk_value: str = Path(...),
         session=Depends(get_session),
         model_type: type[AMHERST_TABLE_TYPES] = Depends(model_type_from_path),
-) -> Generator[AMHERST_TABLE_TYPES, None, None]:
+) -> list[AMHERST_TABLE_TYPES]:
     csr = pycmc.csr(csrname)
+    amrecs = []
     for row in csr.read_rows_pk_contains(pk_value):
         stmt = select(model_type).where(model_type.name == row['Name'])
         if exists := session.exec(stmt).first():
-            yield exists
-        amtable = dict_to_amtable(row)
-        session.add(amtable)
-        session.commit()
-        yield amtable
+            logger.debug(f'Rtrieving existing {model_type.__name__}: {exists.name}')
+            amrecs.append(exists)
+        else:
+            amtable = await add_commit_amrec(model_type, row, session)
+            amrecs.append(amtable)
+    return amrecs
 
-        ...
+
+async def add_commit_amrec(model_type, row, session):
+    amtable = dict_to_amtable(row)
+    session.add(amtable)
+    session.commit()
+    logger.debug(f'Imported new {model_type.__name__}: {amtable.name}')
+    return amtable
+

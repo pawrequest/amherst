@@ -16,8 +16,9 @@ TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
 
 
-@router.get('/import_pyc/{csrname}/{pk_value}', response_model=list[AMHERST_TABLE_TYPES])
+@router.get('/import_cmc/{csrname}/{pk_value}', response_model=list[AMHERST_TABLE_TYPES])
 async def importpyc(amrecs: list[AMHERST_TABLE_TYPES] = Depends(import_rows_contain_pk)) -> list[AMHERST_TABLE_TYPES]:
+    assert [isinstance(amre, AMHERST_TABLE_TYPES) for amre in amrecs]
     return amrecs
 
 

@@ -53,6 +53,6 @@ def settings():
     return Settings()
 
 
-logger = get_loguru(log_file=settings().log_file, profile='local', level='INFO')
+logger = get_loguru(log_file=settings().log_file, profile='local', level='DEBUG')
 
 logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))

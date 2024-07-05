@@ -11,6 +11,7 @@ from fastapi import Depends, Path, Query
 from loguru import logger
 
 from amherst.config import settings
+from amherst.filters import initial_filter
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
@@ -42,7 +43,7 @@ async def get_pyc(
         csrname: str = Path(...),
 ) -> PyCommence:
     CoInitialize()
-    pyc = PyCommence.with_csr(csrname)
+    pyc = PyCommence.with_csr(csrname, filter_array=initial_filter(csrname))
     yield pyc
     CoUninitialize()
 
