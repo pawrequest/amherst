@@ -30,8 +30,8 @@ async def get_template(template_name, records, request, pagination):
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'records': records, 'pagination': pagination})
 
 
-@router.get('/search/{csrname}/{pk_value}')
-async def search_get[T: AMHERST_TABLE_TYPES](
+@router.get('/search')
+async def search_query[T: AMHERST_TABLE_TYPES](
         request: Request,
         records: list[T] = Depends(search_query),
         template_name: str = Depends(template_name_from_path),

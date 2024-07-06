@@ -15,8 +15,8 @@ TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
 
 
-@router.get('/search/{csrname}/{pk_value}')
-async def search_get[T: AMHERST_TABLE_TYPES](
+@router.get('/search')
+async def search_query[T: AMHERST_TABLE_TYPES](
         amrecs: list[T] = Depends(search_query),
 ) -> list[T]:
     logger.info(T)
@@ -29,8 +29,6 @@ async def search_get[T: AMHERST_TABLE_TYPES](
 async def search_post[T: AMHERST_TABLE_TYPES](
         amrecs: list[T] = Depends(search_body),
 ) -> list[T]:
-    for amrec in amrecs:
-        logger.info(f'{amrec.name=} {type(amrec)=}')
     return amrecs
 
 

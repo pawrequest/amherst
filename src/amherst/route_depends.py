@@ -87,8 +87,8 @@ async def amrecs_and_more(
 #     return get_pyc_(csrname)
 
 
-async def get_pyc_path(
-        csrname: str = Path(...),
+async def get_pyc_query(
+        csrname: str = Query(...),
 ) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname)
@@ -106,9 +106,9 @@ async def get_pyc_body(
 
 
 async def search_query[T: AMHERST_TABLE_TYPES](
-        pycmc: PyCommence = Depends(get_pyc_path),
-        csrname: str = Path(...),
-        pk_value: str = Path(...),
+        pycmc: PyCommence = Depends(get_pyc_query),
+        csrname: str = Query(...),
+        pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query)
 ) -> list[T]:
     return await do_search(csrname, pagination, pk_value, pycmc)
@@ -136,7 +136,6 @@ async def do_search(csrname: str, pagination: Pagination, pk_value: str, pycmc: 
         )
     )
     amrecs = list(map(dict_to_amtable, rows))
-    logger.debug(f'{amrecs=}')
     return amrecs
 
 
