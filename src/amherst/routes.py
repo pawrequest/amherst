@@ -12,26 +12,51 @@ from starlette.responses import HTMLResponse
 from amherst.backend_funcs import (
     TEMPLATES,
 )
-from amherst.db import get_rows_contain_pk, get_session
-from amherst.route_depends import amrecs_and_more, template_name_from_path
-from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES, AmherstCustomerDB, AmherstHireDB, AmherstSaleDB
-from amherst.multi_shipper import fresh_cmc_data
+from amherst.route_depends import (
+    Pagination,
+    amrecs_and_more,
+    search_body,
+    search_query,
+    template_name_from_body,
+    template_name_from_path,
+)
+from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
 from amherst.routes_api import TABLE_LIST_More
 
 router = APIRouter()
 
 
-@router.get('/search_cmc/{csrname}/{pk_value}', response_class=HTMLResponse)
-async def search_cmc(
-        rows: list[dict] = Depends(get_rows_contain_pk),
-        template_name: str = Depends(template_name_from_path)
-) -> list[dict]:
-    resolved = list(rows)
-    return TEMPLATES.TemplateResponse(template_name, {'data': resolved})
+async def get_template(template_name, records, request, pagination):
+    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'records': records, 'pagination': pagination})
 
 
-@router.get('/search/{csrname}', response_class=HTMLResponse)
-async def search(
+@router.post('/search2')
+async def search_post[T: AMHERST_TABLE_TYPES](
+        request: Request,
+        records: list[T] = Depends(search_body),
+        template_name: str = Depends(template_name_from_body),
+        pagination: Pagination = Depends(Pagination.from_query),
+) -> HTMLResponse:
+    for amrec in records:
+        logger.info(f'{amrec.name=} {type(amrec)=}')
+    return await get_template(template_name, records, request, pagination)
+
+
+@router.get('/search/{csrname}/{pk_value}')
+async def search_get[T: AMHERST_TABLE_TYPES](
+        request: Request,
+        records: list[T] = Depends(search_query),
+        template_name: str = Depends(template_name_from_path),
+        pagination: Pagination = Depends(Pagination.from_query),
+) -> HTMLResponse:
+    logger.info(T)
+    for amrec in records:
+        logger.info(f'{amrec.name=} {type(amrec)=}')
+    return await get_template(template_name, records, request, pagination)
+
+
+@router.get('/search_sql/{csrname}', response_class=HTMLResponse)
+async def search_sql(
         request: Request,
         recs_and_more: TABLE_LIST_More = Depends(amrecs_and_more),
         template_name: str = Depends(template_name_from_path),
@@ -43,15 +68,8 @@ async def search(
 @router.get('/multi', response_class=HTMLResponse)
 async def multi_shipper(
         request: Request,
-        session=Depends(get_session)
 ):
-    await fresh_cmc_data()
-    customers = session.query(AmherstCustomerDB).all()
-    hires = session.query(AmherstHireDB).all()
-    sales = session.query(AmherstSaleDB).all()
-    orders = hires + sales
-
-    return TEMPLATES.TemplateResponse('multi.html', {'request': request, 'customers': customers, 'orders': orders})
+    return TEMPLATES.TemplateResponse('multi.html', {'request': request})
 
 
 @router.get('/fail/{alert}', response_class=HTMLResponse)

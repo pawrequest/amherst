@@ -7,16 +7,19 @@
         <label for="filterInput">Filter</label>
         <input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">
 
-        {#        <label for="searchInput">Search</label>#}
-        {#        <input type="text" id="searchInput" placeholder="Fetch New Records..." onkeyup="searchRecords()">#}
+        <label for="searchInput">Search</label>
+        <input type="text" id="searchInput" placeholder="Fetch New Records..."
+               hx-trigger="input changed delay:1000ms, search"
+                hx-get=>
+        >
 
         <nav class="nav-bar">
-            <a href="#" hx-get="/search/customer" hx-target="#contentContainer" hx-swap="innerHTML">Customers</a>
-            <a href="#" hx-get="/search/hire" hx-target="#contentContainer" hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="/search/sale" hx-target="#contentContainer" hx-swap="innerHTML">Sales</a>
+            <a href="#" hx-get="/search/customer" hx-target="#record-container" hx-swap="innerHTML">Customers</a>
+            <a href="#" hx-get="/search/hire" hx-target="#record-container" hx-swap="innerHTML">Hires</a>
+            <a href="#" hx-get="/search/sale" hx-target="#record-container" hx-swap="innerHTML">Sales</a>
         </nav>
 
-        <div class="record-container" id="contentContainer" hx-get="/search/hire" hx-trigger="load"
+        <div class="record-container" id="record-container" hx-get="/search/hire" hx-trigger="load"
              hx-target="this" hx-swap="innerHTML">
         </div>
 

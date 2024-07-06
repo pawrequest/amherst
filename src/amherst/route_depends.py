@@ -1,28 +1,36 @@
 from __future__ import annotations
 
-from collections.abc import Generator
+from typing import NamedTuple, Self
 
-from fastapi import Body, Depends, Path
+from comtypes import CoInitialize, CoUninitialize
+from fastapi import Body, Depends, Path, Query
 from loguru import logger
-from sqlmodel import SQLModel, Session, and_, or_, select
+from sqlmodel import SQLModel, Session, select
 
-from amherst.db import Pagination, get_pyc, get_session
+from amherst.db import get_session
 from amherst.models.am_record_smpl import (
     AMHERST_TABLE_TYPES,
     AmherstCustomerDB,
     AmherstHireDB,
     AmherstSaleDB,
+    TYPES_MAP,
     dict_to_amtable,
 )
+from amherst.sql import stmt_from_q
 from pycommence.pycommence_v2 import PyCommence
+from shipaw.expresslink_client import ELClient
+
+PAGE_SIZE = 20
 
 
-# def select_more_f_q(stmt, pagination: Pagination = Depends(Pagination.from_query)):
-#     if pagination.offset:
-#         stmt = stmt.offset(pagination.offset)
-#     if pagination.limit:
-#         stmt = stmt.limit(pagination.limit + 1)
-#     return stmt
+class Pagination(NamedTuple):
+    offset: int = 0
+    limit: int | None = PAGE_SIZE
+
+    @classmethod
+    def from_query(cls, limit: int | None = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
+        logger.debug(f'Pagination.from_query({limit=}, {offset=})')
+        return cls(limit=limit, offset=offset)
 
 
 async def select_and_more(
@@ -41,15 +49,6 @@ async def select_and_more(
     return res[: pagination.limit], more
 
 
-def search_column_stmt(model: type[SQLModel], column: str | None, search_str: str | None = None):
-    if not column or not search_str:
-        return select(model)
-    search_ = f'%{search_str}%'
-    colly = getattr(model, column)
-    stmt = select(model).where(colly.ilike(search_))
-    return stmt
-
-
 async def model_type_from_path(csrname: str = Path(...)) -> type[SQLModel]:
     match csrname.lower():
         case 'hire':
@@ -61,36 +60,11 @@ async def model_type_from_path(csrname: str = Path(...)) -> type[SQLModel]:
 
 
 async def template_name_from_path(csrname: str = Path(...)):
-    match csrname.lower():
-        case 'hire' | 'sale':
-            return 'orders.html'
-        case 'customer':
-            return 'customers.html'
-        case _:
-            raise ValueError(f'No template for {csrname}')
+    return TYPES_MAP[csrname]['template']
 
 
-async def query_filters(
-        model_type: type[SQLModel] = Depends(model_type_from_path),
-        queries: dict[str, str] | None = Body(None),
-) -> list:
-    return [getattr(model_type, colname).ilike(f'%{val}%') for colname, val in queries.items()] if queries else []
-
-
-async def stmt_from_q(
-        filters: select = Depends(query_filters),
-        model_type: type[SQLModel] = Depends(model_type_from_path),
-        logic_operator: str = Body('and', regex='^(and|or)$')
-) -> select:
-    stmt = select(model_type)
-    if filters:
-        match logic_operator:
-            case 'and':
-                stmt = stmt.where(and_(*filters))
-            case 'or':
-                stmt = stmt.where(or_(*filters))
-
-    return stmt
+async def template_name_from_body(csrname: str = Body('')):
+    return TYPES_MAP[csrname]['template']
 
 
 async def amrecs_and_more(
@@ -101,30 +75,54 @@ async def amrecs_and_more(
     return await select_and_more(stmt, session, pagination)
 
 
-async def import_rows_contain_pk(
-        pycmc: PyCommence = Depends(get_pyc),
+async def get_pyc_body(
+        csrname: str = Body(''),
+) -> PyCommence:
+    yield get_pyc_(csrname)
+
+
+async def get_pyc_path(
+        csrname: str = Path(''),
+) -> PyCommence:
+    yield get_pyc_(csrname)
+
+
+async def get_pyc_(csrname):
+    CoInitialize()
+    pyc = PyCommence.with_csr(csrname)
+    yield pyc
+    CoUninitialize()
+
+
+async def search_query[T: AMHERST_TABLE_TYPES](
+        pycmc: PyCommence = Depends(get_pyc_path),
         csrname: str = Path(...),
         pk_value: str = Path(...),
-        session=Depends(get_session),
-        model_type: type[AMHERST_TABLE_TYPES] = Depends(model_type_from_path),
-) -> list[AMHERST_TABLE_TYPES]:
-    csr = pycmc.csr(csrname)
-    amrecs = []
-    for row in csr.read_rows_pk_contains(pk_value):
-        stmt = select(model_type).where(model_type.name == row['Name'])
-        if exists := session.exec(stmt).first():
-            logger.debug(f'Rtrieving existing {model_type.__name__}: {exists.name}')
-            amrecs.append(exists)
-        else:
-            amtable = await add_commit_amrec(model_type, row, session)
-            amrecs.append(amtable)
+        pagination: Pagination = Depends(Pagination.from_query)
+) -> list[T]:
+    rows = pycmc.read_rows_pk_contains(pk_value, csrname=csrname, count=pagination.limit)
+    amrecs = list(map(dict_to_amtable, rows))
+    logger.debug(f'{amrecs=}')
     return amrecs
 
 
-async def add_commit_amrec(model_type, row, session):
-    amtable = dict_to_amtable(row)
-    session.add(amtable)
-    session.commit()
-    logger.debug(f'Imported new {model_type.__name__}: {amtable.name}')
-    return amtable
+async def search_body[T: AMHERST_TABLE_TYPES](
+        pycmc: PyCommence = Depends(get_pyc_body),
+        csrname: str = Body(''),
+        pk_value: str = Body(''),
+        pagination: Pagination = Depends(Pagination.from_query)
+) -> list[T]:
+    if not all((csrname, pk_value)):
+        return []
+    rows = list(pycmc.read_rows_pk_contains(pk_value, csrname=csrname, count=pagination.limit))
+    amrecs = list(map(dict_to_amtable, rows))
+    logger.debug(f'{amrecs=}')
+    return amrecs
 
+
+def get_el_client() -> ELClient:
+    try:
+        return ELClient()
+    except Exception as e:
+        logger.error(f'get_pfc: {e}')
+        raise

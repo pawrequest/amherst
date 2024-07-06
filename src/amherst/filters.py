@@ -58,8 +58,8 @@ def cust_init_2():
     logger.info(sale_con_fils)
     return FilterArray.from_filters(
         *hire_con_fils,
-        # *sale_con_fils,
-        # logic='And, And, And, Or',
+        *sale_con_fils,
+        logic='And, And, And, Or',
         sorts=CUSTOMER_SORTS,
     )
 

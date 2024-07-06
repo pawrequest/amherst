@@ -20,7 +20,7 @@ PORT = 10550
 
 
 async def main():
-    create_db()
+    # create_db()
     try:
         # with get_temporary_session_cm() as session:
         fui = FlaskUI(
@@ -127,7 +127,6 @@ if __name__ == '__main__':
 async def fresh_cmc_data():
     CoInitialize()
     with get_session_cm() as session:
-        await drop_all()
         py_cmc = PyCommence()
         py_cmc.set_csr('Customer', filter_array=initial_filter('Customer'))
         for record in py_cmc.read_rows(csrname='Customer', with_category=True):
@@ -139,7 +138,11 @@ async def fresh_cmc_data():
             py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
             for record in py_cmc.read_rows(csrname=csrname, with_category=True):
                 order = await get_order(record)
-                order.customer = await cust_frm_sql(order.customer_name, session)
+                cust = await cust_frm_sql(order.customer_name, session)
+                logger.info(f'Adding customer {order.customer_name} to {order}')
+                if not cust:
+                    raise ValueError(f'No customer found for {order.customer_name}')
+                order.customer = cust
                 session.add(order)
         session.commit()
     CoUninitialize()

@@ -2,11 +2,11 @@
 
 from datetime import date, datetime
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Literal
 
 import pydantic as _p
 import sqlmodel
-from pydantic import BaseModel, ConfigDict
+from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
 from sqlmodel import Relationship, SQLModel
 
 from amherst.commence_adaptors import (
@@ -60,13 +60,18 @@ class AmherstTableEnum(str, Enum):
     Customer = 'Customer'
 
 
+TABLE_LITERAL = Literal['Hire', 'Sale', 'Customer']
+
+
 class AmherstTableBase(BaseModel):
     model_config = ConfigDict(
         populate_by_name=True,
+        use_enum_values=True,
     )
     row_id: str | None = None
     name: str
     category: AmherstTableEnum
+    # category: TABLE_LITERAL
 
     delivery_contact_name: str
     delivery_contact_business: str
@@ -137,18 +142,18 @@ class AmherstOrderBase(AmherstTableBase):
     send_date: AM_DATE = date.today()
 
 
-class AmherstCustomer(AmherstOrderBase):
-    model_config = ConfigDict(alias_generator=customer_alias)
+class AmherstCustomer(AmherstTableBase):
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=customer_alias,))
     invoice_email: str = ''
     accounts_email: str = ''
 
 
 class AmherstSale(AmherstOrderBase):
-    model_config = ConfigDict(alias_generator=sale_alias)
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=sale_alias))
 
 
 class AmherstHire(AmherstOrderBase):
-    model_config = ConfigDict(alias_generator=hire_alias)
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=hire_alias))
     boxes: int = 1
     status: HireStatus
 
@@ -193,21 +198,26 @@ class AmherstSaleDB(AmherstSale, SQLModel, table=True):
 AMHERST_ORDER_TYPES = AmherstHireDB | AmherstSaleDB
 AMHERST_TABLE_TYPES = AMHERST_ORDER_TYPES | AmherstCustomerDB
 
+
 TYPES_MAP = {
     'Hire': {
         'input_type': AmherstHire,
         'db_table': AmherstHireDB,
         'aliases': HireAliases,
+        'template': 'orders.html',
     },
     'Sale': {
         'input_type': AmherstSale,
         'db_table': AmherstSaleDB,
         'aliases': SaleAliases,
+        'template': 'orders.html',
+
     },
     'Customer': {
         'input_type': AmherstCustomer,
         'db_table': AmherstCustomerDB,
         'aliases': CustomerAliases,
+        'template': 'customers.html',
     },
 }
 
@@ -225,3 +235,8 @@ def date_int_w_ordinal(n):
 def dt_ordinal(dt: datetime | date) -> str:
     return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b')
     # return dt.strftime('%a {th} %b %Y').replace('{th}', date_int_w_ordinal(dt.day))
+
+# def get_discriminator_value(v) -> str:
+#     if isinstance(v, dict):
+#         return v.get('fruit', v.get('filling'))
+#     return getattr(v, 'fruit', getattr(v, 'filling', None))
