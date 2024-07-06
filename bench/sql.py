@@ -5,7 +5,9 @@ import functools
 
 import sqlalchemy as sqa
 import sqlmodel as sqm
+from comtypes import CoInitialize, CoUninitialize
 from fastapi import Depends, Body, Path
+from loguru import logger
 from sqlmodel import SQLModel, select, and_, or_, Session
 
 from amherst.db import get_session
@@ -125,3 +127,64 @@ def create_db(engine=None):
     if engine is None:
         engine = get_engine()
     sqm.SQLModel.metadata.create_all(engine)
+
+
+async def get_order(record):
+    c_name = record['To Customer']
+    if not c_name:
+        logger.error(f'No customer name for {record}')
+        return
+    return dict_to_amtable(record)
+
+
+async def get_or_make_customer(customer_dict, session):
+    if inb := await cust_frm_sql(customer_dict['Name'], session):
+        return inb
+    return dict_to_amtable(customer_dict)
+
+
+async def cust_frm_sql(customer_name: str, session):
+    stmt = select(AmherstCustomerDB).where(AmherstCustomerDB.name == customer_name)
+    inb = session.exec(stmt).first()
+    return inb
+
+
+async def fresh_cmc_data():
+    CoInitialize()
+    with get_session_cm() as session:
+        py_cmc = PyCommence()
+        py_cmc.set_csr('Customer', filter_array=initial_filter('Customer'))
+        for record in py_cmc.read_rows(csrname='Customer', with_category=True):
+            order = await get_or_make_customer(record, session)
+            session.add(order)
+
+        csrnames = ['Hire', 'Sale']
+        for csrname in csrnames:
+            py_cmc.set_csr(csrname, filter_array=initial_filter(csrname))
+            for record in py_cmc.read_rows(csrname=csrname, with_category=True):
+                order = await get_order(record)
+                cust = await cust_frm_sql(order.customer_name, session)
+                logger.info(f'Adding customer {order.customer_name} to {order}')
+                if not cust:
+                    raise ValueError(f'No customer found for {order.customer_name}')
+                order.customer = cust
+                session.add(order)
+        session.commit()
+    CoUninitialize()
+
+
+async def make_or_update_amtable(model_type: type[SQLModel], am_table_in, session):
+    indb = session.get(model_type, am_table_in.id)
+    if indb:
+        [setattr(indb, k, v) for k, v in am_table_in.model_dump().items() if k not in ('id', 'category')]
+    else:
+        indb = model_type(**am_table_in.model_dump())
+    return indb
+
+
+async def drop_all():
+    logger.warning('Dropping all records from database.')
+    with get_session_cm() as session:
+        for db_model in [AmherstHireDB, AmherstSaleDB, AmherstCustomerDB]:
+            session.query(db_model).delete()
+            session.commit()

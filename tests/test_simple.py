@@ -7,8 +7,10 @@ from loguru import logger
 from starlette.testclient import TestClient
 
 from amherst.filters import initial_filter
+
+from amherst.models.converters import to_shipment
 from pycommence.pycommence_v2 import PyCommence
-from shipaw.models.pf_shipment import Shipment
+from shipaw.models.pf_shipment import ShipmentConfigured
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa
 from ..models.am_record_smpl import dict_to_amtable
@@ -39,11 +41,11 @@ async def amrec(pycmc: PyCommence):
 def test_shipment(request, amrec):
     """Get a Shipment from the random fixture, parameterized for direction."""
     direction = request.param
-    ship = amrec.to_shipment(direction=direction)
+    ship = to_shipment(amtable=amrec, direction=direction)
     ship.recipient_contact.notifications = None
     if ship.collection_info:
         ship.collection_info.collection_contact.notifications = None
-    assert isinstance(ship, Shipment)
+    assert isinstance(ship, ShipmentConfigured)
     assert not ship.recipient_contact.notifications
     if ship.collection_info:
         assert not ship.collection_info.collection_contact.notifications
@@ -51,9 +53,9 @@ def test_shipment(request, amrec):
     return ship
 
 
-def test_get_shipment(test_shipment: Shipment):
+def test_get_shipment(test_shipment: ShipmentConfigured):
     """Test amrec and test_shipment fixtures. shows that importing random records yields valid Shipment instances."""
-    assert isinstance(test_shipment, Shipment)
+    assert isinstance(test_shipment, ShipmentConfigured)
 
 
 @pytest.fixture(scope='function')
@@ -72,9 +74,9 @@ def session_with_amrec(test_session_fxt, amrec):
 def test_get_shipment_api(test_client: TestClient, session_with_amrec, direction):
     arec = session_with_amrec.query(AmherstTableDB).first()
     resp = test_client.get(f'/api/get_shipment/{direction}/{arec.id}')
-    ship = Shipment.model_validate(resp.json())
+    ship = ShipmentConfigured.model_validate(resp.json())
     ship = no_notifications(ship)
-    assert isinstance(ship, Shipment)
+    assert isinstance(ship, ShipmentConfigured)
     assert not any(
         [
             ship.recipient_contact.notifications,
@@ -83,7 +85,7 @@ def test_get_shipment_api(test_client: TestClient, session_with_amrec, direction
     )
 
 
-def no_notifications(ship: Shipment):
+def no_notifications(ship: ShipmentConfigured):
     if ship.collection_info:
         ship.collection_info.collection_contact.notifications = None
     ship.recipient_contact.notifications = None

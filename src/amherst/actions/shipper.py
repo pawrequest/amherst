@@ -9,19 +9,20 @@ from loguru import logger
 from pydantic import EmailStr
 from starlette.requests import Request
 
-from amherst.actions.emailer import TEMPLATES
+from amherst.config import TEMPLATES
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import Shipment, ShipmentReferenceFields, to_dropoff, to_collection
+from shipaw.models.pf_shipment import ShipmentConfigured, to_dropoff, to_collection, ShipmentConfigured
+from shipaw.models.pf_shipment_blank import ShipmentReferenceFields
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import ExpressLinkWarning, ExpressLinkNotification, VALID_POSTCODE, ShipDirection, AlertType
 
 
-def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentResponse:
+def book_shipment(el_client, shipment_request: ShipmentConfigured) -> pf_msg.ShipmentResponse:
     resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment_request)
     for a in resp.alerts.alert if resp.alerts else []:
         try:
@@ -117,10 +118,10 @@ async def shipment_request_f_form(
         service_code: ServiceCode = Form(...),
         direction: ship_types.ShipDirection = Form(...),
         own_label: str = Form(...),
-) -> Shipment:
+) -> ShipmentConfigured:
     logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
-    shipment_request = Shipment(
+    shipment_request = ShipmentConfigured(
         recipient_address=address,
         recipient_contact=contact,
         service_code=service_code,
@@ -150,3 +151,11 @@ async def check_dates(booking, request):
         booking.alerts.alert.append(alert)
         return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
     return None
+
+
+def get_el_client() -> ELClient:
+    try:
+        return ELClient()
+    except Exception as e:
+        logger.error(f'get_pfc: {e}')
+        raise

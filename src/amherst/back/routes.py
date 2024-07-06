@@ -9,17 +9,18 @@ from loguru import logger
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-from amherst.actions.emailer import TEMPLATES
-from amherst.back.route_depends import (SearchResponse, search_body, search_query, template_name_from_path)
+from amherst.config import TEMPLATES
+from amherst.back.route_depends import (search_get, search_post, template_name_from_query)
+from amherst.back.route_depends_types import SearchResponse
 
 router = APIRouter()
 
 
 @router.get('/search')
-async def search_query[T: SearchResponse](
+async def search_get[T: SearchResponse](
         request: Request,
-        response: T = Depends(search_query),
-        template_name: str = Depends(template_name_from_path),
+        response: T = Depends(search_get),
+        template_name: str = Depends(template_name_from_query),
 ) -> HTMLResponse:
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
 
@@ -27,22 +28,10 @@ async def search_query[T: SearchResponse](
 @router.post('/search')
 async def search_post[T: SearchResponse](
         request: Request,
-        response: T = Depends(search_body),
-        template_name: str = Depends(template_name_from_path),
+        response: T = Depends(search_post),
+        template_name: str = Depends(template_name_from_query),
 ) -> HTMLResponse:
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
-
-
-# @router.post('/search')
-# async def search_post[T: AMHERST_TABLE_TYPES](
-#         request: Request,
-#         records: list[T] = Depends(search_body),
-#         template_name: str = Depends(template_name_from_body),
-#         pagination: Pagination = Depends(Pagination.from_query),
-# ) -> HTMLResponse:
-#     for amrec in records:
-#         logger.info(f'{amrec.name=} {type(amrec)=}')
-#     return await get_template(template_name, records, request, pagination)
 
 
 @router.get('/multi', response_class=HTMLResponse)

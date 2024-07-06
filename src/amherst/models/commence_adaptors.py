@@ -222,7 +222,7 @@ def sale_alias(field_name: str) -> str:
 
 
 AM_DATE = Annotated[
-    date,
+    date | None,
     _p.BeforeValidator(get_cmc_date),
 ]
 AM_SHIP_DATE = Annotated[

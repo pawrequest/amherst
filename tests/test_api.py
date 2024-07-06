@@ -6,7 +6,7 @@ from starlette.testclient import TestClient
 from amherst.models.db_models import BookingStateDB
 from shipaw.models.booking_states import BookingState
 from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import ShipmentAwayCollection, ShipmentAwayDropoff, to_dropoff, to_collection
+from shipaw.models.pf_shipment import ShipmentAwayCollectionConfigured, ShipmentAwayDropoffConfigured, to_dropoff, to_collection
 from .client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
@@ -76,7 +76,7 @@ async def test_confirm_outbound(test_client, b_fxt):
 
 # noinspection PyShadowingNames
 @pytest.mark.asyncio
-async def test_confirm_away_collect(test_client, away_collect_fxt: ShipmentAwayCollection):
+async def test_confirm_away_collect(test_client, away_collect_fxt: ShipmentAwayCollectionConfigured):
     shipment_request_dict = jsonable_encoder(away_collect_fxt.shipment_request)
     response = test_client.post('/api/confirm_away_collect', json=shipment_request_dict)
     resp_json = response.json()

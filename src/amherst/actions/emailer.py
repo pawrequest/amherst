@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from starlette.templating import Jinja2Templates
 from suppawt.office_ps.email_handler import Email
 
-from amherst.config import settings
+from amherst.config import TEMPLATES
 
 
 async def subject(invoice_num: str | None = None, missing=None, label=None):
@@ -32,6 +31,3 @@ async def make_email(addresses, invoice, label, missing, booking_state):
         attachment_paths=[x for x in [label, invoice] if x],
     )
     return email_obj
-
-
-TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templates'))

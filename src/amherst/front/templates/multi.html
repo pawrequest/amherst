@@ -14,9 +14,9 @@
         >
 
         <nav class="nav-bar">
-            <a href="#" hx-get="/search/Customer" hx-target="#record-container" hx-swap="innerHTML">Customers</a>
-            <a href="#" hx-get="/search/Hire" hx-target="#record-container" hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="/search/Sale" hx-target="#record-container" hx-swap="innerHTML">Sales</a>
+            <a href="#" hx-get="/search?csrname=Customer" hx-target="#record-container" hx-swap="innerHTML">Customers</a>
+            <a href="#" hx-get="/search?csrname=Hire" hx-target="#record-container" hx-swap="innerHTML">Hires</a>
+            <a href="#" hx-get="/search?csrname=Sale" hx-target="#record-container" hx-swap="innerHTML">Sales</a>
         </nav>
 
         <div class="record-container" id="record-container" hx-get="/search/hire" hx-trigger="load"

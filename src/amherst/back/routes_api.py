@@ -1,68 +1,22 @@
 from fastapi import APIRouter, Depends
-from loguru import logger
-from starlette.responses import JSONResponse
 
-from amherst.actions.shipper import book_shipment, shipment_request_f_form
-from amherst.back.route_depends import (
-    SearchResponse,
-    get_el_client,
-    search_body,
-    search_query,
-)
+from amherst.back.route_depends import search_get, search_post
+from amherst.back.route_depends_types import SearchResponse
 from amherst.models.amherst_models import AMHERST_TABLE_TYPES
-from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressChoice
-from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection
-from shipaw.ship_types import VALID_POSTCODE
 
 TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
 
 
-@router.get('/search', response_class=JSONResponse)
-async def search_query_more[T: SearchResponse](
-        response: SearchResponse = Depends(search_query),
+@router.get('/search')
+async def search_get[T: SearchResponse](
+        response: T = Depends(search_get),
 ) -> T:
     return response
 
 
 @router.post('/search')
-async def search_body_more[T: SearchResponse](
-        response: SearchResponse = Depends(search_body),
+async def search_post[T: SearchResponse](
+        response: SearchResponse = Depends(search_post),
 ) -> T:
     return response
-
-
-@router.post('/form_to_ship/')
-async def form_to_shipment(
-        shipment_request: Shipment = Depends(shipment_request_f_form),
-):
-    return shipment_request
-
-
-@router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
-async def fetch_candidates(
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(get_el_client),
-):
-    res = el_client.get_choices(postcode)
-    return res
-
-
-@router.post('/shiprec', response_class=JSONResponse)
-async def shiprec_post(
-        shipment_request: Shipment = Depends(shipment_request_f_form),
-) -> Shipment:
-    logger.info(shipment_request.recipient_contact.notifications)
-    return shipment_request
-
-
-@router.post('/confirm_booking', response_class=JSONResponse)
-async def confirm_booking(
-        shipment: Shipment,
-        el_client: ELClient = Depends(get_el_client),
-) -> ShipmentResponse:
-    if isinstance(shipment, ShipmentAwayCollection):
-        logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
-    return book_shipment(el_client, shipment)

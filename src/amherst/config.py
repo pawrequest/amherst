@@ -10,6 +10,7 @@ import typing as _t
 import pydantic as _p
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pawlogger import get_loguru
+from starlette.templating import Jinja2Templates
 
 AM_ENV = os.getenv('AM_ENV')
 if not Path(AM_ENV).exists():
@@ -56,3 +57,4 @@ def settings():
 logger = get_loguru(log_file=settings().log_file, profile='local', level='DEBUG')
 
 logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))
+TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templates'))
