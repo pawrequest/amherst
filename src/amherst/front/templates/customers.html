@@ -1,4 +1,4 @@
-{% for customer in data %}
+{% for customer in response.records %}
     {% for order in customer.hires + customer.sales %}
         <div class="record record-customer">
             <div class="cust_name">

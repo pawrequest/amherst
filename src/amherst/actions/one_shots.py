@@ -1,3 +1,7 @@
+from amherst.models.commence_adaptors import CustomerAliases, HireAliases, HireStatus
+from pycommence.filters import ConditionType, FieldFilter, FilterArray
+from pycommence.pycommence_v2 import PyCommence
+
 # from datetime import date, timedelta
 #
 # import matplotlib.pyplot as plt
@@ -153,10 +157,6 @@ def expresslink_live():
 #     do_matplot(date.today(), date.today() + timedelta(days=3))
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
-from amherst.commence_adaptors import CustomerAliases, HireAliases, HireStatus
-from pycommence.filters import ConditionType, FieldFilter, FilterArray
-from pycommence.pycommence_v1 import PyCommence
-
 
 def good_hires_fils():
     return (

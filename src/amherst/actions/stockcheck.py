@@ -10,10 +10,10 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from pawlogger import get_loguru
 
-from amherst.commence_adaptors import HireAliases
-from amherst.filters import initial_filter
+from amherst.models.commence_adaptors import HireAliases
+from amherst.models.filters import initial_filter
 from pycommence.pycmc_types import CmcDateFormat, RadioType
-from pycommence.pycommence_v1 import PyCommence
+from pycommence.pycommence_v2 import PyCommence
 
 logger = get_loguru(profile='local')
 

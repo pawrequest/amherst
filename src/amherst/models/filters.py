@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 from loguru import logger
 
-from amherst.commence_adaptors import HireAliases, HireStatus, SaleAliases
+from amherst.models.commence_adaptors import HireAliases, HireStatus, SaleAliases
 from pycommence.filters import (
     ConditionType,
     ConnectedFieldFilter,

@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import contextlib
+import functools
+
+import sqlalchemy as sqa
+import sqlmodel as sqm
 from fastapi import Depends, Body, Path
 from sqlmodel import SQLModel, select, and_, or_, Session
 
 from amherst.db import get_session
 from amherst.models.am_record_smpl import AmherstHireDB, AmherstSaleDB, AmherstCustomerDB, AMHERST_TABLE_TYPES
-from amherst.route_depends import Pagination
+from amherst.route_depends import Pagination, model_type_from_path
 
 
 async def model_type_from_path(csrname: str = Path(...)) -> type[SQLModel]:
@@ -72,3 +77,51 @@ async def amrecs_and_more(
         pagination: Pagination = Depends(Pagination.from_query),
 ) -> tuple[list[AMHERST_TABLE_TYPES], bool]:
     return await select_and_more(stmt, session, pagination)
+
+
+async def new_amrec_f_path(
+        row_id: str = Path(),
+        model_type: type[SQLModel] = Depends(model_type_from_path),
+        session: Session = Depends(get_session)
+) -> AMHERST_TABLE_TYPES:
+    ret = session.get(model_type, id)
+    if not isinstance(ret, model_type):
+        raise ValueError(f'No record found with id {row_id}')
+    return ret
+
+
+async def amrec_from_path(
+        row_id: str = Path(),
+        category: type[SQLModel] = Depends(model_type_from_path),
+        session: Session = Depends(get_session)
+):
+    return session.get(category, row_id)
+
+
+@functools.lru_cache(maxsize=1)
+def get_engine() -> sqa.engine.base.Engine:
+    connect_args = {'check_same_thread': False}
+    return sqa.create_engine(settings().db_url, echo=False, connect_args=connect_args)
+    # return sqa.create_engine('sqlite:///:memory:', echo=False, connect_args=connect_args)
+
+
+def get_session(engine=None) -> sqm.Session:
+    if engine is None:
+        engine = get_engine()
+    with sqm.Session(engine) as session:
+        yield session
+
+
+@contextlib.contextmanager
+def get_session_cm(engine=None):
+    if engine is None:
+        engine = get_engine()
+    with sqm.Session(engine) as session:
+        yield session
+    session.close()
+
+
+def create_db(engine=None):
+    if engine is None:
+        engine = get_engine()
+    sqm.SQLModel.metadata.create_all(engine)

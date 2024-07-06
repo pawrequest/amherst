@@ -18,19 +18,6 @@ from __future__ import annotations
 #     return reference_numbers
 
 
-def split_refs_from_str(customer_str: str) -> dict[str, str]:
-    reference_numbers = {}
-
-    for i in range(1, 6):
-        start_index = (i - 1) * 24
-        end_index = i * 24
-        if start_index < len(customer_str):
-            reference_numbers[f'reference_number{i}'] = customer_str[start_index:end_index]
-        else:
-            break
-    return reference_numbers
-
-
 # def amherst_shipment_request(
 #         record: AmherstRecord,
 #         address: AddTypes,
@@ -73,7 +60,6 @@ def split_refs_from_str(customer_str: str) -> dict[str, str]:
 #     amrec = AmherstRecord.model_validate(amrec_in, from_attributes=True)
 #     return amrec
 
-
 def split_addr_str(address: str) -> dict[str, str]:
     addr_lines = address.splitlines()
     if len(addr_lines) < 3:
@@ -83,3 +69,4 @@ def split_addr_str(address: str) -> dict[str, str]:
     used_lines = [_ for _ in addr_lines if _]
     town = used_lines.pop() if len(used_lines) > 1 else ''
     return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
+

@@ -6,9 +6,8 @@ from loguru import logger
 from starlette.staticfiles import StaticFiles
 
 from amherst.config import settings
-from amherst.routes import router
-from amherst.routes_test import router as test_router
-from amherst.routes_api import router as api_router
+from amherst.back.routes import router as html_router
+from amherst.back.routes_api import router as json_router
 from shipaw import pf_config
 
 
@@ -30,9 +29,8 @@ async def lifespan(app_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(settings().base_dir / 'front' / 'static')), name='static')
 
-app.include_router(router)
-app.include_router(api_router, prefix='/api')
-app.include_router(test_router, prefix='/test')
+app.include_router(html_router)
+app.include_router(json_router, prefix='/api')
 app.ship_live = pf_config.pf_sett().ship_live
 
 

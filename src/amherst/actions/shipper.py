@@ -9,7 +9,7 @@ from loguru import logger
 from pydantic import EmailStr
 from starlette.requests import Request
 
-from amherst.backend_funcs import TEMPLATES
+from amherst.actions.emailer import TEMPLATES
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
 from shipaw.models import pf_msg

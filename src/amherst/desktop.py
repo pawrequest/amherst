@@ -5,10 +5,9 @@ from flaskwebgui import FlaskUI, close_application
 from loguru import logger
 from sqlmodel import SQLModel, select
 
-from amherst import app_file
-from amherst.filters import initial_filter
-from amherst.db import create_db, get_session_cm
-from amherst.models.am_record_smpl import (
+from amherst import app
+from amherst.models.filters import initial_filter
+from amherst.models.amherst_models import (
     AmherstCustomerDB,
     AmherstHireDB,
     AmherstSaleDB,
@@ -25,7 +24,7 @@ async def main():
         # with get_temporary_session_cm() as session:
         fui = FlaskUI(
             fullscreen=True,
-            app=app_file.app,
+            app=app.app,
             server='fastapi',
             url_suffix='multi',
             port=PORT,

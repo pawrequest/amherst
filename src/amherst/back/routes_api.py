@@ -2,16 +2,14 @@ from fastapi import APIRouter, Depends
 from loguru import logger
 from starlette.responses import JSONResponse
 
-from amherst.shipment_funcs import book_shipment, shipment_request_f_form
-from amherst.route_depends import (
+from amherst.actions.shipper import book_shipment, shipment_request_f_form
+from amherst.back.route_depends import (
     SearchResponse,
     get_el_client,
     search_body,
-    search_body_more,
     search_query,
-    search_query_more,
 )
-from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
+from amherst.models.amherst_models import AMHERST_TABLE_TYPES
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
@@ -22,35 +20,18 @@ TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
 
 
-@router.get('/searchmore', response_class=JSONResponse)
-async def search_query_more[T: AMHERST_TABLE_TYPES](
-        response: SearchResponse = Depends(search_query_more),
-) -> SearchResponse[T]:
+@router.get('/search', response_class=JSONResponse)
+async def search_query_more[T: SearchResponse](
+        response: SearchResponse = Depends(search_query),
+) -> T:
     return response
-
-
-@router.post('/searchmore')
-async def search_body_more[T: AMHERST_TABLE_TYPES](
-        response: SearchResponse = Depends(search_body_more),
-) -> SearchResponse[T]:
-    return response
-
-
-@router.get('/search')
-async def search_query[T: AMHERST_TABLE_TYPES](
-        amrecs: list[T] = Depends(search_query),
-) -> list[T]:
-    logger.info(T)
-    for amrec in amrecs:
-        logger.info(f'{amrec.name=} {type(amrec)=}')
-    return amrecs
 
 
 @router.post('/search')
-async def search_post[T: AMHERST_TABLE_TYPES](
-        amrecs: list[T] = Depends(search_body),
-) -> list[T]:
-    return amrecs
+async def search_body_more[T: SearchResponse](
+        response: SearchResponse = Depends(search_body),
+) -> T:
+    return response
 
 
 @router.post('/form_to_ship/')

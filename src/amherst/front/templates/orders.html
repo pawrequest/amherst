@@ -1,4 +1,4 @@
-{% for order in data %}
+{% for order in response.records %}
     <div class="record record-order">
         {{ order.customer.name }}
         ({{ order.send_date }})

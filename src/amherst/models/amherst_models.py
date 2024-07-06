@@ -1,4 +1,5 @@
 # from __future__ import annotations
+from __future__ import annotations
 
 from datetime import date, datetime
 from enum import Enum
@@ -9,7 +10,7 @@ import sqlmodel
 from pydantic import AliasGenerator, BaseModel, ConfigDict
 from sqlmodel import Relationship, SQLModel
 
-from amherst.commence_adaptors import (
+from amherst.models.commence_adaptors import (
     AM_DATE,
     CustomerAliases,
     HireAliases,
@@ -19,7 +20,7 @@ from amherst.commence_adaptors import (
     hire_alias,
     sale_alias,
 )
-from amherst.importer import split_refs_from_str
+from pycommence.exceptions import PyCommenceServerError
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.models.pf_shipment import Shipment, to_collection, to_dropoff
 from shipaw.ship_types import ShipDirection, limit_daterange_no_weekends
@@ -85,7 +86,6 @@ class AmherstTableBase(BaseModel):
     def dt_ordinal(date_or_dt: datetime | date) -> str:
         return dt_ordinal(date_or_dt)
 
-    @property
     def contact_dict(self) -> dict:
         return {
             'contact_name': self.delivery_contact_name,
@@ -94,31 +94,28 @@ class AmherstTableBase(BaseModel):
             'email_address': self.delivery_contact_email,
         }
 
-    @property
     def address_dict(self) -> dict:
         return {
             **split_addr_str(self.delivery_address_str),
             'postcode': self.delivery_address_pc,
         }
 
-    @property
     def ship_details_dict(self):
         return {
             'total_number_of_parcels': 1,
             'shipping_date': limit_daterange_no_weekends(date.today()),
         }
 
-    @property
     def shipment_dict(self):
         return {
-            'recipient_address': self.address_dict,
-            'recipient_contact': self.contact_dict,
-            **self.ship_details_dict,
+            'recipient_address': self.address_dict(),
+            'recipient_contact': self.contact_dict(),
+            **self.ship_details_dict(),
             **split_refs_from_str(self.name),
         }
 
     def to_shipment(self, direction: ShipDirection):
-        ship = Shipment.model_validate(self.shipment_dict)
+        ship = Shipment.model_validate(self.shipment_dict())
         match direction:
             case ShipDirection.Outbound:
                 return ship
@@ -225,9 +222,11 @@ TYPES_MAP = {
 
 
 def dict_to_amtable(data: dict[str, str]) -> AMHERST_TABLE_TYPES:
-    validated = TYPES_MAP[data['category']]['input_type'].model_validate(data)
-    tbl = TYPES_MAP[data['category']]['db_table'](**validated.model_dump())
-    return tbl
+    input_type = TYPES_MAP[data['category']]['input_type']
+    try:
+        return input_type.model_validate(data)
+    except ValueError as e:
+        raise PyCommenceServerError(f'Error validating {input_type} from {data=}\n {e=}')
 
 
 def date_int_w_ordinal(n):
@@ -242,3 +241,14 @@ def dt_ordinal(dt: datetime | date) -> str:
 #     if isinstance(v, dict):
 #         return v.get('fruit', v.get('filling'))
 #     return getattr(v, 'fruit', getattr(v, 'filling', None))
+def split_refs_from_str(customer_str: str) -> dict[str, str]:
+    reference_numbers = {}
+
+    for i in range(1, 6):
+        start_index = (i - 1) * 24
+        end_index = i * 24
+        if start_index < len(customer_str):
+            reference_numbers[f'reference_number{i}'] = customer_str[start_index:end_index]
+        else:
+            break
+    return reference_numbers

@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from amherst.app_file import app
+from amherst.app import app
 
 
 @pytest.fixture(scope='session')
