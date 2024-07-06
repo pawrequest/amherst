@@ -30,18 +30,6 @@ async def get_template(template_name, records, request, pagination):
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'records': records, 'pagination': pagination})
 
 
-@router.post('/search2')
-async def search_post[T: AMHERST_TABLE_TYPES](
-        request: Request,
-        records: list[T] = Depends(search_body),
-        template_name: str = Depends(template_name_from_body),
-        pagination: Pagination = Depends(Pagination.from_query),
-) -> HTMLResponse:
-    for amrec in records:
-        logger.info(f'{amrec.name=} {type(amrec)=}')
-    return await get_template(template_name, records, request, pagination)
-
-
 @router.get('/search/{csrname}/{pk_value}')
 async def search_get[T: AMHERST_TABLE_TYPES](
         request: Request,
@@ -50,6 +38,18 @@ async def search_get[T: AMHERST_TABLE_TYPES](
         pagination: Pagination = Depends(Pagination.from_query),
 ) -> HTMLResponse:
     logger.info(T)
+    for amrec in records:
+        logger.info(f'{amrec.name=} {type(amrec)=}')
+    return await get_template(template_name, records, request, pagination)
+
+
+@router.post('/search')
+async def search_post[T: AMHERST_TABLE_TYPES](
+        request: Request,
+        records: list[T] = Depends(search_body),
+        template_name: str = Depends(template_name_from_body),
+        pagination: Pagination = Depends(Pagination.from_query),
+) -> HTMLResponse:
     for amrec in records:
         logger.info(f'{amrec.name=} {type(amrec)=}')
     return await get_template(template_name, records, request, pagination)

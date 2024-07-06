@@ -75,19 +75,30 @@ async def amrecs_and_more(
     return await select_and_more(stmt, session, pagination)
 
 
-async def get_pyc_body(
-        csrname: str = Body(''),
-) -> PyCommence:
-    yield get_pyc_(csrname)
+# def get_pyc_body(
+#         csrname: str = Body(...),
+# ) -> PyCommence:
+#     return get_pyc_(csrname)
+
+
+# def get_pyc_path(
+#         csrname: str = Path(...),
+# ) -> PyCommence:
+#     return get_pyc_(csrname)
 
 
 async def get_pyc_path(
-        csrname: str = Path(''),
+        csrname: str = Path(...),
 ) -> PyCommence:
-    yield get_pyc_(csrname)
+    CoInitialize()
+    pyc = PyCommence.with_csr(csrname)
+    yield pyc
+    CoUninitialize()
 
 
-async def get_pyc_(csrname):
+async def get_pyc_body(
+        csrname: str = Body(...),
+) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname)
     yield pyc
@@ -100,10 +111,7 @@ async def search_query[T: AMHERST_TABLE_TYPES](
         pk_value: str = Path(...),
         pagination: Pagination = Depends(Pagination.from_query)
 ) -> list[T]:
-    rows = pycmc.read_rows_pk_contains(pk_value, csrname=csrname, count=pagination.limit)
-    amrecs = list(map(dict_to_amtable, rows))
-    logger.debug(f'{amrecs=}')
-    return amrecs
+    return await do_search(csrname, pagination, pk_value, pycmc)
 
 
 async def search_body[T: AMHERST_TABLE_TYPES](
@@ -112,9 +120,21 @@ async def search_body[T: AMHERST_TABLE_TYPES](
         pk_value: str = Body(''),
         pagination: Pagination = Depends(Pagination.from_query)
 ) -> list[T]:
+    return await do_search(csrname, pagination, pk_value, pycmc)
+
+
+async def do_search(csrname: str, pagination: Pagination, pk_value: str, pycmc: PyCommence):
     if not all((csrname, pk_value)):
         return []
-    rows = list(pycmc.read_rows_pk_contains(pk_value, csrname=csrname, count=pagination.limit))
+    rows = list(
+        pycmc.read_rows_pk_contains(
+            pk_value,
+            csrname=csrname,
+            count=pagination.limit,
+            offset=pagination.offset,
+            with_category=True
+        )
+    )
     amrecs = list(map(dict_to_amtable, rows))
     logger.debug(f'{amrecs=}')
     return amrecs

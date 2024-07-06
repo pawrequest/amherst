@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 import pydantic as _p
 import sqlmodel
-from pydantic import AliasGenerator, BaseModel, ConfigDict, Field
+from pydantic import AliasGenerator, BaseModel, ConfigDict
 from sqlmodel import Relationship, SQLModel
 
 from amherst.commence_adaptors import (
@@ -143,19 +143,22 @@ class AmherstOrderBase(AmherstTableBase):
 
 
 class AmherstCustomer(AmherstTableBase):
-    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=customer_alias,))
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=customer_alias, ))
+    category: AmherstTableEnum = AmherstTableEnum.Customer
     invoice_email: str = ''
     accounts_email: str = ''
 
 
 class AmherstSale(AmherstOrderBase):
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=sale_alias))
+    category: AmherstTableEnum = AmherstTableEnum.Sale
 
 
 class AmherstHire(AmherstOrderBase):
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=hire_alias))
     boxes: int = 1
     status: HireStatus
+    category: AmherstTableEnum = AmherstTableEnum.Hire
 
     @property
     def ship_details_dict(self):
@@ -197,7 +200,6 @@ class AmherstSaleDB(AmherstSale, SQLModel, table=True):
 
 AMHERST_ORDER_TYPES = AmherstHireDB | AmherstSaleDB
 AMHERST_TABLE_TYPES = AMHERST_ORDER_TYPES | AmherstCustomerDB
-
 
 TYPES_MAP = {
     'Hire': {

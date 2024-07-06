@@ -3,7 +3,7 @@ from loguru import logger
 from starlette.responses import JSONResponse
 
 from amherst.shipment_funcs import book_shipment, shipment_request_f_form
-from amherst.route_depends import search_body, search_query, get_el_client
+from amherst.route_depends import get_el_client, search_body, search_query
 from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
@@ -15,20 +15,20 @@ TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
 
 
-@router.post('/search2')
-async def search_post[T: AMHERST_TABLE_TYPES](
-        amrecs: list[T] = Depends(search_body),
-) -> list[T]:
-    for amrec in amrecs:
-        logger.info(f'{amrec.name=} {type(amrec)=}')
-    return amrecs
-
-
 @router.get('/search/{csrname}/{pk_value}')
 async def search_get[T: AMHERST_TABLE_TYPES](
         amrecs: list[T] = Depends(search_query),
 ) -> list[T]:
     logger.info(T)
+    for amrec in amrecs:
+        logger.info(f'{amrec.name=} {type(amrec)=}')
+    return amrecs
+
+
+@router.post('/search')
+async def search_post[T: AMHERST_TABLE_TYPES](
+        amrecs: list[T] = Depends(search_body),
+) -> list[T]:
     for amrec in amrecs:
         logger.info(f'{amrec.name=} {type(amrec)=}')
     return amrecs
