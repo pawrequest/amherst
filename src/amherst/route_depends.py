@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import NamedTuple, Self
+from typing import Self
 
 from comtypes import CoInitialize, CoUninitialize
 from fastapi import Body, Depends, Path, Query
 from loguru import logger
+from pydantic import BaseModel
 from sqlmodel import SQLModel
 
 from amherst.models.am_record_smpl import (
@@ -21,13 +22,13 @@ from shipaw.expresslink_client import ELClient
 PAGE_SIZE = 20
 
 
-class SearchResponse[T:AMHERST_TABLE_TYPES](NamedTuple):
+class SearchResponse[T:AMHERST_TABLE_TYPES](BaseModel):
     records: list[T]
     more: bool
     pagination: Pagination
 
 
-class Pagination(NamedTuple):
+class Pagination(BaseModel):
     offset: int = 0
     limit: int | None = PAGE_SIZE
 
@@ -85,6 +86,10 @@ async def search_query_more[T: AMHERST_TABLE_TYPES](
         pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query),
 ) -> SearchResponse[T]:
+    return await make_response(csrname, pagination, pk_value, pycmc)
+
+
+async def make_response(csrname, pagination, pk_value, pycmc):
     more = False
     records = []
     async for row in do_search_more(csrname, pk_value, pycmc, pagination):
@@ -110,11 +115,9 @@ async def search_body_more[T: AMHERST_TABLE_TYPES](
         csrname: str = Body(''),
         pk_value: str = Body(''),
         pagination: Pagination = Depends(Pagination.from_query),
-        with_more: bool = Query(False),
 
-) -> list[T] | tuple[list[T], bool]:
-    route_func = do_search_more if with_more else do_search
-    return await route_func(csrname, pk_value, pycmc, pagination)
+) -> SearchResponse[T]:
+    return await make_response(csrname, pagination, pk_value, pycmc)
 
 
 async def do_search(
