@@ -14,12 +14,12 @@ from amherst.backend_funcs import (
 )
 from amherst.route_depends import (
     Pagination,
-    amrecs_and_more,
     search_body,
     search_query,
     template_name_from_body,
     template_name_from_path,
 )
+from amherst.sql import amrecs_and_more
 from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
 from amherst.routes_api import TABLE_LIST_More
 

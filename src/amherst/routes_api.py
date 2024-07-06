@@ -1,9 +1,18 @@
+from typing import NamedTuple
+
 from fastapi import APIRouter, Depends
 from loguru import logger
 from starlette.responses import JSONResponse
 
 from amherst.shipment_funcs import book_shipment, shipment_request_f_form
-from amherst.route_depends import get_el_client, search_body, search_query
+from amherst.route_depends import (
+    Pagination,
+    get_el_client,
+    search_body,
+    search_query,
+    search_query_more,
+    SearchResponse,
+)
 from amherst.models.am_record_smpl import AMHERST_TABLE_TYPES
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
@@ -13,6 +22,15 @@ from shipaw.ship_types import VALID_POSTCODE
 
 TABLE_LIST_More = tuple[list[AMHERST_TABLE_TYPES], bool]
 router = APIRouter()
+
+
+
+
+@router.get('/searchmore')
+async def search_query_more[T: AMHERST_TABLE_TYPES](
+        response: SearchResponse = Depends(search_query_more),
+) -> SearchResponse[T]:
+    return response
 
 
 @router.get('/search')

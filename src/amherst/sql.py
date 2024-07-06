@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from fastapi import Depends, Body, Path
-from sqlmodel import SQLModel, select, and_, or_
+from sqlmodel import SQLModel, select, and_, or_, Session
 
-from amherst.models.am_record_smpl import AmherstHireDB, AmherstSaleDB, AmherstCustomerDB
+from amherst.db import get_session
+from amherst.models.am_record_smpl import AmherstHireDB, AmherstSaleDB, AmherstCustomerDB, AMHERST_TABLE_TYPES
+from amherst.route_depends import Pagination
 
 
 async def model_type_from_path(csrname: str = Path(...)) -> type[SQLModel]:
@@ -46,3 +48,27 @@ async def stmt_from_q(
                 stmt = stmt.where(or_(*filters))
 
     return stmt
+
+
+async def select_and_more(
+        sqlselect,
+        session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query)
+) -> tuple[list, bool]:
+    if pagination.offset:
+        sqlselect = sqlselect.offset(pagination.offset)
+    if pagination.limit:
+        sqlselect = sqlselect.limit(pagination.limit + 1)
+    res = session.exec(sqlselect).all()
+    if not res:
+        return [], False
+    more = len(res) > pagination.limit if pagination.limit else False
+    return res[: pagination.limit], more
+
+
+async def amrecs_and_more(
+        stmt: select = Depends(stmt_from_q),
+        session: Session = Depends(get_session),
+        pagination: Pagination = Depends(Pagination.from_query),
+) -> tuple[list[AMHERST_TABLE_TYPES], bool]:
+    return await select_and_more(stmt, session, pagination)

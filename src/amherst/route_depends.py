@@ -5,9 +5,8 @@ from typing import NamedTuple, Self
 from comtypes import CoInitialize, CoUninitialize
 from fastapi import Body, Depends, Path, Query
 from loguru import logger
-from sqlmodel import SQLModel, Session, select
+from sqlmodel import SQLModel
 
-from amherst.db import get_session
 from amherst.models.am_record_smpl import (
     AMHERST_TABLE_TYPES,
     AmherstCustomerDB,
@@ -16,11 +15,16 @@ from amherst.models.am_record_smpl import (
     TYPES_MAP,
     dict_to_amtable,
 )
-from amherst.sql import stmt_from_q
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 
 PAGE_SIZE = 20
+
+
+class SearchResponse[T:AMHERST_TABLE_TYPES](NamedTuple):
+    records: list[T]
+    more: bool
+    pagination: Pagination
 
 
 class Pagination(NamedTuple):
@@ -31,22 +35,6 @@ class Pagination(NamedTuple):
     def from_query(cls, limit: int | None = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
         logger.debug(f'Pagination.from_query({limit=}, {offset=})')
         return cls(limit=limit, offset=offset)
-
-
-async def select_and_more(
-        sqlselect,
-        session: Session = Depends(get_session),
-        pagination: Pagination = Depends(Pagination.from_query)
-) -> tuple[list, bool]:
-    if pagination.offset:
-        sqlselect = sqlselect.offset(pagination.offset)
-    if pagination.limit:
-        sqlselect = sqlselect.limit(pagination.limit + 1)
-    res = session.exec(sqlselect).all()
-    if not res:
-        return [], False
-    more = len(res) > pagination.limit if pagination.limit else False
-    return res[: pagination.limit], more
 
 
 async def model_type_from_path(csrname: str = Path(...)) -> type[SQLModel]:
@@ -67,38 +55,14 @@ async def template_name_from_body(csrname: str = Body('')):
     return TYPES_MAP[csrname]['template']
 
 
-async def amrecs_and_more(
-        stmt: select = Depends(stmt_from_q),
-        session: Session = Depends(get_session),
-        pagination: Pagination = Depends(Pagination.from_query),
-) -> tuple[list[AMHERST_TABLE_TYPES], bool]:
-    return await select_and_more(stmt, session, pagination)
-
-
-# def get_pyc_body(
-#         csrname: str = Body(...),
-# ) -> PyCommence:
-#     return get_pyc_(csrname)
-
-
-# def get_pyc_path(
-#         csrname: str = Path(...),
-# ) -> PyCommence:
-#     return get_pyc_(csrname)
-
-
-async def get_pyc_query(
-        csrname: str = Query(...),
-) -> PyCommence:
+async def get_pyc_query(csrname: str = Query(...)) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname)
     yield pyc
     CoUninitialize()
 
 
-async def get_pyc_body(
-        csrname: str = Body(...),
-) -> PyCommence:
+async def get_pyc_body(csrname: str = Body(...)) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname)
     yield pyc
@@ -110,8 +74,25 @@ async def search_query[T: AMHERST_TABLE_TYPES](
         csrname: str = Query(...),
         pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query)
+
 ) -> list[T]:
-    return await do_search(csrname, pagination, pk_value, pycmc)
+    return await do_search(csrname, pk_value, pycmc, pagination)
+
+
+async def search_query_more[T: AMHERST_TABLE_TYPES](
+        pycmc: PyCommence = Depends(get_pyc_query),
+        csrname: str = Query(...),
+        pk_value: str = Query(''),
+        pagination: Pagination = Depends(Pagination.from_query),
+) -> SearchResponse[T]:
+    more = False
+    records = []
+    async for row in do_search_more(csrname, pk_value, pycmc, pagination):
+        if isinstance(row, MoreAvailable):
+            more = True
+            break
+        records.append(dict_to_amtable(row))
+    return SearchResponse(records=records, more=more, pagination=pagination)
 
 
 async def search_body[T: AMHERST_TABLE_TYPES](
@@ -119,11 +100,29 @@ async def search_body[T: AMHERST_TABLE_TYPES](
         csrname: str = Body(''),
         pk_value: str = Body(''),
         pagination: Pagination = Depends(Pagination.from_query)
+
 ) -> list[T]:
-    return await do_search(csrname, pagination, pk_value, pycmc)
+    return await do_search(csrname, pk_value, pycmc, pagination)
 
 
-async def do_search(csrname: str, pagination: Pagination, pk_value: str, pycmc: PyCommence):
+async def search_body_more[T: AMHERST_TABLE_TYPES](
+        pycmc: PyCommence = Depends(get_pyc_body),
+        csrname: str = Body(''),
+        pk_value: str = Body(''),
+        pagination: Pagination = Depends(Pagination.from_query),
+        with_more: bool = Query(False),
+
+) -> list[T] | tuple[list[T], bool]:
+    route_func = do_search_more if with_more else do_search
+    return await route_func(csrname, pk_value, pycmc, pagination)
+
+
+async def do_search(
+        csrname: str,
+        pk_value: str,
+        pycmc: PyCommence,
+        pagination: Pagination,
+):
     if not all((csrname, pk_value)):
         return []
     rows = list(
@@ -137,6 +136,28 @@ async def do_search(csrname: str, pagination: Pagination, pk_value: str, pycmc: 
     )
     amrecs = list(map(dict_to_amtable, rows))
     return amrecs
+
+
+class MoreAvailable:
+    ...
+
+
+async def do_search_more(
+        csrname: str,
+        pk_value: str,
+        pycmc: PyCommence,
+        pagination: Pagination,
+):
+    for rownum, row in enumerate(
+            pycmc.read_rows_pk_contains(
+                pk_value,
+                csrname=csrname,
+                count=pagination.limit + 1,
+                offset=pagination.offset,
+                with_category=True
+            ), start=1
+    ):
+        yield MoreAvailable() if rownum > pagination.limit else row
 
 
 def get_el_client() -> ELClient:
