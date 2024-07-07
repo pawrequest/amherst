@@ -49,14 +49,22 @@ class SearchRequest(BaseModel):
         return self.q_str_paginate()
 
     @property
+    def query_str_api(self):
+        return self.q_str_paginate(api=True)
+
+    @property
     def next_q_str(self):
         return self.q_str_paginate(self.pagination.next_page())
 
-    def q_str_paginate(self, pagination: Pagination = None):
+    @property
+    def next_q_str_api(self):
+        return self.q_str_paginate(self.pagination.next_page(), api=True)
+
+    def q_str_paginate(self, pagination: Pagination = None, api: bool = False):
         # todo package?
         pagination = pagination or self.pagination
-
-        qstr = f'/search?csrname={self.csrname}'
+        qstr = '/api' if api else ''
+        qstr += f'/search?csrname={self.csrname}'
         if self.filtername:
             qstr += f'&filtername={self.filtername}'
         if self.pk_value:
@@ -70,21 +78,29 @@ class SearchRequest(BaseModel):
     def step_back(self):
         return self.model_copy(update={'pagination': self.pagination.prev_page()})
 
-    @model_validator(mode='after')
-    def get_filter_array(self):
-        if self.filtername:
-            self.filter_array = FILTER_MAP.get(self.filtername, None)
-        return self
+    # @model_validator(mode='after')
+    # def get_filter_array(self):
+    #     if self.filtername:
+    #         infilters = FILTER_MAP.get(self.filtername, None)
+    #         self.filter_array = infilters.add_filter()
+    #     return self
 
     @classmethod
     def from_query(
             cls,
+            request: Request,
             csrname: CsrName = Query(...),
             filtername: FilterName | None = Query(None),
             pk_value: str = Query(''),
             pagination: Pagination = Depends(Pagination.from_query),
     ):
-        return SearchRequest(csrname=csrname, pagination=pagination, pk_value=pk_value, filtername=filtername)
+        logger.warning(f'SearchRequest.from_query({csrname=}, {filtername=}, {pk_value=}, {pagination=})')
+        return cls(
+            csrname=csrname,
+            pagination=pagination,
+            pk_value=pk_value,
+            filtername=filtername
+        )
 
     @classmethod
     def from_body(
@@ -92,18 +108,18 @@ class SearchRequest(BaseModel):
             csrname: CsrName = Body(...),
             filtername: FilterName | None = Body(None),
             pk_value: str = Body(''),
-            package: dict | None = Body(None),
+            package: dict | None = Body(default_factory=dict),
             pagination: Pagination = Depends(Pagination.from_query),
     ):
+        logger.warning(f'SearchRequest.from_body({csrname=}, {filtername=}, {pk_value=}, {package=}, {pagination=})')
         res = cls(
             csrname=csrname,
             filtername=filtername,
             pagination=pagination,
-            pk_value=pk_value
+            pk_value=pk_value,
+            package=package
         )
-        if package:
-            res.package = package
-        return res
+        return res.model_validate(res)
 
 
 class SearchResponse[T:AMHERST_TABLE_TYPES](BaseModel):

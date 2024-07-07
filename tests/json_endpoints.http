@@ -1,0 +1,48 @@
+### All Hire
+GET http://127.0.0.1:8000/api/search?csrname=Hire
+
+
+### Hire Paginated
+GET http://127.0.0.1:8000/api/search?csrname=Hire&limit=20&offset=30
+
+
+
+### Hire Filtered
+GET http://127.0.0.1:8000/api/search?csrname=Hire&filtername=initial_hire
+
+
+### Hire Search
+GET http://127.0.0.1:8000/api/search?csrname=Hire&pk_value=school
+
+
+### Hire Filtered Search
+GET http://127.0.0.1:8000/api/search?csrname=Hire&filtername=initial_hire&pk_value=school
+
+
+### Customer Filtered Paginated
+GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial_customer&limit=5&offset=5
+
+
+### Customer Filtered Search
+GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial_customer&pk_value=school
+
+
+### Customer Filtered Search Paginated
+GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial_customer&pk_value=school&limit=5&offset=5
+
+
+###
+POST http://127.0.0.1:8000/api/search?limit=50&offset=2
+#POST http://127.0.0.1:8000/api/search
+Content-Type: application/json
+
+{
+  "csrname": "Hire",
+  "filtername": "initial_hire"
+}
+
+<> 2024-07-07T191654.200.json
+<> 2024-07-07T191539-1.200.json
+<> 2024-07-07T191501.200.json
+
+

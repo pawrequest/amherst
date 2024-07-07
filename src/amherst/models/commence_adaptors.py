@@ -45,7 +45,7 @@ class HireStatus(StrEnum):
     QUOTE_GIVEN = 'Quote given'
     CANCELLED = 'Cancelled'
     EXTENDED = 'Extended'
-    SOLD = 'Sold To Customer'
+    SOLD = 'Sold to customer'
 
 
 

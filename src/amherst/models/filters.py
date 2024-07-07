@@ -4,7 +4,6 @@ import functools
 from datetime import date, timedelta
 from typing import Literal
 
-
 from amherst.models.commence_adaptors import HireAliases, HireStatus, SaleAliases
 from pycommence.filters import (
     ConditionType,
@@ -18,10 +17,9 @@ from pycommence.pycmc_types import Connection2, to_cmc_date
 FilterName = Literal['initial_hire', 'initial_sale', 'initial_customer']
 
 CUSTOMER_SORTS = None
-
 SALE_SORTS = ((SaleAliases.DATE_ORDERED, SortOrder.DESC),)
-
 HIRE_SORTS = ((HireAliases.SEND_DATE, SortOrder.DESC),)
+
 INITIAL_HIRE_START = date.today() - timedelta(days=30)
 INITIAL_HIRE_END = date.today() + timedelta(days=30)
 INITIAL_SALE_START = date.today() - timedelta(days=30)
@@ -63,7 +61,7 @@ def cust_init_2():
     return FilterArray.from_filters(
         *hire_con_fils,
         *sale_con_fils,
-        logic='And, And, And, Or',
+        logics=['And', 'And', 'And', 'Or'],
         sorts=CUSTOMER_SORTS,
     )
 
