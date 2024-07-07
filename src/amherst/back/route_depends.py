@@ -1,48 +1,119 @@
 from __future__ import annotations
 
-from comtypes import CoInitialize, CoUninitialize
-from fastapi import Body, Depends, Query
+from typing import Literal, Self
 
-from amherst.back.route_depends_types import CsrName, Pagination, SearchQuery, SearchResponse
-from amherst.models.maps import CURSOR_MAP
-from pycommence.pycommence_v2 import PyCommence
+from fastapi import Body, Depends, Query
+from loguru import logger
+from pydantic import BaseModel, Field, model_validator
+from starlette.requests import Request
+
+from amherst.models.amherst_models import AMHERST_TABLE_TYPES
+from amherst.models.filters import FilterName
+from amherst.models.maps import CURSOR_MAP, FILTER_MAP
+from pycommence.filters import ConditionType, FilterArray
+from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
+
+CsrName = Literal['Hire', 'Sale', 'Customer']
+
+PAGE_SIZE = 30
+
+
+class Pagination(_Pagination):
+    @classmethod
+    def from_query(cls, request: Request, limit: int | bool = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
+        logger.debug(f'Pagination.from_query({limit=}, {offset=})')
+        return cls(limit=limit, offset=offset)
 
 
 async def template_name_from_query(csrname: CsrName = Query(...)):
     return CURSOR_MAP[csrname]['template']
 
 
-async def get_pyc_query(csrname: CsrName = Query(...)) -> PyCommence:
-    CoInitialize()
-    pyc = PyCommence.with_csr(csrname)
-    yield pyc
-    CoUninitialize()
+class SearchRequest(BaseModel):
+    csrname: CsrName
+    filtername: FilterName | None = None
+    package: dict[str, str] = Field(default_factory=dict)
+    pagination: Pagination = Pagination()
+    filter_array: FilterArray | None = None
+    pk_value: str = ''
+    condition: ConditionType = ConditionType.CONTAIN
+
+    def __hash__(self):
+        return hash(
+            (self.csrname, self.filtername, self.pk_value, self.pagination.offset, self.pagination.limit,
+             *list(self.package.values()))
+        )
+
+    @property
+    def q_str(self):
+        return self.q_str_paginate()
+
+    @property
+    def next_q_str(self):
+        return self.q_str_paginate(self.pagination.next_page())
+
+    def q_str_paginate(self, pagination: Pagination = None):
+        # todo package?
+        pagination = pagination or self.pagination
+
+        qstr = f'/search?csrname={self.csrname}'
+        if self.filtername:
+            qstr += f'&filtername={self.filtername}'
+        if self.pk_value:
+            qstr += f'&pkvalue={self.pk_value}'
+        qstr += f'&limit={pagination.limit}&offset={pagination.offset}'
+        return qstr
+
+    def next_request(self):
+        return self.model_copy(update={'pagination': self.pagination.next_page()})
+
+    def step_back(self):
+        return self.model_copy(update={'pagination': self.pagination.prev_page()})
+
+    @model_validator(mode='after')
+    def get_filter_array(self):
+        if self.filtername:
+            self.filter_array = FILTER_MAP.get(self.filtername, None)
+        return self
+
+    @classmethod
+    def from_query(
+            cls,
+            csrname: CsrName = Query(...),
+            filtername: FilterName | None = Query(None),
+            pk_value: str = Query(''),
+            pagination: Pagination = Depends(Pagination.from_query),
+    ):
+        return SearchRequest(csrname=csrname, pagination=pagination, pk_value=pk_value, filtername=filtername)
+
+    @classmethod
+    def from_body(
+            cls,
+            csrname: CsrName = Body(...),
+            filtername: FilterName | None = Body(None),
+            pk_value: str = Body(''),
+            package: dict | None = Body(None),
+            pagination: Pagination = Depends(Pagination.from_query),
+    ):
+        res = cls(
+            csrname=csrname,
+            filtername=filtername,
+            pagination=pagination,
+            pk_value=pk_value
+        )
+        if package:
+            res.package = package
+        return res
 
 
-async def get_pyc_body(csrname: CsrName = Body(...)) -> PyCommence:
-    CoInitialize()
-    pyc = PyCommence.with_csr(csrname)
-    yield pyc
-    CoUninitialize()
+class SearchResponse[T:AMHERST_TABLE_TYPES](BaseModel):
+    records: list[T]
+    length: int = None
+    search_request: SearchRequest | None = None
+    more: MoreAvailable | None = None
 
-
-async def search_get[T: SearchResponse](
-        pycmc: PyCommence = Depends(get_pyc_query),
-        csrname: CsrName = Query(...),
-        pk_value: str = Query(''),
-        pagination: Pagination = Depends(Pagination.from_query),
-) -> T:
-    sq = SearchQuery(csrname=csrname, pagination=pagination, pk_value=pk_value)
-    return await SearchResponse.from_q(sq=sq, pycmc=pycmc)
-
-
-async def search_post[T: SearchResponse](
-        search_q: SearchQuery = Depends(SearchQuery.from_body),
-) -> T:
-    CoInitialize()
-    try:
-        pycmc = PyCommence.with_csr(search_q.csrname, filter_array=search_q.filter_array)
-        return await SearchResponse.from_q(sq=search_q, pycmc=pycmc)
-
-    finally:
-        CoUninitialize()
+    @model_validator(mode='after')
+    def set_length(self):
+        if self.length is None and self.records:
+            self.length = len(self.records)
+        return self

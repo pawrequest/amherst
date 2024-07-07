@@ -3,6 +3,6 @@
         {{ customer.name }}
     </div>
 {% endfor %}
-{% if response.more_link %}
+{% if response.more %}
 {% include 'infinite.html' with context %}
 {% endif %}

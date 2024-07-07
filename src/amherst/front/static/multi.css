@@ -96,7 +96,7 @@
 .record-container {
     border: 1px solid #ddd;
     border-radius: 4px;
-    overflow: auto;
+    overflow-y: scroll;
     transition: flex 0.3s ease, max-height 0.3s ease;
     flex: 1;
     display: flex;

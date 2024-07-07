@@ -3,23 +3,23 @@
     <link href="{{ url_for('static', path='multi.css') }}" rel="stylesheet">
 {% endblock %}
 {% block sidebar %}
-    <div class="sidebar">
+    <div id="sidebar" class="sidebar">
         <label for="filterInput">Filter</label>
         <input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">
 
         <label for="searchInput">Search</label>
         <input type="text" id="searchInput" placeholder="Fetch New Records..."
                hx-trigger="input changed delay:1000ms, search"
-                hx-get=>
+               hx-get=>
         >
 
         <nav class="nav-bar">
-            <a href="#" hx-get="/search?csrname=Customer" hx-target="#record-container" hx-swap="innerHTML" hx-trigger=>Customers</a>
-            <a href="#" hx-get="/search?csrname=Hire" hx-target="#record-container" hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="/search?csrname=Sale" hx-target="#record-container" hx-swap="innerHTML">Sales</a>
+            <a href="#" hx-get="/search?csrname=Customer&filtername=initial_customer" hx-target="#record-container" hx-swap="innerHTML" hx-trigger=>Customers</a>
+            <a href="#" hx-get="/search?csrname=Hire&filtername=initial_hire" hx-target="#record-container" hx-swap="innerHTML">Hires</a>
+            <a href="#" hx-get="/search?csrname=Sale&filtername=initial_sale" hx-target="#record-container" hx-swap="innerHTML">Sales</a>
         </nav>
 
-        <div class="record-container" id="record-container" hx-get="/search/?csrname=Customer" hx-trigger="load"
+        <div class="record-container" id="record-container" hx-get="/search/?csrname=Customer&filtername=initial_customer" hx-trigger="load"
              hx-target="this" hx-swap="innerHTML">
         </div>
 

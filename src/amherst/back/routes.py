@@ -10,27 +10,35 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from amherst.config import TEMPLATES
-from amherst.back.route_depends import (search_get, search_post, template_name_from_query)
-from amherst.back.route_depends_types import SearchResponse
+from amherst.back.route_depends import (template_name_from_query, SearchRequest, SearchResponse)
+from amherst.back.pyc_backend import pycommence_response
 
 router = APIRouter()
+
+
+@router.get('/test')
+async def test(request: Request):
+    logger.warning('TEST')
+    return HTMLResponse(content='<h1>Test</h1>')
 
 
 @router.get('/search')
 async def search_get[T: SearchResponse](
         request: Request,
-        response: T = Depends(search_get),
+        search_request: SearchRequest = Depends(SearchRequest.from_query),
         template_name: str = Depends(template_name_from_query),
 ) -> HTMLResponse:
+    response: T = await pycommence_response(search_request)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
 
 
 @router.post('/search')
 async def search_post[T: SearchResponse](
         request: Request,
-        response: T = Depends(search_post),
+        search_request: SearchRequest = Depends(SearchRequest.from_body),
         template_name: str = Depends(template_name_from_query),
 ) -> HTMLResponse:
+    response: T = await pycommence_response(search_request)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
 
 
