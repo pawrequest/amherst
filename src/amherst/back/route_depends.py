@@ -33,8 +33,7 @@ async def search_get[T: SearchResponse](
         pagination: Pagination = Depends(Pagination.from_query),
 ) -> T:
     sq = SearchQuery(csrname=csrname, pagination=pagination, pk_value=pk_value)
-    res = await SearchResponse.from_query(sq=sq, pycmc=pycmc)
-    return res
+    return await SearchResponse.from_q(sq=sq, pycmc=pycmc)
 
 
 async def search_post[T: SearchResponse](
@@ -43,7 +42,7 @@ async def search_post[T: SearchResponse](
     CoInitialize()
     try:
         pycmc = PyCommence.with_csr(search_q.csrname, filter_array=search_q.filter_array)
-        return await SearchResponse.from_query(sq=search_q, pycmc=pycmc)
+        return await SearchResponse.from_q(sq=search_q, pycmc=pycmc)
 
     finally:
         CoUninitialize()

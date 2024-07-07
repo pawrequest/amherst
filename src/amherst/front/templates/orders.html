@@ -1,6 +1,8 @@
 {% for order in response.records %}
     <div class="record record-order">
-        {{ order.customer.name }}
-        ({{ order.send_date }})
+        {{ order.customer_name }}
+        {% if order.send_date %}
+            ({{ order.dt_ordinal(order.send_date) }})
+        {% endif %}
     </div>
 {% endfor %}

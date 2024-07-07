@@ -1,17 +1,8 @@
 {% for customer in response.records %}
-    {% for order in customer.hires + customer.sales %}
-        <div class="record record-customer">
-            <div class="cust_name">
-                {{ customer.name }}
-            </div>
-            <div class="customer-order">
-                <div class="ordercat">
-                    {{ order.category.value }}
-                </div>
-                <div class="orderdate">
-                    {{ order.dt_ordinal(order.send_date) }}
-                </div>
-            </div>
-        </div>
-    {% endfor %}
+    <div class="record">
+        {{ customer.name }}
+    </div>
 {% endfor %}
+{% if response.more_link %}
+{% include 'infinite.html' with context %}
+{% endif %}
