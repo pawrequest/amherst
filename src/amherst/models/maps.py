@@ -2,32 +2,32 @@ from __future__ import annotations
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale
 from amherst.models.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
-from amherst.models.filters import cust_init_2, hire_fils_initial_array, sale_fils_initial_array
+from amherst.models.filters import CUSTOMER_FILTER_ARRAY, HIRE_FILTER_ARRAY, SALE_FILTER_ARRAY
 
 CURSOR_MAP = {
     'Hire': {
         'input_type': AmherstHire,
         'aliases': HireAliases,
         'template': 'orders.html',
-        'initial_filter': hire_fils_initial_array(),
+        'filters': {
+            'initial': HIRE_FILTER_ARRAY,
+        }
     },
     'Sale': {
         'input_type': AmherstSale,
         'aliases': SaleAliases,
         'template': 'orders.html',
-        'initial_filter': sale_fils_initial_array(),
-
+        'filters': {
+            'initial': SALE_FILTER_ARRAY,
+        }
     },
     'Customer': {
         'input_type': AmherstCustomer,
         'aliases': CustomerAliases,
         'template': 'customers.html',
-        'initial_filter': cust_init_2(),
+        'filters': {
+            'initial': CUSTOMER_FILTER_ARRAY,
+        }
     },
 }
 
-FILTER_MAP = {
-    'initial_hire': hire_fils_initial_array(),
-    'initial_sale': sale_fils_initial_array(),
-    'initial_customer': cust_init_2(),
-}

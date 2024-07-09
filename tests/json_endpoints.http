@@ -8,7 +8,7 @@ GET http://127.0.0.1:8000/api/search?csrname=Hire&limit=20&offset=30
 
 
 ### Hire Filtered
-GET http://127.0.0.1:8000/api/search?csrname=Hire&filtername=initial_hire
+GET http://127.0.0.1:8000/api/search?csrname=Hire&filtername=initial
 
 
 ### Hire Search
@@ -16,19 +16,19 @@ GET http://127.0.0.1:8000/api/search?csrname=Hire&pk_value=school
 
 
 ### Hire Filtered Search
-GET http://127.0.0.1:8000/api/search?csrname=Hire&filtername=initial_hire&pk_value=school
+GET http://127.0.0.1:8000/api/search?csrname=Hire&filtername=initial&pk_value=school
 
 
 ### Customer Filtered Paginated
-GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial_customer&limit=5&offset=5
+GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial&limit=5&offset=5
 
 
 ### Customer Filtered Search
-GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial_customer&pk_value=school
+GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial&pk_value=school
 
 
 ### Customer Filtered Search Paginated
-GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial_customer&pk_value=school&limit=5&offset=5
+GET http://127.0.0.1:8000/api/search?csrname=Customer&filtername=initial&pk_value=school&limit=5&offset=5
 
 
 ###

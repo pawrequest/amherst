@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import functools
 from datetime import date, timedelta
 from typing import Literal
 
@@ -14,65 +13,45 @@ from pycommence.filters import (
 )
 from pycommence.pycmc_types import Connection2, to_cmc_date
 
-FilterName = Literal['initial_hire', 'initial_sale', 'initial_customer']
+FilterName = Literal['initial']
 
-CUSTOMER_SORTS = None
-SALE_SORTS = ((SaleAliases.DATE_ORDERED, SortOrder.DESC),)
+HIRE_START_DATE = date.today() - timedelta(days=30)
+HIRE_END_DATE = date.today() + timedelta(days=30)
+HIRE_FILS = (
+    FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value=to_cmc_date(HIRE_START_DATE)),
+    FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(HIRE_END_DATE)),
+    FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+    FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+)
 HIRE_SORTS = ((HireAliases.SEND_DATE, SortOrder.DESC),)
 
-INITIAL_HIRE_START = date.today() - timedelta(days=30)
-INITIAL_HIRE_END = date.today() + timedelta(days=30)
-INITIAL_SALE_START = date.today() - timedelta(days=30)
+HIRE_FILTER_ARRAY = FilterArray.from_filters(
+    *HIRE_FILS,
+    sorts=HIRE_SORTS
+)
 
 
-@functools.lru_cache
-def hire_date_fils(start_date: date, end_date: date | None = None) -> tuple[FieldFilter, ...]:
-    fils = (FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value=to_cmc_date(start_date)),)
-    if end_date:
-        fils += (
-            FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(end_date)),
-        )
-    return fils
+SALE_START_DATE = date.today() - timedelta(days=30)
+SALE_FILTERS = (
+    FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=to_cmc_date(SALE_START_DATE)),
+)
+SALE_SORTS = ((SaleAliases.DATE_ORDERED, SortOrder.DESC),)
+
+SALE_FILTER_ARRAY = FilterArray.from_filters(
+    *SALE_FILTERS,
+    sorts=SALE_SORTS
+)
 
 
-@functools.lru_cache
-def hire_status_fils() -> tuple[FieldFilter, ...]:
-    return (
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-    )
+CUSTOMER_HIRE_CONNECTION = Connection2(name='Has Hired', category='Hire', column='Name')
+CUSTOMER_SALE_CONNECTION = Connection2(name='Involves', category='Sale', column='Name')
+CUSTOMER_HIRE_FILTERS = [ConnectedFieldFilter.from_field_fil(f, CUSTOMER_HIRE_CONNECTION) for f in HIRE_FILS]
+CUSTOMER_SALE_FILTERS = [ConnectedFieldFilter.from_field_fil(f, CUSTOMER_SALE_CONNECTION) for f in SALE_FILTERS]
+CUSTOMER_SORTS = None
 
-
-@functools.lru_cache
-def sale_date_fils(sale_start):
-    return (FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value=to_cmc_date(sale_start)),)
-
-
-@functools.lru_cache
-def cust_init_2():
-    hconnect = Connection2(name='Has Hired', category='Hire', column='Name')
-    sconnect = Connection2(name='Involves', category='Sale', column='Name')
-    hire_con_fils = [
-        ConnectedFieldFilter.from_field_fil(f, hconnect) for f in hire_fils_initial_array().filters.values()
-    ]
-    sale_con_fils = [
-        ConnectedFieldFilter.from_field_fil(f, sconnect) for f in sale_fils_initial_array().filters.values()
-    ]
-    return FilterArray.from_filters(
-        *hire_con_fils,
-        *sale_con_fils,
-        logics=['And', 'And', 'And', 'Or'],
-        sorts=CUSTOMER_SORTS,
-    )
-
-
-@functools.lru_cache
-def hire_fils_initial_array() -> FilterArray:
-    return FilterArray.from_filters(
-        *hire_status_fils(), *hire_date_fils(INITIAL_HIRE_START, INITIAL_HIRE_END), sorts=HIRE_SORTS
-    )
-
-
-@functools.lru_cache
-def sale_fils_initial_array() -> FilterArray:
-    return FilterArray.from_filters(*sale_date_fils(INITIAL_SALE_START), sorts=SALE_SORTS)
+CUSTOMER_FILTER_ARRAY = FilterArray.from_filters(
+    *CUSTOMER_HIRE_FILTERS,
+    *CUSTOMER_SALE_FILTERS,
+    logics=['And', 'And', 'And', 'Or'],
+    sorts=CUSTOMER_SORTS,
+)

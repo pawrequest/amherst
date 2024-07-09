@@ -9,7 +9,8 @@ from starlette.requests import Request
 
 from amherst.models.amherst_models import AMHERST_TABLE_TYPES
 from amherst.models.filters import FilterName
-from amherst.models.maps import CURSOR_MAP, FILTER_MAP
+from amherst.models.maps import CURSOR_MAP
+from pycommence.cursor_v2 import CursorAPI
 from pycommence.filters import ConditionType, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 
@@ -34,9 +35,19 @@ class SearchRequest(BaseModel):
     filtername: FilterName | None = None
     package: dict[str, str] = Field(default_factory=dict)
     pagination: Pagination = Pagination()
-    filter_array: FilterArray | None = None
     pk_value: str = ''
     condition: ConditionType = ConditionType.CONTAIN
+
+    def filter_array(self, csr: CursorAPI | None = None) -> FilterArray:
+        if self.pk_value and not csr:
+            raise ValueError('pk_value requires csr')
+        fil = FilterArray()
+        if self.filtername:
+            fil = CURSOR_MAP[self.csrname]['filters'][self.filtername]
+        if self.pk_value:
+            fil.add_filter(csr.pk_filter(self.pk_value))
+            fil.logics.append('And')
+        return fil
 
     def __hash__(self):
         return hash(
@@ -49,21 +60,21 @@ class SearchRequest(BaseModel):
         return self.q_str_paginate()
 
     @property
-    def query_str_api(self):
-        return self.q_str_paginate(api=True)
+    def query_str_json(self):
+        return self.q_str_paginate(json=True)
 
     @property
     def next_q_str(self):
         return self.q_str_paginate(self.pagination.next_page())
 
     @property
-    def next_q_str_api(self):
-        return self.q_str_paginate(self.pagination.next_page(), api=True)
+    def next_q_str_json(self):
+        return self.q_str_paginate(self.pagination.next_page(), json=True)
 
-    def q_str_paginate(self, pagination: Pagination = None, api: bool = False):
+    def q_str_paginate(self, pagination: Pagination = None, json: bool = False):
         # todo package?
         pagination = pagination or self.pagination
-        qstr = '/api' if api else ''
+        qstr = '/api' if json else ''
         qstr += f'/search?csrname={self.csrname}'
         if self.filtername:
             qstr += f'&filtername={self.filtername}'
@@ -75,15 +86,8 @@ class SearchRequest(BaseModel):
     def next_request(self):
         return self.model_copy(update={'pagination': self.pagination.next_page()})
 
-    def step_back(self):
+    def prev_request(self):
         return self.model_copy(update={'pagination': self.pagination.prev_page()})
-
-    # @model_validator(mode='after')
-    # def get_filter_array(self):
-    #     if self.filtername:
-    #         infilters = FILTER_MAP.get(self.filtername, None)
-    #         self.filter_array = infilters.add_filter()
-    #     return self
 
     @classmethod
     def from_query(
@@ -99,7 +103,7 @@ class SearchRequest(BaseModel):
             csrname=csrname,
             pagination=pagination,
             pk_value=pk_value,
-            filtername=filtername
+            filtername=filtername,
         )
 
     @classmethod
@@ -117,7 +121,7 @@ class SearchRequest(BaseModel):
             filtername=filtername,
             pagination=pagination,
             pk_value=pk_value,
-            package=package
+            package=package,
         )
         return res.model_validate(res)
 

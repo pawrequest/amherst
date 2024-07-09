@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import contextlib
+from copy import deepcopy
 
 from comtypes import CoInitialize, CoUninitialize
 from loguru import logger
 from pydantic import BaseModel
 
 from amherst.back.route_depends import CsrName, SearchRequest, SearchResponse
-from amherst.models.maps import CURSOR_MAP, FILTER_MAP
+from amherst.models.maps import CURSOR_MAP
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
@@ -43,7 +44,7 @@ async def gather_records(input_type, pycmc: PyCommence, sq):
     async for row in pk_search(pycmc, sq):
         if isinstance(row, MoreAvailable):
             more = row
-            more.json_link = sq.next_q_str_api
+            more.json_link = sq.next_q_str_json
             more.html_link = sq.next_q_str
             break
         records.append(input_type.model_validate(row))
@@ -56,13 +57,11 @@ async def pycommence_response[T: SearchResponse](
     logger.warning('CoInitialize')
     CoInitialize()
     pycmc = PyCommence.with_csr(search_request.csrname)
+    csr = pycmc.csr(search_request.csrname)
+    array = deepcopy(search_request.filter_array(csr))
 
-    init_fils = list(FILTER_MAP[search_request.filtername].filters.values()) if search_request.filtername else []
-    pk_filters = list(
-        pycmc.csr(search_request.csrname).pk_filter(pk=search_request.pk_value, condition=search_request.condition)
-    ) if search_request.pk_value else []
-    filter_array = FilterArray.from_filters(*init_fils, *pk_filters)
-    pycmc.set_csr(search_request.csrname, filter_array=filter_array)
+    pycmc.set_csr(search_request.csrname, filter_array=array)
+
     record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
     more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
     try:

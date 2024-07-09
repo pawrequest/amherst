@@ -54,11 +54,7 @@ class StockChecker:
 
     @property
     def filters(self):
-        return CURSOR_MAP['Hire']['initial_filter']
-        # return FilterArray.from_filters(
-        #     CmcFilter(cmc_col=HireFields.RADIO_TYPE, condition=ConditionType.EQUAL, value=self.radiotype),
-        #     *hires_in_range_fils(self.start_date, self.end_date)
-        # )
+        return CURSOR_MAP['Hire']['filters']['initial']
 
     def run(self):
         dates = list(self.date_range_gen)
