@@ -43,12 +43,11 @@ class SearchRequest(BaseModel):
             raise ValueError('filtername or pk_value required')
         if self.pk_value and not csr:
             raise ValueError('pk_value requires csr')
-        fils = ()
-        if self.filtername:
-            fils = CURSOR_MAP[self.csrname]['filters'][self.filtername].filters.values()
+        filarray: FilterArray = CURSOR_MAP[self.csrname]['filters'].get(self.filtername, FilterArray())
         if self.pk_value:
-            fils += csr.pk_filter(self.pk_value)
-        return FilterArray.from_filters(*fils)
+            filarray.add_filter(csr.pk_filter(self.pk_value))
+            filarray.logics.append('And')
+        return filarray
 
     def __hash__(self):
         return hash(
