@@ -25,15 +25,12 @@ def get_pyc(csrname: CsrName, filter_array: FilterArray | None = None) -> PyComm
 
 
 async def pk_search(
-        pycmc: PyCommence,
-        sq: SearchRequest,
+    pycmc: PyCommence,
+    sq: SearchRequest,
 ):
     filter_array = pycmc.csr(sq.csrname).pk_filter_array(pk=sq.pk_value, condition=sq.condition)
     for row in pycmc.read_rows(
-            csrname=sq.csrname,
-            with_category=True,
-            pagination=sq.pagination,
-            filter_array=filter_array
+        csrname=sq.csrname, with_category=True, pagination=sq.pagination, filter_array=filter_array
     ):
         yield row
 
@@ -52,14 +49,13 @@ async def gather_records(input_type, pycmc: PyCommence, sq):
 
 
 async def pycommence_response[T: SearchResponse](
-        search_request: SearchRequest,
+    search_request: SearchRequest,
 ) -> T:
     logger.warning('CoInitialize')
     CoInitialize()
     pycmc = PyCommence.with_csr(search_request.csrname)
     csr = pycmc.csr(search_request.csrname)
     array = deepcopy(search_request.filter_array(csr))
-
     pycmc.set_csr(search_request.csrname, filter_array=array)
 
     record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']

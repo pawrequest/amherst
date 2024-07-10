@@ -14,12 +14,12 @@
         >
 
         <nav class="nav-bar">
-            <a href="#" hx-get="/search?csrname=Customer&filtername=initial_customer" hx-target="#record-container" hx-swap="innerHTML" hx-trigger=>Customers</a>
-            <a href="#" hx-get="/search?csrname=Hire&filtername=initial_hire" hx-target="#record-container" hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="/search?csrname=Sale&filtername=initial_sale" hx-target="#record-container" hx-swap="innerHTML">Sales</a>
+            <a href="#" hx-get="/search?csrname=Customer&filtername=initial" hx-target="#record-container" hx-swap="innerHTML" hx-trigger=>Customers</a>
+            <a href="#" hx-get="/search?csrname=Hire&filtername=initial" hx-target="#record-container" hx-swap="innerHTML">Hires</a>
+            <a href="#" hx-get="/search?csrname=Sale&filtername=initial" hx-target="#record-container" hx-swap="innerHTML">Sales</a>
         </nav>
 
-        <div class="record-container" id="record-container" hx-get="/search/?csrname=Customer&filtername=initial_customer" hx-trigger="load"
+        <div class="record-container" id="record-container" hx-get="/search/?csrname=Customer&filtername=initial" hx-trigger="load"
              hx-target="this" hx-swap="innerHTML">
         </div>
 

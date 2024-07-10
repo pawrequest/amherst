@@ -39,20 +39,27 @@ class SearchRequest(BaseModel):
     condition: ConditionType = ConditionType.CONTAIN
 
     def filter_array(self, csr: CursorAPI | None = None) -> FilterArray:
+        if not any([self.filtername, self.pk_value]):
+            raise ValueError('filtername or pk_value required')
         if self.pk_value and not csr:
             raise ValueError('pk_value requires csr')
-        fil = FilterArray()
+        fils = ()
         if self.filtername:
-            fil = CURSOR_MAP[self.csrname]['filters'][self.filtername]
+            fils = CURSOR_MAP[self.csrname]['filters'][self.filtername].filters.values()
         if self.pk_value:
-            fil.add_filter(csr.pk_filter(self.pk_value))
-            fil.logics.append('And')
-        return fil
+            fils += csr.pk_filter(self.pk_value)
+        return FilterArray.from_filters(*fils)
 
     def __hash__(self):
         return hash(
-            (self.csrname, self.filtername, self.pk_value, self.pagination.offset, self.pagination.limit,
-             *list(self.package.values()))
+            (
+                self.csrname,
+                self.filtername,
+                self.pk_value,
+                self.pagination.offset,
+                self.pagination.limit,
+                *list(self.package.items()),
+            )
         )
 
     @property
@@ -91,12 +98,12 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_query(
-            cls,
-            request: Request,
-            csrname: CsrName = Query(...),
-            filtername: FilterName | None = Query(None),
-            pk_value: str = Query(''),
-            pagination: Pagination = Depends(Pagination.from_query),
+        cls,
+        request: Request,
+        csrname: CsrName = Query(...),
+        filtername: FilterName | None = Query(None),
+        pk_value: str = Query(''),
+        pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_query({csrname=}, {filtername=}, {pk_value=}, {pagination=})')
         return cls(
@@ -108,12 +115,12 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_body(
-            cls,
-            csrname: CsrName = Body(...),
-            filtername: FilterName | None = Body(None),
-            pk_value: str = Body(''),
-            package: dict | None = Body(default_factory=dict),
-            pagination: Pagination = Depends(Pagination.from_query),
+        cls,
+        csrname: CsrName = Body(...),
+        filtername: FilterName | None = Body(None),
+        pk_value: str = Body(''),
+        package: dict | None = Body(default_factory=dict),
+        pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_body({csrname=}, {filtername=}, {pk_value=}, {package=}, {pagination=})')
         res = cls(
@@ -126,7 +133,7 @@ class SearchRequest(BaseModel):
         return res.model_validate(res)
 
 
-class SearchResponse[T:AMHERST_TABLE_TYPES](BaseModel):
+class SearchResponse[T: AMHERST_TABLE_TYPES](BaseModel):
     records: list[T]
     length: int = None
     search_request: SearchRequest | None = None

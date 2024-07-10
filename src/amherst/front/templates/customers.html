@@ -1,7 +1,8 @@
 {% for customer in response.records %}
-    <div class="record">
-        {{ customer.name }}
-    </div>
-- %}
-{% include 'infinite.html' with context %}
+<div class="record">
+    {{ customer.name }}
+</div>
+{% endfor %}
+{% if more %}
+    {% include 'infinite.html' with context %}
 {% endif %}

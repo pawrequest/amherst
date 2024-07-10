@@ -10,13 +10,15 @@ from pycommence.filters import CmcFilter, FieldFilter, SortOrder
 Logic = Literal['Or', 'And']
 
 FilPair = tuple[CmcFilter, Logic, CmcFilter]
-FilSet = tuple[FilPair, Logic, FilPair]
+FilSet = FilPair | tuple[FilPair, Logic, FilPair]
 
 # FilNode = FieldFilter | list[FieldFilter, Logic, FieldFilter]
 # FilNode1 = CmcFilter | list[CmcFilter | FilNode1, Logic, CmcFilter | FilNode1]
 # type Nested2[T] = T | list[Nested2[T]]
 # FilLog = CmcFilter | list[CmcFilter, Logic, CmcFilter]
-type afil = afil | list[afil, Logic, afil]
+type afil = CmcFilter | list[CmcFilter, Logic, CmcFilter]
+# type afil = afil | list[afil, Logic, afil]
+
 
 # FilNode = list[FilLog]
 
@@ -24,6 +26,23 @@ type afil = afil | list[afil, Logic, afil]
 @dataclass
 class FA:
     filters: afil = Field(default_factory=list)
+
+    # filter1: CmcFilter
+    # filter2: CmcFilter
+    # filter3: CmcFilter
+    # filter4: CmcFilter
+    # filter5: CmcFilter
+    # filter6: CmcFilter
+    # filter7: CmcFilter
+    # filter8: CmcFilter
+    #
+    logic12: Logic = 'And'
+    logic13: Logic = 'And'
+    logic34: Logic = 'And'
+    logic25: Logic = 'And'
+    logic56: Logic = 'And'
+    logic57: Logic = 'And'
+    logic78: Logic = 'And'
 
 
 def test_nested_filters():
@@ -36,15 +55,13 @@ def test_nested_filters():
     fil7 = FieldFilter(column='col7', value='val7')
     fil8 = FieldFilter(column='col8', value='val8')
 
-    logicA= 'And'
-    logicB= 'Or'
-    logicC= 'And'
-    logicD= 'Or'
-    logicE= 'And'
-    logicF= 'Or'
-    logicG= 'And'
-
-
+    logicA = 'And'
+    logicB = 'Or'
+    logicC = 'And'
+    logicD = 'Or'
+    logicE = 'And'
+    logicF = 'Or'
+    logicG = 'And'
 
     node1 = [fil1, logicA, fil2]
     node2 = [fil3, logicC, fil4]
