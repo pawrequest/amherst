@@ -11,7 +11,8 @@ CURSOR_MAP = {
         'template': 'orders.html',
         'filters': {
             'initial': HIRE_FILTER_ARRAY,
-        }
+            # 'stock': HIRE_STOCK_ARRAY,
+        },
     },
     'Sale': {
         'input_type': AmherstSale,
@@ -19,7 +20,7 @@ CURSOR_MAP = {
         'template': 'orders.html',
         'filters': {
             'initial': SALE_FILTER_ARRAY,
-        }
+        },
     },
     'Customer': {
         'input_type': AmherstCustomer,
@@ -27,7 +28,6 @@ CURSOR_MAP = {
         'template': 'customers.html',
         'filters': {
             'initial': CUSTOMER_FILTER_ARRAY,
-        }
+        },
     },
 }
-

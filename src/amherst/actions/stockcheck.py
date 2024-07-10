@@ -5,14 +5,14 @@ import time
 from collections.abc import Generator
 from datetime import date, timedelta
 
-import pandas as pd
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import pandas as pd
 from pawlogger import get_loguru
 
 from amherst.models.commence_adaptors import HireAliases
 from amherst.models.maps import CURSOR_MAP
-from pycommence.pycmc_types import CmcDateFormat, RadioType
+from pycommence.pycmc_types import CmcDateFormat, MoreAvailable, RadioType
 from pycommence.pycommence_v2 import PyCommence
 
 logger = get_loguru(profile='local')
@@ -34,11 +34,11 @@ def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
 
 class StockChecker:
     def __init__(
-            self,
-            pycmc=None,
-            radiotype: RadioType = RadioType.HYT,
-            start_date: date = date.today(),
-            end_date: date = date.today() + timedelta(days=6),
+        self,
+        pycmc=None,
+        radiotype: RadioType = RadioType.HYT,
+        start_date: date = date.today(),
+        end_date: date = date.today() + timedelta(days=6),
     ):
         self.radiotype = radiotype
         self.start_date = start_date
@@ -48,7 +48,7 @@ class StockChecker:
         self.data = self._prepare_data()
 
     def _prepare_data(self):
-        records = self.pycommence.read_rows()
+        records = [_ for _ in self.pycommence.read_rows() if not isinstance(_, MoreAvailable)]
         df = prep_df(records)
         return df
 
@@ -59,10 +59,10 @@ class StockChecker:
     def run(self):
         dates = list(self.date_range_gen)
         send_data = [self.to_send(datecheck) for datecheck in dates]
-        stock_data = [self.how_many_in(datecheck) for datecheck in dates]
+        rads_in = [self.how_many_in(datecheck) for datecheck in dates]
         rads_out = [self.how_many_out(datecheck) for datecheck in dates]
 
-        data_df = pd.DataFrame({'Date': dates, 'Send': send_data, 'Stock': stock_data, 'Out': rads_out})
+        data_df = pd.DataFrame({'Date': dates, 'Send': send_data, 'In': rads_in, 'Out': rads_out})
 
         self.plot_data(data_df)
 
@@ -75,7 +75,7 @@ class StockChecker:
         filtered_data = self.data[
             (self.data[HireAliases.SEND_DATE].dt.date < datecheck)
             & (self.data[HireAliases.DUE_BACK_DATE].dt.date > datecheck)
-            ]
+        ]
         rads_out = filtered_data[HireAliases.UHF].sum()
         return rads_out
 
@@ -87,6 +87,7 @@ class StockChecker:
         dates = data_df['Date']
         send = data_df['Send']
         radios_out = data_df['Out']
+        radios_in = data_df['In']
 
         ax1 = plt.gca()
         ax2 = ax1.twinx()
@@ -99,7 +100,8 @@ class StockChecker:
         plt.bar(dates, send, width=2, color='blue', label='Send Quantity', alpha=0.7)
 
         plt.sca(ax1)
-        plt.plot(dates, radios_out, label='Rads Out', color='green', marker='o')
+        plt.plot(dates, radios_in, label='Rads In', color='green', marker='o')
+        # plt.plot(dates, radios_out, label='Rads Out', color='green', marker='o')
         #
         # plt.sca(ax1)
         # plt.plot(dates, radios_in, label='Stock Level', color='green', marker='o')
@@ -124,8 +126,8 @@ if __name__ == '__main__':
     starttime = time.perf_counter()
     sc = StockChecker(
         radiotype=RadioType.HYT,
-        start_date=date(2023, 1, 1),
-        end_date=date(2024, 7, 1),
+        start_date=date(2024, 7, 10),
+        end_date=date(2024, 7, 11),
     )
     sc.run()
     endtime = time.perf_counter()

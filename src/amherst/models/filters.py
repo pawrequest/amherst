@@ -25,11 +25,12 @@ HIRE_FILS = (
 )
 HIRE_SORTS = ((HireAliases.SEND_DATE, SortOrder.DESC),)
 
-HIRE_FILTER_ARRAY = FilterArray.from_filters(
-    *HIRE_FILS,
-    sorts=HIRE_SORTS
-)
+HIRE_FILTER_ARRAY = FilterArray.from_filters(*HIRE_FILS, sorts=HIRE_SORTS)
 
+HIRE_STOCK_FILS = (
+    FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value=to_cmc_date(HIRE_START_DATE)),
+    FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value=to_cmc_date(HIRE_END_DATE)),
+)
 
 SALE_START_DATE = date.today() - timedelta(days=30)
 SALE_FILTERS = (
@@ -37,10 +38,7 @@ SALE_FILTERS = (
 )
 SALE_SORTS = ((SaleAliases.DATE_ORDERED, SortOrder.DESC),)
 
-SALE_FILTER_ARRAY = FilterArray.from_filters(
-    *SALE_FILTERS,
-    sorts=SALE_SORTS
-)
+SALE_FILTER_ARRAY = FilterArray.from_filters(*SALE_FILTERS, sorts=SALE_SORTS)
 
 
 CUSTOMER_HIRE_CONNECTION = Connection2(name='Has Hired', category='Hire', column='Name')
