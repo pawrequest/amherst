@@ -9,11 +9,26 @@ from loguru import logger
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-from amherst.config import TEMPLATES
-from amherst.back.route_depends import (template_name_from_query, SearchRequest, SearchResponse)
 from amherst.back.pyc_backend import pycommence_response
+from amherst.back.route_depends import SearchRequest, SearchResponse, template_name_from_query
+from amherst.config import TEMPLATES
 
 router = APIRouter()
+
+
+@router.post('/control-box')
+async def control_box_post(request: Request, order: dict):
+    return TEMPLATES.TemplateResponse('controlbox2.html', {'request': request, 'order': order})
+
+
+@router.get('/control-box')
+async def control_box(request: Request):
+    return TEMPLATES.TemplateResponse('controlbox2.html', {'request': request})
+
+
+@router.get('/shipping-form')
+async def shipping_form(request: Request):
+    return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request})
 
 
 @router.get('/test')
@@ -24,9 +39,9 @@ async def test(request: Request):
 
 @router.get('/search')
 async def search_get[T: SearchResponse](
-        request: Request,
-        search_request: SearchRequest = Depends(SearchRequest.from_query),
-        template_name: str = Depends(template_name_from_query),
+    request: Request,
+    search_request: SearchRequest = Depends(SearchRequest.from_query),
+    template_name: str = Depends(template_name_from_query),
 ) -> HTMLResponse:
     response: T = await pycommence_response(search_request)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
@@ -34,9 +49,9 @@ async def search_get[T: SearchResponse](
 
 @router.post('/search')
 async def search_post[T: SearchResponse](
-        request: Request,
-        search_request: SearchRequest = Depends(SearchRequest.from_body),
-        template_name: str = Depends(template_name_from_query),
+    request: Request,
+    search_request: SearchRequest = Depends(SearchRequest.from_body),
+    template_name: str = Depends(template_name_from_query),
 ) -> HTMLResponse:
     response: T = await pycommence_response(search_request)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
@@ -44,7 +59,7 @@ async def search_post[T: SearchResponse](
 
 @router.get('/multi', response_class=HTMLResponse)
 async def multi_shipper(
-        request: Request,
+    request: Request,
 ):
     return TEMPLATES.TemplateResponse('multi.html', {'request': request})
 
