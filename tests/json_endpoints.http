@@ -1,37 +1,32 @@
 ### All Hire
-GET http://127.0.0.1:8000/api/search?csrname=Hire&filtered=false
+GET http://127.0.0.1:8000/api/Hire?filtered=false&limit=50
 
+### Hire By ID
+GET 127.0.0.1:8000/api/Hire/1E:2EFA:258B50:4A3
 
 ### Hire Paginated
-GET http://127.0.0.1:8000/api/search?csrname=Hire&limit=20&offset=30
-
+GET http://127.0.0.1:8000/api/Hire?filtered=false&limit=5&offset=5
 
 
 ### Hire Filtered
-GET http://127.0.0.1:8000/api/search?csrname=Hire
+GET http://127.0.0.1:8000/api/Hire
 
 
 ### Hire Search
-GET http://127.0.0.1:8000/api/search?csrname=Hire&pk_value=school&filtered=false
+GET http://127.0.0.1:8000/api/Hire/search/school
 
+### Sale Search
+GET http://127.0.0.1:8000/api/Sale/search/school
 
-### Hire Filtered Search
-GET http://127.0.0.1:8000/api/search?csrname=Hire&pk_value=school
-
-
-### Customer Filtered Paginated
-GET http://127.0.0.1:8000/api/search?csrname=Customer&limit=5&offset=5
-
-
-### Customer Filtered Search
-GET http://127.0.0.1:8000/api/search?csrname=Customer&pk_value=school
+### Customer Search
+GET http://127.0.0.1:8000/api/Customer/search/school
 
 
 ### Customer Filtered Search Paginated
-GET http://127.0.0.1:8000/api/search?csrname=Customer&pk_value=school&limit=5&offset=5
+GET http://127.0.0.1:8000/api/Customer/search/school?limit=5&offset=2
 
-### All Customers
-GET http://127.0.0.1:8000/api/search?csrname=Customer&filtered=false
+### Customers Filtered
+GET http://127.0.0.1:8000/api/Customer
 
 ###
 POST http://127.0.0.1:8000/api/search?limit=50&offset=2
@@ -39,8 +34,10 @@ POST http://127.0.0.1:8000/api/search?limit=50&offset=2
 Content-Type: application/json
 
 {
-  "csrname": "Hire"
+  "csrname": "Hire",
+  "pk_value": "school"
 }
+
 
 <> 2024-07-07T191654.200.json
 <> 2024-07-07T191539-1.200.json
