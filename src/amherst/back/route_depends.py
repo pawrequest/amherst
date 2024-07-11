@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
 from amherst.models.amherst_models import AMHERST_TABLE_TYPES
-from amherst.models.filters import FilterName
+from amherst.models.filters import (FilterName, get_customer_filter, get_hire_filter, get_sale_filter)
 from amherst.models.maps import CURSOR_MAP
 from pycommence.cursor_v2 import CursorAPI
 from pycommence.filters import ConditionType, FilterArray
@@ -32,34 +32,36 @@ async def template_name_from_query(csrname: CsrName = Query(...)):
 
 class SearchRequest(BaseModel):
     csrname: CsrName
-    filtername: FilterName | None = None
-    package: dict[str, str] = Field(default_factory=dict)
+    filtered: bool = True
+    package: dict = Field(default_factory=dict)
     pagination: Pagination = Pagination()
-    pk_value: str = ''
+    pk_value: str | None = None
     condition: ConditionType = ConditionType.CONTAIN
 
-    def filter_array(self, csr: CursorAPI | None = None) -> FilterArray:
-        if not any([self.filtername, self.pk_value]):
-            raise ValueError('filtername or pk_value required')
+    def filter_array(self, csr: CursorAPI | None = None) -> FilterArray | None:
         if self.pk_value and not csr:
             raise ValueError('pk_value requires csr')
-        filarray: FilterArray = CURSOR_MAP[self.csrname]['filters'].get(self.filtername, FilterArray())
-        if self.pk_value:
-            filarray.add_filter(csr.pk_filter(self.pk_value))
-            filarray.logics.append('And')
-        return filarray
+        if self.filtered:
+            match self.csrname:
+                case 'Hire':
+                    return get_hire_filter(self.pk_value)
+                case 'Sale':
+                    return get_sale_filter(self.pk_value)
+                case 'Customer':
+                    return get_customer_filter(self.pk_value)
+        return FilterArray.from_filters(csr.pk_filter(self.pk_value, self.condition))
 
-    def __hash__(self):
-        return hash(
-            (
-                self.csrname,
-                self.filtername,
-                self.pk_value,
-                self.pagination.offset,
-                self.pagination.limit,
-                *list(self.package.items()),
-            )
-        )
+    # def __hash__(self):
+    #     return hash(
+    #         (
+    #             self.csrname,
+    #             self.filtername,
+    #             self.pk_value,
+    #             self.pagination.offset,
+    #             self.pagination.limit,
+    #             *list(self.package.items()),
+    #         )
+    #     )
 
     @property
     def q_str(self):
@@ -82,8 +84,8 @@ class SearchRequest(BaseModel):
         pagination = pagination or self.pagination
         qstr = '/api' if json else ''
         qstr += f'/search?csrname={self.csrname}'
-        if self.filtername:
-            qstr += f'&filtername={self.filtername}'
+        if self.filtered:
+            qstr += f'&filtered={str(self.filtered).lower()}'
         if self.pk_value:
             qstr += f'&pkvalue={self.pk_value}'
         qstr += f'&limit={pagination.limit}&offset={pagination.offset}'
@@ -97,29 +99,28 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_query(
-        cls,
-        request: Request,
-        csrname: CsrName = Query(...),
-        filtername: FilterName | None = Query(None),
-        pk_value: str = Query(''),
-        pagination: Pagination = Depends(Pagination.from_query),
+            cls,
+            csrname: CsrName = Query(...),
+            filtered: bool = Query(True),
+            pk_value: str = Query(''),
+            pagination: Pagination = Depends(Pagination.from_query),
     ):
-        logger.warning(f'SearchRequest.from_query({csrname=}, {filtername=}, {pk_value=}, {pagination=})')
+        logger.warning(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
         return cls(
             csrname=csrname,
             pagination=pagination,
             pk_value=pk_value,
-            filtername=filtername,
+            filtered=filtered,
         )
 
     @classmethod
     def from_body(
-        cls,
-        csrname: CsrName = Body(...),
-        filtername: FilterName | None = Body(None),
-        pk_value: str = Body(''),
-        package: dict | None = Body(default_factory=dict),
-        pagination: Pagination = Depends(Pagination.from_query),
+            cls,
+            csrname: CsrName = Body(...),
+            filtername: FilterName | None = Body(None),
+            pk_value: str = Body(''),
+            package: dict | None = Body(default_factory=dict),
+            pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_body({csrname=}, {filtername=}, {pk_value=}, {package=}, {pagination=})')
         res = cls(

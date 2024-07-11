@@ -7,11 +7,11 @@ GET http://127.0.0.1:8000/search?csrname=Hire&limit=5&offset=5
 
 
 ### Hire Filtered Paginated
-GET http://127.0.0.1:8000/search?csrname=Hire&filtername=initial_hire&limit=5&offset=5
+GET http://127.0.0.1:8000/search?csrname=Hire&filtername=initial&limit=5&offset=5
 
 
 ### Hire Filtered Search
-GET http://127.0.0.1:8000/search?csrname=Hire&filtername=initial_hire&pk_value=school
+GET http://127.0.0.1:8000/search?csrname=Hire&filtername=initial&pk_value=school
 
 
 ### Customer Paginated
@@ -19,7 +19,7 @@ GET http://127.0.0.1:8000/search?csrname=Customer&limit=5&offset=5
 
 
 ### Customer Filtered Paginated
-GET http://127.0.0.1:8000/search?csrname=Customer&filtername=customer_initial&limit=5&offset=5
+GET http://127.0.0.1:8000/search?csrname=Customer&filtername=initial&limit=5&offset=5
 
 
 ###
@@ -30,7 +30,7 @@ Content-Type: application/json
 {
   "csrname": "Hire",
   "pk_value": "school",
-  "filtername": "initial_hire"
+  "filtername": "initial"
 }
 
 

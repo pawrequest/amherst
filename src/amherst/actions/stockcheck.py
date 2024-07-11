@@ -11,7 +11,7 @@ import pandas as pd
 from pawlogger import get_loguru
 
 from amherst.models.commence_adaptors import HireAliases
-from amherst.models.maps import CURSOR_MAP
+from amherst.models.filters import get_filter_array
 from pycommence.pycmc_types import CmcDateFormat, MoreAvailable, RadioType
 from pycommence.pycommence_v2 import PyCommence
 
@@ -54,7 +54,7 @@ class StockChecker:
 
     @property
     def filters(self):
-        return CURSOR_MAP['Hire']['filters']['initial']
+        return get_filter_array('Hire', 'initial')
 
     def run(self):
         dates = list(self.date_range_gen)
