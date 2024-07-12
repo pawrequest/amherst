@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Depends
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -16,31 +16,31 @@ from shipaw.ship_types import VALID_POSTCODE
 router = APIRouter()
 
 
-@router.get('/form')
-async def shipping_form(request: Request):
-    return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request})
-
-
 @router.get('/{csrname}/{row_id}')
 async def ship_from_path(
-        request: Request,
-        row: AMHERST_TABLE_TYPES = Depends(row_from_path),
+    request: Request,
+    row: AMHERST_TABLE_TYPES = Depends(row_from_path),
 ):
-    shipment_request = row.shipment_dict()
-    return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request, 'shipment': shipment_request})
+    shipdict = row.shipment_dict()
+    shipment_request = ShipmentConfigured(**shipdict)
+    shipment_request = shipment_request.model_validate(shipment_request)
+    logger.warning(f'Shipment request: {shipment_request}')
+    return TEMPLATES.TemplateResponse(
+        'shipping_form.html', {'request': request, 'shipment': shipment_request.model_dump_json()}
+    )
 
 
 @router.post('/form_to_ship/')
 async def form_to_shipment(
-        shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
+    shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
 ):
     return shipment_request
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
 async def fetch_candidates(
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -48,7 +48,7 @@ async def fetch_candidates(
 
 @router.post('/shiprec', response_class=JSONResponse)
 async def shiprec_post(
-        shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
+    shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
 ) -> ShipmentConfigured:
     logger.info(shipment_request.recipient_contact.notifications)
     return shipment_request
@@ -56,9 +56,14 @@ async def shiprec_post(
 
 @router.post('/confirm_booking', response_class=JSONResponse)
 async def confirm_booking(
-        shipment: ShipmentConfigured,
-        el_client: ELClient = Depends(get_el_client),
+    shipment: ShipmentConfigured,
+    el_client: ELClient = Depends(get_el_client),
 ) -> ShipmentResponse:
     if isinstance(shipment, ShipmentAwayCollectionConfigured):
         logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
     return book_shipment(el_client, shipment)
+
+
+@router.get('/')
+async def shipping_form(request: Request):
+    return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request})

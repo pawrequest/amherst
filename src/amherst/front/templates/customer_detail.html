@@ -1,5 +1,4 @@
 <div class="record">
 
-    /ship/{{ row.category }}/{{ row.row_id }}
-    <button class="abut">ABUT</button>
+    <button class="ship" hx-get="/ship/{{ row.category }}/{{ row.row_id }}" hx-target="#maincontent">SHIPPY</button>
 </div>

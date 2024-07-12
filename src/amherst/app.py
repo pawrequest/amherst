@@ -8,6 +8,7 @@ from starlette.staticfiles import StaticFiles
 from amherst.config import settings
 from amherst.back.routes import router as html_router
 from amherst.back.routes_api import router as json_router
+from amherst.back.routes_ship import router as ship_router
 
 
 @contextlib.asynccontextmanager
@@ -30,6 +31,7 @@ app.mount('/static', StaticFiles(directory=str(settings().base_dir / 'front' / '
 
 app.include_router(html_router)
 app.include_router(json_router, prefix='/api')
+app.include_router(ship_router, prefix='/ship')
 # app.ship_live = pf_config.pf_sett().ship_live
 
 

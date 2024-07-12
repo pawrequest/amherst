@@ -100,3 +100,15 @@
     </div>
 </form>
 {#        <div class="returned-request"></div>#}
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let shipmentJson = "{{ shipment }}";
+            if (shipmentJson !== undefined) {
+                console.log(shipmentJson);
+            {#    let parsed = JSON.parse(shipmentJson);#}
+            {#    populateForm(parsed);#}
+                }
+        });
+    </script>
+{% endblock %}

@@ -20,7 +20,42 @@
 //         document.getElementById('postcode').value = row.delivery_address_pc;
 //     }
 
-async function populateForm(shipment) {
+/**
+ * @typedef {Object} Contact
+ * @property {string} contact_name
+ * @property {string} email_address
+ * @property {string} mobile_phone
+ */
+
+/**
+ * @typedef {Object} Address
+ * @property {string} address_line1
+ * @property {string} [address_line2]
+ * @property {string} [address_line3]
+ * @property {string} town
+ * @property {string} postcode
+ */
+
+/**
+ * @typedef {Object} Shipment
+ * @property {string} shipping_date
+ * @property {number} total_number_of_parcels
+ * @property {string} business_name
+ * @property {Contact} recipient_contact
+ * @property {string} reference_number1
+ * @property {string} [reference_number2]
+ * @property {string} [reference_number3]
+ * @property {string} [special_instructions1]
+ * @property {string} [special_instructions2]
+ * @property {string} [special_instructions3]
+ * @property {Address} recipient_address
+ */
+
+/**
+ * Populates form fields with shipment data.
+ * @param {Shipment} shipment - The shipment data.
+ */
+function populateForm(shipment) {
     document.getElementById('ship_date').value = shipment.shipping_date;
     document.getElementById('boxes').value = shipment.total_number_of_parcels;
     document.getElementById('business_name').value = shipment.recipient_contact.business_name;
@@ -39,6 +74,7 @@ async function populateForm(shipment) {
     document.getElementById('town').value = shipment.recipient_address.town;
     document.getElementById('postcode').value = shipment.recipient_address.postcode;
 }
+
 
 function toggleOwnLabel() {
     let direction = document.getElementById("direction").value;
