@@ -35,6 +35,7 @@ async def get_row(
     row: dict = Depends(row_from_path),
     template_name: str = Depends(template_name_from_path),
 ) -> HTMLResponse:
+    template_name = template_name.replace('.html', '_detail.html')
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
 
 

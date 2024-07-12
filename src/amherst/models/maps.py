@@ -7,16 +7,16 @@ CURSOR_MAP = {
     'Hire': {
         'input_type': AmherstHire,
         'aliases': HireAliases,
-        'template': 'orders.html',
+        'template': 'order.html',
     },
     'Sale': {
         'input_type': AmherstSale,
         'aliases': SaleAliases,
-        'template': 'orders.html',
+        'template': 'order.html',
     },
     'Customer': {
         'input_type': AmherstCustomer,
         'aliases': CustomerAliases,
-        'template': 'customers.html',
+        'template': 'customer.html',
     },
 }
