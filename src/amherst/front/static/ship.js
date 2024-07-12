@@ -1,24 +1,45 @@
-async function populateForm(rowId) {
-        const resp = await fetch(`/api/get_amrec/${rowId}`)
-        const amherst_table = await resp.json()
-        document.getElementById('ship_date').value = amherst_table.send_date;
-        document.getElementById('boxes').value = amherst_table.boxes;
-        document.getElementById('business_name').value = amherst_table.delivery_contact_business;
-        document.getElementById('contact_name').value = amherst_table.delivery_contact_name;
-        document.getElementById('email').value = amherst_table.delivery_contact_email;
-        document.getElementById('mobile_phone').value = amherst_table.delivery_contact_phone;
-        document.getElementById('reference_number1').value = amherst_table.reference_number1;
-        document.getElementById('reference_number2').value = amherst_table.reference_number2;
-        document.getElementById('reference_number3').value = amherst_table.reference_number3;
-        document.getElementById('special_instructions1').value = amherst_table.special_instructions1;
-        document.getElementById('special_instructions2').value = amherst_table.special_instructions2;
-        document.getElementById('special_instructions3').value = amherst_table.special_instructions3;
-        document.getElementById('address_line1').value = amherst_table.delivery_address_line1;
-        document.getElementById('address_line2').value = amherst_table.delivery_address_line2;
-        document.getElementById('address_line3').value = amherst_table.delivery_address_line3;
-        document.getElementById('town').value = amherst_table.delivery_town;
-        document.getElementById('postcode').value = amherst_table.delivery_address_pc;
-    }
+// async function populateForm(csrname, rowId) {
+//         const resp = await fetch(`/api/${csrname}/${rowId}`)
+//         const row = await resp.json()
+//         document.getElementById('ship_date').value = row.send_date;
+//         document.getElementById('boxes').value = row.boxes;
+//         document.getElementById('business_name').value = row.delivery_contact_business;
+//         document.getElementById('contact_name').value = row.delivery_contact_name;
+//         document.getElementById('email').value = row.delivery_contact_email;
+//         document.getElementById('mobile_phone').value = row.delivery_contact_phone;
+//         document.getElementById('reference_number1').value = row.reference_number1;
+//         document.getElementById('reference_number2').value = row.reference_number2;
+//         document.getElementById('reference_number3').value = row.reference_number3;
+//         document.getElementById('special_instructions1').value = row.special_instructions1;
+//         document.getElementById('special_instructions2').value = row.special_instructions2;
+//         document.getElementById('special_instructions3').value = row.special_instructions3;
+//         document.getElementById('address_line1').value = row.delivery_address_line1;
+//         document.getElementById('address_line2').value = row.delivery_address_line2;
+//         document.getElementById('address_line3').value = row.delivery_address_line3;
+//         document.getElementById('town').value = row.delivery_town;
+//         document.getElementById('postcode').value = row.delivery_address_pc;
+//     }
+
+async function populateForm(shipment) {
+    document.getElementById('ship_date').value = shipment.shipping_date;
+    document.getElementById('boxes').value = shipment.total_number_of_parcels;
+    document.getElementById('business_name').value = shipment.recipient_contact.business_name;
+    document.getElementById('contact_name').value = shipment.recipient_contact.contact_name;
+    document.getElementById('email').value = shipment.recipient_contact.email_address;
+    document.getElementById('mobile_phone').value = shipment.recipient_contact.mobile_phone;
+    document.getElementById('reference_number1').value = shipment.reference_number1;
+    document.getElementById('reference_number2').value = shipment.reference_number2;
+    document.getElementById('reference_number3').value = shipment.reference_number3;
+    document.getElementById('special_instructions1').value = shipment.special_instructions1;
+    document.getElementById('special_instructions2').value = shipment.special_instructions2;
+    document.getElementById('special_instructions3').value = shipment.special_instructions3;
+    document.getElementById('address_line1').value = shipment.recipient_address.address_line1;
+    document.getElementById('address_line2').value = shipment.recipient_address.address_line2;
+    document.getElementById('address_line3').value = shipment.recipient_address.address_line3;
+    document.getElementById('town').value = shipment.recipient_address.town;
+    document.getElementById('postcode').value = shipment.recipient_address.postcode;
+}
+
 function toggleOwnLabel() {
     let direction = document.getElementById("direction").value;
     let ownLabelLabel = document.getElementById("own_label_label");

@@ -22,7 +22,7 @@ async def shipping_form(request: Request):
 
 
 @router.get('/{csrname}/{row_id}')
-async def shipping_form_post(
+async def ship_from_path(
         request: Request,
         row: AMHERST_TABLE_TYPES = Depends(row_from_path),
 ):
