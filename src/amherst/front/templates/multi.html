@@ -14,15 +14,15 @@
         >
 
         <nav class="nav-bar">
-            <a href="#" hx-get="/search?csrname=Customer&filtername=initial" hx-target="#record-container"
+            <a href="#" hx-get="/Customer" hx-target="#record-container"
                hx-swap="innerHTML" hx-trigger=>Customers</a>
-            <a href="#" hx-get="/search?csrname=Hire&filtername=initial" hx-target="#record-container"
+            <a href="#" hx-get="/Hire" hx-target="#record-container"
                hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="/search?csrname=Sale&filtername=initial" hx-target="#record-container"
+            <a href="#" hx-get="/Sale" hx-target="#record-container"
                hx-swap="innerHTML">Sales</a>
         </nav>
 
-        <div class="record-container" id="record-container" hx-get="/search/?csrname=Customer&filtername=initial"
+        <div class="record-container" id="record-container" hx-get="/Customer"
              hx-trigger="load"
              hx-target="this" hx-swap="innerHTML">
         </div>

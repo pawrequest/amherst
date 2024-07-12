@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
 from amherst.models.amherst_models import AMHERST_TABLE_TYPES
-from amherst.models.filters import (get_customer_filter, get_hire_filter, get_sale_filter)
+from amherst.models.filters import get_customer_filter, get_hire_filter, get_sale_filter
 from amherst.models.maps import CURSOR_MAP
 from pycommence.cursor_v2 import CursorAPI
 from pycommence.filters import ConditionType, FilterArray
@@ -27,6 +27,10 @@ class Pagination(_Pagination):
 
 
 async def template_name_from_query(csrname: CsrName = Query(...)):
+    return CURSOR_MAP[csrname]['template']
+
+
+async def template_name_from_path(csrname: CsrName = Path(...)):
     return CURSOR_MAP[csrname]['template']
 
 
@@ -102,11 +106,11 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def srch_from_path(
-            cls,
-            csrname: CsrName = Path(...),
-            filtered: bool = Query(True),
-            pk_value: str = Path(...),
-            pagination: Pagination = Depends(Pagination.from_query),
+        cls,
+        csrname: CsrName = Path(...),
+        filtered: bool = Query(True),
+        pk_value: str = Path(...),
+        pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_path({csrname=}, {pk_value=}, {pagination=})')
         return cls(
@@ -118,10 +122,10 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_path(
-            cls,
-            csrname: CsrName = Path(...),
-            filtered: bool = Query(True),
-            pagination: Pagination = Depends(Pagination.from_query),
+        cls,
+        csrname: CsrName = Path(...),
+        filtered: bool = Query(True),
+        pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_path({csrname=}, {pagination=})')
         return cls(
@@ -132,11 +136,11 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_query(
-            cls,
-            csrname: CsrName = Path(...),
-            filtered: bool = Query(True),
-            pk_value: str = Query(''),
-            pagination: Pagination = Depends(Pagination.from_query),
+        cls,
+        csrname: CsrName = Path(...),
+        filtered: bool = Query(True),
+        pk_value: str = Query(''),
+        pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
         return cls(
@@ -148,12 +152,12 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_body(
-            cls,
-            csrname: CsrName = Body(...),
-            filtered: bool = Body(True),
-            pk_value: str = Body(None),
-            package: dict | None = Body(default_factory=dict),
-            pagination: Pagination = Depends(Pagination.from_query),
+        cls,
+        csrname: CsrName = Body(...),
+        filtered: bool = Body(True),
+        pk_value: str = Body(None),
+        package: dict | None = Body(default_factory=dict),
+        pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {package=}, {pagination=})')
         res = cls(
