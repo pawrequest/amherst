@@ -98,5 +98,8 @@ def row_from_path(
         csrname: CsrName = Path(...),
         row_id: str = Path(...),
 ) -> AMHERST_TABLE_TYPES:
+    record_type: type[BaseModel] = CURSOR_MAP[csrname]['input_type']
+
     with pycommence_context(csrname=csrname) as pycmc:
-        return pycmc.read_row(id=row_id)
+        row = pycmc.read_row(id=row_id)
+    return record_type.model_validate(row)

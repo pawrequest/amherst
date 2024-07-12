@@ -7,6 +7,7 @@ from starlette.responses import HTMLResponse
 from amherst.back.pyc_backend import pycommence_response, row_from_path
 from amherst.back.route_depends import SearchRequest, SearchResponse, template_name_from_path
 from amherst.config import TEMPLATES
+from amherst.models.amherst_models import AMHERST_TABLE_TYPES
 
 router = APIRouter()
 
@@ -32,7 +33,7 @@ async def get_srch[T: SearchResponse](
 @router.get('/{csrname}/{row_id}')
 async def get_row(
     request: Request,
-    row: dict = Depends(row_from_path),
+    row: AMHERST_TABLE_TYPES = Depends(row_from_path),
     template_name: str = Depends(template_name_from_path),
 ) -> HTMLResponse:
     template_name = template_name.replace('.html', '_detail.html')
