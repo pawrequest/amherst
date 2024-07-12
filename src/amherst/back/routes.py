@@ -60,10 +60,7 @@ async def get_all(
 #     return TEMPLATES.TemplateResponse('controlbox2.html', {'request': request})
 #
 #
-# @router.get('/shipping-form')
-# async def shipping_form(request: Request):
-#     return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request})
-#
+
 #
 # @router.get('/test')
 # async def test(request: Request):

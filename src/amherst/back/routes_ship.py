@@ -1,8 +1,12 @@
-from fastapi import Depends, APIRouter
+from fastapi import APIRouter, Body, Depends
 from loguru import logger
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from amherst.actions.shipper import book_shipment, get_el_client, shipment_request_f_form
+from amherst.back.pyc_backend import row_from_path
+from amherst.config import TEMPLATES
+from amherst.models.amherst_models import AMHERST_TABLE_TYPES
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
@@ -10,6 +14,20 @@ from shipaw.models.pf_shipment import ShipmentAwayCollectionConfigured, Shipment
 from shipaw.ship_types import VALID_POSTCODE
 
 router = APIRouter()
+
+
+@router.get('/form')
+async def shipping_form(request: Request):
+    return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request})
+
+
+@router.get('/{csrname}/{row_id}')
+async def shipping_form_post(
+        request: Request,
+        row: AMHERST_TABLE_TYPES = Depends(row_from_path),
+):
+    shipment_request = row.shipment_dict()
+    return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request, 'shipment': shipment_request})
 
 
 @router.post('/form_to_ship/')
