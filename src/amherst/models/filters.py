@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 from typing import Literal
 
-from amherst.models.commence_adaptors import HireAliases, SaleAliases
+from amherst.models.commence_adaptors import HireAliases, HireStatus, SaleAliases
 from pycommence.filters import (
     ConditionType,
     ConnectedFieldFilter,
@@ -13,26 +13,25 @@ from pycommence.filters import (
 )
 from pycommence.pycmc_types import Connection2
 
-FilterName = Literal['initial', 'pk']
+FilterName = Literal['hire', 'sale', 'customer']
 
 
 @functools.lru_cache
 def get_hire_filter(pk_value: str | None = None):
     res = FilterArray(
         filters={
-            1: FieldFilter(
-                column=HireAliases.SEND_DATE,
-                condition=ConditionType.AFTER,
-                value='one month ago'
-            ),
+            1: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one month ago'),
             2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one month from today'),
             3: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_CONTAIN, value='Returned'),
+            # 4: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
         },
         sorts=((HireAliases.SEND_DATE, SortOrder.DESC),),
         logics=['And', 'And'],
     )
     if pk_value:
-        res.add_filter(FieldFilter(column=HireAliases.NAME, condition=ConditionType.CONTAIN, value=pk_value))
+        res.add_filter(
+            FieldFilter(column=HireAliases.NAME, condition=ConditionType.CONTAIN, value=pk_value), logic='And'
+        )
     return res
 
 
@@ -40,11 +39,7 @@ def get_hire_filter(pk_value: str | None = None):
 def get_sale_filter(pk_value: str | None = None):
     res = FilterArray(
         filters={
-            1: FieldFilter(
-                column=SaleAliases.DATE_ORDERED,
-                condition=ConditionType.AFTER,
-                value='one month ago'
-            ),
+            1: FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='one month ago'),
         },
         sorts=((SaleAliases.DATE_ORDERED, SortOrder.DESC),),
     )
@@ -57,10 +52,12 @@ def get_sale_filter(pk_value: str | None = None):
 def get_customer_filter(pk_value: str | None = None):
     customer_hire_connection = Connection2(name='Has Hired', category='Hire', column='Name')
     customer_sale_connection = Connection2(name='Involves', category='Sale', column='Name')
-    customer_hire_filters = [ConnectedFieldFilter.from_fil(f, customer_hire_connection) for f in
-                             get_hire_filter().filters.values()]
-    customer_sale_filters = [ConnectedFieldFilter.from_fil(f, customer_sale_connection) for f in
-                             get_sale_filter().filters.values()]
+    customer_hire_filters = [
+        ConnectedFieldFilter.from_fil(f, customer_hire_connection) for f in get_hire_filter().filters.values()
+    ]
+    customer_sale_filters = [
+        ConnectedFieldFilter.from_fil(f, customer_sale_connection) for f in get_sale_filter().filters.values()
+    ]
     assert len(customer_hire_filters) == 3
     assert len(customer_sale_filters) == 1
 
@@ -90,15 +87,15 @@ def get_customer_filter(pk_value: str | None = None):
 
 @functools.lru_cache
 def get_filter_array(
-        csrname,
-        pk_value: str | None = None,
+    filtername: FilterName,
+    pk_value: str | None = None,
 ) -> FilterArray:
-    match csrname:
-        case 'Hire':
+    match filtername.lower():
+        case 'hire':
             return get_hire_filter(pk_value)
-        case 'Sale':
+        case 'sale':
             return get_sale_filter(pk_value)
-        case 'Customer':
+        case 'customer':
             return get_customer_filter(pk_value)
         case _:
-            raise ValueError(f'Unknown cursor name {csrname}')
+            raise ValueError(f'Unknown cursor name {filtername}')
