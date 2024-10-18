@@ -31,15 +31,16 @@ from shipaw.ship_types import (
 
 def book_shipment(el_client, shipment_request: ShipmentConfigured) -> pf_msg.ShipmentResponse:
     resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment_request)
-    # logger.debug(f'Booking response: {resp.status=}, {resp.success=}')
+    logger.debug(f'Booking response: {resp.status=}, {resp.success=}')
     if resp.alerts:
-        get_alert_dict(resp)
+        adict = get_alert_dict(resp)
+        logger.warning(f'Alerts: {adict}')
 
     if resp.completed_shipment_info:
         if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
             logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
-    else:
-        logger.warning('No shipment booked')
+        else:
+            logger.warning('No shipment booked')
 
     return resp
 
@@ -55,6 +56,7 @@ def get_alert_dict(resp):
             a_dict['note'] = noted
         except ExpressLinkError as error:
             a_dict['error'] = error
+    return a_dict
 
 
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:

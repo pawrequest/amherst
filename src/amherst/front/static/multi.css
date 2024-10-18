@@ -70,7 +70,7 @@
 
 /**/
 
-.multi {
+.main_div {
     display: grid;
     grid-template-columns: max(20rem) 1fr;
     height: 100%;

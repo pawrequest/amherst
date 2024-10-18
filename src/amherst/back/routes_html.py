@@ -13,7 +13,7 @@ from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 router = APIRouter()
 
 
-@router.get('/multi', response_class=HTMLResponse)
+@router.get('/multi/', response_class=HTMLResponse)
 async def multi_shipper(
     request: Request,
 ):
@@ -29,7 +29,7 @@ async def get_srch[T: SearchResponse](
 ) -> T:
     resp = await pycommence_response(search_request)
     if search_request.max_rtn and len(resp.rows) > search_request.max_rtn:
-        raise HTTPException(status_code=404, detail=f"Too many items found: Specified {search_request.max_rtn} rows and returned {resp.length}")
+        raise HTTPException(status_code=404, detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {resp.length}')
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': resp})
 
 

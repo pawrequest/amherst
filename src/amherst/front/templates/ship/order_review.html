@@ -127,8 +127,7 @@
 <script>
     console.log('dumping shipment')
     {#console.log("{{ shipment  }}")#}
-    console.log("{{ shipment.model_dump_json() }}")
-    {#const spinner = document.querySelector('.loading-spinner');#}
+    const spinner = document.querySelector('.loading-spinner');
     {#const resultsDiv = document.querySelector('.returned-request');#}
     {#const requestDiv = document.querySelector('.requested-shipment');#}
     {#const confirmButton = document.querySelector('.submit-confirm-btn');#}
