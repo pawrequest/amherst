@@ -1,13 +1,14 @@
 # from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-from amherst.back.pyc_backend import pycommence_response, row_from_path
-from amherst.back.route_depends import SearchRequest, SearchResponse, template_name_from_path
+from amherst.back.backend_pycommence import pycommence_response, row_from_path_id
+from amherst.back.search_paginate import SearchRequest, SearchResponse
+from amherst.models.maps import template_name_from_path
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_TABLE_TYPES
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
 router = APIRouter()
 
@@ -20,30 +21,32 @@ async def multi_shipper(
 
 
 #
-@router.get('/{csrname}/search/{pk_value}')
+@router.get('/search/{csrname}/{pk_value}')
 async def get_srch[T: SearchResponse](
     request: Request,
-    search_request: SearchRequest = Depends(SearchRequest.srch_from_path),
+    search_request: SearchRequest = Depends(SearchRequest.from_path),
     template_name: str = Depends(template_name_from_path),
 ) -> T:
     resp = await pycommence_response(search_request)
+    if search_request.max_rtn and len(resp.rows) > search_request.max_rtn:
+        raise HTTPException(status_code=404, detail=f"Too many items found: Specified {search_request.max_rtn} rows and returned {resp.length}")
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': resp})
 
 
-@router.get('/{csrname}/{row_id}')
+@router.get('/row_id/{csrname}/{row_id}')
 async def get_row(
     request: Request,
-    row: AMHERST_TABLE_TYPES = Depends(row_from_path),
+    row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
     template_name: str = Depends(template_name_from_path),
 ) -> HTMLResponse:
     template_name = template_name.replace('.html', '_detail.html')
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
 
 
-@router.get('/{csrname}')
+@router.get('/all/{csrname}')
 async def get_all(
     request: Request,
-    search_request: SearchRequest = Depends(SearchRequest.from_path),
+    search_request: SearchRequest = Depends(SearchRequest.get_all),
     template_name: str = Depends(template_name_from_path),
 ) -> SearchResponse:
     response = await pycommence_response(search_request)

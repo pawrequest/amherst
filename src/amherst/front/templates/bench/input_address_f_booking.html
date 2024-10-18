@@ -30,7 +30,7 @@
        value="{{ booking.shipment_request.recipient_address.postcode }}"
 >
 <button type="button" class="update-address-btn" onclick="loadCandidates()">Update Address Choices</button>
-{#    <button class="update-address-btn" onclick="loadCandidates()">Update Address Choices</button>#}
+{#    <button class="update-address-btn" onclick="UpdateAddressClicked()">Update Address Choices</button>#}
 
 <label for="address-select">Choose Address</label>
 <select id="address-select" name="address" onchange="updateManualFields()">
@@ -68,7 +68,7 @@
     }
 
     // Load the new address candidates from postcode when user presses the button
-    function loadCandidates() {
+    function UpdateAddressClicked() {
         console.log('Loading candidates pydantic');
         const postcode = document.getElementById('postcode').value;
         fetch(`/api/candidates?postcode=${postcode}`)

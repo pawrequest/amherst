@@ -1,40 +1,60 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Form
+from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, HTMLResponse
 
-from amherst.actions.shipper import book_shipment, get_el_client, shipment_request_f_form
-from amherst.back.pyc_backend import row_from_path
+from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_request_f_form
+from amherst.back.backend_pycommence import row_from_path_id, search_f_path
+from amherst.back.search_paginate import SearchResponse
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_TABLE_TYPES
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import ShipmentAwayCollectionConfigured, ShipmentConfigured
-from shipaw.ship_types import VALID_POSTCODE
+from shipaw.models.pf_shipment import ShipmentConfigured
+from shipaw.ship_types import ExpressLinkError, VALID_POSTCODE
 
 router = APIRouter()
 
 
-@router.get('/{csrname}/{row_id}')
-async def ship_from_path(
+# @router.get('/form', response_class=HTMLResponse)
+# async def shipping_form(request: Request):
+#     return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request})
+
+
+@router.get('/row_id/{csrname}/{row_id}')
+async def ship_from_row_id_path(
     request: Request,
-    row: AMHERST_TABLE_TYPES = Depends(row_from_path),
+    row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
 ):
-    shipdict = row.shipment_dict()
-    shipment_request = ShipmentConfigured(**shipdict)
-    shipment_request = shipment_request.model_validate(shipment_request)
-    logger.warning(f'Shipment request: {shipment_request}')
+    shipment = await shipment_from_row(row)
     return TEMPLATES.TemplateResponse(
-        'shipping_form.html', {'request': request, 'shipment': shipment_request.model_dump_json()}
+        'shipping_form.html', {'request': request, 'shipment': shipment.model_dump_json()}
     )
 
 
-@router.post('/form_to_ship/')
-async def form_to_shipment(
-    shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
+async def shipment_from_row(row: AmherstTableBase) -> ShipmentConfigured:
+    shipdict = row.shipment_dict()
+    shipment = ShipmentConfigured(**shipdict)
+    shipment = shipment.model_validate(shipment)
+    logger.warning(f'Shipment request: {shipment}')
+    return shipment
+
+
+@router.get('/pk/{csrname}/{pk_value}', response_class=JSONResponse)
+async def ship_from_pk_value(
+    request: Request,
+    resp: SearchResponse = Depends(search_f_path),
 ):
-    return shipment_request
+    if resp.length == 1 or resp.search_request.pk_value == 'Test':
+        row = resp.records[0]
+        req = await shipment_from_row(row)
+        jsonable = jsonable_encoder(req)
+        return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+    else:
+        return resp
+        # show a list
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
@@ -46,24 +66,24 @@ async def fetch_candidates(
     return res
 
 
-@router.post('/shiprec', response_class=JSONResponse)
-async def shiprec_post(
+@router.post('/post_ship', response_class=HTMLResponse)
+async def post_shipment_form(
+    request: Request,
     shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
-) -> ShipmentConfigured:
+):
     logger.info(shipment_request.recipient_contact.notifications)
-    return shipment_request
+    return TEMPLATES.TemplateResponse('ship/order_review.html', {'request': request, 'shipment': shipment_request})
 
 
-@router.post('/confirm_booking', response_class=JSONResponse)
+@router.post('/confirm_booking', response_model=ShipmentResponse)
 async def confirm_booking(
-    shipment: ShipmentConfigured,
+    shipment: str = Form(...),
+    # shipment: ShipmentConfigured,
     el_client: ELClient = Depends(get_el_client),
-) -> ShipmentResponse:
-    if isinstance(shipment, ShipmentAwayCollectionConfigured):
-        logger.info(f'Collection from {shipment.collection_info.collection_address.address_line1}')
-    return book_shipment(el_client, shipment)
+):
+    logger.info(f'Confirm booking: {shipment}')
+    shipment = ShipmentConfigured.model_validate_json(shipment)
+    response = book_shipment(el_client, shipment)
+    logger.info(f'Booked Shipment Response: {response}')
+    return response
 
-
-@router.get('/')
-async def shipping_form(request: Request):
-    return TEMPLATES.TemplateResponse('shipping_form.html', {'request': request})

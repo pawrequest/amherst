@@ -7,16 +7,16 @@ from fastapi import Depends, Path
 from loguru import logger
 from pydantic import BaseModel
 
-from amherst.back.route_depends import CsrName, SearchRequest, SearchResponse
-from amherst.models.amherst_models import AMHERST_TABLE_TYPES
-from amherst.models.maps import CURSOR_MAP
+from amherst.back.search_paginate import SearchRequest, SearchResponse
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.maps import CURSOR_MAP, AmherstTableName
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
 
 
 @contextlib.contextmanager
-def pycommence_context(csrname: CsrName, filter_array: FilterArray | None = None) -> PyCommence:
+def pycommence_context(csrname: AmherstTableName, filter_array: FilterArray | None = None) -> PyCommence:
     CoInitialize()
     logger.warning('CoInitialize')
     pyc = PyCommence.with_csr(csrname, filter_array=filter_array)
@@ -25,23 +25,23 @@ def pycommence_context(csrname: CsrName, filter_array: FilterArray | None = None
     logger.warning('CoUninitialize')
 
 
-async def pycmc_f_path(csrname: CsrName = Path(...)) -> PyCommence:
+async def pycmc_f_path(csrname: AmherstTableName = Path(...)) -> PyCommence:
     with pycommence_context(csrname=csrname) as pycmc:
         yield pycmc
 
 
 async def pk_search(
-        pycmc: PyCommence,
-        sq: SearchRequest,
-        get_id: bool = False,
+    pycmc: PyCommence,
+    sq: SearchRequest,
+    get_id: bool = False,
 ):
     filter_array = pycmc.csr(sq.csrname).pk_filter_array(pk=sq.pk_value, condition=sq.condition)
     for row in pycmc.read_rows(
-            csrname=sq.csrname,
-            with_category=True,
-            pagination=sq.pagination,
-            filter_array=filter_array,
-            get_id=get_id,
+        csrname=sq.csrname,
+        with_category=True,
+        pagination=sq.pagination,
+        filter_array=filter_array,
+        get_id=get_id,
     ):
         yield row
 
@@ -51,10 +51,10 @@ async def gather_records(input_type, pycmc: PyCommence, sq: SearchRequest, get_i
     records = []
     more = None
     for row in pycmc.read_rows(
-            csrname=sq.csrname,
-            with_category=True,
-            pagination=sq.pagination,
-            get_id=get_id,
+        csrname=sq.csrname,
+        with_category=True,
+        pagination=sq.pagination,
+        get_id=get_id,
     ):
         if isinstance(row, MoreAvailable):
             more = row
@@ -65,39 +65,50 @@ async def gather_records(input_type, pycmc: PyCommence, sq: SearchRequest, get_i
     return more, records
 
 
-async def pycommence_responsedep[T: SearchResponse](
-        search_request: SearchRequest = Depends(SearchRequest.from_query),
-        pycmc: PyCommence = Depends(pycmc_f_path),
+async def search_f_query(
+    search_request: SearchRequest = Depends(SearchRequest.from_query),
+    pycmc: PyCommence = Depends(pycmc_f_path),
+) -> SearchResponse:
+    return await do_search(pycmc, search_request)
 
-) -> T:
+
+async def search_f_path(
+    search_request: SearchRequest = Depends(SearchRequest.from_path),
+    pycmc: PyCommence = Depends(pycmc_f_path),
+) -> SearchResponse:
+    return await do_search(pycmc, search_request)
+
+
+async def do_search(
+    pycmc: PyCommence,
+    search_request: SearchRequest,
+):
     csr = pycmc.csr(search_request.csrname)
     if array := search_request.src_filter(csr):
         pycmc.set_csr(search_request.csrname, filter_array=array)
-
     record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
     more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
     return SearchResponse(records=records, more=more, search_request=search_request)
 
 
-#
 async def pycommence_response[T: SearchResponse](
-        search_request: SearchRequest,
-
+    search_request: SearchRequest,
 ) -> T:
     with pycommence_context(search_request.csrname) as pycmc:
-        csr = pycmc.csr(search_request.csrname)
-        if array := search_request.src_filter(csr):
-            pycmc.set_csr(search_request.csrname, filter_array=array)
+        return await do_search(pycmc, search_request)
+    #     csr = pycmc.csr(search_request.csrname)
+    #     if array := search_request.src_filter(csr):
+    #         pycmc.set_csr(search_request.csrname, filter_array=array)
+    #
+    #     record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
+    #     more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
+    # return SearchResponse(records=records, more=more, search_request=search_request)
 
-        record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
-        more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
-    return SearchResponse(records=records, more=more, search_request=search_request)
 
-
-def row_from_path(
-        csrname: CsrName = Path(...),
-        row_id: str = Path(...),
-) -> AMHERST_TABLE_TYPES:
+def row_from_path_id(
+    csrname: AmherstTableName = Path(...),
+    row_id: str = Path(...),
+) -> AMHERST_TABLE_MODELS:
     record_type: type[BaseModel] = CURSOR_MAP[csrname]['input_type']
 
     with pycommence_context(csrname=csrname) as pycmc:

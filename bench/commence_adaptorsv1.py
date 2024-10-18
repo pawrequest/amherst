@@ -164,13 +164,13 @@ class HireAliases(StrEnum):
 
 
 def dometh():
-    enum_dict = {
-        k: v for k, v in HireAliases.__members__.items()
-    }
+    enum_dict = {k: v for k, v in HireAliases.__members__.items()}
     return enum_dict
+
 
 if __name__ == '__main__':
     dometh()
+
 
 class SaleAliases(StrEnum):
     CUSTOMER = 'To Customer'
@@ -469,6 +469,7 @@ def get_customer_alias(field_name: str) -> str:
     # return CUSTOMER_FIELDS_MAP.get(field_name, '')
     return getattr(CustomerAliases, field_name).value
 
+
 def get_sale_alias(field_name: str) -> str:
     return getattr(SaleAliases, field_name).value
     # return SALE_FIELDS_MAP.get(field_name, '')
@@ -484,12 +485,6 @@ AM_SHIP_DATE = Annotated[
     _p.BeforeValidator(limit_daterange_no_weekends),
     _p.BeforeValidator(get_cmc_date),
 ]
-
-
-class AmherstTableEnum(StrEnum):
-    Hire = 'Hire'
-    Sale = 'Sale'
-    Customer = 'Customer'
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:

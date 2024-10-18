@@ -22,57 +22,61 @@
 
 /**
  * @typedef {Object} Contact
- * @property {string} contact_name
- * @property {string} email_address
- * @property {string} mobile_phone
+ * @property {string} ContactName
+ * @property {string} EmailAddress
+ * @property {string} MobilePhone
  */
 
 /**
  * @typedef {Object} Address
- * @property {string} address_line1
- * @property {string} [address_line2]
- * @property {string} [address_line3]
- * @property {string} town
- * @property {string} postcode
+ * @property {string} AddressLine1
+ * @property {string} [AddressLine2]
+ * @property {string} [AddressLine3]
+ * @property {string} Town
+ * @property {string} Postcode
  */
 
 /**
  * @typedef {Object} Shipment
- * @property {string} shipping_date
- * @property {number} total_number_of_parcels
- * @property {string} business_name
- * @property {Contact} recipient_contact
- * @property {string} reference_number1
- * @property {string} [reference_number2]
- * @property {string} [reference_number3]
- * @property {string} [special_instructions1]
- * @property {string} [special_instructions2]
- * @property {string} [special_instructions3]
- * @property {Address} recipient_address
+ * @property {string} ShippingDate
+ * @property {number} TotalNumberOfParcels
+ * @property {string} BusinessName
+ * @property {Contact} RecipientContact
+ * @property {string} ReferenceNumber1
+ * @property {string} ReferenceNumber2
+ * @property {string} ReferenceNumber3
+ * @property {string} SpecialInstructions1
+ * @property {string} SpecialInstructions2
+ * @property {string} SpecialInstructions3
+ * @property {Address} RecipientAddress
  */
+
+
 
 /**
  * Populates form fields with shipment data.
  * @param {Shipment} shipment - The shipment data.
  */
 function populateForm(shipment) {
-    document.getElementById('ship_date').value = shipment.shipping_date;
-    document.getElementById('boxes').value = shipment.total_number_of_parcels;
-    document.getElementById('business_name').value = shipment.recipient_contact.business_name;
-    document.getElementById('contact_name').value = shipment.recipient_contact.contact_name;
-    document.getElementById('email').value = shipment.recipient_contact.email_address;
-    document.getElementById('mobile_phone').value = shipment.recipient_contact.mobile_phone;
-    document.getElementById('reference_number1').value = shipment.reference_number1;
-    document.getElementById('reference_number2').value = shipment.reference_number2;
-    document.getElementById('reference_number3').value = shipment.reference_number3;
-    document.getElementById('special_instructions1').value = shipment.special_instructions1;
-    document.getElementById('special_instructions2').value = shipment.special_instructions2;
-    document.getElementById('special_instructions3').value = shipment.special_instructions3;
-    document.getElementById('address_line1').value = shipment.recipient_address.address_line1;
-    document.getElementById('address_line2').value = shipment.recipient_address.address_line2;
-    document.getElementById('address_line3').value = shipment.recipient_address.address_line3;
-    document.getElementById('town').value = shipment.recipient_address.town;
-    document.getElementById('postcode').value = shipment.recipient_address.postcode;
+    // console log the shipment data
+    console.log('Populating form from shipment data:', shipment);
+    document.getElementById('ship_date').value = shipment.ShippingDate;
+    document.getElementById('boxes').value = shipment.TotalNumberOfParcels || 1;
+    document.getElementById('business_name').value = shipment.RecipientContact.BusinessName || "";
+    document.getElementById('contact_name').value = shipment.RecipientContact.ContactName || "";
+    document.getElementById('email').value = shipment.RecipientContact.EmailAddress || "";
+    document.getElementById('mobile_phone').value = shipment.RecipientContact.MobilePhone || "";
+    document.getElementById('reference_number1').value = shipment.ReferenceNumber1 || "";
+    document.getElementById('reference_number2').value = shipment.ReferenceNumber2 || "";
+    document.getElementById('reference_number3').value = shipment.ReferenceNumber3 || "";
+    document.getElementById('special_instructions1').value = shipment.SpecialInstructions1 || "";
+    document.getElementById('special_instructions2').value = shipment.SpecialInstructions2 || "";
+    document.getElementById('special_instructions3').value = shipment.SpecialInstructions3 || "";
+    document.getElementById('address_line1').value = shipment.RecipientAddress.AddressLine1 || "";
+    document.getElementById('address_line2').value = shipment.RecipientAddress.AddressLine2 || "";
+    document.getElementById('address_line3').value = shipment.RecipientAddress.AddressLine3 || "";
+    document.getElementById('town').value = shipment.RecipientAddress.Town || "";
+    document.getElementById('postcode').value = shipment.RecipientAddress.Postcode || "";
 }
 
 
@@ -89,12 +93,13 @@ function toggleOwnLabel() {
     }
 }
 
-function initShipPage() {
-    document.addEventListener("DOMContentLoaded", function () {
-        toggleOwnLabel();
-        setMatchScoreStyle();
-        document.getElementById("direction").addEventListener("change", toggleOwnLabel);
-    });
+function initShipPage(shipment) {
+        // toggleOwnLabel();
+        // setMatchScoreStyle();
+        // document.getElementById("direction").addEventListener("change", toggleOwnLabel);
+        // let shipment = { shipment|tojson };
+        populateForm(shipment);
+        loadCandidates();
 }
 
 function updateManualFields() {
@@ -111,7 +116,7 @@ function updateManualFields() {
 function loadCandidates() {
     console.log('Loading candidates');
     const postcode = document.getElementById('postcode').value;
-    fetch(`/api/candidates?postcode=${postcode}`)
+    fetch(`/ship/candidates?postcode=${postcode}`)
         .then(response => response.json())
         .then(data => {
             const addressSelect = document.getElementById('address-select');
@@ -120,12 +125,12 @@ function loadCandidates() {
                 const option = document.createElement('option');
                 option.value = JSON.stringify(addressChoice.Address);
                 option.textContent = addressChoice.Address.AddressLine1;
+                option.setAttribute('data-score', addressChoice.Score);
                 addressSelect.appendChild(option);
             });
-            updateManualFields();
-            setMatchScoreStyle();
         });
 }
+
 
 function setMatchScoreStyle() {
     const scoreSpan = document.getElementById('score-span');
@@ -144,3 +149,8 @@ function setMatchScoreStyle() {
     scoreSpan.className = newClass;
     scoreSpan.textContent = `Match Confidence ${score}%:`;
 }
+// initShipPage();
+// document.addEventListener("DOMContentLoaded", function () {
+//     initShipPage();
+// });
+

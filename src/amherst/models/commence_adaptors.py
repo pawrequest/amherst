@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import date
 from enum import Enum, StrEnum
 from typing import Annotated
@@ -20,6 +21,7 @@ class AmherstTableName(StrEnum):
     Hire = 'Hire'
     Sale = 'Sale'
     Customer = 'Customer'
+    Trial = 'Radio Trial'
 
 
 SALE_CUSTOMERS = Connection(
@@ -46,7 +48,6 @@ class HireStatus(StrEnum):
     CANCELLED = 'Cancelled'
     EXTENDED = 'Extended'
     SOLD = 'Sold to customer'
-
 
 
 class CustomerAliases(str, Enum):
@@ -193,11 +194,29 @@ class SaleAliases(StrEnum):
     INVOICE_TELEPHONE = 'Invoice Telephone'
 
 
+class TrialAliases(StrEnum):
+    NAME = 'Name'
+    CUSTOMER_NAME = 'Involves Customer'
 
-def get_alias(tablename: str, field_name: str) -> str:
-    match tablename:
-        case 'Hire':
-            return HireAliases[field_name].value()
+    DELIVERY_CONTACT_BUSINESS = 'Trial Name'
+    DELIVERY_CONTACT_NAME = 'Trial Contact'
+    DELIVERY_CONTACT_EMAIL = 'Trial Email'
+    DELIVERY_CONTACT_PHONE = 'Trial Telephone'
+
+    DELIVERY_ADDRESS_STR = 'Trial Address'
+    DELIVERY_ADDRESS_PC = 'Trial Postcode'
+
+    INVOICE = 'Our Invoice'
+    # ARRANGED_OUT = 'DB label printed'
+    ARRANGED_IN = 'Pickup Arranged'
+    TRACK_OUT = 'Track Outbound'
+    TRACK_IN = 'Track Inbound'
+
+
+# def get_alias(tablename: str, field_name: str) -> str:
+#     match tablename:
+#         case 'Hire':
+#             return HireAliases[field_name].value()
 
 
 def hire_alias(field_name: str) -> str:
@@ -215,9 +234,17 @@ def customer_alias(field_name: str) -> str:
 
 
 def sale_alias(field_name: str) -> str:
+    # return get_alias('Sale', field_name)
     field_name = field_name.upper()
     if hasattr(SaleAliases, field_name):
         return getattr(SaleAliases, field_name).value
+    return field_name
+
+
+def trial_alias(field_name: str) -> str:
+    field_name = field_name.upper()
+    if hasattr(TrialAliases, field_name):
+        return getattr(TrialAliases, field_name).value
     return field_name
 
 
@@ -259,3 +286,12 @@ customers in sales
 customers in range
 """
 
+
+def get_ref(record_name: str):
+    match = re.search(r'(ref \d+)', record_name)
+    if match:
+        return match.group()
+    if '/' not in record_name:
+        # cutomer no date
+        return record_name
+    raise ValueError(f'No ref found in {record_name} and has slashes i.e. date')

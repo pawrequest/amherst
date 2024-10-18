@@ -37,6 +37,8 @@ from amherst import app_file
 from amherst.models.am_record_smpl import AmherstTableDB
 from pycommence.pycommence_v2 import PyCommence
 
+from amherst.models import commence_adaptors
+
 SCORER = fuzz.partial_ratio
 
 
@@ -47,7 +49,7 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-async def main(category: amherst.commence_adaptors.AmherstTableName, record_name: str):
+async def main(category: commence_adaptors.AmherstTableName, record_name: str):
     logger.info(f'Starting Shipper with {category} record: {record_name}')
     alert = None
     create_db()

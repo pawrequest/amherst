@@ -16,25 +16,45 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import ShipmentConfigured, to_dropoff, to_collection, ShipmentConfigured
+from shipaw.models.pf_shipment import to_dropoff, to_collection, ShipmentConfigured
 from shipaw.models.pf_shipment_blank import ShipmentReferenceFields
 from shipaw.models.pf_top import Contact, ContactCollection
-from shipaw.ship_types import ExpressLinkWarning, ExpressLinkNotification, VALID_POSTCODE, ShipDirection, AlertType
+from shipaw.ship_types import (
+    ExpressLinkError,
+    ExpressLinkWarning,
+    ExpressLinkNotification,
+    VALID_POSTCODE,
+    ShipDirection,
+    AlertType,
+)
 
 
 def book_shipment(el_client, shipment_request: ShipmentConfigured) -> pf_msg.ShipmentResponse:
     resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment_request)
-    for a in resp.alerts.alert if resp.alerts else []:
+    # logger.debug(f'Booking response: {resp.status=}, {resp.success=}')
+    if resp.alerts:
+        get_alert_dict(resp)
+
+    if resp.completed_shipment_info:
+        if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
+            logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
+    else:
+        logger.warning('No shipment booked')
+
+    return resp
+
+
+def get_alert_dict(resp):
+    a_dict = {}
+    for a in resp.alerts.alert:
         try:
             a.raise_exception()
         except ExpressLinkWarning as warned:
-            raise NotImplementedError(warned)
+            a_dict['warning'] = warned
         except ExpressLinkNotification as noted:
-            raise NotImplementedError(noted)
-        if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
-            logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
-            logger.debug(f'Notifications: {shipment_request.notifications_str}')
-    return resp
+            a_dict['note'] = noted
+        except ExpressLinkError as error:
+            a_dict['error'] = error
 
 
 def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
@@ -157,5 +177,5 @@ def get_el_client() -> ELClient:
     try:
         return ELClient()
     except Exception as e:
-        logger.error(f'get_pfc: {e}')
+        logger.error(f'Error getting Parcelforce ExpressLink Client: {e}')
         raise

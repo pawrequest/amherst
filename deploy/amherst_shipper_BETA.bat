@@ -1,7 +1,7 @@
 set CATEGORY=%1
 set RECORD=%2
-set VENV=C:\Users\giles\prdev\amdev\amherst\.venv
-set PYTHONPATH=C:\Users\giles\prdev\amdev\amherst\src
+set VENV=C:\prdev\repos\amherst\.venv
+set PYTHONPATH=C:\prdev\repos\amherst\src
 
 set SHIP_ENV=R:\paul_r\.internal\envs\pf_sandbox.env
 set AM_ENV=R:\paul_r\.internal\envs\am_sandbox.env
@@ -13,5 +13,5 @@ cd /d "%PROG_DIR%"
 
 
 call %VENV%\Scripts\activate
-python -m amherst.amherst_fastui_desktop %CATEGORY% %RECORD%
+python -m amherst.cli %CATEGORY% %RECORD%
 

@@ -1,20 +1,19 @@
 from __future__ import annotations
 
-from typing import Literal, Self
+from typing import Self
 
 from fastapi import Body, Depends, Path, Query
 from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
-from amherst.models.amherst_models import AMHERST_TABLE_TYPES
+# from amherst.back.pyc_backend import pycmc_f_path
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import get_customer_filter, get_hire_filter, get_sale_filter
-from amherst.models.maps import CURSOR_MAP
+from amherst.models.maps import AmherstTableName
 from pycommence.cursor_v2 import CursorAPI
 from pycommence.filters import ConditionType, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
-
-CsrName = Literal['Hire', 'Sale', 'Customer']
 
 PAGE_SIZE = 30
 
@@ -26,22 +25,15 @@ class Pagination(_Pagination):
         return cls(limit=limit, offset=offset)
 
 
-async def template_name_from_query(csrname: CsrName = Query(...)):
-    return CURSOR_MAP[csrname]['template']
-
-
-async def template_name_from_path(csrname: CsrName = Path(...)):
-    return CURSOR_MAP[csrname]['template']
-
-
 class SearchRequest(BaseModel):
-    csrname: CsrName
+    csrname: AmherstTableName
     filtered: bool = True
     package: dict = Field(default_factory=dict)
     pagination: Pagination = Pagination()
     pk_value: str | None = None
     condition: ConditionType = ConditionType.CONTAIN
     row_id: str | None = None
+    max_rtn: int = None
 
     def src_filter(self, csr: CursorAPI | None = None) -> FilterArray | None:
         if self.pk_value and not csr:
@@ -55,7 +47,8 @@ class SearchRequest(BaseModel):
                 case 'Customer':
                     return get_customer_filter(self.pk_value)
         if self.pk_value:
-            return FilterArray.from_filters(csr.pk_filter_array(pk=self.pk_value, condition=self.condition))
+            return csr.pk_filter_array(pk=self.pk_value, condition=self.condition)
+            # return FilterArray.from_filters(csr.pk_filter_array(pk=self.pk_value, condition=self.condition))
         return FilterArray()
 
     # def __hash__(self):
@@ -105,9 +98,9 @@ class SearchRequest(BaseModel):
         return self.model_copy(update={'pagination': self.pagination.prev_page()})
 
     @classmethod
-    def srch_from_path(
+    def from_path(
         cls,
-        csrname: CsrName = Path(...),
+        csrname: AmherstTableName = Path(...),
         filtered: bool = Query(True),
         pk_value: str = Path(...),
         pagination: Pagination = Depends(Pagination.from_query),
@@ -121,9 +114,9 @@ class SearchRequest(BaseModel):
         )
 
     @classmethod
-    def from_path(
+    def get_all(
         cls,
-        csrname: CsrName = Path(...),
+        csrname: AmherstTableName = Path(...),
         filtered: bool = Query(True),
         pagination: Pagination = Depends(Pagination.from_query),
     ):
@@ -137,7 +130,7 @@ class SearchRequest(BaseModel):
     @classmethod
     def from_query(
         cls,
-        csrname: CsrName = Path(...),
+        csrname: AmherstTableName = Path(...),
         filtered: bool = Query(True),
         pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query),
@@ -153,7 +146,7 @@ class SearchRequest(BaseModel):
     @classmethod
     def from_body(
         cls,
-        csrname: CsrName = Body(...),
+        csrname: AmherstTableName = Body(...),
         filtered: bool = Body(True),
         pk_value: str = Body(None),
         package: dict | None = Body(default_factory=dict),
@@ -170,7 +163,7 @@ class SearchRequest(BaseModel):
         return res.model_validate(res)
 
 
-class SearchResponse[T: AMHERST_TABLE_TYPES](BaseModel):
+class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     records: list[T]
     length: int = None
     search_request: SearchRequest | None = None

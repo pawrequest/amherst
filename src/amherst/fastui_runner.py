@@ -6,15 +6,19 @@ from loguru import logger
 from amherst import app
 
 PORT = 8000
+URL_SUFFIX = 'ship/form/'
+# URL_SUFFIX = 'multi'
 
 
-async def main():
+async def run_desktop_ui(url_suffix=None):
     try:
+        suffix = url_suffix or URL_SUFFIX
+        logger.info(f'Starting desktop UI with URL_SUFFIX: {suffix}')
         fui = FlaskUI(
             fullscreen=True,
             app=app.app,
             server='fastapi',
-            url_suffix='multi',
+            url_suffix=suffix,
             port=PORT,
         )
         fui.run()
@@ -33,4 +37,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    asyncio.run(run_desktop_ui())

@@ -13,11 +13,14 @@ from pawlogger import get_loguru
 from starlette.templating import Jinja2Templates
 
 AM_ENV = os.getenv('AM_ENV')
+if not AM_ENV:
+    raise ValueError('AM_ENV environment variable not set')
 if not Path(AM_ENV).exists():
-    raise ValueError(f'AM_ENV .env file doies not exist: {AM_ENV}')
+    raise ValueError(f'{AM_ENV} .env file does not exist: {AM_ENV}')
 
 
 def set_base_dir(v, values):
+    # pyinstaller compatibility
     if v is None:
         if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
             # noinspection PyProtectedMember
