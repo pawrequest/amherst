@@ -11,9 +11,8 @@ from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
-from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import ShipmentConfigured
-from shipaw.ship_types import ExpressLinkError, VALID_POSTCODE
+from shipaw.ship_types import VALID_POSTCODE
 
 router = APIRouter()
 
@@ -38,7 +37,7 @@ async def shipment_from_row(row: AmherstTableBase) -> ShipmentConfigured:
     shipdict = row.shipment_dict()
     shipment = ShipmentConfigured(**shipdict)
     shipment = shipment.model_validate(shipment)
-    logger.warning(f'Shipment request: {shipment}')
+    logger.debug(f'Shipment request: {shipment}')
     return shipment
 
 
@@ -75,15 +74,44 @@ async def post_shipment_form(
     return TEMPLATES.TemplateResponse('ship/order_review.html', {'request': request, 'shipment': shipment_request})
 
 
-@router.post('/confirm_booking', response_model=ShipmentResponse)
+@router.post('/confirm_booking', response_class=HTMLResponse)
 async def confirm_booking(
+    request: Request,
     shipment: str = Form(...),
     # shipment: ShipmentConfigured,
     el_client: ELClient = Depends(get_el_client),
 ):
     logger.info(f'Confirm booking: {shipment}')
-    shipment = ShipmentConfigured.model_validate_json(shipment)
+    shipment: ShipmentConfigured = ShipmentConfigured.model_validate_json(shipment)
     response = book_shipment(el_client, shipment)
     logger.info(f'Booked Shipment Response: {response}')
-    return response
+    return TEMPLATES.TemplateResponse(
+        'ship/order_confirmed.html', {'request': request, 'shipment': shipment, 'response': response}
+    )
+
+    # return response
+
+
+
+@router.post('/dl_label', response_class=HTMLResponse)
+async def dl_label(
+    shipment_number: str = Form(...),
+    el_client: ELClient = Depends(get_el_client),
+):
+    logger.info(f'Fetching label for Shipment Number: {shipment_number}')
+    # label_path = el_client.settings.
+
+
+def get_label_path(shipment:ShipmentConfigured, label_dir):
+    logger.debug(f'Getting label path for {shipment.pf_label_filestem}')
+    if shipment.direction != 'out':
+        label_dir = label_dir / shipment.direction
+    lpath = (label_dir / shipment.pf_label_filestem).with_suffix('.pdf')
+    incremented = 2
+    while lpath.exists():
+        logger.warning(f'Label path {lpath} already exists')
+        lpath = lpath.with_name(f'{lpath.stem}_{incremented}{lpath.suffix}')
+        incremented += 1
+    logger.debug(f'Using label path={lpath}')
+    return lpath
 

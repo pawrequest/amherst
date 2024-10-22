@@ -32,16 +32,17 @@ def set_base_dir(v, values):
 class Settings(BaseSettings):
     """Set by env file at location specified by AM_ENV."""
 
-    db_loc: Path
+    # db_loc: Path
     log_file: Path
     base_dir: _t.Annotated[Path, _p.BeforeValidator(set_base_dir)] = None
     data_dir: Path = Path(__file__).parent / '_data'
 
-    @cached_property
-    def db_url(self):
-        return f'sqlite:///{self.db_loc.as_posix()}'
+    # @cached_property
+    # def db_url(self):
+    #     return f'sqlite:///{self.db_loc.as_posix()}'
 
-    @_p.field_validator('db_loc', 'log_file', mode='after')
+    # @_p.field_validator('db_loc', 'log_file', mode='after')
+    @_p.field_validator('log_file', mode='after')
     def path_exists(cls, v, values):
         if not v.parent.exists():
             v.parent.mkdir(parents=True, exist_ok=True)

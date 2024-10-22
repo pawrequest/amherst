@@ -28,7 +28,7 @@ from loguru import logger
 from thefuzz import fuzz
 
 
-from amherst.fastui_runner import run_desktop_ui
+from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import AmherstTableName, get_ref
 
 SCORER = fuzz.partial_ratio
@@ -40,7 +40,6 @@ class Mode(StrEnum):
 
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
-    # arg_parser.add_argument('category', type=str)
     arg_parser.add_argument('category', type=AmherstTableName, choices=list(AmherstTableName))
     arg_parser.add_argument('record_name', type=str)
     args = arg_parser.parse_args()

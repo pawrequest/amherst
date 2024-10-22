@@ -33,8 +33,8 @@ CURSOR_MAP = {
 
 # CsrName = Literal['Hire', 'Sale', 'Customer', 'Trial']
 # assert get_args(AmherstTableName) == tuple(CURSOR_MAP.keys())
-logger.debug(f'{tuple(AmherstTableName.__members__)=}')
-logger.debug(f'{tuple(CURSOR_MAP.keys())=}')
+# logger.debug(f'{tuple(AmherstTableName.__members__)=}')
+# logger.debug(f'{tuple(CURSOR_MAP.keys())=}')
 # assert tuple(AmherstTableName.__members__) == tuple(CURSOR_MAP.keys())
 
 

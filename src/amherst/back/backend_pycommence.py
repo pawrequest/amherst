@@ -18,11 +18,11 @@ from pycommence.pycommence_v2 import PyCommence
 @contextlib.contextmanager
 def pycommence_context(csrname: AmherstTableName, filter_array: FilterArray | None = None) -> PyCommence:
     CoInitialize()
-    logger.warning('CoInitialize')
+    logger.debug('CoInitialize')
     pyc = PyCommence.with_csr(csrname, filter_array=filter_array)
     yield pyc
     CoUninitialize()
-    logger.warning('CoUninitialize')
+    logger.debug('CoUninitialize')
 
 
 async def pycmc_f_path(csrname: AmherstTableName = Path(...)) -> PyCommence:
@@ -30,20 +30,20 @@ async def pycmc_f_path(csrname: AmherstTableName = Path(...)) -> PyCommence:
         yield pycmc
 
 
-async def pk_search(
-    pycmc: PyCommence,
-    sq: SearchRequest,
-    get_id: bool = False,
-):
-    filter_array = pycmc.csr(sq.csrname).pk_filter_array(pk=sq.pk_value, condition=sq.condition)
-    for row in pycmc.read_rows(
-        csrname=sq.csrname,
-        with_category=True,
-        pagination=sq.pagination,
-        filter_array=filter_array,
-        get_id=get_id,
-    ):
-        yield row
+# async def pk_search(
+#     pycmc: PyCommence,
+#     sq: SearchRequest,
+#     get_id: bool = False,
+# ):
+#     filter_array = pycmc.csr(sq.csrname).pk_filter_array(pk=sq.pk_value, condition=sq.condition)
+#     for row in pycmc.read_rows(
+#         csrname=sq.csrname,
+#         with_category=True,
+#         pagination=sq.pagination,
+#         filter_array=filter_array,
+#         get_id=get_id,
+#     ):
+#         yield row
 
 
 #
@@ -69,17 +69,17 @@ async def search_f_query(
     search_request: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_path),
 ) -> SearchResponse:
-    return await do_search(pycmc, search_request)
+    return await pycommence_search(pycmc, search_request)
 
 
 async def search_f_path(
     search_request: SearchRequest = Depends(SearchRequest.from_path),
     pycmc: PyCommence = Depends(pycmc_f_path),
 ) -> SearchResponse:
-    return await do_search(pycmc, search_request)
+    return await pycommence_search(pycmc, search_request)
 
 
-async def do_search(
+async def pycommence_search(
     pycmc: PyCommence,
     search_request: SearchRequest,
 ):
@@ -91,11 +91,11 @@ async def do_search(
     return SearchResponse(records=records, more=more, search_request=search_request)
 
 
-async def pycommence_response[T: SearchResponse](
+async def pycommence_response(
     search_request: SearchRequest,
-) -> T:
+) -> SearchResponse:
     with pycommence_context(search_request.csrname) as pycmc:
-        return await do_search(pycmc, search_request)
+        return await pycommence_search(pycmc, search_request)
     #     csr = pycmc.csr(search_request.csrname)
     #     if array := search_request.src_filter(csr):
     #         pycmc.set_csr(search_request.csrname, filter_array=array)

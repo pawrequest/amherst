@@ -3,7 +3,7 @@
 </div>
 <div id=results class="wrapper wrapper__requested">
     <section class="requested requested__head">
-        <h3 class="requested-title"> GET DDIRECTIN? Shipment:</h3>
+        <h3 class="requested-title"> {{ shipment.direction.name }} Shipment:</h3>
         <form hx-post="/ship/confirm_booking" hx-target=#main-form hx-swap="innerHTML">
             <input type="hidden" name="shipment" value="{{ shipment.model_dump_json() }}">
             <button class="submit-confirm-btn">Confirm Booking</button>
@@ -12,28 +12,17 @@
     </section>
 
 
-    {% if  shipment.collection_info %}
-        <section class="direction-section">
-            <h4>Shipment Type = Remote Collection</h4>
-        </section>
+    <section class="direction-section">
+        {% if  shipment.direction != 'out' %}
+            {% set contact = shipment.collection_info.collection_contact %}
+            {% set address = shipment.collection_info.collection_address %}
 
-        {% set contact = shipment.collection_info.collection_contact %}
-        {% set address = shipment.collection_info.collection_address %}
-
-    {% else %}
-        {% set contact = shipment.recipient_contact %}
-        {% set address = shipment.recipient_address %}
-
-        {% if "Amherst" in contact.business_name %}
-            <section class="direction-section">
-                <h4>Shipment Type = Dropoff</h4>
-            </section>
         {% else %}
-            <section class="direction-section">
-                <h4>Shipment Type = Outbound</h4>
-            </section>
+            {% set contact = shipment.recipient_contact %}
+            {% set address = shipment.recipient_address %}
+
         {% endif %}
-    {% endif %}
+    </section>
 
     <section class="requested requested__contact">
         <h4>Remote Contact</h4>

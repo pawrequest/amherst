@@ -292,6 +292,6 @@ def get_ref(record_name: str):
     if match:
         return match.group()
     if '/' not in record_name:
-        # cutomer no date
+        # todo better check to exclude non customer records which should hav refs
         return record_name
-    raise ValueError(f'No ref found in {record_name} and has slashes i.e. date')
+    raise ValueError(f'No ref found in {record_name} and has slashes i.e. maybe date')

@@ -105,7 +105,7 @@ class SearchRequest(BaseModel):
         pk_value: str = Path(...),
         pagination: Pagination = Depends(Pagination.from_query),
     ):
-        logger.warning(f'SearchRequest.from_path({csrname=}, {pk_value=}, {pagination=})')
+        logger.debug(f'SearchRequest.from_path({csrname=}, {pk_value=}, {pagination=})')
         return cls(
             csrname=csrname,
             pagination=pagination,
