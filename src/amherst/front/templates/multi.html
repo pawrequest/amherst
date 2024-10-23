@@ -14,15 +14,15 @@
         >
 
         <nav class="nav-bar">
-            <a href="#" hx-get="html/all/Customer" hx-target="#record-container"
+            <a href="#" hx-get="/html/all/Customer" hx-target="#record-container"
                hx-swap="innerHTML">Customers</a>
-            <a href="#" hx-get="html/all/Hire" hx-target="#record-container"
+            <a href="#" hx-get="/html/all/Hire" hx-target="#record-container"
                hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="html/all/Sale" hx-target="#record-container"
+            <a href="#" hx-get="/html/all/Sale" hx-target="#record-container"
                hx-swap="innerHTML">Sales</a>
         </nav>
 
-        <div class="record-container" id="record-container" hx-get="html/all/Customer"
+        <div class="record-container" id="record-container" hx-get="/html/all/Customer"
              hx-trigger="load"
              hx-target="this" hx-swap="innerHTML">
         </div>
@@ -32,16 +32,30 @@
 
 
 {% block content %}
-    <div id="details" class="details">
+    <div id="details" class="details"
+         hx-on="htmx:afterSwap:console.log('SWAPPED')">
+
+        >
     </div>
 
-    <div id="maincontent" class="maincontent">
+    <div id="maincontent" class="maincontent"
+{#         hx-on::after-swap="console.log('SETTLED')"#}
+         hx-on="htmx:afterSwap:console.log('SWAPPED')">
+{#         hx-on="htmx:afterSwap:populateForm(shipment); loadCandidates(); console.log('SETTLED')">#}
+    >
 
     </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
-
+        {#document.addEventListener("hydrateShipment", function (evt) {#}
+        {#    console.log('HYDRATE!');#}
+        {#    let shipment = {{ shipment|tojson }};#}
+            {#if (shipment !== undefined) {#}
+            {#    console.log('shipment is defined');#}
+        {#    console.log(shipment);#}
+            {#populateForm(shipment);#}
+            {#loadCandidates();#}
     </script>
 {% endblock %}

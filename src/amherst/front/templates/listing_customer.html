@@ -1,5 +1,5 @@
 {% for customer in response.records %}
-<div class="record" hx-get="/row_id/Customer/{{ customer.row_id }}" hx-target="#details">
+<div class="record" hx-get="/html/row_id/Customer/{{ customer.row_id }}" hx-target="#details">
     {{ customer.name }}
 </div>
 {% endfor %}

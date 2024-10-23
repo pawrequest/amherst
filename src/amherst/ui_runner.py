@@ -19,6 +19,7 @@ async def run_desktop_ui(url_suffix=URL_SUFFIX):
             server='fastapi',
             url_suffix=url_suffix,
             port=PORT,
+            app_mode=False,
         )
         fui.run()
     except Exception as e:

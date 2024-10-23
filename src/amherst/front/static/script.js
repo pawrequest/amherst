@@ -14,6 +14,10 @@ function filterRecords() {
 }
 
 
+
+// document.addEventListener("shipmentFormLoaded", function () {
+// });
+
 function closePopup() {
     document.getElementById('popupDetails').style.display = 'none';
 }

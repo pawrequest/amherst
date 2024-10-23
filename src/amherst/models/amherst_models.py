@@ -110,7 +110,7 @@ class AmherstTrial(AmherstTableBase):
 
 
 class AmherstOrderBase(AmherstTableBase, ABC):
-    customer_name: str
+    boxes: int = 1
     invoice: str = ''
     track_out: str = ''
     track_in: str = ''
@@ -120,37 +120,33 @@ class AmherstOrderBase(AmherstTableBase, ABC):
 
     send_date: AM_DATE = date.today()
 
-
-class AmherstSale(AmherstOrderBase):
-    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=sale_alias))
-    category: AmherstTableName = 'Sale'
-
-
-class AmherstHire(AmherstOrderBase):
-    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=hire_alias))
-    boxes: int = 1
-    status: HireStatus
-    category: AmherstTableName = 'Hire'
-    send_date: AM_DATE = None
-
     def ship_details_dict(self) -> dict:
-        # return {
-        #     'total_number_of_parcels': 1,
-        #     'shipping_date': limit_daterange_no_weekends(date.today()),
-        # }
-
         return {
             'total_number_of_parcels': self.boxes,
             'shipping_date': limit_daterange_no_weekends(self.send_date),
         }
 
-    def shipment_dict(self):
-        return {
-            'recipient_address': self.address_dict(),
-            'recipient_contact': self.contact_dict(),
-            **self.ship_details_dict(),
-            **split_refs_from_str(self.customer_name),
-        }
+
+class AmherstSale(AmherstOrderBase):
+    category: AmherstTableName = 'Sale'
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=sale_alias))
+
+
+class AmherstHire(AmherstOrderBase):
+    category: AmherstTableName = 'Hire'
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=hire_alias))
+    status: HireStatus
+    # send_date: AM_DATE = None
+
+
+
+    # def shipment_dict(self):
+    #     return {
+    #         'recipient_address': self.address_dict(),
+    #         'recipient_contact': self.contact_dict(),
+    #         **self.ship_details_dict(),
+    #         **split_refs_from_str(self.customer_name),
+    #     }
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial

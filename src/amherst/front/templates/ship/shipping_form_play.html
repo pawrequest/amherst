@@ -13,7 +13,9 @@
     <form id="main-form" hx-post="/ship/post_ship/"
             {#          hx-target=this#}
           hx-target=.returned-request
-          hx-swap="innerHTML">
+          hx-swap="innerHTML"
+          hx-on::after-swap="console.log('test')"
+    >
         <div class="wrapper wrapper__booking">
             <section class="inputs inputs__ship">
                 <h1>Shipment</h1>
@@ -113,17 +115,29 @@
         </div>
     </form>
 
-    <div class="returned-request"></div>
+    <div class="returned-request"
+    ></div>
 {% endblock %}
 
 {% block scripts %}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            console.log('DOMContentLoaded event fired');
             let shipment = {{ shipment|tojson }};
             {#let shipment = {{ shipment|safe|tojson }};#}
             populateForm(shipment);
             loadCandidates();
         });
+
+        {#document.addEventListener("hydrateShipment", function (evt) {#}
+        {#    console.log('HYDRATE!');#}
+        {#    let shipment = {{ shipment|tojson }};#}
+        {#        console.log('shipment is defined');#}
+        {#        console.log(shipment);#}
+        {#        populateForm(shipment);#}
+        {#        loadCandidates();#}
+
+
     </script>
 {% endblock %}
 

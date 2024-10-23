@@ -1,33 +1,53 @@
 from __future__ import annotations
 
+from abc import ABC
+from enum import StrEnum
+from typing import Literal
+
 
 from fastapi import Path, Query
 
-from amherst.config import logger
-# from amherst.back.search_paginate import CsrName
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTrial
+from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTableBase, AmherstTrial
 from amherst.models.commence_adaptors import AmherstTableName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
+
+TMPLT_TYPE = Literal['listing', 'detail']
+
+
+class AType(ABC):
+    input_type: AmherstTableBase
+    aliases: StrEnum
+    listing_template: str
+    detail_template: str
+
 
 CURSOR_MAP = {
     'Hire': {
         'input_type': AmherstHire,
         'aliases': HireAliases,
-        'template': 'orders.html',
+        'template': 'listing_order.html',
+        'listing-template': 'listing_order.html',
+        'detail-template': 'detail_order.html',
     },
     'Sale': {
         'input_type': AmherstSale,
         'aliases': SaleAliases,
-        'template': 'orders.html',
+        'template': 'listing_order.html',
+        'listing-template': 'listing_order.html',
+        'detail-template': 'detail_order.html',
     },
     'Customer': {
         'input_type': AmherstCustomer,
         'aliases': CustomerAliases,
-        'template': 'customer.html',
+        'template': 'listing_customer.html',
+        'listing-template': 'listing_customer.html',
+        'detail-template': 'detail_customer.html',
     },
     'Radio Trial': {
         'input_type': AmherstTrial,
         'aliases': TrialAliases,
-        'template': 'trial.html',
+        'template': 'listing_order.html',
+        'listing-template': 'listing_order.html',
+        'detail-template': 'detail_order.html',
     },
 }
 
@@ -44,6 +64,10 @@ async def template_name_from_query(csrname: AmherstTableName = Query(...)):
 
 async def template_name_from_path(csrname: AmherstTableName = Path(...)):
     return CURSOR_MAP[csrname]['template']
+
+
+async def template_name_from_path2(tmplt_type: TMPLT_TYPE, csrname: AmherstTableName = Path(...)):
+    return CURSOR_MAP[csrname][f'{tmplt_type}-template']
 
 
 def get_alias(category: AmherstTableName, field_name):

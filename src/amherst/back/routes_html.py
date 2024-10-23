@@ -1,12 +1,13 @@
 # from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from amherst.back.backend_pycommence import pycommence_response, row_from_path_id
 from amherst.back.search_paginate import SearchRequest, SearchResponse
-from amherst.models.maps import template_name_from_path
+from amherst.models.commence_adaptors import AmherstTableName
+from amherst.models.maps import template_name_from_path, template_name_from_path2
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
@@ -37,9 +38,12 @@ async def get_srch_path[T: SearchResponse](
 async def get_row_id_path(
     request: Request,
     row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
-    template_name: str = Depends(template_name_from_path),
+    csrname: AmherstTableName = Path(...),
+    # template_name: str = Depends(template_name_from_path),
 ) -> HTMLResponse:
-    template_name = template_name.replace('.html', '_detail.html')
+    # template_name = template_name.replace('.html', '_detail.html')
+    template_name: str = await template_name_from_path2('detail', csrname)
+
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
 
 

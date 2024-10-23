@@ -4,11 +4,11 @@ from loguru import logger
 from starlette.requests import Request
 from starlette.responses import JSONResponse, HTMLResponse
 
-from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_request_f_form, shipment_from_row
+from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_request_f_form, shipment_from_record
 from amherst.back.backend_pycommence import row_from_path_id, search_f_path
 from amherst.back.search_paginate import SearchResponse
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_shipment import ShipmentConfigured
@@ -27,6 +27,7 @@ async def ship_from_row_id_path(
     request: Request,
     row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
 ):
+    logger.warning(f'SHIP FROM ROW ID PATH Row: {row}')
     return await do_ship_form(request, row)
     # shipment = await shipment_from_row(row)
     # return TEMPLATES.TemplateResponse(
@@ -47,10 +48,13 @@ async def ship_form_pk_value(
         # show a list
 
 
-async def do_ship_form(request, row):
-    req = await shipment_from_row(row)
-    jsonable = jsonable_encoder(req)
-    return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+async def do_ship_form(request, record: AmherstTableBase):
+    shipment = await shipment_from_record(record)
+    jsonable = jsonable_encoder(shipment)
+    # return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+    response = TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+    response.headers['HX-Trigger'] = 'hydrateShipment'
+    return response
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)

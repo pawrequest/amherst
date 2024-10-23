@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from abc import ABC
 from datetime import date
 from enum import Enum, StrEnum
 from typing import Annotated
@@ -50,16 +51,34 @@ class HireStatus(StrEnum):
     SOLD = 'Sold to customer'
 
 
+class AbstractAmherstShipable(str, ABC):
+    NAME: str
+    CUSTOMER_NAME: str
+
+    DELIVERY_CONTACT_BUSINESS: str
+    DELIVERY_CONTACT_NAME: str
+    DELIVERY_CONTACT_EMAIL: str
+    DELIVERY_CONTACT_PHONE: str
+
+    DELIVERY_ADDRESS_STR: str
+    DELIVERY_ADDRESS_PC: str
+
+
+class AmherstCustomerShipable(AbstractAmherstShipable):
+    Name: str = 'Name'
+
+
 class CustomerAliases(str, Enum):
     NAME = 'Name'
     CUSTOMER_NAME = 'Name'
 
-    DELIVERY_ADDRESS_STR = 'Deliv Address'
     DELIVERY_CONTACT_NAME = 'Deliv Contact'
     DELIVERY_CONTACT_EMAIL = 'Deliv Email'
     DELIVERY_CONTACT_BUSINESS = 'Deliv Name'
-    DELIVERY_ADDRESS_PC = 'Deliv Postcode'
     DELIVERY_CONTACT_PHONE = 'Deliv Telephone'
+
+    DELIVERY_ADDRESS_STR = 'Deliv Address'
+    DELIVERY_ADDRESS_PC = 'Deliv Postcode'
 
     INVOICE_EMAIL = 'Invoice Email'
     ACCOUNTS_EMAIL = 'Accounts Email'
@@ -288,6 +307,7 @@ customers in range
 
 
 def get_ref(record_name: str):
+    # EXCEPT REFS ARE NEITHER UNIQUE NOR GENUINELY PERSISTENT LOL
     match = re.search(r'(ref \d+)', record_name)
     if match:
         return match.group()

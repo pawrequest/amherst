@@ -62,11 +62,11 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
         filtered=False,
     )
     search_response = await pycommence_response(search_request)
-    url_suffix = await parse_response(search_response)
+    url_suffix = await url_from_response(search_response)
     await run_desktop_ui(url_suffix)
 
 
-async def parse_response(res: SearchResponse):
+async def url_from_response(res: SearchResponse):
     if res.length == 0:
         raise ValueError(f'No {res.search_request.csrname} record found for {res.search_request.pk_value}')
     elif res.length == 1 or res.search_request.pk_value == 'Test':
