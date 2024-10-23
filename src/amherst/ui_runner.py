@@ -10,15 +10,14 @@ PORT = 8000
 URL_SUFFIX = 'html/multi'
 
 
-async def run_desktop_ui(url_suffix=None):
+async def run_desktop_ui(url_suffix=URL_SUFFIX):
     try:
-        suffix = url_suffix or URL_SUFFIX
-        logger.info(f'Starting desktop UI with URL_SUFFIX: {suffix}')
+        logger.info(f'Starting desktop UI with URL_SUFFIX: {url_suffix}')
         fui = FlaskUI(
             fullscreen=True,
             app=app.app,
             server='fastapi',
-            url_suffix=suffix,
+            url_suffix=url_suffix,
             port=PORT,
         )
         fui.run()

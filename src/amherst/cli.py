@@ -56,7 +56,12 @@ def parse_arguments():
 async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
     logger.info(f'Starting Shipper with {category} record: {record_name}')
     req = get_req(category, record_name)
-    res = await get_res(req)
+    res = await pycommence_response(req)
+    url_suffix = await parse_response(category, record_name, res)
+    await run_desktop_ui(url_suffix)
+
+
+async def parse_response(category, record_name, res):
     if res.length == 0:
         raise ValueError(f'No record found for {record_name=}')
     elif res.length == 1 or record_name == 'Test':
@@ -65,13 +70,14 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
     else:
         logger.error(f'Multiple records found for {record_name=}')
         url_suffix = 'MULTIPLE_RECORDS_FOUND'
-    await run_desktop_ui(url_suffix)
+    return url_suffix
 
 
 def get_req(category, record_name):
     return SearchRequest(
         csrname=category,
         pk_value=record_name,
+        filtered=False,
     )
 
 
