@@ -96,13 +96,6 @@ async def pycommence_response(
 ) -> SearchResponse:
     with pycommence_context(search_request.csrname) as pycmc:
         return await pycommence_search(pycmc, search_request)
-    #     csr = pycmc.csr(search_request.csrname)
-    #     if array := search_request.src_filter(csr):
-    #         pycmc.set_csr(search_request.csrname, filter_array=array)
-    #
-    #     record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
-    #     more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
-    # return SearchResponse(records=records, more=more, search_request=search_request)
 
 
 def row_from_path_id(

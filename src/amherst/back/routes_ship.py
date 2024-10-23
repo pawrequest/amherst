@@ -27,10 +27,11 @@ async def ship_from_row_id_path(
     request: Request,
     row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
 ):
-    shipment = await shipment_from_row(row)
-    return TEMPLATES.TemplateResponse(
-        'shipping_form.html', {'request': request, 'shipment': shipment.model_dump_json()}
-    )
+    return await do_ship_form(request, row)
+    # shipment = await shipment_from_row(row)
+    # return TEMPLATES.TemplateResponse(
+    #     'shipping_form.html', {'request': request, 'shipment': shipment.model_dump_json()}
+    # )
 
 
 async def shipment_from_row(row: AmherstTableBase) -> ShipmentConfigured:
@@ -42,18 +43,22 @@ async def shipment_from_row(row: AmherstTableBase) -> ShipmentConfigured:
 
 
 @router.get('/pk/{csrname}/{pk_value}', response_class=JSONResponse)
-async def ship_from_pk_value(
+async def ship_form_pk_value(
     request: Request,
     resp: SearchResponse = Depends(search_f_path),
 ):
     if resp.length == 1 or resp.search_request.pk_value == 'Test':
         row = resp.records[0]
-        req = await shipment_from_row(row)
-        jsonable = jsonable_encoder(req)
-        return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+        return await do_ship_form(request, row)
     else:
         return resp
         # show a list
+
+
+async def do_ship_form(request, row):
+    req = await shipment_from_row(row)
+    jsonable = jsonable_encoder(req)
+    return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
@@ -92,7 +97,6 @@ async def confirm_booking(
     # return response
 
 
-
 @router.post('/dl_label', response_class=HTMLResponse)
 async def dl_label(
     shipment_number: str = Form(...),
@@ -102,7 +106,7 @@ async def dl_label(
     # label_path = el_client.settings.
 
 
-def get_label_path(shipment:ShipmentConfigured, label_dir):
+def get_label_path(shipment: ShipmentConfigured, label_dir):
     logger.debug(f'Getting label path for {shipment.pf_label_filestem}')
     if shipment.direction != 'out':
         label_dir = label_dir / shipment.direction
@@ -114,4 +118,3 @@ def get_label_path(shipment:ShipmentConfigured, label_dir):
         incremented += 1
     logger.debug(f'Using label path={lpath}')
     return lpath
-
