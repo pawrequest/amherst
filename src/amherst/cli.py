@@ -28,7 +28,8 @@ from loguru import logger
 from thefuzz import fuzz
 
 from amherst.back.backend_pycommence import pycommence_response
-from amherst.back.search_paginate import SearchRequest
+from amherst.back.search_paginate import SearchRequest, SearchResponse
+from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import AmherstTableName
 
@@ -55,50 +56,30 @@ def parse_arguments():
 
 async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
     logger.info(f'Starting Shipper with {category} record: {record_name}')
-    req = get_req(category, record_name)
-    res = await pycommence_response(req)
-    url_suffix = await parse_response(category, record_name, res)
-    await run_desktop_ui(url_suffix)
-
-
-async def parse_response(category, record_name, res):
-    if res.length == 0:
-        raise ValueError(f'No record found for {record_name=}')
-    elif res.length == 1 or record_name == 'Test':
-        row = res.records[0]
-        url_suffix = get_url2(category, row.row_id)
-    else:
-        logger.error(f'Multiple records found for {record_name=}')
-        url_suffix = 'MULTIPLE_RECORDS_FOUND'
-    return url_suffix
-
-
-def get_req(category, record_name):
-    return SearchRequest(
+    search_request = SearchRequest(
         csrname=category,
         pk_value=record_name,
         filtered=False,
     )
+    search_response = await pycommence_response(search_request)
+    url_suffix = await parse_response(search_response)
+    await run_desktop_ui(url_suffix)
 
 
-async def get_res(req: SearchRequest):
-    return await pycommence_response(req)
+async def parse_response(res: SearchResponse):
+    if res.length == 0:
+        raise ValueError(f'No {res.search_request.csrname} record found for {res.search_request.pk_value}')
+    elif res.length == 1 or res == 'Test':
+        row = res.records[0]
+        url_suffix = get_url_suffix(row)
+    else:
+        logger.error(f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}')
+        url_suffix = 'MULTIPLE_RECORDS_FOUND'
+    return url_suffix
 
 
-# def get_url(mode: Mode, category, record_name):
-#     # todo 'refs' from cmc ARE NOT UNIQUE (lol)
-#     srch_term = get_ref(record_name)
-#     logger.debug(f'{srch_term=}')
-#     match mode:
-#         case Mode.SHIP_BY_SRCH:
-#             url_suffix = f'ship/pk/{category}/{srch_term}?filtered=False'
-#         case _:
-#             raise ValueError(f'Unknown mode: {mode}')
-#     return url_suffix
-
-
-def get_url2(category, row_id):
-    return f'ship/row_id/{category}/{row_id}'
+def get_url_suffix(record: AmherstTableBase):
+    return f'ship/row_id/{record.category}/{record.row_id}'
 
 
 if __name__ == '__main__':
