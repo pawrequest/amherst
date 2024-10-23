@@ -7,6 +7,8 @@ from datetime import date
 from fastapi import Form, Depends
 from loguru import logger
 from pydantic import EmailStr
+
+from amherst.models.amherst_models import AmherstTableBase
 from shipaw.pf_config import PFSettings, pf_sett
 from starlette.requests import Request
 
@@ -191,3 +193,9 @@ def get_el_client() -> ELClient:
 #         logger.error(f'Error getting Parcelforce Settings: {e}')
 #         raise
 
+async def shipment_from_row(row: AmherstTableBase) -> ShipmentConfigured:
+    shipdict = row.shipment_dict()
+    shipment = ShipmentConfigured(**shipdict)
+    shipment = shipment.model_validate(shipment)
+    logger.debug(f'Shipment request: {shipment}')
+    return shipment

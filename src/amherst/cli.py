@@ -4,7 +4,7 @@ Use `Paw Request fork <https://github.com/pawrequest/flaskwebgui>`_ for URL_SUFF
 
 Environment variables:
     AM_ENV: Path to environment file defining:
-        - sql database location
+        # - sql database location
         - log file location
         - parcelforce labels directory
     SHIP_ENV: Path to environment file defining:
@@ -55,7 +55,7 @@ def parse_arguments():
 
 
 async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
-    logger.info(f'Starting Shipper with {category} record: {record_name}')
+    logger.info(f'Starting Shipper searching for {category} record: {record_name}')
     search_request = SearchRequest(
         csrname=category,
         pk_value=record_name,
@@ -69,12 +69,12 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
 async def parse_response(res: SearchResponse):
     if res.length == 0:
         raise ValueError(f'No {res.search_request.csrname} record found for {res.search_request.pk_value}')
-    elif res.length == 1 or res == 'Test':
+    elif res.length == 1 or res.search_request.pk_value == 'Test':
         row = res.records[0]
-        url_suffix = get_url_suffix(row)
     else:
-        logger.error(f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}')
-        url_suffix = 'MULTIPLE_RECORDS_FOUND'
+        raise NotImplementedError(f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}')
+
+    url_suffix = get_url_suffix(row)
     return url_suffix
 
 

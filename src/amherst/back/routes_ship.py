@@ -4,11 +4,11 @@ from loguru import logger
 from starlette.requests import Request
 from starlette.responses import JSONResponse, HTMLResponse
 
-from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_request_f_form
+from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_request_f_form, shipment_from_row
 from amherst.back.backend_pycommence import row_from_path_id, search_f_path
 from amherst.back.search_paginate import SearchResponse
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_shipment import ShipmentConfigured
@@ -32,14 +32,6 @@ async def ship_from_row_id_path(
     # return TEMPLATES.TemplateResponse(
     #     'shipping_form.html', {'request': request, 'shipment': shipment.model_dump_json()}
     # )
-
-
-async def shipment_from_row(row: AmherstTableBase) -> ShipmentConfigured:
-    shipdict = row.shipment_dict()
-    shipment = ShipmentConfigured(**shipdict)
-    shipment = shipment.model_validate(shipment)
-    logger.debug(f'Shipment request: {shipment}')
-    return shipment
 
 
 @router.get('/pk/{csrname}/{pk_value}', response_class=JSONResponse)

@@ -22,7 +22,7 @@ async def multi_shipper(
 
 #
 @router.get('/search/{csrname}/{pk_value}')
-async def get_srch[T: SearchResponse](
+async def get_srch_path[T: SearchResponse](
     request: Request,
     search_request: SearchRequest = Depends(SearchRequest.from_path),
     template_name: str = Depends(template_name_from_path),
@@ -34,7 +34,7 @@ async def get_srch[T: SearchResponse](
 
 
 @router.get('/row_id/{csrname}/{row_id}')
-async def get_row(
+async def get_row_id_path(
     request: Request,
     row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
     template_name: str = Depends(template_name_from_path),
