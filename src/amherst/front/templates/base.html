@@ -4,30 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Form Page{% endblock %}</title>
+    <title>{% block title %}PyCommence Helper{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@1.5.0/dist/htmx.min.js"></script>
-    <script src="{{ url_for('static', path='script.js') }}"></script>
+    <script src="{{ url_for('static', path='script.js') }}" defer></script>
     <link href="{{ url_for('static', path='style.css') }}" rel="stylesheet">
-
-
     {% block head %}{% endblock %}
 </head>
 <body>
-<header>
-
-</header>
-<section>
-
-</section>
-<section>
-    {% if booking and booking.alerts %}
-    {% for alert in booking.alerts %}
-    <div class="alert alert-{{ alert.type }}">{{ alert.message }}</div>
-    {% endfor %}
-    {% endif %}
-</section>
 <main>
-    {% block content %}{% endblock %}
+    <div class="main_div">
+        {% block sidebar %}{% endblock %}
+        {% block content %}{% endblock %}
+    </div>
 </main>
+{% block scripts %}{% endblock %}
 </body>
 </html>

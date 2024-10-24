@@ -9,16 +9,16 @@ a = Analysis(
          ('src/amherst/front/static', 'front/static'),
          ('src/amherst/front/templates', 'front/templates'),
     ],
-    hiddenimports=['ipaddress',
-     'pyiboot01_bootstrap',
-     'pyimod02_importers'
-     ],
+    hiddenimports=['ipaddress', 'pyinstaller.importers'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
 )
+
+
+
 pyz = PYZ(a.pure)
 
 exe = EXE(

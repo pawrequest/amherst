@@ -17,8 +17,9 @@ dependencies = [
     'pawdantic @ git+https://github.com/pawrequest/pawdantic',
     'suppawt @ git+https://github.com/pawrequest/suppawt',
     'pawlogger @ git+https://github.com/pawrequest/pawlogger',
-#    'shipaw @ git+https://github.com/pawrequest/shipaw',
-#    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'shipaw @ git+https://github.com/pawrequest/shipaw@ftr',
+    'pycommence @ git+https://github.com/pawrequest/pycommence@woah',
+    'phonenumbers',
     'sqlmodel',
     'pydantic-settings',
     'pydantic[email]',
@@ -31,13 +32,19 @@ dependencies = [
     'httpx',
     "pywin32",
     'jinja2',
+    'pandas',
 ]
 
 [project.optional-dependencies]
 dev = [
+    'pyinstaller-hooks-contrib',
     'pyinstaller',
     "pytest",
+    "pytest_asyncio",
+    'beautifulsoup4',
+    'coverage',
 ]
+
 docs = [
     "sphinx",
     "sphinx-autodoc-typehints",
@@ -47,22 +54,12 @@ docs = [
     "myst-parser",
     "sphinx_rtd_dark_mode",
 ]
+
 from-git = [
     'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
 ]
 
-[tool.rye]
-managed = true
-dev-dependencies = [
-    "sphinx",
-    "sphinx-autodoc-typehints",
-    "sphinx-autodoc2",
-    "sphinx-rtd-theme",
-    "sphinx-readme",
-    "myst-parser",
-    "sphinx_rtd_dark_mode",
-]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -73,7 +70,4 @@ extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
-#[tool.hatch.build.targets.wheel]
-#packages = [
-#    "amherst",
-#]
+#[tool.

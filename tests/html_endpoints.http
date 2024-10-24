@@ -1,0 +1,39 @@
+### Candidates
+GET http://127.0.0.1:8000/ship/candidates?postcode=NR4%207LW
+
+### All Hire
+GET http://127.0.0.1:8000/search?csrname=Hire
+
+
+### Hire Paginated
+GET http://127.0.0.1:8000/search?csrname=Hire&limit=5&offset=5
+
+
+### Hire Filtered Paginated
+GET http://127.0.0.1:8000/search?csrname=Hire&filtername=initial&limit=5&offset=5
+
+
+### Hire Filtered Search
+GET http://127.0.0.1:8000/search?csrname=Hire&filtername=initial&pk_value=school
+
+
+### Customer Paginated
+GET http://127.0.0.1:8000/search?csrname=Customer&limit=5&offset=5
+
+
+### Customer Filtered Paginated
+GET http://127.0.0.1:8000/search?csrname=Customer&filtername=initial&limit=5&offset=5
+
+
+###
+POST http://127.0.0.1:8000/api/search?limit=50&offset=2
+#POST http://127.0.0.1:8000/api/search
+Content-Type: application/json
+
+{
+  "csrname": "Hire",
+  "pk_value": "school",
+  "filtername": "initial"
+}
+
+

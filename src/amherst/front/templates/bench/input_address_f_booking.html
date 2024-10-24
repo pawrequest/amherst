@@ -1,0 +1,105 @@
+{% set SCORE= booking.record.address_choice.score %}
+<!--suppress HtmlFormInputWithoutLabel -->
+<div class="addr-head">
+    <h1>Address</h1>
+    <span id="score-span" data-score="{{ SCORE }}"> Match Confidence {{ SCORE }}%:
+        <br>({{ booking.record.address_str }})
+    </span>
+</div>
+
+<label for="address_line1">Address Lines:</label>
+<input type="text" id="address_line1" name="address_line1"
+       value="{{ booking.shipment_request.recipient_address.address_line1 }}"
+       required
+>
+<input type="text" id="address_line2" name="address_line2"
+       value="{{ booking.shipment_request.recipient_address.address_line2 }}"
+       aria-labelledby="address_line1"
+>
+<input type="text" id="address_line3" name="address_line3"
+       value="{{ booking.shipment_request.recipient_address.address_line3 }}"
+       aria-labelledby="address_line1"
+>
+
+<label for="town">Town:</label>
+<input type="text" id="town" name="town" required
+       value="{{ booking.shipment_request.recipient_address.town }}"
+>
+<label for="postcode">Postcode:</label>
+<input type="text" id="postcode" name="postcode" required
+       value="{{ booking.shipment_request.recipient_address.postcode }}"
+>
+<button type="button" class="update-address-btn" onclick="loadCandidates()">Update Address Choices</button>
+{#    <button class="update-address-btn" onclick="UpdateAddressClicked()">Update Address Choices</button>#}
+
+<label for="address-select">Choose Address</label>
+<select id="address-select" name="address" onchange="updateManualFields()">
+    {% for addr_choice in candidates %}
+        <option value="{{ addr_choice.address.model_dump_json(by_alias=True) }}">{{ addr_choice.address.lines_str }}
+        </option>
+    {% endfor %}
+</select>
+
+<script>
+    /**
+     * @typedef {Object} Address
+     * @property {string} AddressLine1
+     * @property {string} AddressLine2
+     * @property {string} AddressLine3
+     * @property {string} Town
+     * @property {string} Postcode
+     * @property {string} Country
+     */
+
+    /**
+     * @typedef {Object} AddressChoice
+     * @property {Address} Address
+     * @property {number} Score
+     */
+    function updateManualFields() {
+        const selectedOption = document.getElementById('address-select').value;
+        const addressData = JSON.parse(selectedOption);
+        console.log('updating manual fields')
+        document.getElementById('address_line1').value = addressData.AddressLine1 || '';
+        document.getElementById('address_line2').value = addressData.AddressLine2 || '';
+        document.getElementById('address_line3').value = addressData.AddressLine3 || '';
+        document.getElementById('town').value = addressData.Town || '';
+        document.getElementById('postcode').value = addressData.Postcode || '';
+    }
+
+    // Load the new address candidates from postcode when user presses the button
+    function UpdateAddressClicked() {
+        console.log('Loading candidates pydantic');
+        const postcode = document.getElementById('postcode').value;
+        fetch(`/api/candidates?postcode=${postcode}`)
+            .then(response => response.json())
+            .then(data => {
+                const addressSelect = document.getElementById('address-select');
+                addressSelect.innerHTML = '';
+                data.forEach(addressChoice => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(addressChoice.Address);
+                    option.textContent = addressChoice.Address.AddressLine1;
+                    addressSelect.appendChild(option);
+                });
+                updateManualFields();
+                setMatchScoreStyle();
+            });
+    }
+
+    function setMatchScoreStyle() {
+        const scoreSpan = document.getElementById('score-span');
+        let score = parseInt(scoreSpan.getAttribute('data-score'), 10);
+        let newClass;
+
+        if (score > 80) {
+            newClass = 'high-score';
+        } else if (score >= 60 && score <= 80) {
+            newClass = 'medium-score';
+        } else {
+            newClass = 'low-score';
+        }
+
+        scoreSpan.className = newClass;
+    }
+</script>

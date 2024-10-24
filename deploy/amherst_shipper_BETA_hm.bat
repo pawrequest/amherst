@@ -9,5 +9,5 @@ if not exist "%PROG_DIR%" mkdir "%PROG_DIR%"
 cd /d "%PROG_DIR%"
 
 call %VENV%\Scripts\activate
-python -m amherst.amherst_fastui_desktop %CATEGORY% %RECORD%
+python -m amherst.shipper %CATEGORY% %RECORD%
 
