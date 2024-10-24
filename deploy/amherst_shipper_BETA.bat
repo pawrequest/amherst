@@ -1,10 +1,10 @@
 set CATEGORY=%1
 set RECORD=%2
-set VENV=C:\prdev\repos\amherst\.venv
+set VENV=C:\prdev\venvs\amherst\.venv
 set PYTHONPATH=C:\prdev\repos\amherst\src
 
-set SHIP_ENV=R:\paul_r\.internal\envs\pf_sandbox.env
-set AM_ENV=R:\paul_r\.internal\envs\am_sandbox.env
+set SHIP_ENV=C:\prdev\envs\pf_sandbox.env
+set AM_ENV=C:\prdev\envs\am_sandbox.env
 
 
 set PROG_DIR=c:\ProgramData\pawrequest\amherst

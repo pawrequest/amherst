@@ -19,7 +19,7 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import to_dropoff, to_collection, ShipmentConfigured
+from shipaw.models.pf_shipment_configured  import to_dropoff, to_collection, ShipmentConfigured
 from shipaw.models.pf_shipment_blank import ShipmentReferenceFields
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import (

@@ -10,7 +10,7 @@ from amherst.filters import initial_filter
 
 from amherst.models.converters import to_shipment
 from pycommence.pycommence_v2 import PyCommence
-from shipaw.models.pf_shipment import ShipmentConfigured
+from shipaw.models.pf_shipment_configured  import ShipmentConfigured
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa
 from ..models.am_record_smpl import dict_to_amtable

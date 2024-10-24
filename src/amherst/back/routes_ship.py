@@ -11,7 +11,7 @@ from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
-from shipaw.models.pf_shipment import ShipmentConfigured
+from shipaw.models.pf_shipment_configured import ShipmentConfigured
 from shipaw.ship_types import VALID_POSTCODE
 
 router = APIRouter()
@@ -28,7 +28,7 @@ async def ship_from_row_id_path(
     row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
 ):
     logger.warning(f'SHIP FROM ROW ID PATH Row: {row}')
-    return await do_ship_form(request, row)
+    return await record_to_form(request, row)
     # shipment = await shipment_from_row(row)
     # return TEMPLATES.TemplateResponse(
     #     'shipping_form.html', {'request': request, 'shipment': shipment.model_dump_json()}
@@ -42,19 +42,19 @@ async def ship_form_pk_value(
 ):
     if resp.length == 1 or resp.search_request.pk_value == 'Test':
         row = resp.records[0]
-        return await do_ship_form(request, row)
+        return await record_to_form(request, row)
     else:
         return resp
         # show a list
 
 
-async def do_ship_form(request, record: AmherstTableBase):
+async def record_to_form(request, record: AmherstTableBase):
     shipment = await shipment_from_record(record)
     jsonable = jsonable_encoder(shipment)
-    # return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
-    response = TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
-    response.headers['HX-Trigger'] = 'hydrateShipment'
-    return response
+    html = TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+    return html
+
+    # response.headers['HX-Trigger'] = 'hydrateShipment'
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)

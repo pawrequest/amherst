@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from amherst.models.db_models import BookingStateDB
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import to_collection, to_dropoff
+from shipaw.models.pf_shipment_configured  import to_collection, to_dropoff
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
