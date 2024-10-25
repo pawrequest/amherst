@@ -17,8 +17,7 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment_configured import ShipmentConfigured
-from shipaw.models.pf_shipment_blank import ShipmentReferenceFields, to_collection, to_dropoff
+from shipaw.models.pf_shipment_blank import ShipmentReferenceFields, to_collection, to_dropoff, Shipment
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import (
     AlertType,
@@ -30,7 +29,7 @@ from shipaw.ship_types import (
 )
 
 
-def book_shipment(el_client, shipment_request: ShipmentConfigured) -> pf_msg.ShipmentResponse:
+def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentResponse:
     resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment_request)
     logger.debug(f'Booking response: {resp.status=}, {resp.success=}')
     if resp.alerts:
@@ -141,10 +140,10 @@ async def shipment_request_f_form(
         service_code: ServiceCode = Form(...),
         direction: ship_types.ShipDirection = Form(...),
         own_label: str = Form(...),
-) -> ShipmentConfigured:
+) -> Shipment:
     logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
-    shipment_request = ShipmentConfigured(
+    shipment_request = Shipment(
         recipient_address=address,
         recipient_contact=contact,
         service_code=service_code,
@@ -190,9 +189,9 @@ def get_el_client() -> ELClient:
 #         logger.error(f'Error getting Parcelforce Settings: {e}')
 #         raise
 
-async def shipment_from_record(record: AmherstTableBase) -> ShipmentConfigured:
+async def shipment_from_record(record: AmherstTableBase) -> Shipment:
     shipdict = record.shipment_dict()
-    shipment = ShipmentConfigured(**shipdict)
+    shipment = Shipment(**shipdict)
     shipment = shipment.model_validate(shipment)
     logger.debug(f'Shipment request: {shipment}')
     return shipment

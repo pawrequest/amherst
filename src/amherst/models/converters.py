@@ -1,13 +1,10 @@
 from amherst.models.amherst_models import AmherstTableBase
-from shipaw.models.pf_shipment_blank import to_collection, to_dropoff
-from shipaw.models.pf_shipment_configured import (
-    ShipmentConfigured,
-)
+from shipaw.models.pf_shipment_blank import to_collection, to_dropoff, Shipment
 from shipaw.ship_types import ShipDirection
 
 
 def to_shipment(amtable: AmherstTableBase, direction: ShipDirection):
-    ship = ShipmentConfigured.model_validate(amtable.shipment_dict())
+    ship = Shipment.model_validate(amtable.shipment_dict())
     match direction:
         case ShipDirection.Outbound:
             return ship

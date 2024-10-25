@@ -5,7 +5,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
-from shipaw.models.pf_shipment_configured import ShipmentConfigured
+from shipaw.models.pf_shipment_blank import Shipment
 from shipaw.ship_types import VALID_POSTCODE
 
 from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_from_record, shipment_request_f_form
@@ -68,7 +68,7 @@ async def fetch_candidates(
 @router.post('/post_ship', response_class=HTMLResponse)
 async def post_review_form(
         request: Request,
-        shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
+        shipment_request: Shipment = Depends(shipment_request_f_form),
 ):
     logger.info(shipment_request.recipient_contact.notifications)
     return TEMPLATES.TemplateResponse('ship/order_review.html', {'request': request, 'shipment': shipment_request})
@@ -82,7 +82,7 @@ async def post_confirm_booking(
         el_client: ELClient = Depends(get_el_client),
 ):
     logger.info(f'Confirm booking: {shipment}')
-    shipment: ShipmentConfigured = ShipmentConfigured.model_validate_json(shipment)
+    shipment: Shipment = Shipment.model_validate_json(shipment)
     response = book_shipment(el_client, shipment)
     logger.info(f'Booked Shipment Response: {response}')
     return TEMPLATES.TemplateResponse(
@@ -101,15 +101,15 @@ async def dl_label(
     # label_path = el_client.settings.
 
 
-def get_label_path(shipment: ShipmentConfigured, label_dir):
-    logger.debug(f'Getting label path for {shipment.pf_label_filestem}')
-    if shipment.direction != 'out':
-        label_dir = label_dir / shipment.direction
-    lpath = (label_dir / shipment.pf_label_filestem).with_suffix('.pdf')
-    incremented = 2
-    while lpath.exists():
-        logger.warning(f'Label path {lpath} already exists')
-        lpath = lpath.with_name(f'{lpath.stem}_{incremented}{lpath.suffix}')
-        incremented += 1
-    logger.debug(f'Using label path={lpath}')
-    return lpath
+# def get_label_path(shipment: Shipment, label_dir):
+#     logger.debug(f'Getting label path for {shipment.pf_label_filestem}')
+#     if shipment.direction != 'out':
+#         label_dir = label_dir / shipment.direction
+#     lpath = (label_dir / shipment.pf_label_filestem).with_suffix('.pdf')
+#     incremented = 2
+#     while lpath.exists():
+#         logger.warning(f'Label path {lpath} already exists')
+#         lpath = lpath.with_name(f'{lpath.stem}_{incremented}{lpath.suffix}')
+#         incremented += 1
+#     logger.debug(f'Using label path={lpath}')
+#     return lpath
