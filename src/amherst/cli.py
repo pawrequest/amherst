@@ -32,6 +32,7 @@ from amherst.back.search_paginate import SearchRequest, SearchResponse
 from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import AmherstTableName
+from pycommence.filters import ConditionType
 
 SCORER = fuzz.partial_ratio
 
@@ -60,6 +61,7 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
         csrname=category,
         pk_value=record_name,
         filtered=False,
+        condition=ConditionType.EQUAL
     )
     search_response = await pycommence_response(search_request)
     url_suffix = await url_from_response(search_response)

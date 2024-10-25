@@ -33,6 +33,7 @@ dependencies = [
     "pywin32",
     'jinja2',
     'pandas',
+    'loguru',
 ]
 
 [project.optional-dependencies]

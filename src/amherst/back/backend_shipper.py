@@ -17,7 +17,7 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment_blank import ShipmentReferenceFields, to_collection, to_dropoff, Shipment
+from shipaw.models.pf_shipment import ShipmentReferenceFields, to_collection, to_dropoff, Shipment
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import (
     AlertType,
@@ -150,9 +150,9 @@ async def shipment_request_f_form(
         shipping_date=shipping_date,
         total_number_of_parcels=total_number_of_parcels,
     )
-    if direction == ShipDirection.Dropoff:
+    if direction == ShipDirection.DROPOFF:
         shipment_request = to_dropoff(shipment_request)
-    elif direction == ShipDirection.Inbound:
+    elif direction == ShipDirection.INBOUND:
         shipment_request = to_collection(shipment_request, own_label=own_label)
 
     for fieldname, value in notes:
@@ -165,7 +165,7 @@ async def check_dates(booking, request):
     alert = None
     if not booking.shipment_request.shipping_date.weekday() < 5:
         alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
-    if booking.direction == ShipDirection.Inbound and booking.shipment_request.shipping_date <= date.today():
+    if booking.direction == ShipDirection.INBOUND and booking.shipment_request.shipping_date <= date.today():
         alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
     if alert:
         logger.warning(alert.message)

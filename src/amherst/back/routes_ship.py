@@ -1,14 +1,24 @@
+import os
+from pathlib import Path
+
+import pawdf
 from fastapi import APIRouter, Depends, Form
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
+
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
-from shipaw.models.pf_shipment_blank import Shipment
+from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import VALID_POSTCODE
-
-from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_from_record, shipment_request_f_form
+from amherst.back.backend_shipper import (
+    book_shipment,
+    get_el_client,
+    shipment_from_record,
+    shipment_request_f_form,
+    wait_label,
+)
 from amherst.back.backend_pycommence import row_from_path_id, search_f_path
 from amherst.back.search_paginate import SearchResponse
 from amherst.config import TEMPLATES
@@ -84,6 +94,7 @@ async def post_confirm_booking(
     logger.info(f'Confirm booking: {shipment}')
     shipment: Shipment = Shipment.model_validate_json(shipment)
     response = book_shipment(el_client, shipment)
+    wait_label(shipment_num=response.shipment_num, dl_path=shipment.label_file, el_client=el_client)
     logger.info(f'Booked Shipment Response: {response}')
     return TEMPLATES.TemplateResponse(
         'ship/order_confirmed.html', {'request': request, 'shipment': shipment, 'response': response}
@@ -113,3 +124,18 @@ async def dl_label(
 #         incremented += 1
 #     logger.debug(f'Using label path={lpath}')
 #     return lpath
+
+
+@router.post('/print', response_class=HTMLResponse)
+async def print_label(request: Request, label_path: str = Form(...)):
+    """Endpoint to print the label for a booking."""
+    pawdf.array_pdf.convert_many(Path(label_path), print_files=True)
+    return HTMLResponse(content=f'<p>Printed {label_path}</p>')
+
+
+@router.post('/open-file', response_class=HTMLResponse)
+async def open_label(request: Request, label_path: str = Form(...)):
+    """Endpoint to print the label for a booking."""
+    os.startfile(label_path)
+    return HTMLResponse(content=f'<p>Opened {label_path}</p>')
+

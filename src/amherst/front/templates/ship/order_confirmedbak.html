@@ -1,0 +1,100 @@
+<div class="wrapper wrapper__results">
+    <div class="response">
+        <div class="result">
+            {% if response.alerts %}
+            <div class="alerts">
+                {% for alert in response.alerts.alert %}
+                <div class="alert">
+                    <p>{{ alert.message }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if response.completed_shipment_info %}
+            set label_file = shipment.label_file
+            <div class="result__success">
+                <h2>Shipment Number {{ response.shipment_num }} Confirmed</h2>
+                <p>label downloaded to {{ label_file }}</p>
+
+                <!--                    {#                    {% if booking.tracking_logged %}#}-->
+                <!--                    {#                        <p>Commence Has Been Updated with tracking info and DB Label = True</p>#}-->
+                <!--                    {#                    {% endif %}#}-->
+
+
+                <div class="label-actions">
+                    <div class="label-action">
+                        <form hx-post="print" hx-target="#label-action-result" hx-swap="innerHTML">
+                            <input type="hidden" name="label_path" value="{{label_file}}">
+                            <button type="submit" class="btn-print-label">Print Label</button>
+                        </form>
+                    </div>
+
+                    <div class="label-action">
+                        <form hx-post="open-file" hx-target="#label-action-result" hx-swap="innerHTML">
+                            <input type="hidden" name="label_path" value="{{ label_file }}">
+                            <button type="submit" class="btn-print-label">Open Label</button>
+                        </form>
+                    </div>
+
+<!--                    <form hx-post="email" hx-target="#label-action-result" hx-swap="innerHTML">-->
+<!--                        <div class="label-action label-action__email">-->
+<!--                            <button type="submit">Email Label</button>-->
+<!--                            <input type="hidden" name="booking_id" value="{{ booking.id }}">-->
+<!--                            <input type="hidden" id="label" name="att-label" value="true">-->
+<!--                            <div class="label-email-options">-->
+<!--                                <label for="email-options">Email To:</label>-->
+<!--                                <select multiple id='email-options' name="email-options">-->
+<!--                                    {% for addr in booking.email_options %}-->
+<!--                                    <option value="{{ addr.email }}">{{ addr.description }} ({{ addr.email }})</option>-->
+<!--                                    {% endfor %}-->
+<!--                                </select>#}-->
+<!--                            </div>-->
+<!--                            #}-->
+<!--                        </div>-->
+<!--                        #}-->
+<!--                    </form>-->
+                    #}
+                    <div id="label-action-result"></div>
+                    #}
+                </div>
+                #}
+            </div>
+            {# {% include 'email_send.html' with context %}#}
+
+
+            {% else %}
+            <div class="result__failure">
+                <h2>Booking Failed</h2>
+                <p>There was a problem with your booking.</p>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    {# {% include 'alerts.html' with context %}#}
+
+    {#
+<!--    <div class="email">#}-->
+<!--        {#-->
+<!--        <form hx-post="email" hx-target="#email-result" hx-swap="innerHTML">#}-->
+<!--            {# {% for addr in booking(.record.email_options %}#}-->
+<!--            {# <label for={{ addr.name }}>{{ addr.description }}</label>#}-->
+<!--            {# <input type="checkbox" id={{ addr.name }}>#}-->
+<!--            {# {% endfor %}#}-->
+<!--            {##}-->
+<!--            {##}-->
+<!--            {#-->
+<!--        </form>-->
+<!--        #}-->
+<!--        {#-->
+<!--    </div>-->
+    #}
+</div>
+<script>
+
+</script>
+{#{% endblock %}#}
+
+
+
