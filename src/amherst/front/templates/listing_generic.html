@@ -1,8 +1,8 @@
-{% for customer in response.records %}
+{% for record in response.records %}
 <div class="record"
-     hx-get="/html/row_id/Customer/{{ customer.row_id }}"
+     hx-get="/html/row_id/{{ record.category }}/{{ record.row_id }}"
      hx-target="#details">
-    {{ customer.name }}
+    {{ record.name }}
 </div>
 {% endfor %}
 {% if more %}

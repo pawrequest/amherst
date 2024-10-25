@@ -1,4 +1,10 @@
 <div class="record">
+    {{ row.name }}
+    {% if row.send_date %}
+        <p>
+            {{ row.dt_ordinal(row.send_date) }}
+        </p>
+    {% endif %}
     <button class="ship"
             hx-get="/ship/row_id/{{ row.category }}/{{ row.row_id }}"
             hx-target="#maincontent">

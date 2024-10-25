@@ -4,7 +4,6 @@ from abc import ABC
 from enum import StrEnum
 from typing import Literal
 
-
 from fastapi import Path, Query
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTableBase, AmherstTrial
@@ -24,32 +23,38 @@ CURSOR_MAP = {
     'Hire': {
         'input_type': AmherstHire,
         'aliases': HireAliases,
-        'template': 'listing_order.html',
-        'listing-template': 'listing_order.html',
-        'detail-template': 'detail_order.html',
+        # 'template': 'listing_order.html',
+        # 'listing-template': 'listing_order.html',
+        'listing-template': 'listing_generic.html',
+        'detail-template': 'detail_generic.html',
+        # 'detail-template': 'detail_order.html',
     },
     'Sale': {
         'input_type': AmherstSale,
         'aliases': SaleAliases,
-        'template': 'listing_order.html',
-        'listing-template': 'listing_order.html',
-        'detail-template': 'detail_order.html',
+        # 'template': 'listing_order.html',
+        # 'listing-template': 'listing_order.html',
+        'listing-template': 'listing_generic.html',
+        'detail-template': 'detail_generic.html',
+
+        # 'detail-template': 'detail_order.html',
     },
     'Customer': {
         'input_type': AmherstCustomer,
         'aliases': CustomerAliases,
-        'template': 'listing_customer.html',
-        'listing-template': 'listing_customer.html',
-        'detail-template': 'detail_customer.html',
+        # 'template': 'listing_customer.html',
+        'listing-template': 'listing_generic.html',
+        # 'listing-template': 'listing_customer.html',
+        'detail-template': 'detail_generic.html',
     },
     'Radio Trial': {
         'input_type': AmherstTrial,
         'aliases': TrialAliases,
-        'template': 'listing_order.html',
-        'listing-template': 'listing_order.html',
-        'detail-template': 'detail_order.html',
+        'listing-template': 'listing_generic.html',
+        'detail-template': 'detail_generic.html',
     },
 }
+
 
 # CsrName = Literal['Hire', 'Sale', 'Customer', 'Trial']
 # assert get_args(AmherstTableName) == tuple(CURSOR_MAP.keys())
@@ -62,11 +67,7 @@ async def template_name_from_query(csrname: AmherstTableName = Query(...)):
     return CURSOR_MAP[csrname]['template']
 
 
-async def template_name_from_path(csrname: AmherstTableName = Path(...)):
-    return CURSOR_MAP[csrname]['template']
-
-
-async def template_name_from_path2(tmplt_type: TMPLT_TYPE, csrname: AmherstTableName = Path(...)):
+async def get_tmplt_name(tmplt_type: TMPLT_TYPE, csrname: AmherstTableName = Path(...)):
     return CURSOR_MAP[csrname][f'{tmplt_type}-template']
 
 

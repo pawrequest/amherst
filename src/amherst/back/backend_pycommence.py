@@ -65,11 +65,11 @@ async def gather_records(input_type, pycmc: PyCommence, sq: SearchRequest, get_i
     return more, records
 
 
-async def search_f_query(
-    search_request: SearchRequest = Depends(SearchRequest.from_query),
-    pycmc: PyCommence = Depends(pycmc_f_path),
-) -> SearchResponse:
-    return await pycommence_search(pycmc, search_request)
+# async def search_f_query(
+#     search_request: SearchRequest = Depends(SearchRequest.from_query),
+#     pycmc: PyCommence = Depends(pycmc_f_path),
+# ) -> SearchResponse:
+#     return await pycommence_search(pycmc, search_request)
 
 
 async def search_f_path(
@@ -84,9 +84,16 @@ async def pycommence_search(
     search_request: SearchRequest,
 ):
     csr = pycmc.csr(search_request.csrname)
-    if array := search_request.src_filter(csr):
-        pycmc.set_csr(search_request.csrname, filter_array=array)
     record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
+
+    if search_request.row_id:
+        record = pycmc.read_row(id=search_request.row_id)
+        validated = record_type.model_validate(record)
+        return SearchResponse(records=[validated], more=None, search_request=search_request)
+
+    if search_request.filtered:
+        pycmc.set_csr(search_request.csrname, filter_array=search_request.src_filter(csr))
+
     more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
     return SearchResponse(records=records, more=more, search_request=search_request)
 
