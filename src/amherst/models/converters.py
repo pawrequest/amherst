@@ -1,5 +1,8 @@
 from amherst.models.amherst_models import AmherstTableBase
-from shipaw.models.pf_shipment_configured import ShipmentConfigured, to_collection, to_dropoff
+from shipaw.models.pf_shipment_blank import to_collection, to_dropoff
+from shipaw.models.pf_shipment_configured import (
+    ShipmentConfigured,
+)
 from shipaw.ship_types import ShipDirection
 
 

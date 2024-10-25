@@ -3,10 +3,9 @@ import pytest_asyncio
 from fastapi.encoders import jsonable_encoder
 from starlette.testclient import TestClient
 
-from amherst.models.db_models import BookingStateDB
 from shipaw.models.booking_states import BookingState
 from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment_configured  import ShipmentAwayCollectionConfigured, ShipmentAwayDropoffConfigured, to_dropoff, to_collection
+from shipaw.models.pf_shipment_configured  import ShipmentAwayCollectionConfigured, ShipmentAwayDropoffConfigured, to_dropoff, to_collection_configured
 from .client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
@@ -45,7 +44,7 @@ async def test_retrieve_random_booking(test_client, b_fxt: BookingStateDB):
 @pytest_asyncio.fixture(scope='session')
 async def away_collect_fxt(b_fxt):
     outfxt = b_fxt.copy()
-    outfxt.shipment_request = to_collection(b_fxt.shipment_request)
+    outfxt.shipment_request = to_collection_configured(b_fxt.shipment_request)
     outfxt.shipment_request.recipient_contact.email_address = FAKE_EMAIL
     outfxt.shipment_request.recipient_contact.mobile_phone = FAKE_PHONE
     outfxt.shipment_request.collection_info.collection_contact.email_address = FAKE_EMAIL

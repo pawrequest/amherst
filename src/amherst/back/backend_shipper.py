@@ -4,14 +4,12 @@ import pathlib
 import time
 from datetime import date
 
-from fastapi import Form, Depends
+from fastapi import Depends, Form
 from loguru import logger
 from pydantic import EmailStr
-
-from amherst.models.amherst_models import AmherstTableBase
-from shipaw.pf_config import PFSettings, pf_sett
 from starlette.requests import Request
 
+from amherst.models.amherst_models import AmherstTableBase
 from amherst.config import TEMPLATES
 from shipaw import ship_types
 from shipaw.expresslink_client import ELClient
@@ -19,16 +17,16 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment_configured  import to_dropoff, to_collection, ShipmentConfigured
-from shipaw.models.pf_shipment_blank import ShipmentReferenceFields
+from shipaw.models.pf_shipment_configured import ShipmentConfigured
+from shipaw.models.pf_shipment_blank import ShipmentReferenceFields, to_collection, to_dropoff
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import (
-    ExpressLinkError,
-    ExpressLinkWarning,
-    ExpressLinkNotification,
-    VALID_POSTCODE,
-    ShipDirection,
     AlertType,
+    ExpressLinkError,
+    ExpressLinkNotification,
+    ExpressLinkWarning,
+    ShipDirection,
+    VALID_POSTCODE,
 )
 
 
@@ -75,12 +73,12 @@ def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
 
 
 async def address_f_form(
-    address_line1: str = Form(...),
-    address_line2: str = Form(''),
-    address_line3: str = Form(''),
-    town: str = Form(...),
-    postcode: VALID_POSTCODE = Form(...),
-    direction: ShipDirection = Form(...),
+        address_line1: str = Form(...),
+        address_line2: str = Form(''),
+        address_line3: str = Form(''),
+        town: str = Form(...),
+        postcode: VALID_POSTCODE = Form(...),
+        direction: ShipDirection = Form(...),
 ):
     logger.debug(
         f'Address fields received: {direction=}, {address_line1=}, {address_line2=}, {address_line3=}, {town=}, {postcode=}'
@@ -99,12 +97,12 @@ async def address_f_form(
 
 
 async def contact_f_form(
-    request: Request,
-    contact_name: str = Form(...),
-    email_address: EmailStr = Form(...),
-    business_name: str = Form(...),
-    mobile_phone: str = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
+        request: Request,
+        contact_name: str = Form(...),
+        email_address: EmailStr = Form(...),
+        business_name: str = Form(...),
+        mobile_phone: str = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
 ):
     logger.debug(f'form received: {await request.form()}')
     logger.debug(
@@ -134,15 +132,15 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 
 async def shipment_request_f_form(
-    request: Request,
-    contact: Contact = Depends(contact_f_form),
-    address: AddressCollection = Depends(address_f_form),
-    notes: list[tuple[str, str]] = Depends(notes_f_form),
-    shipping_date: date = Form(...),
-    total_number_of_parcels: int = Form(...),
-    service_code: ServiceCode = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    own_label: str = Form(...),
+        request: Request,
+        contact: Contact = Depends(contact_f_form),
+        address: AddressCollection = Depends(address_f_form),
+        notes: list[tuple[str, str]] = Depends(notes_f_form),
+        shipping_date: date = Form(...),
+        total_number_of_parcels: int = Form(...),
+        service_code: ServiceCode = Form(...),
+        direction: ship_types.ShipDirection = Form(...),
+        own_label: str = Form(...),
 ) -> ShipmentConfigured:
     logger.warning('Creating Shipment Request from form')
     own_label = own_label.lower() == 'true'
@@ -155,7 +153,6 @@ async def shipment_request_f_form(
     )
     if direction == ShipDirection.Dropoff:
         shipment_request = to_dropoff(shipment_request)
-        # shipment_request = ShipmentAwayDropoff.from_shipment(shipment_request)
     elif direction == ShipDirection.Inbound:
         shipment_request = to_collection(shipment_request, own_label=own_label)
 

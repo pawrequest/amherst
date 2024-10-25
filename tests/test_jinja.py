@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from amherst.models.db_models import BookingStateDB
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment_configured  import to_collection, to_dropoff
+from shipaw.models.pf_shipment_configured  import to_collection_configured, to_dropoff
 from shipaw.ship_types import ShipDirection
 from .client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
@@ -30,7 +30,7 @@ b_fxt = booking_mock_db
 
 @pytest_asyncio.fixture(scope='session')
 async def away_collect_fxt(b_fxt):
-    return to_collection(b_fxt.shipment_request)
+    return to_collection_configured(b_fxt.shipment_request)
     # return ShipmentAwayCollection.from_shipment(b_fxt.shipment_request)
 
 

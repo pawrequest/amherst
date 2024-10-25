@@ -2,17 +2,17 @@ from fastapi import APIRouter, Depends, Form
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from starlette.requests import Request
-from starlette.responses import JSONResponse, HTMLResponse
-
-from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_request_f_form, shipment_from_record
-from amherst.back.backend_pycommence import row_from_path_id, search_f_path
-from amherst.back.search_paginate import SearchResponse
-from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
+from starlette.responses import HTMLResponse, JSONResponse
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_shipment_configured import ShipmentConfigured
 from shipaw.ship_types import VALID_POSTCODE
+
+from amherst.back.backend_shipper import book_shipment, get_el_client, shipment_from_record, shipment_request_f_form
+from amherst.back.backend_pycommence import row_from_path_id, search_f_path
+from amherst.back.search_paginate import SearchResponse
+from amherst.config import TEMPLATES
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
 
 router = APIRouter()
 
@@ -24,8 +24,8 @@ router = APIRouter()
 
 @router.get('/row_id/{csrname}/{row_id}')
 async def ship_from_row_id_path(
-    request: Request,
-    row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
+        request: Request,
+        row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
 ):
     logger.warning(f'SHIP FROM ROW ID PATH Row: {row}')
     return await record_to_form(request, row)
@@ -36,9 +36,9 @@ async def ship_from_row_id_path(
 
 
 @router.get('/pk/{csrname}/{pk_value}', response_class=JSONResponse)
-async def ship_form_pk_value(
-    request: Request,
-    resp: SearchResponse = Depends(search_f_path),
+async def ship_form_pk_value_path(
+        request: Request,
+        resp: SearchResponse = Depends(search_f_path),
 ):
     if resp.length == 1 or resp.search_request.pk_value == 'Test':
         row = resp.records[0]
@@ -53,34 +53,33 @@ async def record_to_form(request, record: AmherstTableBase):
     jsonable = jsonable_encoder(shipment)
     html = TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
     return html
-
     # response.headers['HX-Trigger'] = 'hydrateShipment'
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
 async def fetch_candidates(
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(get_el_client),
+        postcode: VALID_POSTCODE,
+        el_client: ELClient = Depends(get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
 
 
 @router.post('/post_ship', response_class=HTMLResponse)
-async def post_shipment_form(
-    request: Request,
-    shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
+async def post_review_form(
+        request: Request,
+        shipment_request: ShipmentConfigured = Depends(shipment_request_f_form),
 ):
     logger.info(shipment_request.recipient_contact.notifications)
     return TEMPLATES.TemplateResponse('ship/order_review.html', {'request': request, 'shipment': shipment_request})
 
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
-async def confirm_booking(
-    request: Request,
-    shipment: str = Form(...),
-    # shipment: ShipmentConfigured,
-    el_client: ELClient = Depends(get_el_client),
+async def post_confirm_booking(
+        request: Request,
+        shipment: str = Form(...),
+        # shipment: ShipmentConfigured,
+        el_client: ELClient = Depends(get_el_client),
 ):
     logger.info(f'Confirm booking: {shipment}')
     shipment: ShipmentConfigured = ShipmentConfigured.model_validate_json(shipment)
@@ -95,8 +94,8 @@ async def confirm_booking(
 
 @router.post('/dl_label', response_class=HTMLResponse)
 async def dl_label(
-    shipment_number: str = Form(...),
-    el_client: ELClient = Depends(get_el_client),
+        shipment_number: str = Form(...),
+        el_client: ELClient = Depends(get_el_client),
 ):
     logger.info(f'Fetching label for Shipment Number: {shipment_number}')
     # label_path = el_client.settings.
