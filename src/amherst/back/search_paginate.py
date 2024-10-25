@@ -6,14 +6,14 @@ from fastapi import Body, Depends, Path, Query
 from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
+from pycommence.cursor_v2 import CursorAPI
+from pycommence.filters import ConditionType, FilterArray
+from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 
 # from amherst.back.pyc_backend import pycmc_f_path
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import get_customer_filter, get_hire_filter, get_sale_filter
 from amherst.models.maps import AmherstTableName
-from pycommence.cursor_v2 import CursorAPI
-from pycommence.filters import ConditionType, FilterArray
-from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 
 PAGE_SIZE = 30
 
@@ -35,7 +35,8 @@ class SearchRequest(BaseModel):
     row_id: str | None = None
     max_rtn: int = None
 
-    def src_filter(self, csr: CursorAPI | None = None) -> FilterArray | None:
+    def src_filter(self, csr: CursorAPI | None = None) -> FilterArray:
+        # I DONT LIKE THIS AT ALL!!
         if self.pk_value and not csr:
             raise ValueError('pk_value requires csr')
         if self.filtered:
@@ -99,11 +100,11 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_path(
-        cls,
-        csrname: AmherstTableName = Path(...),
-        filtered: bool = Query(True),
-        pk_value: str = Path(...),
-        pagination: Pagination = Depends(Pagination.from_query),
+            cls,
+            csrname: AmherstTableName = Path(...),
+            filtered: bool = Query(True),
+            pk_value: str = Path(...),
+            pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.debug(f'SearchRequest.from_path({csrname=}, {pk_value=}, {pagination=})')
         return cls(
@@ -115,10 +116,10 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def get_all(
-        cls,
-        csrname: AmherstTableName = Path(...),
-        filtered: bool = Query(True),
-        pagination: Pagination = Depends(Pagination.from_query),
+            cls,
+            csrname: AmherstTableName = Path(...),
+            filtered: bool = Query(True),
+            pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_path({csrname=}, {pagination=})')
         return cls(
@@ -129,11 +130,11 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_query(
-        cls,
-        csrname: AmherstTableName = Path(...),
-        filtered: bool = Query(True),
-        pk_value: str = Query(''),
-        pagination: Pagination = Depends(Pagination.from_query),
+            cls,
+            csrname: AmherstTableName = Path(...),
+            filtered: bool = Query(True),
+            pk_value: str = Query(''),
+            pagination: Pagination = Depends(Pagination.from_query),
     ):
         logger.warning(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
         return cls(
@@ -145,22 +146,28 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_body(
-        cls,
-        csrname: AmherstTableName = Body(...),
-        filtered: bool = Body(True),
-        pk_value: str = Body(None),
-        package: dict | None = Body(default_factory=dict),
-        pagination: Pagination = Depends(Pagination.from_query),
+            cls,
+            csrname: AmherstTableName = Body(...),
+            filtered: bool = Body(True),
+            pk_value: str = Body(None),
+            package: dict = Body(default_factory=dict),
+            pagination: Pagination = Depends(Pagination.from_query),
+            condition: ConditionType = Body(ConditionType.CONTAIN),
+            row_id: str = Body(None),
+            max_rtn: int = Body(None)
     ):
+
         logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {package=}, {pagination=})')
-        res = cls(
+        return cls(
             csrname=csrname,
             filtered=filtered,
             pagination=pagination,
             pk_value=pk_value,
             package=package,
+            condition=condition,
+            row_id=row_id,
+            max_rtn=max_rtn,
         )
-        return res.model_validate(res)
 
 
 class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):

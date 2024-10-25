@@ -8,28 +8,28 @@ router = APIRouter()
 
 
 @router.get('/{csrname}/search/{pk_value}')
-async def search_get[T: SearchResponse](
-    search_request: SearchRequest = Depends(SearchRequest.from_path),
-) -> T:
+async def search_get(
+        search_request: SearchRequest = Depends(SearchRequest.from_path),
+) -> SearchResponse:
     return await pycommence_response(search_request)
 
 
 @router.get('/{csrname}/{row_id}')
 async def get_row(
-    row: dict = Depends(row_from_path_id),
+        row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
 ) -> AMHERST_TABLE_MODELS:
     return row
 
 
 @router.post('/search')
 async def search_post[T: SearchResponse](
-    search_request: SearchRequest = Depends(SearchRequest.from_body),
+        search_request: SearchRequest = Depends(SearchRequest.from_body),
 ) -> T:
     return await pycommence_response(search_request)
 
 
 @router.get('/{csrname}')
 async def get_all(
-    search_request: SearchRequest = Depends(SearchRequest.get_all),
+        search_request: SearchRequest = Depends(SearchRequest.get_all),
 ) -> SearchResponse:
     return await pycommence_response(search_request)
