@@ -1,13 +1,12 @@
 # from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-from amherst.back.backend_pycommence import pycommence_response, row_from_path_id
+from amherst.back.backend_pycommence import pycommence_response, row_from_path_id, search_f_path
 from amherst.back.search_paginate import SearchRequest, SearchResponse
-from amherst.models.commence_adaptors import AmherstTableName
-from amherst.models.maps import get_tmplt_name
+from amherst.models.maps import CMAP, detail_template_name, listing_template_name
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
@@ -23,28 +22,32 @@ async def multi_shipper(
 
 #
 @router.get('/search/{csrname}/{pk_value}')
-async def search_path[T: SearchResponse](
+async def search_path(
         request: Request,
-        search_request: SearchRequest = Depends(SearchRequest.from_path),
-) -> T:
-    template_name: str = await get_tmplt_name('listing', search_request.csrname)
-    resp = await pycommence_response(search_request)
-    if search_request.max_rtn and resp.length > search_request.max_rtn:
+        # search_request: SearchRequest = Depends(SearchRequest.from_path),
+        response: SearchResponse = Depends(search_f_path),
+) -> SearchResponse:
+    search_request = response.search_request
+    tmplt = CMAP[search_request.csrname].listing_template
+    # template_name: str = await get_tmplt_name('listing', search_request.csrname)
+    # resp = await pycommence_response(search_request)
+    if search_request.max_rtn and response.length > search_request.max_rtn:
         raise HTTPException(
             status_code=404,
-            detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {resp.length}'
+            detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {response.length}'
         )
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': resp})
+    return TEMPLATES.TemplateResponse(tmplt, {'request': request, 'response': response})
+    # return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
 
 
 @router.get('/row_id/{csrname}/{row_id}')
 async def row_id_path(
         request: Request,
         row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
-        csrname: AmherstTableName = Path(...),
+        # csrname: AmherstTableName = Path(...),
+        template_name=Depends(detail_template_name)
 ) -> HTMLResponse:
-    template_name: str = await get_tmplt_name('detail', csrname)
-
+    # template_name: str = await get_tmplt_name('detail', csrname)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
 
 
@@ -52,10 +55,14 @@ async def row_id_path(
 async def get_all(
         request: Request,
         search_request: SearchRequest = Depends(SearchRequest.get_all),
+        # response: SearchResponse = Depends(search_f_path),
+        # csrname: AmherstTableName = Path(...),
+        template_name: str = Depends(listing_template_name),
 ) -> SearchResponse:
-    template_name: str = await get_tmplt_name('listing', search_request.csrname)
     response = await pycommence_response(search_request)
+    # template_name: str = await get_tmplt_name('listing', response.search_request.csrname)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
+    # response = await pycommence_response(search_request)
 
 # @router.post('/control-box')
 # async def control_box_post(request: Request, order: dict):

@@ -6,13 +6,14 @@ from comtypes import CoInitialize, CoUninitialize
 from fastapi import Depends, Path
 from loguru import logger
 from pydantic import BaseModel
+from starlette.requests import Request
 
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
 from amherst.back.search_paginate import SearchRequest, SearchResponse
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstTableName, CURSOR_MAP
+from amherst.models.maps import AmherstTableName, record_model
 
 
 @contextlib.contextmanager
@@ -47,14 +48,20 @@ async def pycmc_f_path(csrname: AmherstTableName = Path(...)) -> PyCommence:
 
 
 #
-async def gather_records(input_type, pycmc: PyCommence, sq: SearchRequest, get_id: bool = True):
+async def gather_records(
+        input_type: type[AMHERST_TABLE_MODELS],
+        # pycmc: PyCommence,
+        sq: SearchRequest,
+        get_id: bool = True,
+        pycmc: PyCommence = Depends(pycmc_f_path),
+):
     records = []
     more = None
     for row in pycmc.read_rows(
             csrname=sq.csrname,
             with_category=True,
             pagination=sq.pagination,
-            get_id=get_id,
+            with_id=get_id,
     ):
         if isinstance(row, MoreAvailable):
             more = row
@@ -74,17 +81,22 @@ async def gather_records(input_type, pycmc: PyCommence, sq: SearchRequest, get_i
 
 async def search_f_path(
         search_request: SearchRequest = Depends(SearchRequest.from_path),
-        pycmc: PyCommence = Depends(pycmc_f_path),
+        # pycmc: PyCommence = Depends(pycmc_f_path),
 ) -> SearchResponse:
-    return await pycommence_search(pycmc, search_request)
+    return await pycommence_search(search_request)
+    # return await pycommence_search(search_request, pycmc)
 
 
 async def pycommence_search(
-        pycmc: PyCommence,
+        # request: Request,
+
+        # pycmc: PyCommence,
         search_request: SearchRequest,
+        pycmc: PyCommence = Depends(pycmc_f_path),
 ):
     csr = pycmc.csr(search_request.csrname)
-    record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
+    # record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
+    record_type: type[BaseModel] = await record_model(search_request.csrname)
 
     if search_request.row_id:
         record = pycmc.read_row(id=search_request.row_id)
@@ -100,18 +112,23 @@ async def pycommence_search(
 
 
 async def pycommence_response(
+        # request: Request,
         search_request: SearchRequest,
+
 ) -> SearchResponse:
     with pycommence_context(search_request.csrname) as pycmc:
-        return await pycommence_search(pycmc, search_request)
+        return await pycommence_search(search_request, pycmc)
+    # return await pycommence_search(search_request)
 
 
 def row_from_path_id(
         csrname: AmherstTableName = Path(...),
         row_id: str = Path(...),
+        # pycmc: PyCommence = Depends(pycmc_f_path),
+        record_type: type[BaseModel] = Depends(record_model),
 ) -> AMHERST_TABLE_MODELS:
-    record_type: type[BaseModel] = CURSOR_MAP[csrname]['input_type']
-
+    # record_type: type[BaseModel] = CURSOR_MAP[csrname]['input_type']
     with pycommence_context(csrname=csrname) as pycmc:
         row = pycmc.read_row(id=row_id)
+    # row = pycmc.read_row(id=row_id)
     return record_type.model_validate(row)

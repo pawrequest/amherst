@@ -9,9 +9,11 @@ router = APIRouter()
 
 @router.get('/{csrname}/search/{pk_value}')
 async def search_pk(
-        search_request: SearchRequest = Depends(SearchRequest.from_path),
+        # search_request: SearchRequest = Depends(SearchRequest.from_path),
+        resp: SearchResponse = Depends(pycommence_response),
 ) -> SearchResponse:
-    return await pycommence_response(search_request)
+    # return await pycommence_response(search_request)
+    return resp
 
 
 @router.get('/{csrname}/{row_id}')
@@ -23,13 +25,16 @@ async def get_row(
 
 @router.post('/search')
 async def search_post(
-        search_request: SearchRequest = Depends(SearchRequest.from_body),
+        # search_request: SearchRequest = Depends(SearchRequest.from_body),
+        resp: SearchResponse = Depends(pycommence_response),
 ) -> SearchResponse:
-    return await pycommence_response(search_request)
-
+    # return await pycommence_response(search_request)
+    return resp
 
 @router.get('/{csrname}')
 async def get_all(
-        search_request: SearchRequest = Depends(SearchRequest.get_all),
+        # search_request: SearchRequest = Depends(SearchRequest.get_all),
+        resp: SearchResponse = Depends(pycommence_response),
 ) -> SearchResponse:
-    return await pycommence_response(search_request)
+    # return await pycommence_response(search_request)
+    return resp

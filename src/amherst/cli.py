@@ -27,7 +27,7 @@ from enum import StrEnum
 from loguru import logger
 from thefuzz import fuzz
 
-from amherst.back.backend_pycommence import pycommence_response
+from amherst.back.backend_pycommence import pycommence_response, pycommence_search, pycommence_context
 from amherst.back.search_paginate import SearchRequest
 from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
@@ -68,7 +68,9 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
         filtered=False,
         condition=ConditionType.EQUAL,
     )
-    search_response = await pycommence_response(search_request)
+    with pycommence_context(category) as pycmc:
+        search_response = await pycommence_search(search_request, pycmc)
+    # search_response = await pycommence_response(search_request)
     row = await parse_response(search_response)
     url_suffix = await get_url_suffix(row, mode)
     await run_desktop_ui(url_suffix)
