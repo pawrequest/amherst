@@ -12,16 +12,15 @@ URL_SUFFIX = 'html/multi'
 
 async def run_desktop_ui(url_suffix=URL_SUFFIX):
     try:
-        logger.info(f'Starting desktop UI with URL_SUFFIX: {url_suffix}')
-        fui = FlaskUI(
+        logger.info(f'WebFlaskUI with {url_suffix=}')
+        FlaskUI(
             fullscreen=True,
             app=app.app,
             server='fastapi',
             url_suffix=url_suffix,
             port=PORT,
             app_mode=False,
-        )
-        fui.run()
+        ).run()
     except Exception as e:
         if "got an unexpected keyword argument 'url_suffix'" in str(e):
             msg = (

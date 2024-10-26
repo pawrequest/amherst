@@ -103,14 +103,6 @@ async def post_confirm_booking(
     # return response
 
 
-@router.post('/dl_label', response_class=HTMLResponse)
-async def dl_label(
-        shipment_number: str = Form(...),
-        el_client: ELClient = Depends(get_el_client),
-):
-    logger.info(f'Fetching label for Shipment Number: {shipment_number}')
-    # label_path = el_client.settings.
-
 
 # def get_label_path(shipment: Shipment, label_dir):
 #     logger.debug(f'Getting label path for {shipment.pf_label_filestem}')

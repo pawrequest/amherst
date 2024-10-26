@@ -28,7 +28,7 @@ from loguru import logger
 from thefuzz import fuzz
 
 from amherst.back.backend_pycommence import pycommence_response
-from amherst.back.search_paginate import SearchRequest, SearchResponse
+from amherst.back.search_paginate import SearchRequest
 from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import AmherstTableName
@@ -42,6 +42,11 @@ class Mode(StrEnum):
 
 
 MODE = Mode.SHIP_BY_SRCH
+
+
+async def get_url_suffix(record: AmherstTableBase, mode: Mode = MODE):
+    # todo parse mode
+    return f'ship/row_id/{record.category}/{record.row_id}'
 
 
 def parse_arguments():
@@ -61,27 +66,23 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
         csrname=category,
         pk_value=record_name,
         filtered=False,
-        condition=ConditionType.EQUAL
+        condition=ConditionType.EQUAL,
     )
     search_response = await pycommence_response(search_request)
-    url_suffix = await url_from_response(search_response)
+    row = await parse_response(search_response)
+    url_suffix = await get_url_suffix(row, mode)
     await run_desktop_ui(url_suffix)
 
 
-async def url_from_response(res: SearchResponse):
-    if res.length == 0:
+async def parse_response(res):
+    if res.length == 1 or res.search_request.pk_value == 'Test':
+        return res.records[0]
+    elif res.length == 0:
         raise ValueError(f'No {res.search_request.csrname} record found for {res.search_request.pk_value}')
-    elif res.length == 1 or res.search_request.pk_value == 'Test':
-        row = res.records[0]
     else:
-        raise NotImplementedError(f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}')
-
-    url_suffix = get_url_suffix(row)
-    return url_suffix
-
-
-def get_url_suffix(record: AmherstTableBase):
-    return f'ship/row_id/{record.category}/{record.row_id}'
+        raise NotImplementedError(
+            f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}'
+        )
 
 
 if __name__ == '__main__':

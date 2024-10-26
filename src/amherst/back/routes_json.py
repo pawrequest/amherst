@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get('/{csrname}/search/{pk_value}')
-async def search_get(
+async def search_pk(
         search_request: SearchRequest = Depends(SearchRequest.from_path),
 ) -> SearchResponse:
     return await pycommence_response(search_request)
@@ -22,9 +22,9 @@ async def get_row(
 
 
 @router.post('/search')
-async def search_post[T: SearchResponse](
+async def search_post(
         search_request: SearchRequest = Depends(SearchRequest.from_body),
-) -> T:
+) -> SearchResponse:
     return await pycommence_response(search_request)
 
 

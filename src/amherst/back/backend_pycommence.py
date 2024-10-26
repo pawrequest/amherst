@@ -6,10 +6,10 @@ from comtypes import CoInitialize, CoUninitialize
 from fastapi import Depends, Path
 from loguru import logger
 from pydantic import BaseModel
+
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
-
 from amherst.back.search_paginate import SearchRequest, SearchResponse
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.maps import AmherstTableName, CURSOR_MAP
@@ -77,18 +77,6 @@ async def search_f_path(
         pycmc: PyCommence = Depends(pycmc_f_path),
 ) -> SearchResponse:
     return await pycommence_search(pycmc, search_request)
-
-
-async def pycommence_search1(
-        pycmc: PyCommence,
-        search_request: SearchRequest,
-):
-    csr = pycmc.csr(search_request.csrname)
-    if array := search_request.src_filter(csr):
-        pycmc.set_csr(search_request.csrname, filter_array=array)
-    record_type: type[BaseModel] = CURSOR_MAP[search_request.csrname]['input_type']
-    more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
-    return SearchResponse(records=records, more=more, search_request=search_request)
 
 
 async def pycommence_search(

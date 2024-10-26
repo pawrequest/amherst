@@ -6,13 +6,11 @@ from fastapi import Body, Depends, Path, Query
 from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
-from pycommence.cursor_v2 import CursorAPI
-from pycommence.filters import ConditionType, FilterArray
-from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 
+from pycommence.filters import ConditionType
+from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 # from amherst.back.pyc_backend import pycmc_f_path
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.filters import get_customer_filter, get_hire_filter, get_sale_filter
 from amherst.models.maps import AmherstTableName
 
 PAGE_SIZE = 30
@@ -27,42 +25,13 @@ class Pagination(_Pagination):
 
 class SearchRequest(BaseModel):
     csrname: AmherstTableName
+    row_id: str | None = None
+    pk_value: str | None = None
     filtered: bool = True
+    condition: ConditionType = ConditionType.CONTAIN
+    max_rtn: int = None
     package: dict = Field(default_factory=dict)
     pagination: Pagination = Pagination()
-    pk_value: str | None = None
-    condition: ConditionType = ConditionType.CONTAIN
-    row_id: str | None = None
-    max_rtn: int = None
-
-    def src_filter(self, csr: CursorAPI | None = None) -> FilterArray:
-        # I DONT LIKE THIS AT ALL!!
-        if self.pk_value and not csr:
-            raise ValueError('pk_value requires csr')
-        if self.filtered:
-            match self.csrname:
-                case 'Hire':
-                    return get_hire_filter(self.pk_value)
-                case 'Sale':
-                    return get_sale_filter(self.pk_value)
-                case 'Customer':
-                    return get_customer_filter(self.pk_value)
-        if self.pk_value:
-            return csr.pk_filter_array(pk=self.pk_value, condition=self.condition)
-            # return FilterArray.from_filters(csr.pk_filter_array(pk=self.pk_value, condition=self.condition))
-        return FilterArray()
-
-    # def __hash__(self):
-    #     return hash(
-    #         (
-    #             self.csrname,
-    #             self.filtername,
-    #             self.pk_value,
-    #             self.pagination.offset,
-    #             self.pagination.limit,
-    #             *list(self.package.items()),
-    #         )
-    #     )
 
     @property
     def q_str(self):
@@ -156,7 +125,6 @@ class SearchRequest(BaseModel):
             row_id: str = Body(None),
             max_rtn: int = Body(None)
     ):
-
         logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {package=}, {pagination=})')
         return cls(
             csrname=csrname,
@@ -172,12 +140,11 @@ class SearchRequest(BaseModel):
 
 class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     records: list[T]
-    length: int = None
+    length: int = 0
     search_request: SearchRequest | None = None
     more: MoreAvailable | None = None
 
     @model_validator(mode='after')
     def set_length(self):
-        if self.length is None and self.records:
-            self.length = len(self.records)
+        self.length = len(self.records)
         return self

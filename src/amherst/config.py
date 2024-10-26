@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import functools
 import os
-from functools import cached_property
 from pathlib import Path
 import sys
 import typing as _t
@@ -19,7 +18,7 @@ if not Path(AM_ENV).exists():
     raise ValueError(f'{AM_ENV} .env file does not exist: {AM_ENV}')
 
 
-def set_base_dir(v, values):
+def set_src_dir(v, values):
     # pyinstaller compatibility
     if v is None:
         if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
@@ -34,8 +33,15 @@ class Settings(BaseSettings):
 
     # db_loc: Path
     log_file: Path
-    base_dir: _t.Annotated[Path, _p.BeforeValidator(set_base_dir)] = None
-    data_dir: Path = Path(__file__).parent / '_data'
+    src_dir: _t.Annotated[Path, _p.BeforeValidator(set_src_dir)] = None
+    # data_dir: Path = Path(__file__).parent / '_data'
+    templates: Path | None = None
+
+    @_p.field_validator('templates', mode='after')
+    def set_templates(cls, v, values):
+        if not v:
+            return Jinja2Templates(directory=str(values.data['src_dir'] / 'front' / 'templates'))
+        return v
 
     # @cached_property
     # def db_url(self):
@@ -61,4 +67,4 @@ def settings():
 logger = get_loguru(log_file=settings().log_file, profile='local', level='DEBUG')
 
 logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))
-TEMPLATES = Jinja2Templates(directory=str(settings().base_dir / 'front' / 'templates'))
+TEMPLATES = Jinja2Templates(directory=str(settings().src_dir / 'front' / 'templates'))
