@@ -1,24 +1,22 @@
 # from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
 
-from amherst.back.backend_pycommence import pycommence_response, row_from_path_id, search_f_path
-from amherst.back.search_paginate import SearchRequest, SearchResponse
-from amherst.models.maps import CMAP, detail_template_name, listing_template_name
+from amherst.back.backend_pycommence import pycommence_response_q
+from amherst.back.search_paginate import SearchResponse
+from amherst.models.maps import detail_template_name, listing_template_name
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
 router = APIRouter()
 
 
-@router.get('/multi/', response_class=HTMLResponse)
-async def multi_shipper(
-        request: Request,
-):
-    return TEMPLATES.TemplateResponse('multi.html', {'request': request})
-
+# @router.get('/multi/', response_class=HTMLResponse)
+# async def multi_shipper(
+#         request: Request,
+# ):
+#     return TEMPLATES.TemplateResponse('multi.html', {'request': request})
+#
 
 #
 # @router.get('/search/{csrname}/{pk_value}')
@@ -39,104 +37,66 @@ async def multi_shipper(
 #     return TEMPLATES.TemplateResponse(tmplt, {'request': request, 'response': response})
 #     # return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
 
-@router.get('/pk_search/{csrname}/{pk_value}')
-async def search_path(
+# @router.get('/pk_search/{csrname}/{pk_value}')
+# async def search_path(
+#         request: Request,
+#         # search_request: SearchRequest = Depends(SearchRequest.from_path),
+#         response: SearchResponse = Depends(search_f_path),
+# ) -> SearchResponse:
+#     search_request = response.search_request
+#     tmplt = CMAP[search_request.csrname].listing_template
+#     # template_name: str = await get_tmplt_name('listing', search_request.csrname)
+#     # resp = await pycommence_response(search_request)
+#     if search_request.max_rtn and response.length > search_request.max_rtn:
+#         raise HTTPException(
+#             status_code=404,
+#             detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {response.length}'
+#         )
+#     return TEMPLATES.TemplateResponse(tmplt, {'request': request, 'response': response})
+#     # return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
+
+
+# @router.get('/row_id/{csrname}/{row_id}')
+# async def row_id_path(
+#         request: Request,
+#         row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
+#         # csrname: AmherstTableName = Path(...),
+#         template_name=Depends(detail_template_name)
+# ) -> HTMLResponse:
+#     # template_name: str = await get_tmplt_name('detail', csrname)
+#     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
+
+
+@router.get('/{csrname}')
+async def listing(
         request: Request,
-        # search_request: SearchRequest = Depends(SearchRequest.from_path),
-        response: SearchResponse = Depends(search_f_path),
-) -> SearchResponse:
-    search_request = response.search_request
-    tmplt = CMAP[search_request.csrname].listing_template
-    # template_name: str = await get_tmplt_name('listing', search_request.csrname)
-    # resp = await pycommence_response(search_request)
-    if search_request.max_rtn and response.length > search_request.max_rtn:
-        raise HTTPException(
-            status_code=404,
-            detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {response.length}'
-        )
-    return TEMPLATES.TemplateResponse(tmplt, {'request': request, 'response': response})
-    # return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
-
-
-@router.get('/row_id/{csrname}/{row_id}')
-async def row_id_path(
-        request: Request,
-        row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
-        # csrname: AmherstTableName = Path(...),
-        template_name=Depends(detail_template_name)
-) -> HTMLResponse:
-    # template_name: str = await get_tmplt_name('detail', csrname)
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
-
-
-@router.get('/all/{csrname}')
-async def get_all(
-        request: Request,
-        search_request: SearchRequest = Depends(SearchRequest.get_all),
-        # response: SearchResponse = Depends(search_f_path),
-        # csrname: AmherstTableName = Path(...),
+        search_response: SearchResponse = Depends(pycommence_response_q),
         template_name: str = Depends(listing_template_name),
 ) -> SearchResponse:
-    response = await pycommence_response(search_request)
-    # template_name: str = await get_tmplt_name('listing', response.search_request.csrname)
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
-    # response = await pycommence_response(search_request)
+    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
 
-# @router.post('/control-box')
-# async def control_box_post(request: Request, order: dict):
-#     return TEMPLATES.TemplateResponse('controlbox2.html', {'request': request, 'order': order})
-#
-#
-# @router.get('/control-box')
-# async def control_box(request: Request):
-#     return TEMPLATES.TemplateResponse('controlbox2.html', {'request': request})
-#
-#
+
+@router.get('/detail/{csrname}')
+async def detail(
+        request: Request,
+        search_response: SearchResponse = Depends(pycommence_response_q),
+        template_name: str = Depends(detail_template_name),
+) -> SearchResponse:
+    row = search_response.records[0]
+    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
+
+# todo: listing vs detail
+
 
 #
-# @router.get('/test')
-# async def test(request: Request):
-#     logger.warning('TEST')
-#     return HTMLResponse(content='<h1>Test</h1>')
 #
-#
-# @router.get('/search')
-# async def search_get[T: SearchResponse](
-#     request: Request,
-#     search_request: SearchRequest = Depends(SearchRequest.from_query),
-#     template_name: str = Depends(template_name_from_query),
-# ) -> HTMLResponse:
-#     response: T = await pycommence_response(search_request)
+# @router.get('/all/{csrname}')
+# async def get_all(
+#         request: Request,
+#         search_request: SearchRequest = Depends(SearchRequest.get_all),
+#         template_name: str = Depends(listing_template_name),
+# ) -> SearchResponse:
+#     response = await pycommence_response(search_request)
 #     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
 #
 #
-# @router.post('/search')
-# async def search_post[T: SearchResponse](
-#     request: Request,
-#     search_request: SearchRequest = Depends(SearchRequest.from_body),
-#     template_name: str = Depends(template_name_from_query),
-# ) -> HTMLResponse:
-#     response: T = await pycommence_response(search_request)
-#     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
-#
-#
-#
-# @router.get('/fail/{alert}', response_class=HTMLResponse)
-# async def fail(request: Request, alert: str):
-#     alert = base64.urlsafe_b64decode(alert).decode('utf-8')
-#     logger.exception(f'Error: {alert}')
-#     return TEMPLATES.TemplateResponse('fail.html', {'request': request, 'alert': alert})
-#
-#
-# @router.post('/print', response_class=HTMLResponse)
-# async def print_label(request: Request, label_path: str = Form(...)):
-#     """Endpoint to print the label for a booking."""
-#     pawdf.array_pdf.convert_many(Path(label_path), print_files=True)
-#     return HTMLResponse(content=f'<p>Printed {label_path}</p>')
-#
-#
-# @router.post('/open-file', response_class=HTMLResponse)
-# async def open_label(request: Request, label_path: str = Form(...)):
-#     """Endpoint to print the label for a booking."""
-#     os.startfile(label_path)
-#     return HTMLResponse(content=f'<p>Opened {label_path}</p>')

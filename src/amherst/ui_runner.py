@@ -7,7 +7,7 @@ from amherst import app
 
 PORT = 8000
 # URL_SUFFIX = 'ship/form/'
-URL_SUFFIX = 'html/multi'
+URL_SUFFIX = 'multi'
 
 
 async def run_desktop_ui(url_suffix=URL_SUFFIX):

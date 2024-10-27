@@ -29,7 +29,7 @@ class SearchRequest(BaseModel):
     pk_value: str | None = None
     filtered: bool = True
     condition: ConditionType = ConditionType.CONTAIN
-    max_rtn: int = None
+    max_rtn: int | None = None
     package: dict = Field(default_factory=dict)
     pagination: Pagination = Pagination()
 
@@ -104,6 +104,9 @@ class SearchRequest(BaseModel):
             filtered: bool = Query(True),
             pk_value: str = Query(''),
             pagination: Pagination = Depends(Pagination.from_query),
+            condition: ConditionType = Query(ConditionType.CONTAIN),
+            max_rtn: int = Query(None),
+            row_id: str = Query(None),
     ):
         logger.warning(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
         return cls(
@@ -111,6 +114,9 @@ class SearchRequest(BaseModel):
             pagination=pagination,
             pk_value=pk_value,
             filtered=filtered,
+            condition=condition,
+            max_rtn=max_rtn,
+            row_id=row_id,
         )
 
     @classmethod

@@ -3,9 +3,11 @@ import contextlib
 import flaskwebgui
 from fastapi import FastAPI, responses
 from loguru import logger
+from starlette.requests import Request
+from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 
-from amherst.config import settings
+from amherst.config import TEMPLATES, settings
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_ship import router as ship_router
@@ -32,7 +34,15 @@ app.mount('/static', StaticFiles(directory=str(settings().src_dir / 'front' / 's
 app.include_router(html_router, prefix='/html')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/ship')
+
+
 # app.ship_live = pf_config.pf_sett().ship_live
+
+@app.get('/multi/', response_class=HTMLResponse)
+async def multi_shipper(
+        request: Request,
+):
+    return TEMPLATES.TemplateResponse('multi.html', {'request': request})
 
 
 @app.get('/api/close_app/', response_model=None, response_model_exclude_none=True)

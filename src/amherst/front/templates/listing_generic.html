@@ -1,6 +1,6 @@
 {% for record in response.records %}
 <div class="record"
-     hx-get="/html/row_id/{{ record.category }}/{{ record.row_id }}"
+     hx-get="/html/detail/{{ record.category }}?row_id={{ record.row_id }}"
      hx-target="#top-content">
     {{ record.name }}
 </div>

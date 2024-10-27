@@ -27,7 +27,7 @@ from enum import StrEnum
 from loguru import logger
 from thefuzz import fuzz
 
-from amherst.back.backend_pycommence import pycommence_response, pycommence_search, pycommence_context
+from amherst.back.backend_pycommence import pycommence_context, pycommence_search
 from amherst.back.search_paginate import SearchRequest
 from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
@@ -46,7 +46,7 @@ MODE = Mode.SHIP_BY_SRCH
 
 async def get_url_suffix(record: AmherstTableBase, mode: Mode = MODE):
     # todo parse mode
-    return f'ship/row_id/{record.category}/{record.row_id}'
+    return f'ship/form/{record.category}?row_id={record.row_id}'
 
 
 def parse_arguments():

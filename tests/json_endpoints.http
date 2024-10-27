@@ -1,3 +1,11 @@
+### new search
+GET http://127.0.0.1:8000/api/new/Hire
+
+
+
+
+
+
 ### All Hire
 GET http://127.0.0.1:8000/api/Hire?filtered=false&limit=50
 
