@@ -11,14 +11,13 @@ from pycommence.filters import (
     SortOrder,
 )
 from pycommence.pycmc_types import Connection2
-
 from amherst.models.commence_adaptors import HireAliases, SaleAliases
 
 FilterName = Literal['hire', 'sale', 'customer']
 
 
 @functools.lru_cache
-def default_hire_filter():
+def get_default_hire_filter():
     return FilterArray(
         filters={
             1: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one month ago'),
@@ -31,9 +30,12 @@ def default_hire_filter():
     )
 
 
+DEFAULT_HIRE_FILTER = get_default_hire_filter()
+
+
 @functools.lru_cache
 def get_hire_filter(pk_value: str | None = None):
-    res = default_hire_filter()
+    res = get_default_hire_filter()
     if pk_value:
         res.add_filter(
             FieldFilter(column=HireAliases.NAME, condition=ConditionType.CONTAIN, value=pk_value), logic='And'
@@ -49,6 +51,9 @@ def default_sale_filter():
         },
         sorts=((SaleAliases.DATE_ORDERED, SortOrder.DESC),),
     )
+
+
+DEFAULT_SALE_FILTER = default_sale_filter()
 
 
 @functools.lru_cache
@@ -94,6 +99,9 @@ def get_customer_filter(pk_value: str | None = None):
             logics=['And', 'Or'],
         )
     return res
+
+
+DEFAULT_CUSTOMER_FILTER = get_customer_filter()
 
 
 @functools.lru_cache

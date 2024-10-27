@@ -21,7 +21,25 @@ async def multi_shipper(
 
 
 #
-@router.get('/search/{csrname}/{pk_value}')
+# @router.get('/search/{csrname}/{pk_value}')
+# async def search_path(
+#         request: Request,
+#         # search_request: SearchRequest = Depends(SearchRequest.from_path),
+#         response: SearchResponse = Depends(search_f_path),
+# ) -> SearchResponse:
+#     search_request = response.search_request
+#     tmplt = CMAP[search_request.csrname].listing_template
+#     # template_name: str = await get_tmplt_name('listing', search_request.csrname)
+#     # resp = await pycommence_response(search_request)
+#     if search_request.max_rtn and response.length > search_request.max_rtn:
+#         raise HTTPException(
+#             status_code=404,
+#             detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {response.length}'
+#         )
+#     return TEMPLATES.TemplateResponse(tmplt, {'request': request, 'response': response})
+#     # return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
+
+@router.get('/pk_search/{csrname}/{pk_value}')
 async def search_path(
         request: Request,
         # search_request: SearchRequest = Depends(SearchRequest.from_path),
