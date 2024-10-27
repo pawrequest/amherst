@@ -1,3 +1,5 @@
+{#context = {response, shipment}#}
+
 <div class="wrapper wrapper__results">
     <div class="response">
         <div class="result">
@@ -13,28 +15,31 @@
             {% if response.completed_shipment_info %}
                 <div class="result__success">
                     <h2>Shipment Number {{ response.shipment_num }} Confirmed</h2>
-                    <p>label downloaded to {{ shipment.label_file }}</p>
 
+                    {% if shipment.print_own_label %}
+                        <p>label downloaded to {{ shipment.label_file }}</p>
+                        <div class="label-actions">
+                            <div class="label-action">
+                                <form hx-post="/ship/print" hx-target="#label-action-result" hx-swap="innerHTML">
+                                    <input type="hidden" name="label_path" value="{{ shipment.label_file }}">
+                                    <button type="submit" class="btn-print-label">Print Label</button>
+                                </form>
+                            </div>
 
-                    <div class="label-actions">
-                        <div class="label-action">
-                            <form hx-post="/ship/print" hx-target="#label-action-result" hx-swap="innerHTML">
-                                <input type="hidden" name="label_path" value="{{ shipment.label_file }}">
-                                <button type="submit" class="btn-print-label">Print Label</button>
-                            </form>
+                            <div class="label-action">
+                                <script>console.log("OPEN FILE{{ shipment.label_file }}")</script>
+                                <form hx-post="/ship/open-file" hx-target="#label-action-result" hx-swap="innerHTML">
+                                    <input type="hidden" name="label_path" value="{{ shipment.label_file }}">
+                                    <button type="submit" class="btn-print-label">Open Label</button>
+                                </form>
+                            </div>
+
+                            <div id="label-action-result"></div>
+
                         </div>
-
-                        <div class="label-action">
-                            <script>console.log("OPEN FILE{{ shipment.label_file }}")</script>
-                            <form hx-post="/ship/open-file" hx-target="#label-action-result" hx-swap="innerHTML">
-                                <input type="hidden" name="label_path" value="{{ shipment.label_file }}">
-                                <button type="submit" class="btn-print-label">Open Label</button>
-                            </form>
-                        </div>
-
-                        <div id="label-action-result"></div>
-
-                    </div>
+                        {% else %}
+                        <p>Driver bringing Labels</p>
+                    {% endif %}
 
                 </div>
 

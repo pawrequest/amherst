@@ -17,7 +17,7 @@ from shipaw.models import pf_msg
 from shipaw.models.pf_models import AddressCollection, AddressRecipient
 from shipaw.models.pf_msg import Alert
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import ShipmentReferenceFields, to_collection, to_dropoff, Shipment
+from shipaw.models.pf_shipment import Shipment, ShipmentReferenceFields, to_collection, to_dropoff
 from shipaw.models.pf_top import Contact, ContactCollection
 from shipaw.ship_types import (
     AlertType,
@@ -181,13 +181,6 @@ def get_el_client() -> ELClient:
         logger.error(f'Error getting Parcelforce ExpressLink Client: {e}')
         raise
 
-
-# def get_pf_settings() -> PFSettings:
-#     try:
-#         return pf_sett()
-#     except Exception as e:
-#         logger.error(f'Error getting Parcelforce Settings: {e}')
-#         raise
 
 async def shipment_from_record(record: AmherstTableBase) -> Shipment:
     shipdict = record.shipment_dict()

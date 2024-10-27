@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends
 
-from amherst.back.search_paginate import SearchResponse
-from amherst.back.backend_pycommence import pycommence_response_q
+from amherst.back.backend_search_paginate import SearchResponse
+from amherst.back.backend_pycommence import pycommence_response
 
 router = APIRouter()
 
 
 @router.get('/new/{csrname}')
 async def get_new(
-        search_response: SearchResponse = Depends(pycommence_response_q),
+        search_response: SearchResponse = Depends(pycommence_response),
 ) -> SearchResponse:
     return search_response
 

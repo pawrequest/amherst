@@ -10,6 +10,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
+from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import VALID_POSTCODE
 from amherst.back.backend_shipper import (
@@ -69,11 +70,12 @@ async def post_confirm_booking(
 ):
     logger.info(f'Confirm booking: {shipment}')
     shipment: Shipment = Shipment.model_validate_json(shipment)
-    response = book_shipment(el_client, shipment)
-    wait_label(shipment_num=response.shipment_num, dl_path=shipment.label_file, el_client=el_client)
-    logger.info(f'Booked Shipment Response: {response}')
+    shipment_response: ShipmentResponse = book_shipment(el_client, shipment)
+    if shipment.print_own_label:
+        wait_label(shipment_num=shipment_response.shipment_num, dl_path=shipment.label_file, el_client=el_client)
+    logger.info(f'Booked Shipment Response: {shipment_response}')
     return TEMPLATES.TemplateResponse(
-        'ship/order_confirmed.html', {'request': request, 'shipment': shipment, 'response': response}
+        'ship/order_confirmed.html', {'request': request, 'shipment': shipment, 'response': shipment_response}
     )
 
 

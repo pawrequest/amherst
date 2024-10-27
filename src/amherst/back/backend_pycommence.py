@@ -11,7 +11,7 @@ from starlette.exceptions import HTTPException
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
-from amherst.back.search_paginate import SearchRequest, SearchResponse
+from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.maps import AmherstTableName, CMAP, record_model
 
@@ -83,7 +83,7 @@ async def pycommence_search(
     return SearchResponse(records=records, more=more, search_request=search_request)
 
 
-async def pycommence_response_q(
+async def pycommence_response(
         search_request: SearchRequest = Depends(SearchRequest.from_query),
         pycmc: PyCommence = Depends(pycmc_f_path),
 ) -> SearchResponse:

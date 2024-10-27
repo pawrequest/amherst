@@ -4,9 +4,7 @@ Use `Paw Request fork <https://github.com/pawrequest/flaskwebgui>`_ for URL_SUFF
 
 Environment variables:
     AM_ENV: Path to environment file defining:
-        # - sql database location
         - log file location
-        - parcelforce labels directory
     SHIP_ENV: Path to environment file defining:
         - parcelforce account numbers
         - parcelforce contract numbers
@@ -28,7 +26,7 @@ from loguru import logger
 from thefuzz import fuzz
 
 from amherst.back.backend_pycommence import pycommence_context, pycommence_search
-from amherst.back.search_paginate import SearchRequest
+from amherst.back.backend_search_paginate import SearchRequest
 from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import AmherstTableName
@@ -67,6 +65,7 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
         pk_value=record_name,
         filtered=False,
         condition=ConditionType.EQUAL,
+        max_rtn=1,
     )
     with pycommence_context(category) as pycmc:
         search_response = await pycommence_search(search_request, pycmc)
