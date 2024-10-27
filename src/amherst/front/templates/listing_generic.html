@@ -1,10 +1,10 @@
 {% for record in response.records %}
 <div class="record"
      hx-get="/html/row_id/{{ record.category }}/{{ record.row_id }}"
-     hx-target="#details">
+     hx-target="#top-content">
     {{ record.name }}
 </div>
 {% endfor %}
-{% if more %}
+{% if response.more %}
     {% include 'infinite.html' with context %}
 {% endif %}

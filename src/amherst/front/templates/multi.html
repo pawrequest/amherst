@@ -1,3 +1,4 @@
+<!-- templates/multi.html -->
 {% extends "base.html" %}
 {% block head %}
     <link href="{{ url_for('static', path='multi.css') }}" rel="stylesheet">
@@ -32,32 +33,8 @@
 
 
 {% block content %}
-    <div id="details" class="details"
-{#         hx-on="htmx:afterSwap:console.log('SWAPPED')">#}
-
-        >
-    </div>
-
-    <div id="maincontent" class="maincontent"
-{#         hx-on::after-swap="console.log('SETTLED')"#}
-{#         hx-on="htmx:afterSwap:console.log('SWAPPED')">#}
-{#         hx-on="htmx:afterSwap:populateForm(shipment); loadCandidates(); console.log('SETTLED')">#}
-    >
-
-    </div>
+    <div id="top-content" class="details"></div>
+    <div id="maincontent" class="maincontent"></div>
 {% endblock %}
 
-{% block scripts %}
-    <script>
-    console.log('MULTI');
-    htmx.logAll();
-        {#document.addEventListener("hydrateShipment", function (evt) {#}
-        {#    console.log('HYDRATE!');#}
-        {#    let shipment = {{ shipment|tojson }};#}
-            {#if (shipment !== undefined) {#}
-            {#    console.log('shipment is defined');#}
-        {#    console.log(shipment);#}
-            {#populateForm(shipment);#}
-            {#loadCandidates();#}
-    </script>
-{% endblock %}
+{% block scripts %} {% endblock %}

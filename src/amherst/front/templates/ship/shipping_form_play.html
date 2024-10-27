@@ -2,7 +2,6 @@
 
 {% block head %}
     <script src="{{ url_for('static', path='ship.js') }}" defer></script>
-
 {% endblock %}
 
 {% block content %}
@@ -116,6 +115,11 @@
 
     <div class="returned-request"
     ></div>
+    <script>
+        let shipment = {{ shipment|tojson }};
+            populateForm(shipment);
+            loadCandidates();
+    </script>
 {% endblock %}
 
 {% block scripts %}
@@ -123,7 +127,6 @@
         document.addEventListener("DOMContentLoaded", function () {
             console.log('DOMContentLoaded event fired');
             let shipment = {{ shipment|tojson }};
-            {#let shipment = {{ shipment|safe|tojson }};#}
             populateForm(shipment);
             loadCandidates();
         });
