@@ -9,6 +9,7 @@ from starlette.requests import Request
 
 from pycommence.filters import ConditionType
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
+
 # from amherst.back.pyc_backend import pycmc_f_path
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.maps import AmherstTableName
@@ -68,45 +69,15 @@ class SearchRequest(BaseModel):
         return self.model_copy(update={'pagination': self.pagination.prev_page()})
 
     @classmethod
-    def from_path(
-            cls,
-            csrname: AmherstTableName = Path(...),
-            filtered: bool = Query(True),
-            pk_value: str = Path(...),
-            pagination: Pagination = Depends(Pagination.from_query),
-    ):
-        logger.debug(f'SearchRequest.from_path({csrname=}, {pk_value=}, {pagination=})')
-        return cls(
-            csrname=csrname,
-            pagination=pagination,
-            pk_value=pk_value,
-            filtered=filtered,
-        )
-
-    @classmethod
-    def get_all(
-            cls,
-            csrname: AmherstTableName = Path(...),
-            filtered: bool = Query(True),
-            pagination: Pagination = Depends(Pagination.from_query),
-    ):
-        logger.warning(f'SearchRequest.from_path({csrname=}, {pagination=})')
-        return cls(
-            csrname=csrname,
-            pagination=pagination,
-            filtered=filtered,
-        )
-
-    @classmethod
     def from_query(
-            cls,
-            csrname: AmherstTableName = Path(...),
-            filtered: bool = Query(True),
-            pk_value: str = Query(''),
-            pagination: Pagination = Depends(Pagination.from_query),
-            condition: ConditionType = Query(ConditionType.CONTAIN),
-            max_rtn: int = Query(None),
-            row_id: str = Query(None),
+        cls,
+        csrname: AmherstTableName = Path(...),
+        filtered: bool = Query(True),
+        pk_value: str = Query(''),
+        pagination: Pagination = Depends(Pagination.from_query),
+        condition: ConditionType = Query(ConditionType.CONTAIN),
+        max_rtn: int = Query(None),
+        row_id: str = Query(None),
     ):
         logger.warning(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
         return cls(
@@ -121,15 +92,15 @@ class SearchRequest(BaseModel):
 
     @classmethod
     def from_body(
-            cls,
-            csrname: AmherstTableName = Body(...),
-            filtered: bool = Body(True),
-            pk_value: str = Body(None),
-            package: dict = Body(default_factory=dict),
-            pagination: Pagination = Depends(Pagination.from_query),
-            condition: ConditionType = Body(ConditionType.CONTAIN),
-            row_id: str = Body(None),
-            max_rtn: int = Body(None)
+        cls,
+        csrname: AmherstTableName = Body(...),
+        filtered: bool = Body(True),
+        pk_value: str = Body(None),
+        package: dict = Body(default_factory=dict),
+        pagination: Pagination = Depends(Pagination.from_query),
+        condition: ConditionType = Body(ConditionType.CONTAIN),
+        row_id: str = Body(None),
+        max_rtn: int = Body(None),
     ):
         logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {package=}, {pagination=})')
         return cls(

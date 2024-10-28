@@ -11,6 +11,25 @@ from amherst.config import TEMPLATES
 router = APIRouter()
 
 
+@router.get('/{csrname}')
+async def listing(
+        request: Request,
+        search_response: SearchResponse = Depends(pycommence_response),
+        template_name: str = Depends(listing_template_name),
+) -> SearchResponse:
+    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
+
+
+@router.get('/detail/{csrname}')
+async def detail(
+        request: Request,
+        search_response: SearchResponse = Depends(pycommence_response),
+        template_name: str = Depends(detail_template_name),
+) -> SearchResponse:
+    row = search_response.records[0]
+    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
+
+
 # @router.get('/multi/', response_class=HTMLResponse)
 # async def multi_shipper(
 #         request: Request,
@@ -66,26 +85,6 @@ router = APIRouter()
 #     # template_name: str = await get_tmplt_name('detail', csrname)
 #     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
 
-
-@router.get('/{csrname}')
-async def listing(
-        request: Request,
-        search_response: SearchResponse = Depends(pycommence_response),
-        template_name: str = Depends(listing_template_name),
-) -> SearchResponse:
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
-
-
-@router.get('/detail/{csrname}')
-async def detail(
-        request: Request,
-        search_response: SearchResponse = Depends(pycommence_response),
-        template_name: str = Depends(detail_template_name),
-) -> SearchResponse:
-    row = search_response.records[0]
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'row': row})
-
-# todo: listing vs detail
 
 
 #

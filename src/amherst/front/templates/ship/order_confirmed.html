@@ -16,7 +16,9 @@
                 <div class="result__success">
                     <h2>Shipment Number {{ response.shipment_num }} Confirmed</h2>
 
-                    {% if shipment.print_own_label %}
+                    {% if shipment.direction == 'in' and not shipment.print_own_label %}
+                        <p>Driver bringing Labels</p>
+                    {% else %}
                         <p>label downloaded to {{ shipment.label_file }}</p>
                         <div class="label-actions">
                             <div class="label-action">
@@ -37,8 +39,7 @@
                             <div id="label-action-result"></div>
 
                         </div>
-                        {% else %}
-                        <p>Driver bringing Labels</p>
+
                     {% endif %}
 
                 </div>
