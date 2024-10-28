@@ -7,6 +7,7 @@ from typing import Annotated
 
 import pydantic as _p
 from pydantic import AliasGenerator, BaseModel, ConfigDict
+from shipaw.models.pf_shipment import Shipment
 
 from amherst.models.commence_adaptors import (
     AM_DATE,
@@ -136,17 +137,6 @@ class AmherstHire(AmherstOrderBase):
     category: AmherstTableName = 'Hire'
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=hire_alias))
     status: HireStatus
-    # send_date: AM_DATE = None
-
-
-
-    # def shipment_dict(self):
-    #     return {
-    #         'recipient_address': self.address_dict(),
-    #         'recipient_contact': self.contact_dict(),
-    #         **self.ship_details_dict(),
-    #         **split_refs_from_str(self.customer_name),
-    #     }
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
@@ -173,3 +163,16 @@ def split_refs_from_str(ref_str: str) -> dict[str, str]:
         else:
             break
     return reference_numbers
+
+
+class AmherstShipment(Shipment):
+    _category: AmherstTableName
+    _row_id: str
+
+    @property
+    def category(self):
+        return self._category
+
+    @property
+    def row_id(self):
+        return self._row_id

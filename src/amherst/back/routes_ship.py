@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -11,33 +12,45 @@ from starlette.responses import HTMLResponse, JSONResponse
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import VALID_POSTCODE
 from amherst.back.backend_shipper import (
     book_shipment,
     get_el_client,
+    record_str_form_to_record,
     shipment_from_record,
     shipment_request_f_form,
+    shipment_str_form_to_shipment,
     wait_label,
 )
 from amherst.back.backend_pycommence import get_one
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment, AmherstTableBase
+from amherst.models.maps import CMAP
 
 router = APIRouter()
 
 
 async def record_to_form(request, record: AmherstTableBase):
     shipment = await shipment_from_record(record)
-    jsonable = jsonable_encoder(shipment)
-    form_html = TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+    jsonable_ship = jsonable_encoder(shipment)
+    jsonable_record = jsonable_encoder(record)
+    form_html = TEMPLATES.TemplateResponse(
+        'ship/shipping_form_play.html', {'request': request, 'shipment': jsonable_ship, 'record': jsonable_record}
+    )
     return form_html
 
 
-@router.get('/form/{csrname}')
+# async def record_to_form2(request, record: AmherstTableBase):
+#     shipment = await shipment_from_record2(record)
+#     jsonable = jsonable_encoder(shipment)
+#     form_html = TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+#     return form_html
+
+
+@router.get('/form/{csrname}', response_class=HTMLResponse)
 async def newship(
-        request: Request,
-        row: AMHERST_TABLE_MODELS = Depends(get_one),
+    request: Request,
+    row: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
     logger.warning(f'SHIP FROM ROW ID PATH Row: {row}')
     return await record_to_form(request, row)
@@ -45,8 +58,8 @@ async def newship(
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
 async def fetch_candidates(
-        postcode: VALID_POSTCODE,
-        el_client: ELClient = Depends(get_el_client),
+    postcode: VALID_POSTCODE,
+    el_client: ELClient = Depends(get_el_client),
 ):
     res = el_client.get_choices(postcode)
     return res
@@ -54,22 +67,29 @@ async def fetch_candidates(
 
 @router.post('/post_ship', response_class=HTMLResponse)
 async def post_review_form(
-        request: Request,
-        shipment_request: Shipment = Depends(shipment_request_f_form),
+    request: Request,
+    shipment_request: AmherstShipment = Depends(shipment_request_f_form),
+    record: str = Form(...),
 ):
+    record = json.loads(record)
+    category = record['category']
+    rectype: AMHERST_TABLE_MODELS = CMAP[category].record_model
+    reccy = rectype.model_validate(**record)
     logger.info(shipment_request.recipient_contact.notifications)
-    return TEMPLATES.TemplateResponse('ship/order_review.html', {'request': request, 'shipment': shipment_request})
+    return TEMPLATES.TemplateResponse(
+        'ship/order_review.html', {'request': request, 'shipment': shipment_request, 'record': reccy}
+    )
 
 
 @router.post('/confirm_booking', response_class=HTMLResponse)
 async def post_confirm_booking(
-        request: Request,
-        shipment: str = Form(...),
-        # shipment: ShipmentConfigured,
-        el_client: ELClient = Depends(get_el_client),
+    request: Request,
+    shipment: AmherstShipment = Depends(shipment_str_form_to_shipment),
+    record: AMHERST_TABLE_MODELS = Depends(record_str_form_to_record),
+    el_client: ELClient = Depends(get_el_client),
 ):
+    # todo update commence
     logger.info(f'Confirm booking: {shipment}')
-    shipment: Shipment = Shipment.model_validate_json(shipment)
     shipment_response: ShipmentResponse = book_shipment(el_client, shipment)
     if shipment.direction == 'out' or shipment.print_own_label:
         wait_label(shipment_num=shipment_response.shipment_num, dl_path=shipment.label_file, el_client=el_client)
@@ -91,6 +111,7 @@ async def open_label(request: Request, label_path: str = Form(...)):
     """Endpoint to print the label for a booking."""
     os.startfile(label_path)
     return HTMLResponse(content=f'<p>Opened {label_path}</p>')
+
 
 # @router.get('/form', response_class=HTMLResponse)
 # async def shipping_form(request: Request):

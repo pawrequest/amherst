@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import pathlib
 import time
 from datetime import date
@@ -27,6 +28,8 @@ from shipaw.ship_types import (
     ShipDirection,
     VALID_POSTCODE,
 )
+
+from amherst.models.maps import CMAP
 
 
 def book_shipment(el_client, shipment_request: Shipment) -> pf_msg.ShipmentResponse:
@@ -72,12 +75,12 @@ def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
 
 
 async def address_f_form(
-        address_line1: str = Form(...),
-        address_line2: str = Form(''),
-        address_line3: str = Form(''),
-        town: str = Form(...),
-        postcode: VALID_POSTCODE = Form(...),
-        direction: ShipDirection = Form(...),
+    address_line1: str = Form(...),
+    address_line2: str = Form(''),
+    address_line3: str = Form(''),
+    town: str = Form(...),
+    postcode: VALID_POSTCODE = Form(...),
+    direction: ShipDirection = Form(...),
 ):
     logger.debug(
         f'Address fields received: {direction=}, {address_line1=}, {address_line2=}, {address_line3=}, {town=}, {postcode=}'
@@ -96,12 +99,12 @@ async def address_f_form(
 
 
 async def contact_f_form(
-        request: Request,
-        contact_name: str = Form(...),
-        email_address: EmailStr = Form(...),
-        business_name: str = Form(...),
-        mobile_phone: str = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
+    request: Request,
+    contact_name: str = Form(...),
+    email_address: EmailStr = Form(...),
+    business_name: str = Form(...),
+    mobile_phone: str = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
 ):
     logger.debug(f'form received: {await request.form()}')
     logger.debug(
@@ -131,17 +134,18 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 
 async def shipment_request_f_form(
-        request: Request,
-        contact: Contact = Depends(contact_f_form),
-        address: AddressCollection = Depends(address_f_form),
-        notes: list[tuple[str, str]] = Depends(notes_f_form),
-        shipping_date: date = Form(...),
-        total_number_of_parcels: int = Form(...),
-        service_code: ServiceCode = Form(...),
-        direction: ship_types.ShipDirection = Form(...),
-        own_label: str = Form(...),
+    request: Request,
+    contact: Contact = Depends(contact_f_form),
+    address: AddressCollection = Depends(address_f_form),
+    notes: list[tuple[str, str]] = Depends(notes_f_form),
+    shipping_date: date = Form(...),
+    total_number_of_parcels: int = Form(...),
+    service_code: ServiceCode = Form(...),
+    direction: ship_types.ShipDirection = Form(...),
+    own_label: str = Form(...),
 ) -> Shipment:
     logger.warning('Creating Shipment Request from form')
+
     own_label = own_label.lower() == 'true'
     shipment_request = Shipment(
         recipient_address=address,
@@ -159,6 +163,41 @@ async def shipment_request_f_form(
         setattr(shipment_request, fieldname, value)
 
     return shipment_request
+
+
+# async def shipment_request_f_form2(
+#     request: Request,
+#     contact: Contact = Depends(contact_f_form),
+#     address: AddressCollection = Depends(address_f_form),
+#     notes: list[tuple[str, str]] = Depends(notes_f_form),
+#     shipping_date: date = Form(...),
+#     total_number_of_parcels: int = Form(...),
+#     service_code: ServiceCode = Form(...),
+#     direction: ship_types.ShipDirection = Form(...),
+#     own_label: str = Form(...),
+#     category: str = Form(...),
+#     row_id: str = Form(...),
+# ) -> AmherstShipment:
+#     logger.warning('Creating Shipment Request from form')
+#     own_label = own_label.lower() == 'true'
+#     shipment_request = AmherstShipment(
+#         recipient_address=address,
+#         recipient_contact=contact,
+#         service_code=service_code,
+#         shipping_date=shipping_date,
+#         total_number_of_parcels=total_number_of_parcels,
+#         _category=category,
+#         _row_id=row_id,
+#     )
+#     if direction == ShipDirection.DROPOFF:
+#         shipment_request = to_dropoff(shipment_request)
+#     elif direction == ShipDirection.INBOUND:
+#         shipment_request = to_collection(shipment_request, own_label=own_label)
+#
+#     for fieldname, value in notes:
+#         setattr(shipment_request, fieldname, value)
+#
+#     return shipment_request
 
 
 async def check_dates(booking, request):
@@ -188,3 +227,40 @@ async def shipment_from_record(record: AmherstTableBase) -> Shipment:
     shipment = shipment.model_validate(shipment)
     logger.debug(f'Shipment request: {shipment}')
     return shipment
+
+
+async def shipment_str_form_to_shipment(shipment: str = Form(...)):
+    return await shipment_str_to_shipment(shipment)
+
+
+async def shipment_str_to_shipment(shipment: str) -> Shipment:
+    return Shipment.model_validate_json(shipment)
+
+
+async def record_str_form_to_record(record: str = Form(...)):
+    return await record_str_to_record(record)
+
+
+async def record_str_to_record(record: str) -> AmherstTableBase:
+    record = json.loads(record)
+    category = record['category']
+    rectype: AmherstTableBase = CMAP[category].record_model
+    reccy = rectype.model_validate(**record)
+    return reccy
+
+
+# async def shipment_from_record2(record: AmherstTableBase) -> AmherstShipment:
+#     shipdict = record.shipment_dict()
+#     shipdict.update({'_category': record.category, '_row_id': record.row_id})
+#     shipment = AmherstShipment(**shipdict)
+#     shipment = shipment.model_validate(shipment)
+#     logger.debug(f'Shipment request: {shipment}')
+#     return shipment
+
+
+# async def shipment_str_form_to_shipment2(shipment: str = Form(...)):
+#     return await shipment_str_to_shipment2(shipment)
+#
+#
+# async def shipment_str_to_shipment2(shipment: str) -> AmherstShipment:
+#     return AmherstShipment.model_validate_json(shipment)
