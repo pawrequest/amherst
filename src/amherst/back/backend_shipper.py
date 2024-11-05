@@ -237,15 +237,15 @@ async def shipment_str_to_shipment(shipment: str) -> Shipment:
     return Shipment.model_validate_json(shipment)
 
 
-async def record_str_form_to_record(record: str = Form(...)):
-    return await record_str_to_record(record)
+async def record_str_form_to_record(record_str: str = Form(...)):
+    return await record_str_to_record(record_str)
 
 
-async def record_str_to_record(record: str) -> AmherstTableBase:
-    record = json.loads(record)
-    category = record['category']
+async def record_str_to_record(record_str: str) -> AmherstTableBase:
+    record_str = json.loads(record_str)
+    category = record_str['category']
     rectype: AmherstTableBase = CMAP[category].record_model
-    reccy = rectype.model_validate(**record)
+    reccy = rectype.model_validate(**record_str)
     return reccy
 
 

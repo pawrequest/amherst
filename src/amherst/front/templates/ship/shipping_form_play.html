@@ -5,6 +5,8 @@
 {% endblock %}
 
 {% block content %}
+
+
     <div class="returned-request"></div>
 
 
@@ -15,8 +17,8 @@
           hx-swap="innerHTML"
           hx-on::swap="console.log('swap event fired in main form')"
     >
-        <input type="hidden" id="record" name="record" value="" />
-{#        <input type="hidden" id="row_id" name="row_id" value="" />#}
+        <input type="hidden" id="record_str" name="record_str" value={{ record_str }}>
+        {#        <input type="hidden" id="row_id" name="row_id" value="" />#}
 
         <div class="wrapper wrapper__booking">
             <section class="inputs inputs__ship">
@@ -74,7 +76,8 @@
                 <!--suppress HtmlFormInputWithoutLabel -->
                 <div class="addr-head">
                     <h1>Address</h1>
-                    <span id="score-span" data-score=""> Match Confidence %:
+                    <span id="score-span" data-score="">
+{#                    <span id="score-span" data-score=""> Match Confidence %:#}
                     <br>(No address selected)
                 </span>
                 </div>
@@ -88,7 +91,8 @@
                 <label for="postcode">Postcode:</label>
                 <input type="text" id="postcode" name="postcode" required>
 
-                <button type="button" class="update-address-btn" onclick="loadCandidates()">Update Addresses From Postcode
+                <button type="button" class="update-address-btn" onclick="loadCandidates()">Update Addresses From
+                    Postcode
                 </button>
                 <label for="address-select">Choose Address</label>
                 <select id="address-select" name="address" onchange="updateAddress()">
@@ -120,36 +124,36 @@
     <div class="returned-request"
     ></div>
     <script>
-    {#for multi cant get hx-on::swap working#}
-    {#    let shipment = {{ shipment|tojson }};#}
-    {#    let record = {{ record|tojson }};#}
-    {#    initShipPage(shipment, record);#}
+        {#for multi cant get hx-on::swap working#}
+        {#    let shipment = {{ shipment|tojson }};#}
+        {#    let record = {{ record|tojson }};#}
+        {#    initShipPage(shipment, record);#}
     </script>
 {% endblock %}
 
 {% block scripts %}
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            console.log('DOMContentLoaded event fired');
-            console.log('record =' + {{ record }});
-            let shipment = {{ shipment|tojson }};
-            let record = {{ record }};
-            {#let record = {{ record|tojson }};#}
-            {#populateForm(shipment);#}
-            {#loadCandidates();#}
-            initShipPage(shipment, record);
-            {#initShipPage(shipment);#}
-        });
-
-        {#document.addEventListener("hydrateShipment", function (evt) {#}
-        {#    console.log('HYDRATE!');#}
-        {#    let shipment = {{ shipment|tojson }};#}
-        {#        console.log('shipment is defined');#}
-        {#        console.log(shipment);#}
-        {#        populateForm(shipment);#}
-        {#        loadCandidates();#}
+        document.addEventListener("DOMContentLoaded", async function () {
+                console.log('dom loaded')
+                {# TODO form does notr get record, builds gues from form data #}
 
 
+
+                let shipment = {{ shipment|tojson }};
+                let record = {{ record | tojson }};
+                {#console.log('shipment', shipment);#}
+                {#console.log('record', record);#}
+
+                {#let record = {{ record_pyd.jsonable() | tojson }};#}
+                {#let shipment2 = {{ record_pyd.shipment_dict() | tojson }};#}
+                {#let shipment = {{ record_pyd.shipment_dict_jsonable() | tojson }};#}
+                console.log('shipment', shipment);
+                console.log('record', record);
+
+                {#initShipPage(shipment);#}
+                await initShipPage2(shipment, record);
+            }
+        );
     </script>
 {% endblock %}
 

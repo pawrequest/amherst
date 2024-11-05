@@ -1,4 +1,3 @@
-import json
 import os
 from pathlib import Path
 
@@ -13,10 +12,11 @@ from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.ship_types import VALID_POSTCODE
+
+from amherst.back.backend_search_paginate import record_from_json_str_form
 from amherst.back.backend_shipper import (
     book_shipment,
     get_el_client,
-    record_str_form_to_record,
     shipment_from_record,
     shipment_request_f_form,
     shipment_str_form_to_shipment,
@@ -25,7 +25,6 @@ from amherst.back.backend_shipper import (
 from amherst.back.backend_pycommence import get_one
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment, AmherstTableBase
-from amherst.models.maps import CMAP
 
 router = APIRouter()
 
@@ -34,8 +33,16 @@ async def record_to_form(request, record: AmherstTableBase):
     shipment = await shipment_from_record(record)
     jsonable_ship = jsonable_encoder(shipment)
     jsonable_record = jsonable_encoder(record)
+    record_str = record.model_dump_json()
     form_html = TEMPLATES.TemplateResponse(
-        'ship/shipping_form_play.html', {'request': request, 'shipment': jsonable_ship, 'record': jsonable_record}
+        'ship/shipping_form_play.html',
+        {
+            'request': request,
+            'shipment': jsonable_ship,
+            'record_pyd': record,
+            'record': jsonable_record,
+            'record_str': record_str,
+        },
     )
     return form_html
 
@@ -61,7 +68,7 @@ async def fetch_candidates(
     postcode: VALID_POSTCODE,
     el_client: ELClient = Depends(get_el_client),
 ):
-    res = el_client.get_choices(postcode)
+    res = el_client.get_choices(postcode=postcode)
     return res
 
 
@@ -69,15 +76,14 @@ async def fetch_candidates(
 async def post_review_form(
     request: Request,
     shipment_request: AmherstShipment = Depends(shipment_request_f_form),
-    record: str = Form(...),
+    record_str: str = Form(...),
 ):
-    record = json.loads(record)
-    category = record['category']
-    rectype: AMHERST_TABLE_MODELS = CMAP[category].record_model
-    reccy = rectype.model_validate(**record)
+    logger.warning(f'Post Review Form: {shipment_request=}, {record_str=}')
     logger.info(shipment_request.recipient_contact.notifications)
     return TEMPLATES.TemplateResponse(
-        'ship/order_review.html', {'request': request, 'shipment': shipment_request, 'record': reccy}
+        'ship/order_review.html',
+        {'request': request, 'shipment': shipment_request, 'record_str': record_str},
+        # 'ship/order_review.html', {'request': request, 'shipment': shipment_request, 'record': record}
     )
 
 
@@ -85,7 +91,7 @@ async def post_review_form(
 async def post_confirm_booking(
     request: Request,
     shipment: AmherstShipment = Depends(shipment_str_form_to_shipment),
-    record: AMHERST_TABLE_MODELS = Depends(record_str_form_to_record),
+    record: AmherstTableBase = Depends(record_from_json_str_form),
     el_client: ELClient = Depends(get_el_client),
 ):
     # todo update commence

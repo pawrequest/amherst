@@ -6,6 +6,8 @@ from datetime import date, datetime
 from typing import Annotated
 
 import pydantic as _p
+from fastapi.encoders import jsonable_encoder
+from loguru import logger
 from pydantic import AliasGenerator, BaseModel, ConfigDict
 from shipaw.models.pf_shipment import Shipment
 
@@ -82,6 +84,10 @@ class AmherstTableBase(BaseModel, ABC):
             'postcode': self.delivery_address_pc,
         }
 
+    @property
+    def og_address(self):
+        return self.address_dict()
+
     def ship_details_dict(self) -> dict:
         return {
             'total_number_of_parcels': 1,
@@ -95,6 +101,13 @@ class AmherstTableBase(BaseModel, ABC):
             **self.ship_details_dict(),
             **split_refs_from_str(self.customer_name),
         }
+
+    def shipment_dict_jsonable(self):
+        return jsonable_encoder(self.shipment_dict())
+
+    def jsonable(self) -> dict:
+        logger.info('dumping jsonable, why not implement this globally?')
+        return jsonable_encoder(self)
 
 
 class AmherstCustomer(AmherstTableBase):
@@ -176,3 +189,10 @@ class AmherstShipment(Shipment):
     @property
     def row_id(self):
         return self._row_id
+
+
+def add_from_str(add_str: str, postcode: str):
+    return {
+        **split_addr_str(add_str),
+        'postcode': postcode,
+    }

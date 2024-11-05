@@ -160,17 +160,15 @@ h1 {
     }
 }
 
-span {
-    background-color: var(--score-color, purple); /* default to black if --score-color is not set */
-}
+/*span {*/
+/*    background-color: var(--score-color, purple); !* default to black if --score-color is not set *!*/
+/*}*/
 
 #score-span {
     border-radius: 1rem;
     padding-inline: .6rem;
     padding-block: .2rem;
     text-align: center;
-
-
 }
 
 .high-score {

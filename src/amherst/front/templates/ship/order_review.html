@@ -6,7 +6,7 @@
         <h3 class="requested-title"> {{ shipment.direction.name }} Shipment:</h3>
         <form hx-post="/ship/confirm_booking" hx-target=#results hx-swap="innerHTML">
             <input type="hidden" name="shipment" value="{{ shipment.model_dump_json() }}">
-            <input type="hidden" name="record" value="{{ record.model_dump_json() }}">
+            <input type="hidden" name="record_str" value="{{ record_str }}">
             <button class="submit-confirm-btn">Confirm Booking</button>
             {#            <button onclick="history.back()">Back</button>#}
         </form>

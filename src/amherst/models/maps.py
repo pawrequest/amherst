@@ -65,3 +65,7 @@ async def detail_template_name(csrname: AmherstTableName = Path(...)):
 
 async def record_model(csrname: AmherstTableName = Path(...)) -> type(AmherstTableBase):
     return CMAP[csrname].record_model
+
+
+async def table_type_from_name_path(csrname: AmherstTableName = Path(...)) -> AmherstTableBase:
+    return CMAP[csrname].record_model

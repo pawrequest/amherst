@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing import Self
 
-from fastapi import Body, Depends, Path, Query
+from fastapi import Body, Depends, Form, Path, Query
 from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
@@ -11,8 +12,8 @@ from pycommence.filters import ConditionType
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 
 # from amherst.back.pyc_backend import pycmc_f_path
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstTableName
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
+from amherst.models.maps import AmherstTableName, CMAP, table_type_from_name_path
 
 PAGE_SIZE = 30
 
@@ -125,3 +126,15 @@ class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     def set_length(self):
         self.length = len(self.records)
         return self
+
+
+async def record_from_json_str_form(
+    record_str: str = Form(...),
+) -> AMHERST_TABLE_MODELS:
+    record_dict = json.loads(record_str)
+    category = record_dict['category']
+    model = CMAP[category].record_model
+    print(record_str)
+    return model.model_validate(**record_dict)
+
+    # return record_type.model_validate_json(record_str)

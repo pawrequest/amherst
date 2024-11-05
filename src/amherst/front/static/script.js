@@ -1,4 +1,11 @@
 /**
+ * @typedef {Object} addressChoice
+ * @property {Object} Address
+ * @property {number} Score
+ *
+ */
+
+/**
  * @typedef {Object} Contact
  * @property {string} ContactName
  * @property {string} EmailAddress
@@ -29,7 +36,24 @@
  * @property {string} SpecialInstructions3
  */
 
+//
 
+/**
+ * @typedef {Object} Shipment2
+ * @property {Address} recipient_address
+ * @property {Contact} recipient_contact
+ * @property {number} total_number_of_parcels
+ * @property {string} shipping_date
+ * @property {string} business_name
+ * @property {string} reference_number1
+ * @property {string} reference_number2
+ * @property {string} reference_number3
+ * @property {string} special_instructions1
+ * @property {string} special_instructions2
+ * @property {string} special_instructions3
+ */
+
+//
 
 function filterRecords() {
     let input = document.getElementById('filterInput');
@@ -49,13 +73,11 @@ function filterRecords() {
 
 /**
  * Populates form fields with shipment data.
- * @param {Shipment} shipment - The shipment data.
- * @param record
+ // * @param {Shipment} shipment - The shipment data.
  */
-function populateForm(shipment, record) {
-    // console log the shipment data
+function populateShipment(shipment) {
     console.log('Populating form from shipment data:', shipment);
-    console.log('Populating form from record data:', record);
+
     document.getElementById('ship_date').value = shipment.ShippingDate;
     document.getElementById('boxes').value = shipment.TotalNumberOfParcels || 1;
     document.getElementById('business_name').value = shipment.RecipientContact.BusinessName || "";
@@ -73,8 +95,8 @@ function populateForm(shipment, record) {
     document.getElementById('address_line3').value = shipment.RecipientAddress.AddressLine3 || "";
     document.getElementById('town').value = shipment.RecipientAddress.Town || "";
     document.getElementById('postcode').value = shipment.RecipientAddress.Postcode || "";
-    document.getElementById('record').value = record;
 }
+
 
 
 function toggleOwnLabel() {
@@ -91,29 +113,77 @@ function toggleOwnLabel() {
 }
 
 
-function loadCandidates() {
-    console.log('Loading candidates');
-    const postcode = document.getElementById('postcode').value;
-    fetch(`/ship/candidates?postcode=${postcode}`)
-        .then(response => response.json())
-        .then(data => {
-            const addressSelect = document.getElementById('address-select');
-            addressSelect.innerHTML = '';
-            data.forEach(addressChoice => {
-                const option = document.createElement('option');
-                option.value = JSON.stringify(addressChoice.Address);
-                option.textContent = addressChoice.Address.AddressLine1;
-                option.setAttribute('data-score', addressChoice.Score);
-                addressSelect.appendChild(option);
-            });
-        });
+
+function handle_candidates(data) {
+    const addressSelect = document.getElementById('address-select');
+    addressSelect.innerHTML = '';
+    let highestScoreOption = null;
+    let highestScore = -Infinity;
+
+
+    data.forEach(addressChoice => {
+        const option = document.createElement('option');
+        option.value = JSON.stringify(addressChoice.Address);
+        option.textContent = addressChoice.Address.AddressLine1;
+
+        if (addressChoice.Score > highestScore) {
+            highestScore = addressChoice.Score;
+            highestScoreOption = option;
+            console.log('Found new highest score option', highestScoreOption, 'Score =', highestScore);
+        }
+
+        option.setAttribute('data-score', addressChoice.Score.toString());
+        addressSelect.appendChild(option);
+    });
+    if (highestScoreOption) {
+        console.log('Setting final highest score option to', highestScoreOption);
+        highestScoreOption.selected = true;
+    }
 }
 
+
+async function loadCandidates3() {
+    const postcode = document.getElementById('postcode').value;
+    const addr1 = document.getElementById('address_line1').value;
+    const addr2 = document.getElementById('address_line2').value;
+    const addr3 = document.getElementById('address_line3').value;
+    const town = document.getElementById('town').value;
+
+    const address = {
+        AddressLine1: addr1, AddressLine2: addr2, AddressLine3: addr3, Town: town, Postcode: postcode
+    }
+
+    console.log('Loading candidates', postcode, address);
+
+    // Create the request body
+    const requestBody = {
+        postcode: postcode, address: address
+    };
+
+    // Send the POST request with the address and postcode in the body
+    fetch('/api/cand', {
+        method: 'POST', headers: {
+            'Content-Type': 'application/json',
+        }, body: JSON.stringify(requestBody)
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Received address candidates:', data);
+            handle_candidates(data);
+            setMatchScoreStyle();
+            // Process the data as needed
+        })
+        .catch(error => {
+            console.error('Error fetching candidates:', error);
+        });
+}
 
 function setMatchScoreStyle() {
     const scoreSpan = document.getElementById('score-span');
     const selectedOption = document.getElementById('address-select').selectedOptions[0];
-    let score = selectedOption ? parseInt(selectedOption.getAttribute('data-score'), 10) : 0;
+    const address = JSON.parse(selectedOption.value);
+    const address_str = address.AddressLine1 + ' ' + address.AddressLine2
+    const score = selectedOption ? parseInt(selectedOption.getAttribute('data-score'), 10) : 0;
     let newClass;
 
     if (score > 80) {
@@ -125,7 +195,11 @@ function setMatchScoreStyle() {
     }
 
     scoreSpan.className = newClass;
-    scoreSpan.textContent = `Match Confidence ${score}%:`;
+    // scoreSpan.textContent = `Click to insert selected Address ${address_str} Match Confidence ${score}%:`;
+
+    scoreSpan.innerHTML = `Best Guess (click to insert)<br>${address_str}<br>Match Confidence ${score}%:`;
+
+    scoreSpan.onclick = updateAddress;
 }
 
 function updateAddress() {
@@ -139,10 +213,18 @@ function updateAddress() {
     document.getElementById('postcode').value = addressData.Postcode || '';
 }
 
-function initShipPage(shipment, record) {
+function initShipPage(shipment) {
+    populateShipment(shipment);
     toggleOwnLabel();
-    populateForm(shipment, record);
     loadCandidates();
+}
+
+
+async function initShipPage2(shipment, record) {
+    populateShipment(shipment);
+    toggleOwnLabel();
+    await loadCandidates3();
+    // setMatchScoreStyle();
 }
 
 

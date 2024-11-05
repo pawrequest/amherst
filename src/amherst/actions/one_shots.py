@@ -158,6 +158,7 @@ def expresslink_live():
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
 
+
 def good_hires_fils():
     return (
         FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
@@ -187,11 +188,22 @@ def pyc_test():
     assert pyc2.csrs['Customer'].row_count > 0
 
 
+# pyc_test()
+
+
+def pf_play(el_client):
+    candidates = el_client.get_candidates('KT2 6LX')
+    cand1 = candidates[0]
+    for i, cand in enumerate(candidates):
+        print(f'candidate{i+1} is equal to candidate 1', cand == cand1)
+
+    return candidates
+
+
 if __name__ == '__main__':
     el_client = expresslink_live()
-    resp = el_client.cancel_shipment('PBUD5990505001')
+    res = pf_play(el_client)
+    print(res)
     ...
 
     # print(el_client.get_candidates('PE25 2QH'))
-
-# pyc_test()

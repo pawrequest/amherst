@@ -1,4 +1,4 @@
-// async function populateForm(csrname, rowId) {
+// async function populateShipment(csrname, rowId) {
 //         const resp = await fetch(`/api/${csrname}/${rowId}`)
 //         const row = await resp.json()
 //         document.getElementById('ship_date').value = row.send_date;
