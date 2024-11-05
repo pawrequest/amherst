@@ -85,6 +85,15 @@
     gap: 10px;
 }
 
+.sidebar2 {
+    overflow: hidden;
+    padding: 10px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 #filterInput {
     width: 100%;
     padding: 10px;

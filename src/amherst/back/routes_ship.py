@@ -35,7 +35,7 @@ async def record_to_form(request, record: AmherstTableBase):
     jsonable_record = jsonable_encoder(record)
     record_str = record.model_dump_json()
     form_html = TEMPLATES.TemplateResponse(
-        'ship/shipping_form_play.html',
+        'ship/shipping_form1.html',
         {
             'request': request,
             'shipment': jsonable_ship,
@@ -50,7 +50,7 @@ async def record_to_form(request, record: AmherstTableBase):
 # async def record_to_form2(request, record: AmherstTableBase):
 #     shipment = await shipment_from_record2(record)
 #     jsonable = jsonable_encoder(shipment)
-#     form_html = TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request, 'shipment': jsonable})
+#     form_html = TEMPLATES.TemplateResponse('ship/shipping_form.html', {'request': request, 'shipment': jsonable})
 #     return form_html
 
 
@@ -121,7 +121,7 @@ async def open_label(request: Request, label_path: str = Form(...)):
 
 # @router.get('/form', response_class=HTMLResponse)
 # async def shipping_form(request: Request):
-#     return TEMPLATES.TemplateResponse('ship/shipping_form_play.html', {'request': request})
+#     return TEMPLATES.TemplateResponse('ship/shipping_form.html', {'request': request})
 
 
 # @router.get('/{csrname}')

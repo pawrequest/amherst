@@ -24,15 +24,15 @@ async def fetch_cand(
     return res
 
 
-@router.post('/cand2', response_model=list[AddressChoice], response_class=JSONResponse)
-async def fetch_cand2(
-    postcode: VALID_POSTCODE = Query(...),
-    address_str: str = Body(...),
-    el_client: ELClient = Depends(get_el_client),
-):
-    address = add_from_str(address_str)
-    res = el_client.get_choices(postcode=postcode, address=address)
-    return res
+# @router.post('/cand2', response_model=list[AddressChoice], response_class=JSONResponse)
+# async def fetch_cand2(
+#     postcode: VALID_POSTCODE = Query(...),
+#     address_str: str = Body(...),
+#     el_client: ELClient = Depends(get_el_client),
+# ):
+#     address = add_from_str(add_str=address_str, postcode=postcode)
+#     res = el_client.get_choices(postcode=postcode, address=address)
+#     return res
 
 
 @router.get('/new/{csrname}')
