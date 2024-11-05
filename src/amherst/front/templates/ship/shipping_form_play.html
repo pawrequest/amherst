@@ -125,36 +125,35 @@
     ></div>
     <script>
         {#for multi cant get hx-on::swap working#}
-        {#    let shipment = {{ shipment|tojson }};#}
-        {#    let record = {{ record|tojson }};#}
-        {#    initShipPage(shipment, record);#}
+
+        let shipment = {{ shipment|tojson }};
+        let record = {{ record | tojson }};
+        console.log('shipment', shipment);
+        console.log('record', record);
+        initShipPage2(shipment, record);
+        {#refreshPage()#}
     </script>
 {% endblock %}
 
 {% block scripts %}
     <script>
         document.addEventListener("DOMContentLoaded", async function () {
-                console.log('dom loaded')
-                {# TODO form does notr get record, builds gues from form data #}
-
-
-
-                let shipment = {{ shipment|tojson }};
-                let record = {{ record | tojson }};
+                refreshPage();
+                {#let shipment = {{ shipment|tojson }};#}
+                {#let record = {{ record | tojson }};#}
                 {#console.log('shipment', shipment);#}
                 {#console.log('record', record);#}
-
-                {#let record = {{ record_pyd.jsonable() | tojson }};#}
-                {#let shipment2 = {{ record_pyd.shipment_dict() | tojson }};#}
-                {#let shipment = {{ record_pyd.shipment_dict_jsonable() | tojson }};#}
-                console.log('shipment', shipment);
-                console.log('record', record);
-
-                {#initShipPage(shipment);#}
-                await initShipPage2(shipment, record);
+                {#await initShipPage2(shipment, record);#}
             }
         );
+
+        function refreshPage() {
+            let shipment = {{ shipment|tojson }};
+            let record = {{ record | tojson }};
+            console.log('shipment', shipment);
+            console.log('record', record);
+            initShipPage2(shipment, record);
+        }
     </script>
 {% endblock %}
-
 

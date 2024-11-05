@@ -142,7 +142,7 @@ function handle_candidates(data) {
 }
 
 
-async function loadCandidates3() {
+function loadCandidates() {
     const postcode = document.getElementById('postcode').value;
     const addr1 = document.getElementById('address_line1').value;
     const addr2 = document.getElementById('address_line2').value;
@@ -220,10 +220,10 @@ function initShipPage(shipment) {
 }
 
 
-async function initShipPage2(shipment, record) {
+function initShipPage2(shipment, record) {
     populateShipment(shipment);
     toggleOwnLabel();
-    await loadCandidates3();
+    loadCandidates();
     // setMatchScoreStyle();
 }
 
