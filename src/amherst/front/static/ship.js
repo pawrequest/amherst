@@ -213,14 +213,18 @@ function updateAddress() {
     document.getElementById('postcode').value = addressData.Postcode || '';
 }
 
+function initShipPage(shipment) {
+    populateShipment(shipment);
+    toggleOwnLabel();
+    loadCandidates();
+}
 
 
 function initShipPage2(shipment, record) {
-    // populateShipment(shipment);
-    // toggleOwnLabel();
-    // loadCandidates();
+    populateShipment(shipment);
+    toggleOwnLabel();
+    loadCandidates();
 }
-
 
 
 

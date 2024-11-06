@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 
+{% block head %}
+    <script src="{{ url_for('static', path='ship.js') }}"></script>
+{#    <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">#}
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}
 {% block content %}
-
-
     <div class="returned-request"></div>
-
 
     <!--suppress HtmlFormInputWithoutLabel -->
     <form id="main-form" hx-post="/ship/post_ship/"
             {#          hx-target=this#}
           hx-target=.returned-request
           hx-swap="innerHTML"
-          hx-on::swap="console.log('swap event fired in main form')"
+          hx-on:htmx:swap="console.log('swap event fired in main form')"
     >
         <input type="hidden" id="record_str" name="record_str" value={{ record_str }}>
         {#        <input type="hidden" id="row_id" name="row_id" value="" />#}
@@ -71,11 +75,13 @@
             <section class="inputs inputs__address">
                 <!--suppress HtmlFormInputWithoutLabel -->
                 <div class="addr-head">
+                    <div hx-on:click="alert('Clicked!')">Click</div>
+
                     <h1>Address</h1>
                     <span id="score-span" data-score="">
-{#                    <span id="score-span" data-score=""> Match Confidence %:#}
-                    <br>(No address selected)
-                </span>
+{#                      <span id="score-span" data-score=""> Match Confidence %:#}
+                        <br>(No address selected)
+                    </span>
                 </div>
 
                 <label for="address_line1">Address Lines:</label>
@@ -121,28 +127,6 @@
     ></div>
     <script>
         {#for multi cant get hx-on::swap working#}
-
-        let shipment = {{ shipment|tojson }};
-        let record = {{ record | tojson }};
-        console.log('shipment', shipment);
-        console.log('record', record);
-        initShipPage2(shipment, record);
-        {#refreshPage()#}
-    </script>
-{% endblock %}
-
-{% block scripts %}
-    <script>
-        document.addEventListener("DOMContentLoaded", async function () {
-                refreshPage();
-                {#let shipment = {{ shipment|tojson }};#}
-                {#let record = {{ record | tojson }};#}
-                {#console.log('shipment', shipment);#}
-                {#console.log('record', record);#}
-                {#await initShipPage2(shipment, record);#}
-            }
-        );
-
         function refreshPage() {
             let shipment = {{ shipment|tojson }};
             let record = {{ record | tojson }};
@@ -150,6 +134,23 @@
             console.log('record', record);
             initShipPage2(shipment, record);
         }
+        refreshPage()
+    </script>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+                refreshPage();
+            }
+        );
+
+        {#function refreshPage() {#}
+        {#    let shipment = {{ shipment|tojson }};#}
+        {#    let record = {{ record | tojson }};#}
+        {#    console.log('shipment', shipment);#}
+        {#    console.log('record', record);#}
+        {#    initShipPage2(shipment, record);#}
     </script>
 {% endblock %}
 

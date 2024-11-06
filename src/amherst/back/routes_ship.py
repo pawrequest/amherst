@@ -35,7 +35,7 @@ async def record_to_form(request, record: AmherstTableBase):
     jsonable_record = jsonable_encoder(record)
     record_str = record.model_dump_json()
     form_html = TEMPLATES.TemplateResponse(
-        'ship/shipping_form1.html',
+        'ship/shipping_form.html',
         {
             'request': request,
             'shipment': jsonable_ship,

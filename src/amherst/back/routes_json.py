@@ -1,24 +1,29 @@
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Body, Depends
 from loguru import logger
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddTypes, AddressBase, AddressChoice
+from shipaw.models.pf_models import AddressBase, AddressChoice
 from shipaw.ship_types import VALID_POSTCODE
 from starlette.responses import JSONResponse
 
 from amherst.back.backend_search_paginate import SearchResponse
 from amherst.back.backend_pycommence import pycommence_response
 from amherst.back.backend_shipper import get_el_client
-from amherst.models.amherst_models import add_from_str
 
 router = APIRouter()
 
 
 @router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
-async def fetch_cand(
+async def get_addr_choices(
     postcode: VALID_POSTCODE = Body(...),
     address: AddressBase = Body(None),
     el_client: ELClient = Depends(get_el_client),
-):
+) -> list[AddressChoice]:
+    """Fetch candidate address choices for a postcode, optionally scored by closeness to provided address.
+
+    Args:
+        postcode: VALID_POSTCODE - postcode to search for
+        address: AddressBase - address to compare to candidates
+    """
     logger.warning(f'Fetching candidates for {postcode=}, {address=}')
     res = el_client.get_choices(postcode=postcode, address=address)
     return res
