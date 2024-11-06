@@ -1,17 +1,13 @@
-.main_div {
-    display: grid;
-    grid-template-columns: max(20rem) 1fr;
-    height: 100%;
-}
 
-.sidebar {
-    overflow: hidden;
-    padding: 10px;
-    width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+/*.sidebar {*/
+/*    overflow: hidden;*/
+/*    padding: 10px;*/
+/*    width: 300px;*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    gap: 10px;*/
+/*    grid-area: sidebar;*/
+/*}*/
 
 
 #filterInput {

@@ -42,7 +42,7 @@ app.include_router(ship_router, prefix='/ship')
 async def multi_shipper(
         request: Request,
 ):
-    return TEMPLATES.TemplateResponse('multi.html', {'request': request})
+    return TEMPLATES.TemplateResponse('base.html', {'request': request})
 
 
 @app.get('/api/close_app/', response_model=None, response_model_exclude_none=True)

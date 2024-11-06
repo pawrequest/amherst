@@ -44,7 +44,8 @@ MODE = Mode.SHIP_BY_SRCH
 
 async def get_url_suffix(record: AmherstTableBase, mode: Mode = MODE):
     # todo parse mode
-    return f'ship/form/{record.category}?row_id={record.row_id}'
+    return f'ship/form?csrname={record.category}&row_id={record.row_id}'
+    # return f'ship/form/{record.category}?row_id={record.row_id}'
 
 
 def parse_arguments():

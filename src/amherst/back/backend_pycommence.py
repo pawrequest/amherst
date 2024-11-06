@@ -6,10 +6,11 @@ from comtypes import CoInitialize, CoUninitialize
 from fastapi import Depends, Path
 from loguru import logger
 from pydantic import BaseModel
-from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment
+from win32pdhquery import Query
 from starlette.exceptions import HTTPException
 
+from shipaw.models.pf_msg import ShipmentResponse
+from shipaw.models.pf_shipment import Shipment
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
@@ -30,6 +31,11 @@ def pycommence_context(csrname: AmherstTableName, filter_array: FilterArray | No
 
 
 async def pycmc_f_path(csrname: AmherstTableName = Path(...)) -> PyCommence:
+    with pycommence_context(csrname=csrname) as pycmc:
+        yield pycmc
+
+
+async def pycmc_f_query(csrname: AmherstTableName = Query(...)) -> PyCommence:
     with pycommence_context(csrname=csrname) as pycmc:
         yield pycmc
 
@@ -97,9 +103,21 @@ async def pycommence_response(
     return resp
 
 
-async def get_one(
+async def get_one_f_q(
     search_request: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_path),
+) -> AMHERST_TABLE_MODELS:
+    search_request.max_rtn = 1
+    resp = await pycommence_search(search_request, pycmc)
+    if resp.length == 1:
+        return resp.records[0]
+    elif resp.length == 0:
+        raise ValueError(f'No {search_request.csrname} record found for {search_request.pk_value}')
+
+
+async def get_one_f_q2(
+    search_request: SearchRequest = Depends(SearchRequest.from_query2),
+    pycmc: PyCommence = Depends(pycmc_f_query),
 ) -> AMHERST_TABLE_MODELS:
     search_request.max_rtn = 1
     resp = await pycommence_search(search_request, pycmc)

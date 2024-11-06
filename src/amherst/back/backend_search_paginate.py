@@ -92,6 +92,28 @@ class SearchRequest(BaseModel):
         )
 
     @classmethod
+    def from_query2(
+        cls,
+        csrname: AmherstTableName = Query(...),
+        filtered: bool = Query(True),
+        pk_value: str = Query(''),
+        pagination: Pagination = Depends(Pagination.from_query),
+        condition: ConditionType = Query(ConditionType.CONTAIN),
+        max_rtn: int = Query(None),
+        row_id: str = Query(None),
+    ):
+        logger.warning(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
+        return cls(
+            csrname=csrname,
+            pagination=pagination,
+            pk_value=pk_value,
+            filtered=filtered,
+            condition=condition,
+            max_rtn=max_rtn,
+            row_id=row_id,
+        )
+
+    @classmethod
     def from_body(
         cls,
         csrname: AmherstTableName = Body(...),

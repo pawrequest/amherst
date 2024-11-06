@@ -2,7 +2,7 @@
 {% for record in response.records %}
 <div class="record"
      hx-get="/html/detail/{{ record.category }}?row_id={{ record.row_id }}"
-     hx-target="#top-content">
+     hx-target="#content-top">
     {{ record.name }}
 </div>
 {% endfor %}

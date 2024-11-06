@@ -12,8 +12,6 @@ from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.ship_types import VALID_POSTCODE
-
-from amherst.back.backend_search_paginate import record_from_json_str_form
 from amherst.back.backend_shipper import (
     book_shipment,
     get_el_client,
@@ -22,7 +20,7 @@ from amherst.back.backend_shipper import (
     shipment_str_form_to_shipment,
     wait_label,
 )
-from amherst.back.backend_pycommence import get_one
+from amherst.back.backend_pycommence import get_one_f_q2
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment, AmherstTableBase
 
@@ -54,13 +52,16 @@ async def record_to_form(request, record: AmherstTableBase):
 #     return form_html
 
 
-@router.get('/form/{csrname}', response_class=HTMLResponse)
-async def newship(
+@router.get('/form', response_class=HTMLResponse)
+async def ship_form(
     request: Request,
-    row: AMHERST_TABLE_MODELS = Depends(get_one),
+    record: AMHERST_TABLE_MODELS = Depends(get_one_f_q2),
+        # SearchRequest
 ):
-    logger.warning(f'SHIP FROM ROW ID PATH Row: {row}')
-    return await record_to_form(request, row)
+    logger.warning(f'SHIP FROM ROW ID PATH Row: {record}')
+    return await record_to_form(request, record)
+
+
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)

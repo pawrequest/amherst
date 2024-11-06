@@ -7,8 +7,8 @@
         </p>
     {% endif %}
     <button class="ship"
-            hx-get="/ship/form/{{ row.category }}?row_id={{ row.row_id }}"
-            hx-target="#maincontent">
+            hx-get="/ship/form?csrname={{ row.category }}&row_id={{ row.row_id }}"
+            hx-target="#content-main">
         SHIPPY
     </button>
 </div>

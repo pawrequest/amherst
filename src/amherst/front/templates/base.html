@@ -6,17 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}PyCommence Helper{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@1.5.0/dist/htmx.min.js"></script>
-{#    <script src="{{ url_for('static', path='script.js') }}"></script>#}
+    {#    <script src="{{ url_for('static', path='script.js') }}"></script>#}
     <script src="{{ url_for('static', path='script.js') }}" defer></script>
+    <link href="{{ url_for('static', path='sidebar.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', path='style.css') }}" rel="stylesheet">
     {% block head %}{% endblock %}
 </head>
 <body>
 <main>
     <div class="main_div">
-        {% block sidebar %}{% endblock %}
-        {% block content %}{% endblock %}
+        <div id="sidebar" class="sidebar">
+        {% include 'sidebar.html' %}
+        </div>
+        <div id="content-top" class="content_top"></div>
+        <div id="content-main" class="content_main"></div>
     </div>
+    {% block content %}{% endblock %}
 </main>
 {% block scripts %}{% endblock %}
 </body>

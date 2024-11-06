@@ -33,6 +33,7 @@ body {
 main {
     height: 100vh;
 }
+
 input, select, textarea, button {
     font-family: inherit;
     font-size: inherit;
@@ -83,11 +84,6 @@ h1 {
     font-size: 1.4rem;
 }
 
-/*.ship-form {*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*}*/
-
 
 .wrapper {
     display: grid;
@@ -102,10 +98,32 @@ h1 {
 }
 
 
+.main_div {
+    display: grid;
+    grid-template-columns: max(20rem, 300px) 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+        "sidebar content-top"
+        "sidebar content-main";
+    height: 100vh;
+}
+.sidebar {
+    grid-area: sidebar;
+    overflow: hidden;
+    padding: 10px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
 
+.content_top {
+    grid-area: content-top;
+}
 
-
-
+.content_main {
+    grid-area: content-main;
+}
 
 button {
     border: none;
@@ -136,7 +154,6 @@ select:focus {
     outline: none;
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }
-
 
 
 .loading-spinner {
@@ -177,7 +194,6 @@ select:focus {
         transform: rotate(360deg);
     }
 }
-
 
 
 .checkbox-group {
