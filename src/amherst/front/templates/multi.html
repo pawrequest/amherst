@@ -4,33 +4,8 @@
     <link href="{{ url_for('static', path='multi.css') }}" rel="stylesheet">
 {% endblock %}
 {% block sidebar %}
-    <div id="sidebar" class="sidebar">
-        <label for="filterInput">Filter</label>
-        <input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">
-
-        <label for="searchInput">Search</label>
-        <input type="text" id="searchInput" placeholder="Fetch New Records..."
-               hx-trigger="input changed delay:1000ms, search"
-               hx-get=>
-        >
-
-        <nav class="nav-bar">
-            <a href="#" hx-get="/html/Customer" hx-target="#record-container"
-               hx-swap="innerHTML">Customers</a>
-            <a href="#" hx-get="/html/Hire" hx-target="#record-container"
-               hx-swap="innerHTML">Hires</a>
-            <a href="#" hx-get="/html/Sale" hx-target="#record-container"
-               hx-swap="innerHTML">Sales</a>
-        </nav>
-
-        <div class="record-container" id="record-container" hx-get="/html/Customer"
-             hx-trigger="load"
-             hx-target="this" hx-swap="innerHTML">
-        </div>
-
-    </div>
+    {% include 'sidebar.html' %}
 {% endblock %}
-
 
 {% block content %}
     <div id="top-content" class="top_content"></div>

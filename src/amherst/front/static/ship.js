@@ -55,21 +55,6 @@
 
 //
 
-function filterRecords() {
-    let input = document.getElementById('filterInput');
-    let filter = input.value.toLowerCase();
-    let recordsContainer = document.querySelector('.record-container');
-    let records = recordsContainer.getElementsByClassName('record');
-
-    Array.from(records).forEach(record => {
-        if (record.textContent.toLowerCase().includes(filter)) {
-            record.style.display = "";
-        } else {
-            record.style.display = "none";
-        }
-    });
-}
-
 
 /**
  * Populates form fields with shipment data.
@@ -98,7 +83,6 @@ function populateShipment(shipment) {
 }
 
 
-
 function toggleOwnLabel() {
     let direction = document.getElementById("direction").value;
     let ownLabelLabel = document.getElementById("own_label_label");
@@ -111,7 +95,6 @@ function toggleOwnLabel() {
         ownLabelSelect.style.display = 'none';
     }
 }
-
 
 
 function handle_candidates(data) {
@@ -213,18 +196,11 @@ function updateAddress() {
     document.getElementById('postcode').value = addressData.Postcode || '';
 }
 
-function initShipPage(shipment) {
+
+function initShipPage(shipment, record) {
     populateShipment(shipment);
     toggleOwnLabel();
     loadCandidates();
 }
-
-
-function initShipPage2(shipment, record) {
-    populateShipment(shipment);
-    toggleOwnLabel();
-    loadCandidates();
-}
-
 
 

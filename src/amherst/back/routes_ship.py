@@ -35,7 +35,7 @@ async def record_to_form(request, record: AmherstTableBase):
     jsonable_record = jsonable_encoder(record)
     record_str = record.model_dump_json()
     form_html = TEMPLATES.TemplateResponse(
-        'ship/shipping_form.html',
+        'ship/shipping_form_shape2.html',
         {
             'request': request,
             'shipment': jsonable_ship,
@@ -91,8 +91,9 @@ async def post_review_form(
 async def post_confirm_booking(
     request: Request,
     shipment: AmherstShipment = Depends(shipment_str_form_to_shipment),
-    record: AmherstTableBase = Depends(record_from_json_str_form),
+    # record: AmherstTableBase = Depends(record_from_json_str_form),
     el_client: ELClient = Depends(get_el_client),
+    record_str: str = Form(...),
 ):
     # todo update commence
     logger.info(f'Confirm booking: {shipment}')

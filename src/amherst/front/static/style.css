@@ -83,10 +83,10 @@ h1 {
     font-size: 1.4rem;
 }
 
-.ship-form {
-    display: flex;
-    flex-direction: column;
-}
+/*.ship-form {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*}*/
 
 
 .wrapper {
@@ -101,124 +101,10 @@ h1 {
     background-color: var(--clr-wrapper);
 }
 
-.wrapper__booking {
-    grid-template-areas:
-           "shipment contact address notes"
-           "shipment contact address sub-btns";
-    /*"notes notes notes";*/
-}
 
 
-.booking-confirmed {
-    /* used in js*/
-    background-color: var(--clr-wrapper);
-    color: var(--clr-success-font);
-}
-
-.email-body {
-    font-family: "Roboto", sans-serif;
-}
 
 
-.email {
-    grid-area: email;
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-}
-
-.inputs {
-    display: flex;
-    flex-direction: column;
-    border: 2px solid black;
-    padding: 1rem;
-    gap: .5rem;
-    border-radius: 1rem;
-}
-
-.inputs__ship {
-    grid-area: shipment;
-}
-
-.inputs__contact {
-    grid-area: contact;
-}
-
-
-.inputs__address {
-    grid-area: address;
-
-    .addr-head {
-        display: flex;
-        flex-direction: row;
-        gap: 1rem;
-        justify-content: space-between;
-
-        span {
-
-        }
-    }
-}
-
-/*span {*/
-/*    background-color: var(--score-color, purple); !* default to black if --score-color is not set *!*/
-/*}*/
-
-#score-span {
-    border-radius: 1rem;
-    padding-inline: .6rem;
-    padding-block: .2rem;
-    text-align: center;
-}
-
-.high-score {
-    background-color: var(--clr-success);
-}
-
-.medium-score {
-    background-color: var(--clr-warning);
-}
-
-.low-score {
-    background-color: var(--clr-danger);
-}
-
-.inputs__notes {
-    grid-area: notes;
-}
-
-.inputs__submit {
-    grid-area: sub-btns;
-    background-color: purple;
-    /*display: flex;*/
-    /*flex-direction: column;*/
-    /*gap: 3px;*/
-}
-
-
-.postcode-div {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    /*align-items: center;*/
-    /*margin-block: 1rem;*/
-
-    .postcode-pair {
-        display: flex;
-        flex-direction: column;
-        /*gap: 1rem;*/
-    }
-
-    #postcode {
-        /*max-width: max(50%, 150px);*/
-        /*display: inline;*/
-    }
-
-    button {
-        align-self: end;
-        font-size: 18px;
-    }
-}
 
 
 button {
@@ -237,11 +123,6 @@ button.submit-request {
 }
 
 .submit-confirm-btn {
-    /*display: none;*/
-}
-
-button.update-address-btn {
-    font-size: 18px;
 }
 
 button:hover {
@@ -257,96 +138,6 @@ select:focus {
 }
 
 
-/*    grid-template-areas:*/
-/*        "... head head ..."*/
-/*        "details contact address notes"*/
-/*        "collection collection collection collection";*/
-/*}*/
-
-.shipper {
-    padding-inline: 3rem;
-    display: flex;
-    justify-content: center;
-}
-
-.shipper__live {
-    background-color: var(--clr-danger);
-}
-
-.shipper__sandbox {
-    background: var(--clr-warning);
-
-}
-
-.wrapper__requested {
-    display: grid;
-    grid-template-areas:
-        "head      head    head      head    head "
-         "col-cont col-add rec-cont rec-add details";
-}
-
-.requested {
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-    border-radius: 1rem;
-}
-
-.requested__head {
-    grid-area: head;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    /*gap: .5rem;*/
-    justify-content: center;
-    text-align: center;
-}
-
-.requested-title {
-    /*grid-area: title;*/
-}
-
-.requested__col_contact {
-    grid-area: col-cont;
-}
-
-.requested__col_address {
-    grid-area: col-add;
-}
-
-.requested__contact {
-    grid-area: rec-cont;
-
-}
-
-.requested__address {
-    grid-area: rec-add;
-
-}
-
-.requested__details {
-    grid-area: details;
-}
-
-.requested__notes {
-    grid-area: notes;
-}
-
-.requested__collection {
-    grid-area: collection;
-}
-
-.result {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-}
-
-
-.result__fail {
-    background-color: var(--clr-danger);
-}
 
 .loading-spinner {
     display: none;
@@ -387,44 +178,7 @@ select:focus {
     }
 }
 
-.label-action {
 
-}
-
-.label-file__print {
-}
-
-
-.email-form {
-    background: var(--clr-wrapper);
-    display: flex;
-    flex-direction: row;
-    gap: 2rem;
-    border-radius: var(--border-radius);
-}
-
-.result__success {
-    /*background-color: var(--clr-success);*/
-    border-radius: var(--border-radius);
-    padding: .5rem 1rem;
-}
-
-.label-actions {
-    display: flex;
-    flex-direction: row;
-    gap: 4rem
-}
-
-.label-action__email {
-    display: flex;
-    flex-direction: row;
-
-}
-
-.label-email-options {
-    display: flex;
-    flex-direction: column;
-}
 
 .checkbox-group {
     display: flex;
@@ -433,19 +187,4 @@ select:focus {
     gap: .5rem;
 }
 
-.email-btn {
-}
 
-
-.checkbox-group div {
-}
-
-.checkbox-group__attach {
-
-}
-
-.checkbox-group__recip {
-}
-
-.email-btn {
-}
