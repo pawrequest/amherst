@@ -82,6 +82,11 @@ function populateShipment(shipment) {
     document.getElementById('postcode').value = shipment.RecipientAddress.Postcode || "";
 }
 
+function populateRecord(record) {
+    console.log('Populating form from record data:', record);
+    document.getElementById('record_str').value = JSON.stringify(record);
+}
+
 
 function toggleOwnLabel() {
     let direction = document.getElementById("direction").value;
@@ -196,8 +201,9 @@ function updateAddress() {
 }
 
 
-function initShipPage(shipment, record) {
+function initShipPage(shipment) {
     populateShipment(shipment);
+    // populateRecord(record);
     toggleOwnLabel();
     loadCandidates();
 }

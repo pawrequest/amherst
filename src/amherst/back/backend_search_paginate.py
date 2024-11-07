@@ -131,8 +131,9 @@ async def record_from_json_str_form(
 ) -> AMHERST_TABLE_MODELS:
     record_dict = json.loads(record_str)
     category = record_dict['category']
-    model = CMAP[category].record_model
-    print(record_str)
-    return model.model_validate(**record_dict)
+    modeltype = CMAP[category].record_model
+    res = modeltype.model_validate(record_dict)
+    return res
+
 
     # return record_type.model_validate_json(record_str)

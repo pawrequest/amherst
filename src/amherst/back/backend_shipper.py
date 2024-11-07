@@ -135,7 +135,7 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
     return notes
 
 
-async def shipment_request_f_form(
+async def shipment_f_form(
     request: Request,
     contact: Contact = Depends(contact_f_form),
     address: AddressCollection = Depends(address_f_form),
@@ -167,54 +167,6 @@ async def shipment_request_f_form(
     return shipment_request
 
 
-# async def shipment_request_f_form2(
-#     request: Request,
-#     contact: Contact = Depends(contact_f_form),
-#     address: AddressCollection = Depends(address_f_form),
-#     notes: list[tuple[str, str]] = Depends(notes_f_form),
-#     shipping_date: date = Form(...),
-#     total_number_of_parcels: int = Form(...),
-#     service_code: ServiceCode = Form(...),
-#     direction: ship_types.ShipDirection = Form(...),
-#     own_label: str = Form(...),
-#     category: str = Form(...),
-#     row_id: str = Form(...),
-# ) -> AmherstShipment:
-#     logger.warning('Creating Shipment Request from form')
-#     own_label = own_label.lower() == 'true'
-#     shipment_request = AmherstShipment(
-#         recipient_address=address,
-#         recipient_contact=contact,
-#         service_code=service_code,
-#         shipping_date=shipping_date,
-#         total_number_of_parcels=total_number_of_parcels,
-#         _category=category,
-#         _row_id=row_id,
-#     )
-#     if direction == ShipDirection.DROPOFF:
-#         shipment_request = to_dropoff(shipment_request)
-#     elif direction == ShipDirection.INBOUND:
-#         shipment_request = to_collection(shipment_request, own_label=own_label)
-#
-#     for fieldname, value in notes:
-#         setattr(shipment_request, fieldname, value)
-#
-#     return shipment_request
-
-
-async def check_dates(booking, request):
-    alert = None
-    if not booking.shipment_request.shipping_date.weekday() < 5:
-        alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
-    if booking.direction == ShipDirection.INBOUND and booking.shipment_request.shipping_date <= date.today():
-        alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
-    if alert:
-        logger.warning(alert.message)
-        booking.alerts.alert.append(alert)
-        return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
-    return None
-
-
 def get_el_client() -> ELClient:
     try:
         return ELClient()
@@ -244,29 +196,25 @@ async def record_str_form_to_record(record_str: str = Form(...)):
 
 
 async def record_str_to_record(record_str: str) -> AmherstTableBase:
-    record_str = json.loads(record_str)
-    category = record_str['category']
+    record_dict = json.loads(record_str)
+    category = record_dict['category']
     rectype: AmherstTableBase = CMAP[category].record_model
-    reccy = rectype.model_validate(**record_str)
+    reccy = rectype.model_validate_json(record_str)
     return reccy
-
-
-# async def shipment_from_record2(record: AmherstTableBase) -> AmherstShipment:
-#     shipdict = record.shipment_dict()
-#     shipdict.update({'_category': record.category, '_row_id': record.row_id})
-#     shipment = AmherstShipment(**shipdict)
-#     shipment = shipment.model_validate(shipment)
-#     logger.debug(f'Shipment request: {shipment}')
-#     return shipment
-
-
-# async def shipment_str_form_to_shipment2(shipment: str = Form(...)):
-#     return await shipment_str_to_shipment2(shipment)
-#
-#
-# async def shipment_str_to_shipment2(shipment: str) -> AmherstShipment:
-#     return AmherstShipment.model_validate_json(shipment)
 
 
 def print_args(args: Sequence):
     print(f'$ {shlex.join(args)}', file=sys.stderr)
+
+
+async def check_dates(booking, request):
+    alert = None
+    if not booking.shipment_request.shipping_date.weekday() < 5:
+        alert = Alert(type=AlertType.WARNING, message='Collection date must be a weekday')
+    if booking.direction == ShipDirection.INBOUND and booking.shipment_request.shipping_date <= date.today():
+        alert = Alert(type=AlertType.WARNING, message='Away Collections must be in the future')
+    if alert:
+        logger.warning(alert.message)
+        booking.alerts.alert.append(alert)
+        return TEMPLATES.TemplateResponse('alerts.html', {'booking': booking, 'request': request})
+    return None

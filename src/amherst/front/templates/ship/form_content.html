@@ -1,4 +1,5 @@
-<!-- templates/shipping_form_content.html -->
+<!-- templates/form_content.html -->
+{#context = {record_str:str, shipment }#}
 <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
 <script src="{{ url_for('static', path='ship.js') }}"></script>
 
@@ -7,10 +8,8 @@
       hx-target=#content_top
       hx-swap="innerHTML"
       hx-on:htmx:load="console.log('refresh page from htmxload');refreshPage()"
-
->
-    <input type="hidden" id="record_str" name="record_str" value={{ record_str }}>
-    {#        <input type="hidden" id="row_id" name="row_id" value="" />#}
+      hx-vals='{"record_str": {{ record |tojson }}}'>
+{#    <input type="hidden" id="record_str" name="record_str">#}
 
     <div class="wrapper wrapper__booking">
         <section class="inputs inputs__ship">
@@ -116,11 +115,14 @@
 <script>
     function refreshPage() {
         console.log('refresh page from html')
-        let shipment = {{ shipment|tojson }};
-        let record = {{ record | tojson }};
-        console.log('shipment', shipment);
-        console.log('record', record);
-        initShipPage(shipment, record);
+        let shipmentJson = {{ shipment|tojson }};
+        console.log('shipment', shipmentJson);
+
+        let recordJson = {{ record |tojson }};
+        console.log('record', recordJson);
+
+        initShipPage(shipmentJson);
+        {#initShipPage(shipmentJson, recordJson);#}
     }
 
     document.addEventListener("DOMContentLoaded", function () {

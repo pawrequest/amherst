@@ -1,4 +1,5 @@
 <!-- templates/listing_generic.html -->
+{#context = {response: SearchResponse}#}
 {% for record in response.records %}
     <div class="record"
          hx-get="/ship/form_content?csrname={{ record.category }}&row_id={{ record.row_id }}"

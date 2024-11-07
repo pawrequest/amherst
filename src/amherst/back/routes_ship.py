@@ -1,8 +1,4 @@
-import os
-from pathlib import Path
-
-import pawdf
-from fastapi import APIRouter, Body, Depends, Form, Query
+from fastapi import APIRouter, Body, Depends, Form
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from starlette.requests import Request
@@ -12,11 +8,13 @@ from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressBase, AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.ship_types import VALID_POSTCODE
+
+from amherst.back.backend_search_paginate import record_from_json_str_form
 from amherst.back.backend_shipper import (
     book_shipment,
     get_el_client,
     shipment_from_record,
-    shipment_request_f_form,
+    shipment_f_form,
     shipment_str_form_to_shipment,
     wait_label,
 )
@@ -27,47 +25,20 @@ from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment,
 router = APIRouter()
 
 
-async def record_to_form(request, record: AmherstTableBase, html='ship/shipping_form_shape.html'):
+async def record_to_form(request, record: AmherstTableBase, html='ship/form_shape.html'):
     shipment = await shipment_from_record(record)
     jsonable_ship = jsonable_encoder(shipment)
     jsonable_record = jsonable_encoder(record)
-    record_str = record.model_dump_json()
-    form_html = TEMPLATES.TemplateResponse(
+    # record_str = record.model_dump_json()
+    return TEMPLATES.TemplateResponse(
         html,
         {
             'request': request,
             'shipment': jsonable_ship,
-            'record_pyd': record,
             'record': jsonable_record,
-            'record_str': record_str,
+            # 'record_str': record_str,
         },
     )
-    return form_html
-
-
-async def record_to_form_content(request, record: AmherstTableBase):
-    shipment = await shipment_from_record(record)
-    jsonable_ship = jsonable_encoder(shipment)
-    jsonable_record = jsonable_encoder(record)
-    record_str = record.model_dump_json()
-    form_html = TEMPLATES.TemplateResponse(
-        'ship/shipping_form_content.html',
-        {
-            'request': request,
-            'shipment': jsonable_ship,
-            'record_pyd': record,
-            'record': jsonable_record,
-            'record_str': record_str,
-        },
-    )
-    return form_html
-
-
-# async def record_to_form2(request, record: AmherstTableBase):
-#     shipment = await shipment_from_record2(record)
-#     jsonable = jsonable_encoder(shipment)
-#     form_html = TEMPLATES.TemplateResponse('ship/shipping_form.html', {'request': request, 'shipment': jsonable})
-#     return form_html
 
 
 @router.get('/form', response_class=HTMLResponse)
@@ -77,17 +48,17 @@ async def ship_form_extends(
     # SearchRequest
 ):
     logger.debug(f'SHIP Extended ROW ID: {record.row_id}')
-    return await record_to_form(request, record, html='ship/shipping_form_shape.html')
+    return await record_to_form(request, record, html='ship/form_shape.html')
 
 
 @router.get('/form_content', response_class=HTMLResponse)
 async def ship_form_content(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(get_one),
-    # SearchRequest
+    # SearchRequest w row_id
 ):
     logger.debug(f'SHIP FROM ROW ID: {record.row_id}')
-    return await record_to_form(request, record, html='ship/shipping_form_content.html')
+    return await record_to_form(request, record, html='ship/form_content.html')
 
 
 @router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
@@ -109,40 +80,31 @@ async def get_addr_choices(
     return res
 
 
-@router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
-async def fetch_candidates(
-    postcode: VALID_POSTCODE,
-    el_client: ELClient = Depends(get_el_client),
-):
-    res = el_client.get_choices(postcode=postcode)
-    return res
-
-
 @router.post('/post_ship', response_class=HTMLResponse)
-async def post_review_form(
+async def post_form(
     request: Request,
-    shipment_request: AmherstShipment = Depends(shipment_request_f_form),
+    shipment: AmherstShipment = Depends(shipment_f_form),
     record_str: str = Form(...),
 ):
-    logger.warning(f'Post Review Form: {shipment_request=}, {record_str=}')
-    logger.info(shipment_request.recipient_contact.notifications)
+    logger.info('Shipment Form Posted')
     return TEMPLATES.TemplateResponse(
         'ship/order_review.html',
-        {'request': request, 'shipment': shipment_request, 'record_str': record_str},
-        # 'ship/order_review.html', {'request': request, 'shipment': shipment_request, 'record': record}
+        {'request': request, 'shipment': shipment, 'record_str': record_str},
     )
 
 
-@router.post('/confirm_booking', response_class=HTMLResponse)
+@router.post('/post_confirm', response_class=HTMLResponse)
 async def post_confirm_booking(
     request: Request,
     shipment: AmherstShipment = Depends(shipment_str_form_to_shipment),
-    # record: AmherstTableBase = Depends(record_from_json_str_form),
+    record: AmherstTableBase = Depends(record_from_json_str_form),
     el_client: ELClient = Depends(get_el_client),
     record_str: str = Form(...),
 ):
     # todo update commence
-    logger.info(f'Confirm booking: {shipment}')
+    # record = await record_str_to_record(record_str)
+
+    logger.info('Confirming booking')
     shipment_response: ShipmentResponse = book_shipment(el_client, shipment)
     if not shipment_response.success:
         alerts = jsonable_encoder(shipment_response.alerts)
@@ -155,4 +117,3 @@ async def post_confirm_booking(
     return TEMPLATES.TemplateResponse(
         'ship/order_confirmed.html', {'request': request, 'shipment': shipment, 'response': shipment_response}
     )
-
