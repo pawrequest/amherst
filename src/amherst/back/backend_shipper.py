@@ -109,10 +109,6 @@ async def contact_f_form(
     mobile_phone: str = Form(...),
     direction: ship_types.ShipDirection = Form(...),
 ):
-    logger.debug(f'form received: {await request.form()}')
-    logger.debug(
-        f'Contact fields received: direction={direction}, {contact_name=}, {email_address=}, {business_name=}, {mobile_phone=}'
-    )
     contact_class = Contact if direction == 'out' else ContactCollection
     cont = contact_class(
         business_name=business_name,

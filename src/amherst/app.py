@@ -37,11 +37,8 @@ async def lifespan(app_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(settings().src_dir / 'front' / 'static')), name='static')
-
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/ship')
-
-
 app.ship_live = pf_config.pf_sett().ship_live
 
 

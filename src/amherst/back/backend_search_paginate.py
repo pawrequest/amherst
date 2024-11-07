@@ -78,7 +78,7 @@ class SearchRequest(BaseModel):
         max_rtn: int = Query(None),
         row_id: str = Query(None),
     ):
-        logger.info(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
+        logger.debug(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
         return cls(
             csrname=csrname,
             pagination=pagination,

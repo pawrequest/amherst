@@ -75,7 +75,7 @@ async def get_addr_choices(
         address: AddressBase - address to compare to candidates
         el_client: ELClient - Parcelforce ExpressLink client
     """
-    logger.warning(f'Fetching candidates for {postcode=}, {address=}')
+    logger.debug(f'Fetching candidates for {postcode=}, {address=}')
     res = el_client.get_choices(postcode=postcode, address=address)
     return res
 
