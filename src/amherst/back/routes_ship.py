@@ -2,14 +2,14 @@ import os
 from pathlib import Path
 
 import pawdf
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Body, Depends, Form, Query
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressChoice
+from shipaw.models.pf_models import AddressBase, AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.ship_types import VALID_POSTCODE
 from amherst.back.backend_shipper import (
@@ -27,13 +27,31 @@ from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment,
 router = APIRouter()
 
 
-async def record_to_form(request, record: AmherstTableBase):
+async def record_to_form(request, record: AmherstTableBase, html='ship/shipping_form_shape.html'):
     shipment = await shipment_from_record(record)
     jsonable_ship = jsonable_encoder(shipment)
     jsonable_record = jsonable_encoder(record)
     record_str = record.model_dump_json()
     form_html = TEMPLATES.TemplateResponse(
-        'ship/shipping_form_shape2.html',
+        html,
+        {
+            'request': request,
+            'shipment': jsonable_ship,
+            'record_pyd': record,
+            'record': jsonable_record,
+            'record_str': record_str,
+        },
+    )
+    return form_html
+
+
+async def record_to_form_content(request, record: AmherstTableBase):
+    shipment = await shipment_from_record(record)
+    jsonable_ship = jsonable_encoder(shipment)
+    jsonable_record = jsonable_encoder(record)
+    record_str = record.model_dump_json()
+    form_html = TEMPLATES.TemplateResponse(
+        'ship/shipping_form_content.html',
         {
             'request': request,
             'shipment': jsonable_ship,
@@ -53,15 +71,42 @@ async def record_to_form(request, record: AmherstTableBase):
 
 
 @router.get('/form', response_class=HTMLResponse)
-async def ship_form(
+async def ship_form_extends(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(get_one_f_q2),
-        # SearchRequest
+    # SearchRequest
 ):
-    logger.warning(f'SHIP FROM ROW ID PATH Row: {record}')
-    return await record_to_form(request, record)
+    logger.debug(f'SHIP Extended ROW ID: {record.row_id}')
+    return await record_to_form(request, record, html='ship/shipping_form_shape.html')
 
 
+@router.get('/form_content', response_class=HTMLResponse)
+async def ship_form_content(
+    request: Request,
+    record: AMHERST_TABLE_MODELS = Depends(get_one_f_q2),
+    # SearchRequest
+):
+    logger.debug(f'SHIP FROM ROW ID: {record.row_id}')
+    return await record_to_form(request, record, html='ship/shipping_form_content.html')
+
+
+@router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
+async def get_addr_choices(
+    # postcode: VALID_POSTCODE,
+    postcode: VALID_POSTCODE = Body(...),
+    address: AddressBase = Body(None),
+    el_client: ELClient = Depends(get_el_client),
+) -> list[AddressChoice]:
+    """Fetch candidate address choices for a postcode, optionally scored by closeness to provided address.
+
+    Args:
+        postcode: VALID_POSTCODE - postcode to search for
+        address: AddressBase - address to compare to candidates
+        el_client: ELClient - Parcelforce ExpressLink client
+    """
+    logger.warning(f'Fetching candidates for {postcode=}, {address=}')
+    res = el_client.get_choices(postcode=postcode, address=address)
+    return res
 
 
 @router.get('/candidates', response_model=list[AddressChoice], response_class=JSONResponse)
@@ -99,6 +144,11 @@ async def post_confirm_booking(
     # todo update commence
     logger.info(f'Confirm booking: {shipment}')
     shipment_response: ShipmentResponse = book_shipment(el_client, shipment)
+    if not shipment_response.success:
+        alerts = jsonable_encoder(shipment_response.alerts)
+        return TEMPLATES.TemplateResponse(
+            'alerts.html', {'request': request, 'alerts': alerts, 'shipment': shipment, 'record_str': record_str}
+        )
     if shipment.direction == 'out' or shipment.print_own_label:
         wait_label(shipment_num=shipment_response.shipment_num, dl_path=shipment.label_file, el_client=el_client)
     logger.info(f'Booked Shipment Response: {shipment_response}')
@@ -106,77 +156,3 @@ async def post_confirm_booking(
         'ship/order_confirmed.html', {'request': request, 'shipment': shipment, 'response': shipment_response}
     )
 
-
-@router.post('/print', response_class=HTMLResponse)
-async def print_label(request: Request, label_path: str = Form(...)):
-    """Endpoint to print the label for a booking."""
-    pawdf.array_pdf.convert_many(Path(label_path), print_files=True)
-    return HTMLResponse(content=f'<p>Printed {label_path}</p>')
-
-
-@router.post('/open-file', response_class=HTMLResponse)
-async def open_label(request: Request, label_path: str = Form(...)):
-    """Endpoint to print the label for a booking."""
-    os.startfile(label_path)
-    return HTMLResponse(content=f'<p>Opened {label_path}</p>')
-
-
-# @router.get('/form', response_class=HTMLResponse)
-# async def shipping_form(request: Request):
-#     return TEMPLATES.TemplateResponse('ship/shipping_form.html', {'request': request})
-
-
-# @router.get('/{csrname}')
-# async def ship_from_row_id_path(
-#         request: Request,
-#         row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
-# ):
-#     logger.warning(f'SHIP FROM ROW ID PATH Row: {row}')
-#     return await record_to_form(request, row)
-#     # shipment = await shipment_from_row(row)
-#     # return TEMPLATES.TemplateResponse(
-#     #     'shipping_form.html', {'request': request, 'shipment': shipment.model_dump_json()}
-#     # )
-
-#
-# @router.get('/row_id/{csrname}/{row_id}')
-# async def ship_from_row_id_path(
-#         request: Request,
-#         row: AMHERST_TABLE_MODELS = Depends(row_from_path_id),
-# ):
-#     logger.warning(f'SHIP FROM ROW ID PATH Row: {row}')
-#     return await record_to_form(request, row)
-#     # shipment = await shipment_from_row(row)
-#     # return TEMPLATES.TemplateResponse(
-#     #     'shipping_form.html', {'request': request, 'shipment': shipment.model_dump_json()}
-#     # )
-
-
-# @router.get('/pk/{csrname}/{pk_value}', response_class=JSONResponse)
-# async def ship_form_pk_value_path(
-#         request: Request,
-#         resp: SearchResponse = Depends(pycommence_response_q),
-# ):
-#     if resp.length == 1 or resp.search_request.pk_value == 'Test':
-#         row = resp.records[0]
-#         return await record_to_form(request, row)
-#     else:
-#         return resp
-#         # show a list
-
-
-# return response
-
-
-# def get_label_path(shipment: Shipment, label_dir):
-#     logger.debug(f'Getting label path for {shipment.pf_label_filestem}')
-#     if shipment.direction != 'out':
-#         label_dir = label_dir / shipment.direction
-#     lpath = (label_dir / shipment.pf_label_filestem).with_suffix('.pdf')
-#     incremented = 2
-#     while lpath.exists():
-#         logger.warning(f'Label path {lpath} already exists')
-#         lpath = lpath.with_name(f'{lpath.stem}_{incremented}{lpath.suffix}')
-#         incremented += 1
-#     logger.debug(f'Using label path={lpath}')
-#     return lpath

@@ -7,10 +7,10 @@ from amherst import app
 
 PORT = 8000
 # URL_SUFFIX = 'ship/form/'
-URL_SUFFIX = 'multi/'
+URL_SUFFIX = ''
 
 
-async def run_desktop_ui(url_suffix=URL_SUFFIX):
+async def run_desktop_ui(url_suffix=''):
     try:
         logger.info(f'WebFlaskUI with {url_suffix=}')
         FlaskUI(

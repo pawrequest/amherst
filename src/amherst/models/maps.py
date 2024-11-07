@@ -3,11 +3,11 @@ from __future__ import annotations
 from enum import StrEnum
 from typing import NamedTuple
 
-from fastapi import Path
+from fastapi import Path, Query
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTableBase, AmherstTrial
 from amherst.models.commence_adaptors import AmherstTableName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
-from amherst.models.filters import DEFAULT_HIRE_FILTER, DEFAULT_SALE_FILTER, DEFAULT_CUSTOMER_FILTER
+from amherst.models.filters import DEFAULT_CUSTOMER_FILTER, DEFAULT_HIRE_FILTER, DEFAULT_SALE_FILTER
 from pycommence.filters import FilterArray
 
 
@@ -59,7 +59,15 @@ async def listing_template_name(csrname: AmherstTableName = Path(...)):
     return CMAP[csrname].listing_template
 
 
+async def listing_template_name_q(csrname: AmherstTableName = Query(...)):
+    return CMAP[csrname].listing_template
+
+
 async def detail_template_name(csrname: AmherstTableName = Path(...)):
+    return CMAP[csrname].detail_template
+
+
+async def detail_template_name_q(csrname: AmherstTableName = Query(...)):
     return CMAP[csrname].detail_template
 
 
@@ -67,5 +75,13 @@ async def record_model(csrname: AmherstTableName = Path(...)) -> type(AmherstTab
     return CMAP[csrname].record_model
 
 
+async def record_model_q(csrname: AmherstTableName = Query(...)) -> type(AmherstTableBase):
+    return CMAP[csrname].record_model
+
+
 async def table_type_from_name_path(csrname: AmherstTableName = Path(...)) -> AmherstTableBase:
+    return CMAP[csrname].record_model
+
+
+async def table_type_q(csrname: AmherstTableName = Query(...)) -> AmherstTableBase:
     return CMAP[csrname].record_model

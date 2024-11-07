@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import json
 import pathlib
+import shlex
+import sys
 import time
 from datetime import date
+from collections.abc import Sequence
 
 from fastapi import Depends, Form
 from loguru import logger
@@ -28,7 +31,6 @@ from shipaw.ship_types import (
     ShipDirection,
     VALID_POSTCODE,
 )
-
 from amherst.models.maps import CMAP
 
 
@@ -264,3 +266,7 @@ async def record_str_to_record(record_str: str) -> AmherstTableBase:
 #
 # async def shipment_str_to_shipment2(shipment: str) -> AmherstShipment:
 #     return AmherstShipment.model_validate_json(shipment)
+
+
+def print_args(args: Sequence):
+    print(f'$ {shlex.join(args)}', file=sys.stderr)

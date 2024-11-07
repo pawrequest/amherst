@@ -91,8 +91,8 @@ async def pycommence_search(
 
 
 async def pycommence_response(
-    search_request: SearchRequest = Depends(SearchRequest.from_query),
-    pycmc: PyCommence = Depends(pycmc_f_path),
+    search_request: SearchRequest = Depends(SearchRequest.from_query2),
+    pycmc: PyCommence = Depends(pycmc_f_query),
 ) -> SearchResponse:
     resp = await pycommence_search(search_request, pycmc)
     if search_request.max_rtn and resp.length > search_request.max_rtn:

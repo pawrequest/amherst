@@ -127,24 +127,19 @@ function handle_candidates(data) {
 
 function loadCandidates() {
     const postcode = document.getElementById('postcode').value;
-    const addr1 = document.getElementById('address_line1').value;
-    const addr2 = document.getElementById('address_line2').value;
-    const addr3 = document.getElementById('address_line3').value;
-    const town = document.getElementById('town').value;
-
     const address = {
-        AddressLine1: addr1, AddressLine2: addr2, AddressLine3: addr3, Town: town, Postcode: postcode
+        AddressLine1: document.getElementById('address_line1').value,
+        AddressLine2: document.getElementById('address_line2').value,
+        AddressLine3: document.getElementById('address_line3').value,
+        Town: document.getElementById('town').value,
+        Postcode: postcode
     }
-
-    console.log('Loading candidates', postcode, address);
-
-    // Create the request body
+    console.log('Loading candidates', address);
     const requestBody = {
         postcode: postcode, address: address
     };
 
-    // Send the POST request with the address and postcode in the body
-    fetch('/api/cand', {
+    fetch('/ship/cand', {
         method: 'POST', headers: {
             'Content-Type': 'application/json',
         }, body: JSON.stringify(requestBody)
@@ -153,8 +148,9 @@ function loadCandidates() {
         .then(data => {
             console.log('Received address candidates:', data);
             handle_candidates(data);
+        })
+        .then(() => {
             setMatchScoreStyle();
-            // Process the data as needed
         })
         .catch(error => {
             console.error('Error fetching candidates:', error);
@@ -165,7 +161,10 @@ function setMatchScoreStyle() {
     const scoreSpan = document.getElementById('score-span');
     const selectedOption = document.getElementById('address-select').selectedOptions[0];
     const address = JSON.parse(selectedOption.value);
-    const address_str = address.AddressLine1 + ' ' + address.AddressLine2
+    let address_str = address.AddressLine1
+    if (address.AddressLine2) {
+        address_str += '<br>' + address.AddressLine2;
+    }
     const score = selectedOption ? parseInt(selectedOption.getAttribute('data-score'), 10) : 0;
     let newClass;
 
@@ -180,7 +179,7 @@ function setMatchScoreStyle() {
     scoreSpan.className = newClass;
     // scoreSpan.textContent = `Click to insert selected Address ${address_str} Match Confidence ${score}%:`;
 
-    scoreSpan.innerHTML = `Best Guess (click to insert)<br>${address_str}<br>Match Confidence ${score}%:`;
+    scoreSpan.innerHTML = `Best Guess (click to insert)<br>${address_str}<br>score=${score}%:`;
 
     scoreSpan.onclick = updateAddress;
 }

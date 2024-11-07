@@ -1,9 +1,13 @@
 <!-- templates/shipping_form_content.html -->
-<div class="returned-request"></div>
+<link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', path='ship.js') }}"></script>
+
 <!--suppress HtmlFormInputWithoutLabel -->
 <form id="main-form" hx-post="/ship/post_ship/"
-      hx-target=.returned-request
+      hx-target=#content_top
       hx-swap="innerHTML"
+      hx-on:htmx:load="console.log('refresh page from htmxload');refreshPage()"
+
 >
     <input type="hidden" id="record_str" name="record_str" value={{ record_str }}>
     {#        <input type="hidden" id="row_id" name="row_id" value="" />#}
@@ -62,11 +66,12 @@
 
         <section class="inputs inputs__address">
             <!--suppress HtmlFormInputWithoutLabel -->
-            <div class="addr-head">
-                <h1>Address</h1>
-                <span id="score-span" data-score="">
-                        <br>(No address selected)
-                    </span>
+            <div id="score-span" data-score="" class="addr-head">
+                {#                <h1>Address</h1>#}
+                <br>(No address selected)
+                {#                <span id="score-span" data-score="">#}
+                {#                        <br>(No address selected)#}
+                {#                    </span>#}
             </div>
 
             <label for="address_line1">Address Lines:</label>
@@ -107,4 +112,18 @@
         </section>
     </div>
 </form>
-`
+
+<script>
+    function refreshPage() {
+        console.log('refresh page from html')
+        let shipment = {{ shipment|tojson }};
+        let record = {{ record | tojson }};
+        console.log('shipment', shipment);
+        console.log('record', record);
+        initShipPage(shipment, record);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        refreshPage();
+    });
+</script>

@@ -1,28 +1,10 @@
 <!-- templates/shipping_form_shape.html -->
-{% extends "multi.html" %}
+{% extends "base.html" %}
 {% block head %}
-    <script src="{{ url_for('static', path='ship.js') }}"></script>
-    {{ super() }}
-{% endblock %}
+  {% endblock %}
 
-{% block content %}
+{% block content_main %}
     {% include 'ship/shipping_form_content.html' %}
 {% endblock %}
 
-{% block scripts %}
-    <script>
-        function refreshPage() {
-            let shipment = {{ shipment|tojson }};
-            let record = {{ record | tojson }};
-            console.log('shipment', shipment);
-            console.log('record', record);
-            initShipPage(shipment, record);
-        }
-
-        document.addEventListener("DOMContentLoaded", function () {
-            refreshPage();
-        });
-    </script>
-    {{ super() }}
-{% endblock %}
 

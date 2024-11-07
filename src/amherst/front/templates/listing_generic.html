@@ -1,10 +1,21 @@
 <!-- templates/listing_generic.html -->
 {% for record in response.records %}
-<div class="record"
-     hx-get="/html/detail/{{ record.category }}?row_id={{ record.row_id }}"
-     hx-target="#content-top">
-    {{ record.name }}
-</div>
+    <div class="record"
+         hx-get="/ship/form_content?csrname={{ record.category }}&row_id={{ record.row_id }}"
+         hx-target="#content_main"
+         hx-swap="innerHTML"
+{#         hx-get="/html/detail/{{ record.category }}?row_id={{ record.row_id }}"#}
+{#         hx-target="#content_top"#}
+
+    >
+{#        {% if record.send_date %}#}
+{#                <p>#}
+{#                    {{ record.dt_ordinal(record.send_date) }}#}
+{#                </p>#}
+{#            {% endif %}#}
+        {{ record.name }}
+
+    </div>
 {% endfor %}
 {% if response.more %}
     {% include 'infinite.html' with context %}
