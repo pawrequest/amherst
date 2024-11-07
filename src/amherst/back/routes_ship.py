@@ -20,7 +20,7 @@ from amherst.back.backend_shipper import (
     shipment_str_form_to_shipment,
     wait_label,
 )
-from amherst.back.backend_pycommence import get_one_f_q2
+from amherst.back.backend_pycommence import get_one
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment, AmherstTableBase
 
@@ -73,7 +73,7 @@ async def record_to_form_content(request, record: AmherstTableBase):
 @router.get('/form', response_class=HTMLResponse)
 async def ship_form_extends(
     request: Request,
-    record: AMHERST_TABLE_MODELS = Depends(get_one_f_q2),
+    record: AMHERST_TABLE_MODELS = Depends(get_one),
     # SearchRequest
 ):
     logger.debug(f'SHIP Extended ROW ID: {record.row_id}')
@@ -83,7 +83,7 @@ async def ship_form_extends(
 @router.get('/form_content', response_class=HTMLResponse)
 async def ship_form_content(
     request: Request,
-    record: AMHERST_TABLE_MODELS = Depends(get_one_f_q2),
+    record: AMHERST_TABLE_MODELS = Depends(get_one),
     # SearchRequest
 ):
     logger.debug(f'SHIP FROM ROW ID: {record.row_id}')

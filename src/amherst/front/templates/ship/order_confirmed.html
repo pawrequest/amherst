@@ -31,7 +31,7 @@
                             <div class="label-action">
                                 <script>console.log("OPEN FILE{{ shipment.label_file }}")</script>
 {#                                <form hx-post="/ship/open-file" hx-target="#label-action-result" hx-swap="innerHTML">#}
-                                <form hx-get="/open-file-q?filepath={{ shipment.label_file }}" hx-target="#label-action-result" hx-swap="innerHTML">
+                                <form hx-get="/open-file?filepath={{ shipment.label_file }}" hx-target="#label-action-result" hx-swap="innerHTML">
                                     <button type="submit" class="btn-print-label">Open Label</button>
                                 </form>
                             </div>

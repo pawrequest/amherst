@@ -46,7 +46,7 @@ app.ship_live = pf_config.pf_sett().ship_live
 
 
 @app.get('/open-file', response_class=HTMLResponse)
-async def open_file_q(request: Request, filepath: str = Query(...)):
+async def open_file(request: Request, filepath: str = Query(...)):
     os.startfile(filepath)
     return HTMLResponse(content=f'<p>Opened {filepath}</p>')
 
@@ -57,25 +57,26 @@ async def print_file(request: Request, filepath: str = Query(...)):
     return HTMLResponse(content=f'<p>Printed {filepath}</p>')
 
 
-@app.get('/search2')
-async def listing2(
+@app.get('/search')
+async def listing(
     request: Request,
     pycmc: PyCommence = Depends(pycmc_f_query),
-    search_request: SearchRequest = Depends(SearchRequest.from_query2),
+    search_request: SearchRequest = Depends(SearchRequest.from_query),
     template_name: str = Depends(listing_template_name_q),
 ):
+    logger.debug('listing')
     search_response: SearchResponse = await pycommence_response(search_request, pycmc)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
 
 
-@app.get('/search', response_class=HTMLResponse)
-async def listing(
-    request: Request,
-    search_request: SearchRequest = Depends(SearchRequest.from_query2),
-    search_response: SearchResponse = Depends(pycommence_response),
-    template_name: str = Depends(listing_template_name_q),
-):
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
+# @app.get('/search', response_class=HTMLResponse)
+# async def listing(
+#     request: Request,
+#     search_request: SearchRequest = Depends(SearchRequest.from_query2),
+#     search_response: SearchResponse = Depends(pycommence_response),
+#     template_name: str = Depends(listing_template_name_q),
+# ):
+#     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
 
 
 @app.get('/api/close_app/', response_model=None, response_model_exclude_none=True)
