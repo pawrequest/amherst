@@ -7,6 +7,8 @@ import sys
 import typing as _t
 
 import pydantic as _p
+from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pawlogger import get_loguru
 from starlette.templating import Jinja2Templates
@@ -66,5 +68,12 @@ def settings():
 
 logger = get_loguru(log_file=settings().log_file, profile='local', level='DEBUG')
 
+
+def make_jsonable(pyd_model: BaseModel) -> dict:
+    thedict = pyd_model.model_dump()
+    return jsonable_encoder(thedict)
+
+
 logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))
 TEMPLATES = Jinja2Templates(directory=str(settings().src_dir / 'front' / 'templates'))
+TEMPLATES.env.filters['jsonable'] = make_jsonable

@@ -1,9 +1,18 @@
 /**
- * @typedef {Object} addressChoice
+ * @typedef {Object} AddressChoice
  * @property {Object} Address
  * @property {number} Score
  *
  */
+
+/**
+ * @typedef {Object} address_choice_snake
+ * @property {Object} address_snake
+ * @property {number} score
+ *
+ */
+
+
 
 /**
  * @typedef {Object} Contact
@@ -13,12 +22,28 @@
  */
 
 /**
+ * @typedef {Object} contact_snake
+ * @property {string} contact_name
+ * @property {string} email_address
+ * @property {string} mobile_phone
+ */
+
+/**
  * @typedef {Object} Address
  * @property {string} AddressLine1
  * @property {string} [AddressLine2]
  * @property {string} [AddressLine3]
  * @property {string} Town
  * @property {string} Postcode
+ */
+
+/**
+ * @typedef {Object} address_snake
+ * @property {string} address_line1
+ * @property {string} [address_line2]
+ * @property {string} [address_line3]
+ * @property {string} town
+ * @property {string} postcode
  */
 
 /**
@@ -36,10 +61,9 @@
  * @property {string} SpecialInstructions3
  */
 
-//
 
 /**
- * @typedef {Object} Shipment2
+ * @typedef {Object} shipment_snake
  * @property {Address} recipient_address
  * @property {Contact} recipient_contact
  * @property {number} total_number_of_parcels
@@ -52,8 +76,6 @@
  * @property {string} special_instructions2
  * @property {string} special_instructions3
  */
-
-//
 
 
 /**
@@ -80,6 +102,33 @@ function populateShipment(shipment) {
     document.getElementById('address_line3').value = shipment.RecipientAddress.AddressLine3 || "";
     document.getElementById('town').value = shipment.RecipientAddress.Town || "";
     document.getElementById('postcode').value = shipment.RecipientAddress.Postcode || "";
+}
+
+
+/**
+ * Populates form fields with shipment data.
+ // * @param {ShipmentSnake} shipment - The shipment data.
+ */
+function populateShipmentSnake(shipment) {
+    console.log('Populating form from shipment data:', shipment);
+
+    document.getElementById('ship_date').value = shipment.shipping_date;
+    document.getElementById('boxes').value = shipment.total_number_of_parcels || 1;
+    document.getElementById('business_name').value = shipment.recipient_contact.business_name || "";
+    document.getElementById('contact_name').value = shipment.recipient_contact.contact_name || "";
+    document.getElementById('email').value = shipment.recipient_contact.email_address || "";
+    document.getElementById('mobile_phone').value = shipment.recipient_contact.mobile_phone || "";
+    document.getElementById('reference_number1').value = shipment.reference_number1 || "";
+    document.getElementById('reference_number2').value = shipment.reference_number2 || "";
+    document.getElementById('reference_number3').value = shipment.reference_number3 || "";
+    document.getElementById('special_instructions1').value = shipment.special_instructions1|| "";
+    document.getElementById('special_instructions2').value = shipment.special_instructions2 || "";
+    document.getElementById('special_instructions3').value = shipment.special_instructions3 || "";
+    document.getElementById('address_line1').value = shipment.recipient_address.address_line1 || "";
+    document.getElementById('address_line2').value = shipment.recipient_address.address_line2 || "";
+    document.getElementById('address_line3').value = shipment.recipient_address.address_line3 || "";
+    document.getElementById('town').value = shipment.recipient_address.town || "";
+    document.getElementById('postcode').value = shipment.recipient_address.postcode || "";
 }
 
 function populateRecord(record) {
@@ -117,14 +166,12 @@ function handle_candidates(data) {
         if (addressChoice.Score > highestScore) {
             highestScore = addressChoice.Score;
             highestScoreOption = option;
-            console.log('Found new highest score option', highestScoreOption, 'Score =', highestScore);
         }
-
         option.setAttribute('data-score', addressChoice.Score.toString());
         addressSelect.appendChild(option);
     });
     if (highestScoreOption) {
-        console.log('Setting final highest score option to', highestScoreOption);
+        console.log('Match Score ', highestScore, '%', highestScoreOption.value);
         highestScoreOption.selected = true;
     }
 }
@@ -166,11 +213,12 @@ function setMatchScoreStyle() {
     const scoreSpan = document.getElementById('score-span');
     const selectedOption = document.getElementById('address-select').selectedOptions[0];
     const address = JSON.parse(selectedOption.value);
+    const score = selectedOption ? parseInt(selectedOption.getAttribute('data-score'), 10) : 0;
+
     let address_str = address.AddressLine1
     if (address.AddressLine2) {
         address_str += '<br>' + address.AddressLine2;
     }
-    const score = selectedOption ? parseInt(selectedOption.getAttribute('data-score'), 10) : 0;
     let newClass;
 
     if (score > 80) {
@@ -203,6 +251,15 @@ function updateAddress() {
 
 function initShipPage(shipment) {
     populateShipment(shipment);
+    // populateRecord(record);
+    toggleOwnLabel();
+    loadCandidates();
+}
+
+
+
+function initSnake(shipment) {
+    populateShipmentSnake(shipment);
     // populateRecord(record);
     toggleOwnLabel();
     loadCandidates();

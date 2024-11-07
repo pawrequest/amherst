@@ -115,6 +115,21 @@ async def get_one(
         raise ValueError(f'No {search_request.csrname} record found for {search_request.pk_value}')
 
 
+def record_tracking(record, shipment_response):
+    record = record
+    try:
+        category = record.category
+        if category == 'Customer':
+            logger.error('CANT LOG TO CUSTOMER')
+            return
+        do_record_tracking(record, shipment_response)
+        logger.debug(f'Logged tracking for {category} {record.name}')
+
+    except Exception as exce:
+        logger.exception(exce)
+        raise
+
+
 def do_record_tracking(shipment: Shipment, shipment_response: ShipmentResponse, pycmc: PyCommence):
     tracking_link = shipment_response.tracking_link()
     cmc_package = (

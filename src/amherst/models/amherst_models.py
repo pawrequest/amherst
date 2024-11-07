@@ -102,6 +102,9 @@ class AmherstTableBase(BaseModel, ABC):
             **split_refs_from_str(self.customer_name),
         }
 
+    def shipment_pyd(self):
+        return Shipment.model_validate(self.shipment_dict())
+
     def shipment_dict_jsonable(self):
         return jsonable_encoder(self.shipment_dict())
 
@@ -176,19 +179,6 @@ def split_refs_from_str(ref_str: str) -> dict[str, str]:
         else:
             break
     return reference_numbers
-
-
-class AmherstShipment(Shipment):
-    _category: AmherstTableName
-    _row_id: str
-
-    @property
-    def category(self):
-        return self._category
-
-    @property
-    def row_id(self):
-        return self._row_id
 
 
 def add_from_str(add_str: str, postcode: str):

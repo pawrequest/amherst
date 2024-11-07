@@ -6,12 +6,11 @@
 <div id=requested_shipment class="wrapper wrapper__requested">
     <section class="requested requested__head">
         <h3 class="requested-title"> {{ shipment.direction.name }} Shipment:</h3>
-        <form hx-post="/ship/confirm_booking"
+        <form hx-post="/ship/post_confirm"
               hx-target=#content_main
-              hx-swap="innerHTML">
-            <input type="hidden" name="shipment" value="{{ shipment.model_dump_json() }}">
-            {#            <input type="hidden" name="shipment" value="{{ shipment.model_dump_json() }}">#}
-            <input type="hidden" name="record_str" value="{{ record_str }}">
+              hx-swap="innerHTML"
+              hx-vals='{"record_str": {{ record.model_dump_json() }}, "shipment_str": {{ shipment.model_dump_json() }} }'
+        >
             <button id="btn_ship" class="submit-confirm-btn" hx-on:click="this.style.display='none'">
                 Confirm Booking
             </button>

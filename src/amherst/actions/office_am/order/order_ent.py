@@ -1,7 +1,6 @@
 import datetime
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import List, Optional
 
 from .invoice_number import next_inv_num
 
@@ -17,7 +16,7 @@ class FreeItem(InventoryItem):
     quantity: int
 
     def __str__(self):
-        return f"{self.quantity} x {self.name}"
+        return f'{self.quantity} x {self.name}'
 
 
 @dataclass
@@ -25,7 +24,7 @@ class Product(InventoryItem):
     price_each: Decimal
 
     def __str__(self):
-        return f"{self.name} @ {self.price_each}"
+        return f'{self.name} @ {self.price_each}'
 
 
 @dataclass
@@ -37,24 +36,23 @@ class LineItem(Product):
         return self.price_each * int(self.quantity)
 
     def __str__(self):
-        return f"{self.quantity} x {self.name} @ {self.price_each} = {self.line_price}"
+        return f'{self.quantity} x {self.name} @ {self.price_each} = {self.line_price}'
 
     def __repr__(self):
-        return f"LineItem({self.name} x {self.quantity})"
+        return f'LineItem({self.name} x {self.quantity})'
 
 
 @dataclass
 class Order:
     customer: dict
-    line_items: List[LineItem] = field(default_factory=list)
-    free_items: Optional[List[FreeItem]] = None
+    line_items: list[LineItem] = field(default_factory=list)
+    free_items: list[FreeItem] | None = None
     tax_percent: int = 20
     shipping: Decimal = 15.00
     charity_percent: int = 0
 
     def __str__(self):
-        return f"Order with {len(self.line_items)} lines for £{self.total}"
-
+        return f'Order with {len(self.line_items)} lines for £{self.total}'
 
     @property
     def total_goods(self):
@@ -85,7 +83,7 @@ class HireOrder(Order):
     duration: int = 1
 
     def __str__(self):
-        return f"Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}"
+        return f'Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}'
 
 
 @dataclass
@@ -117,7 +115,7 @@ class HireInvoice(SaleInvoice):
     dates: HireDates
 
     @classmethod
-    def from_hire(cls, hire: dict, order: HireOrder, inv_num: Optional[str] = None):
+    def from_hire(cls, hire: dict, order: HireOrder, inv_num: str | None = None):
         inv_num = inv_num or next_inv_num()
         # del_add, inv_add = addresses_from_hire(hire)
         del_add, inv_add = Address1.from_hire(hire)
