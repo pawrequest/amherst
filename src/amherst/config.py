@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import sys
 import typing as _t
+from urllib.parse import quote
 
 import pydantic as _p
 from fastapi.encoders import jsonable_encoder
@@ -77,3 +78,5 @@ def make_jsonable(pyd_model: BaseModel) -> dict:
 logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))
 TEMPLATES = Jinja2Templates(directory=str(settings().src_dir / 'front' / 'templates'))
 TEMPLATES.env.filters['jsonable'] = make_jsonable
+# TEMPLATES.env.filters['urlencode'] = quote
+TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))

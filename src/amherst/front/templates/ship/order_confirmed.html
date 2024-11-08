@@ -21,16 +21,18 @@
                         <p>label downloaded to {{ shipment.label_file }}</p>
                         <div class="label-actions">
                             <div class="label-action">
-                                <form hx-post="/print-file?filepath={{ shipment.label_file }}" hx-target="#label-action-result" hx-swap="innerHTML">
-                                    <input type="hidden" name="label_path" value="{{ shipment.label_file }}">
+                                <form hx-post="/print-file?filepath={{ shipment.label_file | urlencode }}"
+                                      hx-target="#label-action-result"
+                                      hx-swap="innerHTML">
                                     <button type="submit" class="btn-print-label">Print Label</button>
                                 </form>
                             </div>
 
                             <div class="label-action">
                                 <script>console.log("OPEN FILE{{ shipment.label_file }}")</script>
-{#                                <form hx-post="/ship/open-file" hx-target="#label-action-result" hx-swap="innerHTML">#}
-                                <form hx-get="/open-file?filepath={{ shipment.label_file }}" hx-target="#label-action-result" hx-swap="innerHTML">
+                                <form hx-get="/open-file?filepath={{ shipment.label_file | urlencode }}"
+                                      hx-target="#label-action-result"
+                                      hx-swap="innerHTML">
                                     <button type="submit" class="btn-print-label">Open Label</button>
                                 </form>
                             </div>

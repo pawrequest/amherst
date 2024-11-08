@@ -58,7 +58,10 @@ async def ship_form_content(
 ):
     logger.debug(f'SHIP FROM ROW ID: {record.row_id}')
     template = 'ship/form_content.html'
-    return await templated_ship_record(template, request, record)
+    shipment: Shipment = record.shipment_pyd()
+    return TEMPLATES.TemplateResponse(template, {'request': request, 'shipment': shipment, 'record': record})
+
+    # return await templated_ship_record(template, request, record)
 
 
 @router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)

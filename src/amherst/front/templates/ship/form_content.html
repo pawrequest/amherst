@@ -8,7 +8,7 @@
       hx-target=#content_top
       hx-swap="innerHTML"
       hx-on:htmx:load="console.log('refresh page from htmxload');refreshPage()"
-      hx-vals='{"record_str": {{ record.model_dump_json()}} }'
+      hx-vals='{"record_str": {{ record.model_dump_json()  | urlencode }} }'
 >
 
     <div class="wrapper wrapper__booking">

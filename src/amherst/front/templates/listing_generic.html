@@ -2,18 +2,10 @@
 {#context = {response: SearchResponse}#}
 {% for record in response.records %}
     <div class="record"
-         hx-get="/ship/form_content?csrname={{ record.category }}&row_id={{ record.row_id }}"
+         hx-get="/ship/form_content?csrname={{ record.category | urlencode }}&row_id={{ record.row_id | urlencode }}"
          hx-target="#content_main"
          hx-swap="innerHTML"
-{#         hx-get="/html/detail/{{ record.category }}?row_id={{ record.row_id }}"#}
-{#         hx-target="#content_top"#}
-
     >
-{#        {% if record.send_date %}#}
-{#                <p>#}
-{#                    {{ record.dt_ordinal(record.send_date) }}#}
-{#                </p>#}
-{#            {% endif %}#}
         {{ record.name }}
 
     </div>
