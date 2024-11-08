@@ -13,7 +13,6 @@
  */
 
 
-
 /**
  * @typedef {Object} Contact
  * @property {string} ContactName
@@ -121,7 +120,7 @@ function populateShipmentSnake(shipment) {
     document.getElementById('reference_number1').value = shipment.reference_number1 || "";
     document.getElementById('reference_number2').value = shipment.reference_number2 || "";
     document.getElementById('reference_number3').value = shipment.reference_number3 || "";
-    document.getElementById('special_instructions1').value = shipment.special_instructions1|| "";
+    document.getElementById('special_instructions1').value = shipment.special_instructions1 || "";
     document.getElementById('special_instructions2').value = shipment.special_instructions2 || "";
     document.getElementById('special_instructions3').value = shipment.special_instructions3 || "";
     document.getElementById('address_line1').value = shipment.recipient_address.address_line1 || "";
@@ -129,11 +128,6 @@ function populateShipmentSnake(shipment) {
     document.getElementById('address_line3').value = shipment.recipient_address.address_line3 || "";
     document.getElementById('town').value = shipment.recipient_address.town || "";
     document.getElementById('postcode').value = shipment.recipient_address.postcode || "";
-}
-
-function populateRecord(record) {
-    console.log('Populating form from record data:', record);
-    document.getElementById('record_str').value = JSON.stringify(record);
 }
 
 
@@ -257,12 +251,10 @@ function initShipPage(shipment) {
 }
 
 
-
 function initSnake(shipment) {
     populateShipmentSnake(shipment);
     // populateRecord(record);
     toggleOwnLabel();
     loadCandidates();
 }
-
 

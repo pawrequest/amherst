@@ -108,21 +108,15 @@
     </div>
 </form>
 
+
 <script>
     function refreshPage() {
         console.log('refresh page from html')
     }
-        let shipment = {{ shipment | jsonable | tojson}};
+        shipment = {{ record.shipment_pyd() | jsonable | tojson }};
+        record = {{ record | jsonable | tojson}};
+        console.log('record', record);
         console.log('shipment', shipment);
 
-        let record = {{ record | jsonable | tojson}};
-        console.log('record', record);
-
-        {#initShipPage(shipmentJson);#}
         initSnake(shipment);
-        {#initShipPage(shipment);#}
-        {#initShipPage(shipmentJson, recordJson);#}
-
-    {#document.addEventListener("DOMContentLoaded", function () {#}
-    {#    refreshPage();#}
 </script>
