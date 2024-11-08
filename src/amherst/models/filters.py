@@ -22,11 +22,11 @@ def get_default_hire_filter():
         filters={
             1: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one month ago'),
             2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one month from today'),
-            3: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_CONTAIN, value='Returned'),
+            3: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_CONTAIN, value='return'),
             4: FieldFilter(column=HireAliases.ARRANGED_OUT, condition=ConditionType.NOT),
             # 4: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
         },
-        sorts=((HireAliases.SEND_DATE, SortOrder.DESC),),
+        sorts=((HireAliases.SEND_DATE, SortOrder.ASC),),
         logics=['And', 'And', 'And'],
     )
 
