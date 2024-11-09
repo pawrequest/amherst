@@ -104,21 +104,6 @@ function populateShipmentSnake(shipment) {
 }
 
 
-function toggleOwnLabel() {
-    let direction = document.getElementById("direction").value;
-    let ownLabelLabel = document.getElementById("own_label_label");
-    let ownLabelSelect = document.getElementById("own_label");
-    if (direction === "in") {
-        console.log('Showing own label fields');
-        ownLabelLabel.style.display = '';
-        ownLabelSelect.style.display = '';
-    } else {
-        console.log('Hiding own label fields');
-        ownLabelLabel.style.display = 'none';
-        ownLabelSelect.style.display = 'none';
-    }
-}
-
 
 function toggleOwnLabel2() {
     let direction = document.getElementById("direction").value;
@@ -239,7 +224,7 @@ function setScoreSpan(option) {
     const addressHtml = addressLinesOutput(address, '<br>');
 
     scoreSpan.className = scoreCssSelector(score);
-    scoreSpan.innerHTML = `Best Guess (click to insert)<br>${addressHtml}<br>score=${score}%:`;
+    scoreSpan.innerHTML = `Best Guess (click to insert)<br>${addressHtml}`;
     scoreSpan.onclick = updateAddressFromSelect;
 }
 

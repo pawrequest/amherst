@@ -71,7 +71,6 @@ async def listing(
     search_request: SearchRequest = Depends(SearchRequest.from_query),
     template_name: str = Depends(listing_template_name_q),
 ):
-    logger.debug('listing')
     search_response: SearchResponse = await pycommence_response(search_request, pycmc)
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
 
@@ -100,7 +99,6 @@ async def robots_txt() -> str:
 
 @app.get('/favicon.ico', include_in_schema=False)
 async def favicon_ico():
-    logger.warning('Redirecting to /static/favicon.svg')
     return responses.RedirectResponse(url='/static/favicon.svg')
 
 

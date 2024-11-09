@@ -18,18 +18,18 @@
 <main>
     <div class="main_div"
     >
-        <div id="sidebar" class="sidebar">
+{#        <div id="sidebar">#}
+        <div id="sidebar">
             {% include 'sidebar.html' %}
         </div>
-        <div id="content_top" class="content_top">
+        <div id="content_top">
             {% block content_top %}{% endblock %}
         </div>
-        <div id="content_main" class="content_main"
-        >
+        <div id="content_main">
             {% block content_main %}{% endblock %}
         </div>
     </div>
-    {% block content %}{% endblock %}
+    {% block content_extra %}{% endblock %}
 </main>
 {% block scripts %}{% endblock %}
 </body>

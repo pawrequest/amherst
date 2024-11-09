@@ -110,7 +110,7 @@ h1 {
 
 
 
-.sidebar {
+#sidebar {
     grid-area: sidebar;
     overflow: hidden;
     padding: 10px;
@@ -120,11 +120,11 @@ h1 {
     gap: 10px;
 }
 
-.content_top {
+#content_top {
     grid-area: content-top;
 }
 
-.content_main {
+#content_main {
     grid-area: content-main;
 }
 
