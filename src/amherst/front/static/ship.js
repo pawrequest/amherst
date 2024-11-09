@@ -208,10 +208,6 @@ function addressText(address) {
     return `${address.AddressLine1}${address.AddressLine2 ? '<br>' + address.AddressLine2 : ''}`;
 }
 
-function addressText2(address) {
-    return `${address.AddressLine1}${address.AddressLine2 ? '<br>' + address.AddressLine2 : ''}`;
-}
-
 
 function scoreCssSelector(score) {
     if (score > 80) return 'high-score';
