@@ -5,12 +5,13 @@ from pathlib import Path
 import flaskwebgui
 import pawdf
 from fastapi import Depends, FastAPI, Query, responses
+from fastapi.exceptions import RequestValidationError
 from loguru import logger
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
-from amherst.back.backend_pycommence import pycommence_response, pycmc_f_query
+from amherst.back.backend_pycommence import pycmc_f_query, pycommence_response
 from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
 from amherst.config import TEMPLATES, settings
 from amherst.back.routes_json import router as json_router
@@ -40,6 +41,15 @@ app.mount('/static', StaticFiles(directory=str(settings().src_dir / 'front' / 's
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/ship')
 app.ship_live = pf_config.pf_sett().ship_live
+
+
+@app.exception_handler(RequestValidationError)
+async def request_exception_handler(request: Request, exc: RequestValidationError):
+    # req_data = await request.json()
+    logger.error(f'Validation error at {request.url}: {exc.errors()}')
+    # logger.error(f'Request data: {req_data}')
+    return JSONResponse(status_code=422, content={'detail': exc.errors()})
+    # return JSONResponse(status_code=422, content={'detail': exc.errors(), 'request_data': req_data})
 
 
 @app.get('/open-file', response_class=HTMLResponse)

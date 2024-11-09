@@ -1,15 +1,14 @@
 from fastapi import APIRouter, Body, Depends, Form
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
-from shipaw.models.pf_shipment import Shipment
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
+from shipaw.models.pf_shipment import Shipment
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressBase, AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.ship_types import VALID_POSTCODE
-
 from amherst.back.backend_search_paginate import record_from_json_str_form
 from amherst.back.backend_shipper import (
     book_shipment,
@@ -46,25 +45,6 @@ async def ship_form_content(
     return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record})
 
 
-@router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
-async def get_addr_choices(
-    # postcode: VALID_POSTCODE,
-    postcode: VALID_POSTCODE = Body(...),
-    address: AddressBase = Body(None),
-    el_client: ELClient = Depends(get_el_client),
-) -> list[AddressChoice]:
-    """Fetch candidate address choices for a postcode, optionally scored by closeness to provided address.
-
-    Args:
-        postcode: VALID_POSTCODE - postcode to search for
-        address: AddressBase - address to compare to candidates
-        el_client: ELClient - Parcelforce ExpressLink client
-    """
-    logger.debug(f'Fetching candidates for {postcode=}, {address=}')
-    res = el_client.get_choices(postcode=postcode, address=address)
-    return res
-
-
 @router.post('/post_ship', response_class=HTMLResponse)
 async def post_form(
     request: Request,
@@ -94,7 +74,8 @@ async def post_confirm_booking(
     if not shipment_response.success:
         alerts = jsonable_encoder(shipment_response.alerts)
         return TEMPLATES.TemplateResponse(
-            'alerts.html', {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed, 'record': record}
+            'alerts.html',
+            {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed, 'record': record},
         )
     shipment_confirmed = shipment_proposed
     if shipment_confirmed.direction == 'out' or shipment_confirmed.print_own_label:
@@ -106,3 +87,22 @@ async def post_confirm_booking(
         'ship/order_confirmed.html',
         {'request': request, 'shipment_confirmed': shipment_confirmed, 'response': shipment_response, 'record': record},
     )
+
+
+@router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
+async def get_addr_choices(
+    # postcode: VALID_POSTCODE,
+    postcode: VALID_POSTCODE = Body(...),
+    address: AddressBase = Body(None),
+    el_client: ELClient = Depends(get_el_client),
+) -> list[AddressChoice]:
+    """Fetch candidate address choices for a postcode, optionally scored by closeness to provided address.
+
+    Args:
+        postcode: VALID_POSTCODE - postcode to search for
+        address: AddressBase - address to compare to candidates
+        el_client: ELClient - Parcelforce ExpressLink client
+    """
+    logger.debug(f'Fetching candidates for {postcode=}, {address=}')
+    res = el_client.get_choices(postcode=postcode, address=address)
+    return res

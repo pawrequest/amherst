@@ -7,8 +7,8 @@
 <form id="main-form" hx-post="/ship/post_ship/"
       hx-target=#content_top
       hx-swap="innerHTML"
-      hx-on:htmx:load="console.log('refresh page from htmxload');refreshPage()"
-      hx-vals='{"record_str": {{ record.model_dump_json()  | urlencode }} }'
+        {#      hx-on:htmx:load="console.log('refresh page from htmxload');refreshPage()"#}
+      hx-vals='{"record_str": {{ record.model_dump_json() }}}'
 >
 
     <div class="wrapper wrapper__booking">
@@ -78,11 +78,11 @@
             <label for="postcode">Postcode:</label>
             <input type="text" id="postcode" name="postcode" required>
 
-            <button type="button" class="update-address-btn" onclick="loadCandidates()">Update Addresses From
+            <button type="button" class="update-address-btn" onclick="loadAddrChoices()">Update Addresses From
                 Postcode
             </button>
             <label for="address-select">Choose Address</label>
-            <select id="address-select" name="address" onchange="updateAddress()">
+            <select id="address-select" name="address" onchange="updateAddressFromSelect()">
             </select>
         </section>
 
@@ -113,10 +113,11 @@
     function refreshPage() {
         console.log('refresh page from html')
     }
-        shipment = {{ record.shipment_pyd() | jsonable | tojson }};
-        record = {{ record | jsonable | tojson}};
-        console.log('record', record);
-        console.log('shipment', shipment);
 
-        initSnake(shipment);
+    shipment = {{ record.shipment_pyd() | jsonable | tojson }};
+    record = {{ record | jsonable | tojson}};
+    console.log('record', record);
+    console.log('shipment', shipment);
+
+    initShipForm2(shipment);
 </script>
