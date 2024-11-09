@@ -82,7 +82,7 @@
  // * @param {ShipmentSnake} shipment - The shipment data.
  */
 function populateShipmentSnake(shipment) {
-    console.log('Populating form from shipment data:', shipment);
+    console.log('Populating form from shipment');
 
     document.getElementById('ship_date').value = shipment.shipping_date;
     document.getElementById('boxes').value = shipment.total_number_of_parcels || 1;
@@ -109,11 +109,30 @@ function toggleOwnLabel() {
     let ownLabelLabel = document.getElementById("own_label_label");
     let ownLabelSelect = document.getElementById("own_label");
     if (direction === "in") {
+        console.log('Showing own label fields');
         ownLabelLabel.style.display = '';
         ownLabelSelect.style.display = '';
     } else {
+        console.log('Hiding own label fields');
         ownLabelLabel.style.display = 'none';
         ownLabelSelect.style.display = 'none';
+    }
+}
+
+
+function toggleOwnLabel2() {
+    let direction = document.getElementById("direction").value;
+    let ownLabel = document.getElementById("own_label");
+    if (direction === "in") {
+        console.log('Showing own label fields');
+        ownLabel.style.opacity = '100';
+        // ownLabel.style.display = 'grid';
+        // ownLabel.style.flexDirection = 'row';
+        // ownLabel.style.flexWrap = 'wrap'
+    } else {
+        console.log('Hiding own label fields');
+        // ownLabel.style.display = 'none';
+        ownLabel.style.opacity = '0'
     }
 }
 
@@ -136,19 +155,14 @@ function updateAddressFields(addressData) {
     document.getElementById('postcode').value = addressData.Postcode || '';
 }
 
-// function initShipForm(shipment) {
-//     populateShipmentSnake(shipment);
-//     // populateRecord(record);
-//     toggleOwnLabel();
-//     loadAddrChoices();
-// }
-
 
 async function initShipForm2(shipment) {
     populateShipmentSnake(shipment);
-    toggleOwnLabel();
     await loadAddrChoices();
+    toggleOwnLabel2();
+    // toggleOwnLabel();
 }
+
 
 async function loadAddrChoices() {
     // get address from form fields
@@ -170,7 +184,6 @@ async function fetchAddrChoices(postcode, address) {
         console.error('Error fetching candidates:', error);
     }
 }
-
 
 function handleAddrChoices(addrChoices) {
     let highestScoreOption = null;
@@ -194,17 +207,21 @@ function handleAddrChoices(addrChoices) {
     }
 }
 
-
 function addrChoiceOption(addressChoice) {
     const option = document.createElement('option');
     option.value = JSON.stringify(addressChoice.Address);
-    option.textContent = addressText(addressChoice.Address);
+    option.textContent = addressLinesOutput(addressChoice.Address, ', ');
     option.dataset.score = addressChoice.Score.toString();
     return option;
 }
 
-function addressText(address) {
-    return `${address.AddressLine1}${address.AddressLine2 ? '<br>' + address.AddressLine2 : ''}`;
+function addressLinesOutput(address, seperator) {
+    return getAddressLines(address).join(seperator);
+}
+
+function getAddressLines(address) {
+    return [address.AddressLine1, address.AddressLine2, address.AddressLine3]
+        .filter(line => line);
 }
 
 
@@ -219,9 +236,10 @@ function setScoreSpan(option) {
     const scoreSpan = document.getElementById('score-span');
     const address = JSON.parse(option.value);
     const score = parseInt(option.dataset.score, 10) || 0;
+    const addressHtml = addressLinesOutput(address, '<br>');
 
     scoreSpan.className = scoreCssSelector(score);
-    scoreSpan.innerHTML = `Best Guess (click to insert)<br>${addressText(address)}<br>score=${score}%:`;
+    scoreSpan.innerHTML = `Best Guess (click to insert)<br>${addressHtml}<br>score=${score}%:`;
     scoreSpan.onclick = updateAddressFromSelect;
 }
 

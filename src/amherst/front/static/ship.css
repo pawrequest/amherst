@@ -4,14 +4,18 @@
 /*}*/
 
 
-
 .wrapper__booking {
+    /*grid-template-columns: 12rem 15rem 20rem 15rem;*/
     grid-template-areas:
            "shipment contact address notes"
            "shipment contact address sub-btns";
-    /*"notes notes notes";*/
 }
 
+/*.inputs > * {*/
+/*    overflow: hidden; !* Prevent overflow *!*/
+/*    text-overflow: ellipsis; !* Truncate text with ellipsis *!*/
+/*    white-space: nowrap; !* Prevent text wrapping *!*/
+/*}*/
 
 .booking-confirmed {
     /* used in js*/
@@ -23,10 +27,19 @@
     font-family: "Roboto", sans-serif;
 }
 
-
+#address-select {
+    max-width: 100%; /* Constrain width to parent container */
+    width: 100%; /* Ensure it takes up full width of the container */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncate text with ellipsis */
+    white-space: nowrap; /* Prevent text wrapping */
+}
 .inputs {
-    display: flex;
-    flex-direction: column;
+    /*max-width: 100%;*/
+    /*overflow: hidden; !* Prevent overflow *!*/
+
+
+    display: grid;
     border: 2px solid black;
     padding: 1rem;
     gap: .5rem;
@@ -34,38 +47,44 @@
 }
 
 .inputs__ship {
+    width: 13rem;
     grid-area: shipment;
+
+    #own_label{
+        /*display: none;*/
+        opacity: 0;
+    }
 }
 
 .inputs__contact {
+    width: 15rem;
     grid-area: contact;
 }
 
 
 .inputs__address {
+    width: 20rem;
     grid-area: address;
-
-    .addr-head {
-        display: flex;
-        flex-direction: row;
-        gap: 1rem;
-        justify-content: space-between;
-
-        span {
-
-        }
-    }
 }
 
-/*span {*/
-/*    background-color: var(--score-color, purple); !* default to black if --score-color is not set *!*/
-/*}*/
+
+.inputs__notes {
+    width: 15rem;
+    grid-area: notes;
+}
+
 
 #score-span {
+    /*display: none;*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     border-radius: 1rem;
     padding-inline: .6rem;
     padding-block: .2rem;
     text-align: center;
+    height: 8rem;
 }
 
 .high-score {
@@ -78,10 +97,6 @@
 
 .low-score {
     background-color: var(--clr-danger);
-}
-
-.inputs__notes {
-    grid-area: notes;
 }
 
 .inputs__submit {

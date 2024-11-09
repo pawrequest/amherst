@@ -31,7 +31,7 @@ body {
 }
 
 main {
-    height: 100vh;
+    /*height: 100vh;*/
 }
 
 input, select, textarea, button {
@@ -84,34 +84,37 @@ h1 {
     font-size: 1.4rem;
 }
 
+.main_div {
+    display: grid;
+    grid-template-columns: max(20rem, 300px) 1fr;
+    /*grid-template-rows: 15rem 1fr;*/
+    grid-template-areas:
+        "sidebar content-top"
+        "sidebar content-main";
+    height: 100vh;
+    width: 100vw;
+}
+
 
 .wrapper {
     display: grid;
     border-radius: 1rem;
-    margin-block: .5rem;
+    /*margin-block: .5rem;*/
     padding-block: .5rem;
-    padding-inline: 3rem;
-    max-width: min(100% - 3rem, 1400px);
+    padding-inline: 1rem;
+    max-width: min(100% - 3rem, 1200px);
     margin-inline: auto;
     gap: 1rem;
     background-color: var(--clr-wrapper);
 }
 
 
-.main_div {
-    display: grid;
-    grid-template-columns: max(20rem, 300px) 1fr;
-    grid-template-rows: auto 1fr;
-    grid-template-areas:
-        "sidebar content-top"
-        "sidebar content-main";
-    height: 100vh;
-}
+
 .sidebar {
     grid-area: sidebar;
     overflow: hidden;
     padding: 10px;
-    width: 300px;
+    /*width: 300px;*/
     display: flex;
     flex-direction: column;
     gap: 10px;
