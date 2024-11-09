@@ -199,7 +199,6 @@ function addrChoiceOption(addressChoice) {
     const option = document.createElement('option');
     option.value = JSON.stringify(addressChoice.Address);
     option.textContent = addressText(addressChoice.Address);
-    // option.textContent = addressChoice.Address.AddressLine1;
     option.dataset.score = addressChoice.Score.toString();
     return option;
 }
