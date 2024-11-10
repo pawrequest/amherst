@@ -166,7 +166,7 @@ def date_int_w_ordinal(n):
 
 
 def dt_ordinal(dt: datetime | date) -> str:
-    return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b')
+    return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
     # return dt.strftime('%a {th} %b %Y').replace('{th}', date_int_w_ordinal(dt.day))
 
 

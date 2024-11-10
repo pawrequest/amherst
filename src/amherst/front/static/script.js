@@ -31,19 +31,18 @@ async function loadOrders() {
     console.log('loading Orders For Customer:', customer);
     let res = await customerOrders(customer);
     console.log('RES:', res);
-    // const hires = res.hires.records;
-    // const sales = res.sales.records;
+    const hires = res.hires.records;
+    const sales = res.sales.records;
     // let hires = await fetchCustomerHires(customer);
-    // console.log('Hires:', hires);
-    // recordsContainer.innerHTML = '';
-    // hires.records.forEach(hire => {
-    //     let record = document.createElement('div');
-    //     record.className = 'record';
-    //     record.innerHTML = `
-    //         RECORD HTML
-    //     `;
-    //     recordsContainer.appendChild(record);
-    // });
+    recordsContainer.innerHTML = '';
+    hires.forEach(hire => {
+        let record = document.createElement('div');
+        record.className = 'record';
+        record.innerHTML = `
+            RECORD HTML
+        `;
+        recordsContainer.appendChild(record);
+    });
 }
 
 async function fetchCustomerHires(customer_name) {
@@ -65,7 +64,7 @@ async function customerOrders(customer_name) {
 async function fetchResponse(searchReq, inputStr) {
     try {
         console.log('Fetching', searchReq.csrname, 'for:', inputStr);
-        const response = await fetch('/api/posty', {
+        const response = await fetch('/api', {
             method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(searchReq)
         });
         console.log('Response:', response);

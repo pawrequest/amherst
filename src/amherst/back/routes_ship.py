@@ -30,7 +30,7 @@ async def ship_form_extends_p(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
-    logger.debug(f'PYDANTIC Ship Form extends, {record.row_id=}')
+    logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
     return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record})
 
@@ -40,7 +40,7 @@ async def ship_form_content(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
-    logger.debug(f'SHIP FROM ROW ID: {record.row_id}')
+    logger.debug(f'Ship Form Content: {record.row_id}')
     template = 'ship/form_content.html'
     return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record})
 

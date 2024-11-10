@@ -1,0 +1,20 @@
+<!-- templates/customers.html -->
+{% for record in response.records %}
+    {#    <div class="record"#}
+    {#    >#}
+    <div class="record record__customer">
+        <div class="record-head"
+             hx-get="/customer?customer_name={{ record.customer_name | urlencode }}"
+{#                             hx-target="this"#}
+             hx-target="#{{ record.customer_name | sanitise_id }}_records"
+{#             hx-swap="beforeend"#}
+             hx-swap="outerHTML"
+        >
+            {{ record.name }}
+        </div>
+    </div>
+    <div id="{{ record.customer_name | sanitise_id }}_records" class="records"></div>
+{% endfor %}
+{% if response.more %}
+    {% include 'infinite.html' with context %}
+{% endif %}

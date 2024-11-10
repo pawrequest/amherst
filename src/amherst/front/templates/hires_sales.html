@@ -1,21 +1,17 @@
-<!-- templates/customer.html -->
+<!-- templates/hires_sales.html -->
 {#context = {response: CustomerResponse}#}
 {% for record in response.records %}
-    <div class="record"
+    <div class="record record__orders"
          hx-get="/ship/form_content?csrname={{ record.category | urlencode }}&row_id={{ record.row_id | urlencode }}"
          hx-target="#content_main"
          hx-swap="innerHTML"
     >
-        {{ record.name }}
+        {{ record.category }}
+        {% if record.send_date %}
+            : {{ record.dt_ordinal(record.send_date) }}
+        {% endif %}
     </div>
 {% endfor %}
 {% if response.more %}
     {% include 'infinite.html' with context %}
 {% endif %}
-
-<script>
-    async function getCustomerHires(customer){
-        const resp = await fetch(`/search?csrname=Hire&pk_value=${customer}`);
-        console.log(resp);
-    }
-</script>

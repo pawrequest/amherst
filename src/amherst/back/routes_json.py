@@ -1,21 +1,39 @@
+import flaskwebgui
 from fastapi import APIRouter, Depends
+from loguru import logger
+from starlette.requests import Request
 
 from amherst.back.backend_search_paginate import SearchResponse
-from amherst.back.backend_pycommence import pycmc_f_body, pycommence_response, pycommence_response2
-from amherst.back.backend_search_paginate2 import SearchRequest2, SearchResponse2
-from amherst.config import logger
+from amherst.back.backend_pycommence import pycommence_response
+from amherst.config import TEMPLATES
 
 router = APIRouter()
 
 
-@router.post('/posty')
-async def post2(
-    # search_request: SearchRequest2 = Depends(SearchRequest2.from_form),
-    search_request: SearchRequest2 = Depends(SearchRequest2.from_body),
-    pycmc=Depends(pycmc_f_body),
-) -> SearchResponse2:
-    logger.warning(f'POSTY records for {search_request=}')
-    return await pycommence_response2(pycmc, search_request)
+@router.get('/close_app/', response_model=None, response_model_exclude_none=True)
+async def close_app():
+    """Endpoint to close the application."""
+    logger.warning('Closing application')
+    flaskwebgui.close_application()
+
+
+@router.get('/health/', response_model=str)
+async def health():
+    return 'healthy'
+
+
+@router.get('/testing/', response_model=str)
+async def testing(
+    request: Request,
+):
+    return TEMPLATES.TemplateResponse('testing.html', {'request': request})
+
+
+# @router.post('/')
+# async def post2(
+#     search_response: SearchResponse2 = Depends(pycommence_response2),
+# ) -> SearchResponse2:
+#     return search_response
 
 
 @router.get('/')

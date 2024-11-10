@@ -4,9 +4,8 @@ import json
 from functools import wraps
 from typing import Self
 
-from fastapi import Body, Depends, Form, Query
+from fastapi import Depends, Form, Query
 from loguru import logger
-from pawlogger.loggingdecorators import on_class
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
@@ -47,12 +46,24 @@ class SearchRequest(BaseModel):
     csrname: AmherstTableName
     row_id: str | None = None
     pk_value: str | None = None
+    customer_id: str | None = None
     customer_name: str | None = None
-    filtered: bool = True
+    filtered: bool = False
     condition: ConditionType = ConditionType.CONTAIN
     max_rtn: int | None = None
     search_dict: dict = Field(default_factory=dict)
     pagination: Pagination = Pagination()
+
+    def __str__(self):
+        return (
+            f'SearchRequest: Csr: {self.csrname.value}'
+            f'{' | pk:' + self.pk_value if self.pk_value else ''}'
+            f'{' | row_id:' + self.row_id if self.row_id else ''}'
+            f'{' | customer_name "' + self.customer_name + '"' if self.customer_name else ''}'
+            f'{' | customer_id "' + self.customer_id + '"' if self.customer_id else ''}'
+            f'{' | filtered' if self.filtered else ''}'
+            f'{' | ' + str(self.pagination) if self.pagination else ''}'
+        )
 
     @property
     def q_str(self):
@@ -64,11 +75,11 @@ class SearchRequest(BaseModel):
 
     @property
     def next_q_str(self):
-        return self.q_str_paginate(self.pagination.next_page())
+        return self.q_str_paginate(self.pagination.next_page()) if self.pagination else None
 
     @property
     def next_q_str_json(self):
-        return self.q_str_paginate(self.pagination.next_page(), api=True)
+        return self.q_str_paginate(self.pagination.next_page(), api=True) if self.pagination else None
 
     def q_str_paginate(self, pagination: Pagination = None, api: bool = False):
         # todo package?
@@ -81,9 +92,14 @@ class SearchRequest(BaseModel):
             qstr += f'&pkvalue={self.pk_value}'
         if self.row_id:
             qstr += f'&row_id={self.row_id}'
+        if self.customer_id:
+            qstr += f'&customer_id={self.customer_id}'
         if self.customer_name:
             qstr += f'&customer_name={self.customer_name}'
-        qstr += f'&limit={pagination.limit}&offset={pagination.offset}'
+        if pagination.limit:
+            qstr += f'&limit={pagination.limit}'
+        if pagination.offset:
+            qstr += f'&offset={pagination.offset}'
         return qstr
 
     def next_request(self):
@@ -96,16 +112,16 @@ class SearchRequest(BaseModel):
     def from_query(
         cls,
         csrname: AmherstTableName = Query(...),
-        filtered: bool = Query(True),
+        filtered: bool = Query(False),
         pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query),
         condition: ConditionType = Query(ConditionType.CONTAIN),
         max_rtn: int = Query(None),
         row_id: str = Query(None),
         customer_name: str = Query(None),
+        customer_id: str = Query(None),
     ):
-        logger.debug(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
-        return cls(
+        res = cls(
             csrname=csrname,
             pagination=pagination,
             pk_value=pk_value,
@@ -114,44 +130,58 @@ class SearchRequest(BaseModel):
             max_rtn=max_rtn,
             row_id=row_id,
             customer_name=customer_name,
+            customer_id=customer_id,
         )
+        logger.info(str(res))
+        return res
 
-    @classmethod
-    def from_body(
-        cls,
-        csrname: AmherstTableName = Body(...),
-        row_id: str = Body(None),
-        pk_value: str = Body(None),
-        filtered: bool = Body(True),
-        search_dict: dict = Body(default_factory=dict),
-        pagination: Pagination = Depends(Pagination.from_query),
-        condition: ConditionType = Body(ConditionType.CONTAIN),
-        max_rtn: int = Body(None),
-        customer_name: str = Body(...),
-    ):
-        logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {search_dict=}, {pagination=})')
-        return cls(
-            csrname=csrname,
-            filtered=filtered,
-            pagination=pagination,
-            pk_value=pk_value,
-            package=search_dict,
-            condition=condition,
-            row_id=row_id,
-            max_rtn=max_rtn,
-        )
+    # @classmethod
+    # def from_body(
+    #     cls,
+    #     csrname: AmherstTableName = Body(...),
+    #     row_id: str = Body(None),
+    #     pk_value: str = Body(None),
+    #     filtered: bool = Body(True),
+    #     search_dict: dict = Body(default_factory=dict),
+    #     pagination: Pagination = Depends(Pagination.from_query),
+    #     condition: ConditionType = Body(ConditionType.CONTAIN),
+    #     max_rtn: int = Body(None),
+    #     customer_name: str = Body(...),
+    # ):
+    #     logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {search_dict=}, {pagination=})')
+    #     return cls(
+    #         csrname=csrname,
+    #         filtered=filtered,
+    #         pagination=pagination,
+    #         pk_value=pk_value,
+    #         package=search_dict,
+    #         condition=condition,
+    #         row_id=row_id,
+    #         max_rtn=max_rtn,
+    #     )
 
 
 class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     records: list[T]
     length: int = 0
-    search_request: SearchRequest | None = None
+    search_request: SearchRequest | list[SearchRequest]
     more: MoreAvailable | None = None
+
+    def __str__(self):
+        return (
+            f'Search Response: {self.length}x {self.search_request.csrname} records'
+            f', {str(self.more.n_more) + ' more available' if self.more else ''} '
+        )
 
     @model_validator(mode='after')
     def set_length(self):
         self.length = len(self.records)
         return self
+
+
+class SearchConversation(BaseModel):
+    req: SearchRequest
+    resp: SearchResponse
 
 
 async def record_from_json_str_form(

@@ -21,8 +21,8 @@ class AmherstMapping(NamedTuple):
     category: AmherstTableName
     record_model: type(AmherstTableBase)
     aliases: type(StrEnum)
-    listing_template: str = 'customer.html'
-    detail_template: str = 'hire_sale.html'
+    listing_template: str = 'customers.html'
+    detail_template: str = 'hires_sales.html'
     default_filter: FilterArray = FilterArray()
     customer_connection: Connection | None = None
 

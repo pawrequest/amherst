@@ -26,6 +26,12 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    h2 {
+        margin: 0;
+        padding: 10px;
+        cursor: pointer;
+        border-bottom: 1px solid #ddd;
+    }
 }
 
 .record {
@@ -37,15 +43,22 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     cursor: pointer;
+    max-height: max-content;
 }
 
+.records {
+    display: flex;
+    flex-direction: column;
+    max-height: max-content;
 
-.record-container h2 {
-    margin: 0;
+    flex: 1;
     padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
     cursor: pointer;
-    border-bottom: 1px solid #ddd;
 }
+
+
 
 
 .popup-details {

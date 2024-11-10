@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import functools
 import os
+import re
 from pathlib import Path
 import sys
 import typing as _t
@@ -70,6 +71,10 @@ def settings():
 logger = get_loguru(log_file=settings().log_file, profile='local', level='DEBUG')
 
 
+def sanitise_id(value):
+    return re.sub(r'\W|^(?=\d)', '_', value).lower()
+
+
 def make_jsonable(pyd_model: BaseModel) -> dict:
     thedict = pyd_model.model_dump()
     return jsonable_encoder(thedict)
@@ -77,5 +82,5 @@ def make_jsonable(pyd_model: BaseModel) -> dict:
 
 TEMPLATES = Jinja2Templates(directory=str(settings().src_dir / 'front' / 'templates'))
 TEMPLATES.env.filters['jsonable'] = make_jsonable
-# TEMPLATES.env.filters['urlencode'] = quote
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
+TEMPLATES.env.filters['sanitise_id'] = sanitise_id
