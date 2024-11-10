@@ -1,5 +1,5 @@
-<!-- templates/listing_generic.html -->
-{#context = {response: SearchResponse}#}
+<!-- templates/customer.html -->
+{#context = {response: CustomerResponse}#}
 {% for record in response.records %}
     <div class="record"
          hx-get="/ship/form_content?csrname={{ record.category | urlencode }}&row_id={{ record.row_id | urlencode }}"
@@ -7,9 +7,15 @@
          hx-swap="innerHTML"
     >
         {{ record.name }}
-
     </div>
 {% endfor %}
 {% if response.more %}
     {% include 'infinite.html' with context %}
 {% endif %}
+
+<script>
+    async function getCustomerHires(customer){
+        const resp = await fetch(`/search?csrname=Hire&pk_value=${customer}`);
+        console.log(resp);
+    }
+</script>

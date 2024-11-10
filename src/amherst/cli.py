@@ -26,7 +26,7 @@ from loguru import logger
 from thefuzz import fuzz
 
 from amherst.back.backend_pycommence import pycommence_context, pycommence_search
-from amherst.back.backend_search_paginate import SearchRequest
+from amherst.back.backend_search_paginate import SearchRequest, log_action
 from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import AmherstTableName
@@ -43,7 +43,7 @@ MODE = Mode.SHIP_BY_SRCH
 
 
 async def get_url_suffix(record: AmherstTableBase, mode: Mode = MODE):
-    return f'ship/form-p?csrname={record.category}&row_id={record.row_id}'
+    return f'ship/form?csrname={record.category}&row_id={record.row_id}'
 
 
 def parse_arguments():
@@ -57,8 +57,9 @@ def parse_arguments():
     return args
 
 
+@log_action
 async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
-    logger.info(f'Starting Shipper searching for {category} record: {record_name}')
+    # logger.info(f'Starting Shipper searching for {category} record: {record_name}')
     search_request = SearchRequest(
         csrname=category,
         pk_value=record_name,

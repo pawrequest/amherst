@@ -25,17 +25,17 @@ class AmherstTableName(StrEnum):
     Trial = 'Radio Trial'
 
 
-SALE_CUSTOMERS = Connection(
-    name='SaleCustomers',
-    to_table='Customers',
-    from_table='Sale',
-)
-
-HIRE_CUSTOMERS = Connection(
-    name='HireCustomers',
-    to_table='Customers',
-    from_table='Hire',
-)
+# SALE_CUSTOMERS = Connection(
+#     name='SaleCustomers',
+#     to_table='Customers',
+#     from_table='Sale',
+# )
+#
+# HIRE_CUSTOMERS = Connection(
+#     name='HireCustomers',
+#     to_table='Customers',
+#     from_table='Hire',
+# )
 
 
 class HireStatus(StrEnum):
@@ -90,6 +90,9 @@ class CustomerAliases(str, Enum):
     INVOICE_TELEPHONE = 'Invoice Telephone'
     PRIMARY_EMAIL = 'Email'
     DATE_LAST_CONTACTED = 'Date Last Contact'
+
+    HIRES = 'Has Hired Hire'
+    SALES = 'Involves Sale'
 
 
 class HireAliases(StrEnum):

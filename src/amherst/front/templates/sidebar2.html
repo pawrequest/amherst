@@ -1,0 +1,43 @@
+<!-- templates/sidebar.html -->
+<label for="filterInput">Filter</label>
+<input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">
+
+<label for="searchInput">Search</label>
+<input type="text" id="searchInput" placeholder="Fetch New Records..."
+       hx-target="#record-container"
+       hx-swap="innerHTML"
+>
+<button type="submit" class="submit-request" onclick="loadOrders()">Submit</button>
+
+
+{#       hx-vals='{"csrname":"Hire", "search_dict": {"customer_name": "Test"}}'>#}
+
+{#<input type="text" id="searchInput" placeholder="Fetch New Records..."#}
+{#       hx-trigger="input changed delay:1000ms, search"#}
+{#       hx-post='/api/posty'#}
+{#       hx-target="#record-container"#}
+{#       hx-swap="innerHTML"#}
+{#               hx-vals='js:{"search_dict": {"pk_value": this.value}}'>#}
+{#       hx-vals='js:{"csrname":"Customer", "search_dict": {"pk_value": this.value}}'>#}
+{#>#}
+
+
+<nav class="nav-bar">
+    <a href="#" hx-get="/search?csrname=Customer" hx-target="#record-container"
+       hx-swap="innerHTML">Customers</a>
+    <a href="#" hx-get="/search?csrname=Hire" hx-target="#record-container"
+       hx-swap="innerHTML">Hires</a>
+    <a href="#" hx-get="/search?csrname=Sale" hx-target="#record-container"
+       hx-swap="innerHTML">Sales</a>
+</nav>
+
+<div class="record-container" id="record-container" hx-get="/search?csrname=Customer"
+     hx-trigger="load"
+     hx-target="this" hx-swap="innerHTML">
+</div>
+
+<script>
+
+    {#document.getElementById('searchInput').addEventListener('keyup', () => {#}
+    {#    delay(loadOrders, 1000)();#}
+</script>

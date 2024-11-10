@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+from functools import wraps
 from typing import Self
 
 from fastapi import Body, Depends, Form, Query
 from loguru import logger
+from pawlogger.loggingdecorators import on_class
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
@@ -17,6 +19,24 @@ from amherst.models.maps import AmherstTableName, CMAP
 PAGE_SIZE = 30
 
 
+def log_action(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        logger.warning(f'Calling {func.__name__} with args: {args} and kwargs: {kwargs}')
+        return await func(*args, **kwargs) if callable(func) else func
+
+    return wrapper
+
+
+def log_action_sync(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        logger.warning(f'Calling {func.__name__} with args: {args} and kwargs: {kwargs}')
+        return func(*args, **kwargs) if callable(func) else func
+
+    return wrapper
+
+
 class Pagination(_Pagination):
     @classmethod
     def from_query(cls, request: Request, limit: int | bool = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
@@ -27,10 +47,11 @@ class SearchRequest(BaseModel):
     csrname: AmherstTableName
     row_id: str | None = None
     pk_value: str | None = None
+    customer_name: str | None = None
     filtered: bool = True
     condition: ConditionType = ConditionType.CONTAIN
     max_rtn: int | None = None
-    package: dict = Field(default_factory=dict)
+    search_dict: dict = Field(default_factory=dict)
     pagination: Pagination = Pagination()
 
     @property
@@ -58,6 +79,10 @@ class SearchRequest(BaseModel):
             qstr += f'&filtered={str(self.filtered).lower()}'
         if self.pk_value:
             qstr += f'&pkvalue={self.pk_value}'
+        if self.row_id:
+            qstr += f'&row_id={self.row_id}'
+        if self.customer_name:
+            qstr += f'&customer_name={self.customer_name}'
         qstr += f'&limit={pagination.limit}&offset={pagination.offset}'
         return qstr
 
@@ -77,6 +102,7 @@ class SearchRequest(BaseModel):
         condition: ConditionType = Query(ConditionType.CONTAIN),
         max_rtn: int = Query(None),
         row_id: str = Query(None),
+        customer_name: str = Query(None),
     ):
         logger.debug(f'SearchRequest.from_query({csrname=}, {filtered=}, {pk_value=}, {pagination=})')
         return cls(
@@ -87,27 +113,29 @@ class SearchRequest(BaseModel):
             condition=condition,
             max_rtn=max_rtn,
             row_id=row_id,
+            customer_name=customer_name,
         )
 
     @classmethod
     def from_body(
         cls,
         csrname: AmherstTableName = Body(...),
-        filtered: bool = Body(True),
+        row_id: str = Body(None),
         pk_value: str = Body(None),
-        package: dict = Body(default_factory=dict),
+        filtered: bool = Body(True),
+        search_dict: dict = Body(default_factory=dict),
         pagination: Pagination = Depends(Pagination.from_query),
         condition: ConditionType = Body(ConditionType.CONTAIN),
-        row_id: str = Body(None),
         max_rtn: int = Body(None),
+        customer_name: str = Body(...),
     ):
-        logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {package=}, {pagination=})')
+        logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {search_dict=}, {pagination=})')
         return cls(
             csrname=csrname,
             filtered=filtered,
             pagination=pagination,
             pk_value=pk_value,
-            package=package,
+            package=search_dict,
             condition=condition,
             row_id=row_id,
             max_rtn=max_rtn,
@@ -134,6 +162,3 @@ async def record_from_json_str_form(
     modeltype = CMAP[category].record_model
     res = modeltype.model_validate(record_dict)
     return res
-
-
-    # return record_type.model_validate_json(record_str)

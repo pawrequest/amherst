@@ -75,7 +75,6 @@ def make_jsonable(pyd_model: BaseModel) -> dict:
     return jsonable_encoder(thedict)
 
 
-logger.info('\n' + '\n'.join([f'{k.upper()} = {v}' for k, v in settings().model_dump().items()]))
 TEMPLATES = Jinja2Templates(directory=str(settings().src_dir / 'front' / 'templates'))
 TEMPLATES.env.filters['jsonable'] = make_jsonable
 # TEMPLATES.env.filters['urlencode'] = quote

@@ -25,7 +25,7 @@ from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstTableBase
 router = APIRouter()
 
 
-@router.get('/form-p', response_class=HTMLResponse)
+@router.get('/form', response_class=HTMLResponse)
 async def ship_form_extends_p(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(get_one),

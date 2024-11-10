@@ -53,6 +53,7 @@ class StockChecker:
 
     @property
     def filters(self):
+        # todo break this
         return get_filter_array('Hire')
 
     def run(self):

@@ -105,18 +105,14 @@ function populateShipmentSnake(shipment) {
 
 
 
-function toggleOwnLabel2() {
+function toggleOwnLabel() {
     let direction = document.getElementById("direction").value;
     let ownLabel = document.getElementById("own_label");
     if (direction === "in") {
         console.log('Showing own label fields');
         ownLabel.style.opacity = '100';
-        // ownLabel.style.display = 'grid';
-        // ownLabel.style.flexDirection = 'row';
-        // ownLabel.style.flexWrap = 'wrap'
     } else {
         console.log('Hiding own label fields');
-        // ownLabel.style.display = 'none';
         ownLabel.style.opacity = '0'
     }
 }
@@ -144,8 +140,7 @@ function updateAddressFields(addressData) {
 async function initShipForm2(shipment) {
     populateShipmentSnake(shipment);
     await loadAddrChoices();
-    toggleOwnLabel2();
-    // toggleOwnLabel();
+    toggleOwnLabel();
 }
 
 

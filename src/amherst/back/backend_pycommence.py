@@ -3,20 +3,21 @@ from __future__ import annotations
 import contextlib
 
 from comtypes import CoInitialize, CoUninitialize
-from fastapi import Depends, Path
+from fastapi import Body, Depends, Path
 from loguru import logger
 from pydantic import BaseModel
 from win32pdhquery import Query
 from starlette.exceptions import HTTPException
 
+from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import Shipment
-from pycommence.filters import FilterArray
+from pycommence.filters import ConditionType, FieldFilter, FilterArray, ConnectedFieldFilter
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
-from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
+from amherst.back.backend_search_paginate2 import SearchRequest2, SearchResponse2
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.commence_adaptors import HireAliases
+from amherst.models.commence_adaptors import HireAliases, CustomerAliases
 from amherst.models.maps import AmherstTableName, CMAP, record_model
 
 
@@ -40,15 +41,60 @@ async def pycmc_f_query(csrname: AmherstTableName = Query(...)) -> PyCommence:
         yield pycmc
 
 
+async def pycmc_f_body(
+    csrname: AmherstTableName = Body(...),
+    row_id: str = Body(None),
+    pk_value: str = Body(None),
+    search_dict: dict | None = Body(None),
+    dflt_filter: bool = Body(False),
+):
+    if any([row_id, pk_value]):
+        fil_array = None
+    else:
+        cmap = CMAP[csrname]
+        fil_array = cmap.default_filter if dflt_filter else FilterArray()
+        cust_table_pk_label = CustomerAliases.CUSTOMER_NAME
+
+        if search_dict and (c_name := search_dict.get('customer_name')):
+            customer_filter = FieldFilter(
+                column=cust_table_pk_label,
+                condition=ConditionType.CONTAIN,
+                value=c_name,
+            )
+            if cmap.category == AmherstTableName.Customer:
+                fil = customer_filter
+            elif cust_con := cmap.customer_connection:
+                fil = ConnectedFieldFilter.from_fil(field_fil=customer_filter, connection=cust_con)
+            else:
+                raise ValueError(f'No customer connection for CMAP{csrname}')
+            fil_array.add_filter(fil)
+
+        # if fils := search_dict.get('filters'):
+        #     fil_array.add_filters(*fils)
+
+    logger.warning('this likely buggy due to cmc filter logic')
+    with pycommence_context(csrname=csrname, filter_array=fil_array) as pycmc:
+        csr = pycmc.csr(csrname)
+        # if csr.filter_array:
+        #     logger.debug(f'Filter array: {csr.filter_array}')
+        #     csr.filter_by_array(csr.filter_array)
+        logger.warning(f'ROW COUNT F BODY 2 {csr.row_count=}')
+        yield pycmc
+
+    # pycmc.set_csr(csrname, filter_array=fil_array)
+    # yield pycommence_context(csrname=csrname, filter_array=fil_array)
+
+
 async def gather_records(
     input_type: type[AMHERST_TABLE_MODELS],
     # pycmc: PyCommence,
-    sq: SearchRequest,
+    sq: SearchRequest | SearchRequest2,
     get_id: bool = True,
     pycmc: PyCommence = Depends(pycmc_f_path),
 ):
     records = []
     more = None
+
     for row in pycmc.read_rows(
         csrname=sq.csrname,
         with_category=True,
@@ -90,11 +136,45 @@ async def pycommence_search(
     return SearchResponse(records=records, more=more, search_request=search_request)
 
 
+async def pycommence_search2(
+    search_request: SearchRequest2,
+    pycmc: PyCommence,
+) -> SearchResponse2:
+    record = None
+    record_type: type[BaseModel] = await record_model(search_request.csrname)
+
+    if search_request.row_id:
+        record = pycmc.read_row(id=search_request.row_id)
+    elif search_request.pk_value:
+        record = pycmc.read_row(pk=search_request.pk_value)
+    if record:
+        validated = record_type.model_validate(record)
+        res = SearchResponse2(records=[validated], more=None, search_request=search_request)
+        return res
+    more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
+
+    res = SearchResponse2(records=records, more=more, search_request=search_request)
+    return res
+
+
 async def pycommence_response(
     search_request: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_query),
 ) -> SearchResponse:
     resp = await pycommence_search(search_request, pycmc)
+    if search_request.max_rtn and resp.length > search_request.max_rtn:
+        raise HTTPException(
+            status_code=404,
+            detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {resp.length}',
+        )
+    return resp
+
+
+async def pycommence_response2(
+    pycmc: PyCommence,
+    search_request: SearchRequest2 = Depends(SearchRequest2.from_body),
+) -> SearchResponse2:
+    resp = await pycommence_search2(search_request, pycmc)
     if search_request.max_rtn and resp.length > search_request.max_rtn:
         raise HTTPException(
             status_code=404,
@@ -123,7 +203,7 @@ def record_tracking(record, shipment_response):
             logger.error('CANT LOG TO CUSTOMER')
             return
         do_record_tracking(record, shipment_response)
-        logger.debug(f'Logged tracking for {category} {record.name}')
+        logger.debug(f'Logged tracking for {category} {record.pk_value}')
 
     except Exception as exce:
         logger.exception(exce)

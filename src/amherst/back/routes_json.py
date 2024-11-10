@@ -1,15 +1,22 @@
-from fastapi import APIRouter, Body, Depends
-from loguru import logger
-from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressBase, AddressChoice
-from shipaw.ship_types import VALID_POSTCODE
-from starlette.responses import JSONResponse
+from fastapi import APIRouter, Depends
 
 from amherst.back.backend_search_paginate import SearchResponse
-from amherst.back.backend_pycommence import pycommence_response, pycommence_response
-from amherst.back.backend_shipper import get_el_client
+from amherst.back.backend_pycommence import pycmc_f_body, pycommence_response, pycommence_response2
+from amherst.back.backend_search_paginate2 import SearchRequest2, SearchResponse2
+from amherst.config import logger
 
 router = APIRouter()
+
+
+@router.post('/posty')
+async def post2(
+    # search_request: SearchRequest2 = Depends(SearchRequest2.from_form),
+    search_request: SearchRequest2 = Depends(SearchRequest2.from_body),
+    pycmc=Depends(pycmc_f_body),
+) -> SearchResponse2:
+    logger.warning(f'POSTY records for {search_request=}')
+    return await pycommence_response2(pycmc, search_request)
+
 
 @router.get('/')
 async def get_new(

@@ -65,7 +65,7 @@ async def print_file(request: Request, filepath: str = Query(...)):
 
 
 @app.get('/search')
-async def listing(
+async def search(
     request: Request,
     pycmc: PyCommence = Depends(pycmc_f_query),
     search_request: SearchRequest = Depends(SearchRequest.from_query),

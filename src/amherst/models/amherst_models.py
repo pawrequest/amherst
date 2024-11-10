@@ -9,8 +9,8 @@ import pydantic as _p
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from pydantic import AliasGenerator, BaseModel, ConfigDict
-from shipaw.models.pf_shipment import Shipment
 
+from shipaw.models.pf_shipment import Shipment
 from amherst.models.commence_adaptors import (
     AM_DATE,
     AmherstTableName,
@@ -119,6 +119,8 @@ class AmherstCustomer(AmherstTableBase):
     category: AmherstTableName = 'Customer'
     invoice_email: str = ''
     accounts_email: str = ''
+    hires: str = ''
+    sales: str = ''
 
 
 class AmherstTrial(AmherstTableBase):

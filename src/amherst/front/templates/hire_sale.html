@@ -1,0 +1,12 @@
+<!-- templates/hire_sale.html -->
+<div class="record"
+    hx-get="/ship/form_content?csrname={{ record.category | urlencode }}&row_id={{ record.row_id | urlencode }}"
+    hx-target="#content_main"
+>
+    {{ record.name }}
+    {% if record.send_date %}
+        <p>
+            {{ record.dt_ordinal(record.send_date) }}
+        </p>
+    {% endif %}
+</div>
