@@ -1,23 +1,24 @@
-{#<!-- templates/sidebar.html -->#}
+<!-- templates/sidebar.html -->
 {#<label for="filterInput">Filter</label>#}
 {#<input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">#}
-{##}
-{#<label for="searchInput">Search</label>#}
-{#<input type="text" id="searchInput" placeholder="Fetch New Records..."#}
-{#       hx-trigger="input changed delay:1000ms, search"#}
-{#       hx-get="/search?csrname=Customer&pk_value="#}
-{#>#}
-{##}
-{#<nav class="nav-bar">#}
-{#    <a href="#" hx-get="/search?csrname=Customer" hx-target="#record-container"#}
-{#       hx-swap="innerHTML">Customers</a>#}
-{#    <a href="#" hx-get="/search?csrname=Hire" hx-target="#record-container"#}
-{#       hx-swap="innerHTML">Hires</a>#}
-{#    <a href="#" hx-get="/search?csrname=Sale" hx-target="#record-container"#}
-{#       hx-swap="innerHTML">Sales</a>#}
-{#</nav>#}
-{##}
-{#<div class="record-container" id="record-container" hx-get="/search?csrname=Customer"#}
-{#     hx-trigger="load"#}
-{#     hx-target="this" hx-swap="innerHTML">#}
-{#</div>#}
+
+<form id="searchForm"
+      hx-target="#record-container"
+      hx-swap="innerHTML"
+      hx-trigger="input changed delay:10ms, search"
+      hx-get='/search?csrname=Customer&filtered=false'
+      onsubmit="return false"
+>
+    <label>
+        <input type="text" name="pk_value" placeholder="Fetch New Records...">
+    </label>
+    <label>
+        filter
+{#        <input type="checkbox" name="py_filtered">#}
+    </label>
+</form>
+
+<div class="record-container" id="record-container" hx-get="/search?csrname=Customer&filtered=false&py_filter=true"
+     hx-trigger="load"
+     hx-target="this" hx-swap="innerHTML">
+</div>

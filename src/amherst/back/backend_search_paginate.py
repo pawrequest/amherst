@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
 from functools import wraps
 from typing import Self
 from collections.abc import Sequence
@@ -14,11 +13,10 @@ from starlette.requests import Request
 from amherst.models.commence_adaptors import CustomerAliases
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
-# from amherst.back.pyc_backend import pycmc_f_path
-from amherst.models.amherst_models import AMHERST_ORDER_MODELS, AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstTableName, MODEL_MAPS, AmherstMapping, mapper_f_q
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.maps import AmherstTableName, MODEL_MAPS
 
-PAGE_SIZE = 30
+PAGE_SIZE = 100
 
 
 def log_action(func):
@@ -40,8 +38,10 @@ def log_action_sync(func):
 
 
 class Pagination(_Pagination):
+    limit: int | None = PAGE_SIZE
+
     @classmethod
-    def from_query(cls, request: Request, limit: int | bool = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
+    def from_query(cls, request: Request, limit: int | None = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
         return cls(limit=limit, offset=offset)
 
 
@@ -55,16 +55,16 @@ class SearchRequest(BaseModel):
     condition: ConditionType = ConditionType.CONTAIN
     max_rtn: int | None = None
     search_dict: dict = Field(default_factory=dict)
-    pagination: Pagination | None = None
+    pagination: Pagination | None = Pagination()
     py_filter: bool = False
 
     def __str__(self):
         return (
-            f'SearchRequest: Csr: {self.csrname.value}'
-            f'{' | pk:' + self.pk_value if self.pk_value else ''}'
-            f'{' | row_id:' + self.row_id if self.row_id else ''}'
-            f'{' | customer_name "' + self.customer_name + '"' if self.customer_name else ''}'
-            f'{' | customer_id "' + self.customer_id + '"' if self.customer_id else ''}'
+            f'Csr: {self.csrname}'
+            f'{' | pk=:' + self.pk_value if self.pk_value else ''}'
+            f'{' | row_id=:' + self.row_id if self.row_id else ''}'
+            f'{' | customer_name="' + self.customer_name + '"' if self.customer_name else ''}'
+            f'{' | customer_id="' + self.customer_id + '"' if self.customer_id else ''}'
             f'{' | filtered' if self.filtered else ''}'
             f'{' | python-filtered' if self.py_filter else ''}'
             f'{' | ' + str(self.pagination) if self.pagination else ''}'
@@ -93,6 +93,8 @@ class SearchRequest(BaseModel):
         qstr += f'/search?csrname={self.csrname}'
         if self.filtered:
             qstr += f'&filtered={str(self.filtered).lower()}'
+        if self.py_filter:
+            qstr += f'&py_filter={str(self.py_filter).lower()}'
         if self.pk_value:
             qstr += f'&pk_value={self.pk_value}'
         if self.row_id:
@@ -128,7 +130,7 @@ class SearchRequest(BaseModel):
         customer_id: str = Query(None),
         py_filter: bool = Query(False),
     ):
-        res = cls(
+        return cls(
             csrname=csrname,
             pagination=pagination,
             pk_value=pk_value,
@@ -140,8 +142,6 @@ class SearchRequest(BaseModel):
             customer_id=customer_id,
             py_filter=py_filter,
         )
-        logger.info(str(res))
-        return res
 
     def filter_array(self):
         cmap = MODEL_MAPS[self.csrname]
@@ -168,9 +168,12 @@ class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     more: MoreAvailable | None = None
 
     def __str__(self):
+        s = str(self.search_request)
+        s = self.search_request.__str__()
         return (
-            f'Search Response: {self.length}x {self.search_request.csrname} records'
-            f', {str(self.more.n_more) + ' more available' if self.more else ''} '
+            f'Search Response: {self.length}x {self.search_request.csrname} records. '
+            f'SearchRequest[{str(self.search_request)}]'
+            f'{', ' + str(self.more.n_more) + ' more available' if self.more else ''} '
         )
 
     @model_validator(mode='after')
@@ -183,10 +186,11 @@ class SearchResponseMulti(SearchResponse):
     search_request: Sequence[SearchRequest]
 
     def __str__(self):
-        rtypes = ', '.join([req.csrname for req in self.search_request])
+        rtypes = '| '.join([req.csrname for req in self.search_request])
         return (
-            f'Search Response: {self.length}x {rtypes} records'
-            f', {str(self.more.n_more) + ' more available' if self.more else ''} '
+            f'Search Response with {self.length}x {rtypes} records. '
+            f'SearchRequests[{'; '.join(str(_) for _ in self.search_request)}]'
+            f'{', ' + str(self.more.n_more) + ' more available' if self.more else ''} '
         )
 
 
@@ -203,5 +207,3 @@ async def record_from_json_str_form(
     modeltype = MODEL_MAPS[category].record_model
     res = modeltype.model_validate(record_dict)
     return res
-
-

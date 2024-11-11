@@ -2,20 +2,17 @@ from __future__ import annotations
 
 import contextlib
 
-from comtypes import CoInitialize, CoUninitialize
+from comtypes import CoInitialize, CoInitializeEx, CoUninitialize
 from fastapi import Depends, Query
 from loguru import logger
 from starlette.exceptions import HTTPException
 
 from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
-from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment
 from pycommence.filters import ConditionType, FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.commence_adaptors import HireAliases
-from amherst.models.maps import AmherstMapping, AmherstTableName, mapper_f_q
+from amherst.models.maps import AmherstMapping, AmherstTableName, mapper_csrname, maps2
 
 
 @contextlib.contextmanager
@@ -26,6 +23,29 @@ def pycommence_context(csrname: AmherstTableName, filter_array: FilterArray | No
     CoUninitialize()
 
 
+@contextlib.contextmanager
+def pycommence_context2(csrname: AmherstTableName, filter_array: FilterArray | None = None) -> PyCommence:
+    try:
+        # CoInitialize silently fails if already initialized, so track explicitly
+        CoInitialize()
+
+        pyc = PyCommence.with_csr(csrname, filter_array=filter_array)
+        yield pyc
+
+    finally:
+        CoUninitialize()  # Uninitialize, ignoring if it's already done
+    # if not CoInitializeEx(0):
+    #     initialized = True
+    # else:
+    #     initialized = False
+    #
+    # pyc = PyCommence.with_csr(csrname, filter_array=filter_array)
+    # yield pyc
+    #
+    # if initialized:
+    #     CoUninitialize()
+
+
 async def pycmc_f_query(
     csrname: AmherstTableName = Query(...),
     q: SearchRequest = Depends(SearchRequest.from_query),
@@ -34,31 +54,25 @@ async def pycmc_f_query(
         yield pycmc
 
 
-async def gather_records_q(
-    pycmc: PyCommence, q: SearchRequest, mapper: AmherstMapping = Depends(mapper_f_q)
+async def gather_records_gen(
+    pycmc: PyCommence, q: SearchRequest, mapper: AmherstMapping = Depends(maps2)
 ) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
-    input_type = await mapper_f_q(csrname=q.csrname)
-    input_type = input_type.record_model
-    records = []
-    more = None
+    input_type = mapper.record_model
     fil_array = q.filter_array()
     pycmc.csr(q.csrname).filter_array = fil_array
-    for row in pycmc.read_rows(
+    row_filter = mapper.filter_map_row.loose if q.py_filter else None
+    # row_filter = mapper.row_filter if q.py_filter else None
+
+    rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end if q.pagination.end else 0
+
+    rowgen = pycmc.read_rows(
         csrname=q.csrname,
-        with_category=True,
         pagination=q.pagination,
-        with_id=True,
-    ):
-        if isinstance(row, MoreAvailable):
-            more = row
-            more.html_link = q.next_q_str
-            more.json_link = q.next_q_str_json
-            break
-        records.append(input_type.model_validate(row))
-    if q.py_filter:
-        # if isinstance(records[0], AmherstOrderBase):
-        #     records = filter_orders(records)
-        pass
+        row_filter=row_filter,
+    )
+
+    records = [input_type.model_validate(row) for row in rowgen]
+    more = MoreAvailable(n_more=rows_left, json_link=q.next_q_str_json, html_link=q.next_q_str) if rows_left else None
     return records, more
 
 
@@ -73,21 +87,20 @@ async def pycommence_search(
         if q.condition == ConditionType.EQUAL:
             record = pycmc.read_row(csrname=q.csrname, pk=q.pk_value)
     if record:
-        mapper = await mapper_f_q(csrname=q.csrname)
+        mapper = await mapper_csrname(csrname=q.csrname)
         return mapper.record_model.model_validate(record)
-
-    # records, more = await gather_records(pycmc=pycmc, csrname=q.csrname, pagination=q.pagination)
-    # return SearchResponse(records=records, more=more, search_request=q)
-    #
 
 
 async def pycommence_response(
     q: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_query),
+    mapper: AmherstMapping = Depends(maps2),
 ) -> AMHERST_TABLE_MODELS | SearchResponse:
     if record := await pycommence_search(q, pycmc):
-        return record
-    records, more = await gather_records_q(pycmc=pycmc, q=q)
+        records, more = [record], None
+    else:
+        records, more = await gather_records_gen(pycmc=pycmc, q=q, mapper=mapper)
+
     resp = SearchResponse(records=records, more=more, search_request=q)
 
     if q.max_rtn and resp.length > q.max_rtn:
@@ -113,7 +126,7 @@ def record_tracking(record, shipment_response):
         if category == 'Customer':
             logger.error('CANT LOG TO CUSTOMER')
             return
-        do_record_tracking(record, shipment_response)
+        # do_record_tracking(record, shipment_response)
         logger.debug(f'Logged tracking for {category} {record.pk_value}')
 
     except Exception as exce:
@@ -121,20 +134,20 @@ def record_tracking(record, shipment_response):
         raise
 
 
-def do_record_tracking(shipment: Shipment, shipment_response: ShipmentResponse, pycmc: PyCommence):
-    tracking_link = shipment_response.tracking_link()
-    cmc_package = (
-        {
-            HireAliases.TRACK_IN: tracking_link,
-            HireAliases.ARRANGED_IN: True,
-            HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-        }
-        if shipment.direction in ['in', 'dropoff']
-        else {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
-    )
-
-    pycmc.update_row(cmc_package)
-    logger.debug(f'Logged {str(cmc_package)} to Commence')
+# def do_record_tracking(shipment: Shipment, shipment_response: ShipmentResponse, pycmc: PyCommence):
+#     tracking_link = shipment_response.tracking_link()
+#     cmc_package = (
+#         {
+#             HireAliases.TRACK_IN: tracking_link,
+#             HireAliases.ARRANGED_IN: True,
+#             HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+#         }
+#         if shipment.direction in ['in', 'dropoff']
+#         else {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
+#     )
+#
+#     pycmc.update_row(cmc_package)
+#     logger.debug(f'Logged {str(cmc_package)} to Commence')
 
 
 # async def pycommence_search2(

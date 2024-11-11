@@ -8,7 +8,6 @@
       hx-post="/ship/post_ship/"
       hx-target=#content_top
       hx-swap="innerHTML"
-        {#      hx-on:htmx:load="console.log('refresh page from htmxload');refreshPage()"#}
       hx-vals='{"record_str": {{ record.model_dump_json() }}}'
 >
     <div class="wrapper wrapper__booking">
@@ -118,7 +117,7 @@
 
 
 <script>
-    shipment = {{ record.shipment_pyd() | jsonable | tojson }};
+    shipment = {{ record.shipment() | jsonable | tojson }};
     record = {{ record | jsonable | tojson}};
     console.log('record', record);
     console.log('shipment', shipment);

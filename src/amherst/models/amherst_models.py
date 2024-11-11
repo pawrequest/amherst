@@ -6,8 +6,6 @@ from datetime import date, datetime
 from typing import Annotated
 
 import pydantic as _p
-from fastapi.encoders import jsonable_encoder
-from loguru import logger
 from pydantic import AliasGenerator, BaseModel, ConfigDict
 
 from shipaw.models.pf_shipment import Shipment
@@ -15,10 +13,11 @@ from amherst.models.commence_adaptors import (
     AM_DATE,
     AmherstTableName,
     HireStatus,
+    SaleStatus,
     customer_alias,
     hire_alias,
     sale_alias,
-    trial_alias, SaleStatus,
+    trial_alias
 )
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.ship_types import limit_daterange_no_weekends
@@ -66,9 +65,9 @@ class AmherstTableBase(BaseModel, ABC):
     delivery_address_str: str
     delivery_address_pc: str
 
-    @staticmethod
-    def dt_ordinal(date_or_dt: datetime | date) -> str:
-        return dt_ordinal(date_or_dt)
+    # @staticmethod
+    # def dt_ordinal(date_or_dt: datetime | date) -> str:
+    #     return dt_ordinal(date_or_dt)
 
     def contact_dict(self) -> dict:
         return {
@@ -102,15 +101,16 @@ class AmherstTableBase(BaseModel, ABC):
             **split_refs_from_str(self.customer_name),
         }
 
-    def shipment_pyd(self):
+    def shipment(self):
         return Shipment.model_validate(self.shipment_dict())
 
-    def shipment_dict_jsonable(self):
-        return jsonable_encoder(self.shipment_dict())
+    #
+    # def shipment_dict_jsonable(self):
+    #     return jsonable_encoder(self.shipment_dict())
 
-    def jsonable(self) -> dict:
-        logger.info('dumping jsonable, why not implement this globally?')
-        return jsonable_encoder(self)
+    # def jsonable(self) -> dict:
+    #     logger.info('dumping jsonable, why not implement this globally?')
+    #     return jsonable_encoder(self)
 
 
 class AmherstCustomer(AmherstTableBase):
@@ -137,6 +137,7 @@ class AmherstOrderBase(AmherstTableBase, ABC):
     arranged_out: bool = False
     arranged_in: bool = False
     delivery_method: str = ''
+    status: str
 
     send_date: AM_DATE = date.today()
 
@@ -163,13 +164,10 @@ AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
 AMHERST_TABLE_MODELS = AMHERST_ORDER_MODELS | AmherstCustomer
 
 
-def date_int_w_ordinal(n):
-    return str(n) + ('th' if 4 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th'))
-
-
-def dt_ordinal(dt: datetime | date) -> str:
-    return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
-    # return dt.strftime('%a {th} %b %Y').replace('{th}', date_int_w_ordinal(dt.day))
+#
+# def dt_ordinal(dt: datetime | date) -> str:
+#     return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
+#     # return dt.strftime('%a {th} %b %Y').replace('{th}', date_int_w_ordinal(dt.day))
 
 
 def split_refs_from_str(ref_str: str) -> dict[str, str]:

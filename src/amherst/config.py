@@ -3,6 +3,7 @@ from __future__ import annotations
 import functools
 import os
 import re
+from datetime import date, datetime
 from pathlib import Path
 import sys
 import typing as _t
@@ -40,6 +41,7 @@ class Settings(BaseSettings):
     src_dir: _t.Annotated[Path, _p.BeforeValidator(set_src_dir)] = None
     # data_dir: Path = Path(__file__).parent / '_data'
     templates: Path | None = None
+    log_level: str = 'INFO'
 
     @_p.field_validator('templates', mode='after')
     def set_templates(cls, v, values):
@@ -68,7 +70,7 @@ def settings():
     return Settings()
 
 
-logger = get_loguru(log_file=settings().log_file, profile='local', level='DEBUG')
+logger = get_loguru(log_file=settings().log_file, profile='local', level=settings().log_level)
 
 
 def sanitise_id(value):
@@ -80,7 +82,16 @@ def make_jsonable(pyd_model: BaseModel) -> dict:
     return jsonable_encoder(thedict)
 
 
+def date_int_w_ordinal(n):
+    return str(n) + ('th' if 4 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th'))
+
+
+def ordinal_dt(dt: datetime | date) -> str:
+    return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
+
+
 TEMPLATES = Jinja2Templates(directory=str(settings().src_dir / 'front' / 'templates'))
 TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
+TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
