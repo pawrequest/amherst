@@ -102,13 +102,12 @@ async def customer(
 
     # logger.warning(f'HireRequest: {str(hire_request)}')
 
-    with pycommence_context(AmherstTableName.Hire, filter_array=hire_request.filter_array()) as pycmc:
+    with pycommence_context(AmherstTableName.Hire) as pycmc:
+        # todo filter_array
         hires, more_hires = await gather_records_gen(pycmc, hire_request)
-        # hires = filter_records(hires)
 
-    with pycommence_context(AmherstTableName.Sale, filter_array=sale_request.filter_array()) as pycmc:
+    with pycommence_context(AmherstTableName.Sale) as pycmc:
         sales, more_sales = await gather_records_gen(pycmc, sale_request)
-        # sales = filter_records(sales)
 
     records: list[AMHERST_ORDER_MODELS] = hires + sales
     records.sort(key=lambda x: x.send_date, reverse=True)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from functools import wraps
-from typing import Self
+from typing import Literal, Self
 from collections.abc import Sequence
 
 from fastapi import Depends, Form, Query
@@ -24,7 +24,6 @@ def log_action(func):
     async def wrapper(*args, **kwargs):
         logger.warning(f'Calling {func.__name__} with args: {args} and kwargs: {kwargs}')
         return await func(*args, **kwargs) if callable(func) else func
-
     return wrapper
 
 
@@ -45,6 +44,9 @@ class Pagination(_Pagination):
         return cls(limit=limit, offset=offset)
 
 
+FilterVariant = Literal['loose', 'tight', 'none']
+
+
 class SearchRequest(BaseModel):
     csrname: AmherstTableName
     row_id: str | None = None
@@ -57,6 +59,7 @@ class SearchRequest(BaseModel):
     search_dict: dict = Field(default_factory=dict)
     pagination: Pagination | None = Pagination()
     py_filter: bool = False
+    filter_var: FilterVariant = 'loose'
 
     def __str__(self):
         return (
@@ -129,6 +132,7 @@ class SearchRequest(BaseModel):
         customer_name: str = Query(None),
         customer_id: str = Query(None),
         py_filter: bool = Query(False),
+        filter_var: FilterVariant = Query('loose'),
     ):
         return cls(
             csrname=csrname,

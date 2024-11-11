@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import contextlib
 
-from comtypes import CoInitialize, CoInitializeEx, CoUninitialize
+from comtypes import CoInitialize, CoUninitialize
 from fastapi import Depends, Query
 from loguru import logger
 from starlette.exceptions import HTTPException
@@ -16,59 +16,34 @@ from amherst.models.maps import AmherstMapping, AmherstTableName, mapper_csrname
 
 
 @contextlib.contextmanager
-def pycommence_context(csrname: AmherstTableName, filter_array: FilterArray | None = None) -> PyCommence:
+def pycommence_context(csrname: AmherstTableName) -> PyCommence:
     CoInitialize()
-    pyc = PyCommence.with_csr(csrname, filter_array=filter_array)
+    pyc = PyCommence.with_csr(csrname)
     yield pyc
     CoUninitialize()
 
 
-@contextlib.contextmanager
-def pycommence_context2(csrname: AmherstTableName, filter_array: FilterArray | None = None) -> PyCommence:
-    try:
-        # CoInitialize silently fails if already initialized, so track explicitly
-        CoInitialize()
-
-        pyc = PyCommence.with_csr(csrname, filter_array=filter_array)
-        yield pyc
-
-    finally:
-        CoUninitialize()  # Uninitialize, ignoring if it's already done
-    # if not CoInitializeEx(0):
-    #     initialized = True
-    # else:
-    #     initialized = False
-    #
-    # pyc = PyCommence.with_csr(csrname, filter_array=filter_array)
-    # yield pyc
-    #
-    # if initialized:
-    #     CoUninitialize()
-
-
 async def pycmc_f_query(
     csrname: AmherstTableName = Query(...),
-    q: SearchRequest = Depends(SearchRequest.from_query),
 ) -> PyCommence:
-    with pycommence_context(csrname=csrname, filter_array=q.filter_array()) as pycmc:
+    with pycommence_context(csrname=csrname) as pycmc:
         yield pycmc
 
 
 async def gather_records_gen(
-    pycmc: PyCommence, q: SearchRequest, mapper: AmherstMapping = Depends(maps2)
+    pycmc: PyCommence,
+    q: SearchRequest,
+    mapper: AmherstMapping = Depends(maps2),
 ) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
     input_type = mapper.record_model
     fil_array = q.filter_array()
-    pycmc.csr(q.csrname).filter_array = fil_array
     row_filter = mapper.filter_map_row.loose if q.py_filter else None
-    # row_filter = mapper.row_filter if q.py_filter else None
-
     rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end if q.pagination.end else 0
-
     rowgen = pycmc.read_rows(
         csrname=q.csrname,
         pagination=q.pagination,
         row_filter=row_filter,
+        filter_array=fil_array,
     )
 
     records = [input_type.model_validate(row) for row in rowgen]
@@ -96,8 +71,10 @@ async def pycommence_response(
     pycmc: PyCommence = Depends(pycmc_f_query),
     mapper: AmherstMapping = Depends(maps2),
 ) -> AMHERST_TABLE_MODELS | SearchResponse:
+
     if record := await pycommence_search(q, pycmc):
         records, more = [record], None
+
     else:
         records, more = await gather_records_gen(pycmc=pycmc, q=q, mapper=mapper)
 

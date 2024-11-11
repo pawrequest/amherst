@@ -57,8 +57,8 @@ def parse_arguments():
     return args
 
 
-@log_action
 async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
+    logger.warning('hastily removed filterarray from cursor')
     # logger.info(f'Starting Shipper searching for {category} record: {record_name}')
     search_request = SearchRequest(
         csrname=category,
