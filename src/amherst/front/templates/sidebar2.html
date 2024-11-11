@@ -9,8 +9,13 @@
       hx-get='/search?csrname=Customer&filtered=false'
       onsubmit="return false"
 >
-    <label for="searchInput"></label>
-    <input type="text" id="searchInput" name="pk_value" placeholder="Fetch New Records...">
+    <label>
+        <input type="text" name="pk_value" placeholder="Fetch New Records...">
+    </label>
+    <label>
+        filter
+        <input type="checkbox" name="py_filtered">
+    </label>
 </form>
 
 <div class="record-container" id="record-container" hx-get="/search?csrname=Customer&filtered=true&py_filter=true"

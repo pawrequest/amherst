@@ -16,7 +16,7 @@ from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter,
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 # from amherst.back.pyc_backend import pycmc_f_path
 from amherst.models.amherst_models import AMHERST_ORDER_MODELS, AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstTableName, CMAP
+from amherst.models.maps import AmherstTableName, MODEL_MAPS, AmherstMapping, mapper_f_q
 
 PAGE_SIZE = 30
 
@@ -66,6 +66,7 @@ class SearchRequest(BaseModel):
             f'{' | customer_name "' + self.customer_name + '"' if self.customer_name else ''}'
             f'{' | customer_id "' + self.customer_id + '"' if self.customer_id else ''}'
             f'{' | filtered' if self.filtered else ''}'
+            f'{' | python-filtered' if self.py_filter else ''}'
             f'{' | ' + str(self.pagination) if self.pagination else ''}'
         )
 
@@ -143,7 +144,7 @@ class SearchRequest(BaseModel):
         return res
 
     def filter_array(self):
-        cmap = CMAP[self.csrname]
+        cmap = MODEL_MAPS[self.csrname]
         fil_array = cmap.default_filter.__deepcopy__() if self.filtered else FilterArray()
 
         if self.pk_value:
@@ -199,7 +200,7 @@ async def record_from_json_str_form(
 ) -> AMHERST_TABLE_MODELS:
     record_dict = json.loads(record_str)
     category = record_dict['category']
-    modeltype = CMAP[category].record_model
+    modeltype = MODEL_MAPS[category].record_model
     res = modeltype.model_validate(record_dict)
     return res
 

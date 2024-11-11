@@ -3,6 +3,9 @@ from __future__ import annotations
 import functools
 from datetime import datetime, timedelta
 from typing import Literal
+from collections.abc import Generator, Sequence
+
+from pydantic import BaseModel
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstOrderBase
 from pycommence.filters import (
@@ -25,9 +28,49 @@ def filter_orders[T: AmherstOrderBase](recs: list[T]) -> list[T]:
     return recs
 
 
+def filter_orders_dicts(recs: Sequence[dict]) -> Sequence[dict]:
+    recs = [r for r in recs if r.get('send_date') > (datetime.now() - timedelta(days=30)).date()]
+    recs = [r for r in recs if not r.get('arranged_out')]
+    recs = [r for r in recs if 'return' not in r.get('status').lower()]
+    return recs
+
+
+def filter_orders2(records: list[AmherstOrderBase]) -> list[AmherstOrderBase]:
+    cutoff_date = (datetime.now() - timedelta(days=30)).date()
+    return [
+        record
+        for record in records
+        if record.send_date > cutoff_date and not record.arranged_out and 'return' not in record.status.lower()
+    ]
+
+
+# def filter_orders_gen(recs: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
+#     cutoff_date = (datetime.now() - timedelta(days=30)).date()
+#     for record in recs:
+#         if (
+#             datetime.date(record.get('send_date')) > cutoff_date
+#             and not record.arranged_out
+#             and 'return' not in record.status.lower()
+#         ):
+#             yield record
+#
+#     for r in recs:
+#         if r.get('send_date') > (datetime.now() - timedelta(days=30)).date():
+#             if not r.get('arranged_out'):
+#                 if 'return' not in r.get('status').lower():
+#                     yield r
+
+
 def filter_customers(custs: list[AmherstCustomer]) -> list[AmherstCustomer]:
     custs = [c for c in custs if c.hires or c.sales]
     return custs
+
+
+class FilterMap(BaseModel):
+    cmc_filters: tuple[FieldFilter, ...]
+    cmc_logics: tuple[str, ...]
+    cmc_sorts: tuple[tuple[str, SortOrder], ...]
+    filter_array: FilterArray = None
 
 
 DEFAULT_HIRE_FILTER = FilterArray(

@@ -1,17 +1,18 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import StrEnum
 from typing import NamedTuple
 
-from fastapi import Path, Query
+from fastapi import Query
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTableBase, AmherstTrial
 from amherst.models.commence_adaptors import AmherstTableName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
+    CUSOMER_CONNECTION,
     DEFAULT_CUSTOMER_FILTER,
     DEFAULT_HIRE_FILTER,
     DEFAULT_SALE_FILTER,
-    CUSOMER_CONNECTION, CUSOMER_CONNECTION,
 )
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection
@@ -25,6 +26,7 @@ class AmherstMapping(NamedTuple):
     detail_template: str = 'hires_sales.html'
     default_filter: FilterArray = FilterArray()
     customer_connection: Connection | None = None
+    default_py_filter: Callable[[dict[str, str]], bool] = None
 
 
 Hire_Map = AmherstMapping(
@@ -33,6 +35,7 @@ Hire_Map = AmherstMapping(
     aliases=HireAliases,
     default_filter=DEFAULT_HIRE_FILTER,
     customer_connection=CUSOMER_CONNECTION,
+    # default_py_filter=filter_orders
 )
 
 Sale_Map = AmherstMapping(
@@ -54,10 +57,9 @@ Trial_Map = AmherstMapping(
     category=AmherstTableName.Trial,
     record_model=AmherstTrial,
     aliases=TrialAliases,
-
 )
 
-CMAP = {
+MODEL_MAPS = {
     AmherstTableName.Hire: Hire_Map,
     AmherstTableName.Sale: Sale_Map,
     AmherstTableName.Customer: Customer_Map,
@@ -65,33 +67,5 @@ CMAP = {
 }
 
 
-async def listing_template_name(csrname: AmherstTableName = Path(...)):
-    return CMAP[csrname].listing_template
-
-
-async def listing_template_name_q(csrname: AmherstTableName = Query(...)):
-    return CMAP[csrname].listing_template
-
-
-async def detail_template_name(csrname: AmherstTableName = Path(...)):
-    return CMAP[csrname].detail_template
-
-
-async def detail_template_name_q(csrname: AmherstTableName = Query(...)):
-    return CMAP[csrname].detail_template
-
-
-async def record_model(csrname: AmherstTableName = Path(...)) -> type(AmherstTableBase):
-    return CMAP[csrname].record_model
-
-
-async def record_model_q(csrname: AmherstTableName = Query(...)) -> type(AmherstTableBase):
-    return CMAP[csrname].record_model
-
-
-async def table_type_from_name_path(csrname: AmherstTableName = Path(...)) -> AmherstTableBase:
-    return CMAP[csrname].record_model
-
-
-async def table_type_q(csrname: AmherstTableName = Query(...)) -> AmherstTableBase:
-    return CMAP[csrname].record_model
+async def mapper_f_q(csrname: AmherstTableName = Query(...)) -> AmherstMapping:
+    return MODEL_MAPS[csrname]

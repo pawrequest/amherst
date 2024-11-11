@@ -5,19 +5,17 @@ import contextlib
 from comtypes import CoInitialize, CoUninitialize
 from fastapi import Depends, Query
 from loguru import logger
-from pydantic import BaseModel
 from starlette.exceptions import HTTPException
 
-from amherst.back.backend_search_paginate import Pagination, SearchRequest, SearchResponse
-from amherst.models.filters import filter_orders
+from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import Shipment
 from pycommence.filters import ConditionType, FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstHire, AmherstOrderBase
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.commence_adaptors import HireAliases
-from amherst.models.maps import AmherstTableName, CMAP, record_model
+from amherst.models.maps import AmherstMapping, AmherstTableName, mapper_f_q
 
 
 @contextlib.contextmanager
@@ -36,34 +34,11 @@ async def pycmc_f_query(
         yield pycmc
 
 
-async def gather_records(
-    pycmc: PyCommence,
-    csrname: AmherstTableName,
-    pagination: Pagination,
-    get_id: bool = True,
-) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
-    input_type: type[AMHERST_TABLE_MODELS] = CMAP[csrname].record_model
-    records = []
-    more = None
-
-    for row in pycmc.read_rows(
-        csrname=csrname,
-        with_category=True,
-        pagination=pagination,
-        with_id=get_id,
-    ):
-        if isinstance(row, MoreAvailable):
-            more = row
-            break
-        records.append(input_type.model_validate(row))
-    return records, more
-
-
 async def gather_records_q(
-    pycmc: PyCommence,
-    q: SearchRequest,
+    pycmc: PyCommence, q: SearchRequest, mapper: AmherstMapping = Depends(mapper_f_q)
 ) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
-    input_type: type[AMHERST_TABLE_MODELS] = CMAP[q.csrname].record_model
+    input_type = await mapper_f_q(csrname=q.csrname)
+    input_type = input_type.record_model
     records = []
     more = None
     fil_array = q.filter_array()
@@ -81,8 +56,8 @@ async def gather_records_q(
             break
         records.append(input_type.model_validate(row))
     if q.py_filter:
-        if isinstance(records[0], AmherstOrderBase):
-            records = filter_orders(records)
+        # if isinstance(records[0], AmherstOrderBase):
+        #     records = filter_orders(records)
         pass
     return records, more
 
@@ -91,7 +66,6 @@ async def pycommence_search(
     q: SearchRequest,
     pycmc: PyCommence,
 ) -> AMHERST_TABLE_MODELS | None:
-    record_type: type[BaseModel] = await record_model(q.csrname)
     record = None
     if q.row_id:
         record = pycmc.read_row(csrname=q.csrname, id=q.row_id)
@@ -99,7 +73,8 @@ async def pycommence_search(
         if q.condition == ConditionType.EQUAL:
             record = pycmc.read_row(csrname=q.csrname, pk=q.pk_value)
     if record:
-        return record_type.model_validate(record)
+        mapper = await mapper_f_q(csrname=q.csrname)
+        return mapper.record_model.model_validate(record)
 
     # records, more = await gather_records(pycmc=pycmc, csrname=q.csrname, pagination=q.pagination)
     # return SearchResponse(records=records, more=more, search_request=q)

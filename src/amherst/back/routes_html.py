@@ -12,7 +12,7 @@ from amherst.back.backend_search_paginate import SearchRequest, SearchResponse, 
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_ORDER_MODELS
 from amherst.models.commence_adaptors import AmherstTableName
-from amherst.models.maps import listing_template_name_q
+from amherst.models.maps import AmherstMapping, mapper_f_q
 from pycommence.filters import ConditionType
 from pycommence.pycommence_v2 import PyCommence
 
@@ -36,11 +36,11 @@ async def search(
     request: Request,
     pycmc: PyCommence = Depends(pycmc_f_query),
     search_request: SearchRequest = Depends(SearchRequest.from_query),
-    template_name: str = Depends(listing_template_name_q),
+    mapper: AmherstMapping = Depends(mapper_f_q),
 ):
     search_response: SearchResponse = await pycommence_response(search_request, pycmc)
     logger.info(str(search_response))
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
+    return TEMPLATES.TemplateResponse(mapper.listing_template, {'request': request, 'response': search_response})
 
 
 # @router.get('/fetch')

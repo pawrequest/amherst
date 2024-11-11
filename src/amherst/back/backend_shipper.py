@@ -32,7 +32,7 @@ from shipaw.ship_types import (
     ShipDirection,
     VALID_POSTCODE,
 )
-from amherst.models.maps import CMAP
+from amherst.models.maps import MODEL_MAPS
 
 
 def book_shipment(el_client, shipment: Shipment) -> pf_msg.ShipmentResponse:
@@ -197,7 +197,7 @@ async def record_from_form(record_str: str = Form(...)) -> AmherstTableBase:
 async def record_from_str(record_str: str) -> AmherstTableBase:
     record_dict = json.loads(record_str)
     category = record_dict['category']
-    rectype: AmherstTableBase = CMAP[category].record_model
+    rectype: AmherstTableBase = MODEL_MAPS[category].record_model
     reccy = rectype.model_validate_json(record_str)
     return reccy
 
