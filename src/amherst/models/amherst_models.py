@@ -18,7 +18,7 @@ from amherst.models.commence_adaptors import (
     customer_alias,
     hire_alias,
     sale_alias,
-    trial_alias,
+    trial_alias, SaleStatus,
 )
 from pycommence.pycmc_types import get_cmc_date
 from shipaw.ship_types import limit_daterange_no_weekends
@@ -126,6 +126,7 @@ class AmherstCustomer(AmherstTableBase):
 class AmherstTrial(AmherstTableBase):
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=trial_alias))
     category: AmherstTableName = 'Trial'
+    status: str
 
 
 class AmherstOrderBase(AmherstTableBase, ABC):
@@ -149,6 +150,7 @@ class AmherstOrderBase(AmherstTableBase, ABC):
 class AmherstSale(AmherstOrderBase):
     category: AmherstTableName = 'Sale'
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=sale_alias))
+    status: SaleStatus
 
 
 class AmherstHire(AmherstOrderBase):

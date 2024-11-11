@@ -9,13 +9,14 @@ from pydantic import BaseModel
 from starlette.exceptions import HTTPException
 
 from amherst.back.backend_search_paginate import Pagination, SearchRequest, SearchResponse
+from amherst.models.filters import filter_orders
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import Shipment
-from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
+from pycommence.filters import ConditionType, FilterArray
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.commence_adaptors import CustomerAliases, HireAliases
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstHire, AmherstOrderBase
+from amherst.models.commence_adaptors import HireAliases
 from amherst.models.maps import AmherstTableName, CMAP, record_model
 
 
@@ -27,76 +28,21 @@ def pycommence_context(csrname: AmherstTableName, filter_array: FilterArray | No
     CoUninitialize()
 
 
-async def fil_array_from_search_request(q: SearchRequest) -> FilterArray | None:
-    if not any([q.row_id, q.pk_value]):
-        cmap = CMAP[q.csrname]
-        fil_array = cmap.default_filter if q.filtered else FilterArray()
-
-        if q.customer_name:
-            customer_filter = FieldFilter(
-                column=CustomerAliases.CUSTOMER_NAME,
-                condition=q.condition,
-                value=q.customer_name,
-            )
-            if cmap.category == AmherstTableName.Customer:
-                fil = customer_filter
-            elif cust_con := cmap.customer_connection:
-                fil = ConnectedFieldFilter.from_fil(field_fil=customer_filter, connection=cust_con)
-            else:
-                raise ValueError(f'No customer connection for {cmap.category}')
-            fil_array.add_filter(fil)
-            # if fils := search_dict.get('filters'):
-            #     fil_array.add_filters(*fils)
-        return fil_array
-    return None
-
-
-async def fil_array_dep(
-    q: SearchRequest = Depends(SearchRequest.from_query),
-) -> FilterArray | None:
-    return await fil_array_from_search_request(q)
-
-
 async def pycmc_f_query(
     csrname: AmherstTableName = Query(...),
-    fil_array: FilterArray | None = Depends(fil_array_dep),
+    q: SearchRequest = Depends(SearchRequest.from_query),
 ) -> PyCommence:
-    with pycommence_context(csrname=csrname, filter_array=fil_array) as pycmc:
+    with pycommence_context(csrname=csrname, filter_array=q.filter_array()) as pycmc:
         yield pycmc
 
 
 async def gather_records(
-    input_type: type[AMHERST_TABLE_MODELS],
-    pycmc: PyCommence,
-    sq: SearchRequest,
-    get_id: bool = True,
-):
-    records = []
-    more = None
-
-    for row in pycmc.read_rows(
-        csrname=sq.csrname,
-        with_category=True,
-        pagination=sq.pagination,
-        with_id=get_id,
-    ):
-        if isinstance(row, MoreAvailable):
-            more = row
-            more.json_link = sq.next_q_str_json
-            more.html_link = sq.next_q_str
-            break
-        records.append(input_type.model_validate(row))
-    return more, records
-
-
-async def gather_records2(
     pycmc: PyCommence,
     csrname: AmherstTableName,
-    pagination: Pagination = Pagination(),
+    pagination: Pagination,
     get_id: bool = True,
 ) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
     input_type: type[AMHERST_TABLE_MODELS] = CMAP[csrname].record_model
-
     records = []
     more = None
 
@@ -113,34 +59,66 @@ async def gather_records2(
     return records, more
 
 
-async def pycommence_search(
-    search_request: SearchRequest,
+async def gather_records_q(
     pycmc: PyCommence,
-):
-    record_type: type[BaseModel] = await record_model(search_request.csrname)
+    q: SearchRequest,
+) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
+    input_type: type[AMHERST_TABLE_MODELS] = CMAP[q.csrname].record_model
+    records = []
+    more = None
+    fil_array = q.filter_array()
+    pycmc.csr(q.csrname).filter_array = fil_array
+    for row in pycmc.read_rows(
+        csrname=q.csrname,
+        with_category=True,
+        pagination=q.pagination,
+        with_id=True,
+    ):
+        if isinstance(row, MoreAvailable):
+            more = row
+            more.html_link = q.next_q_str
+            more.json_link = q.next_q_str_json
+            break
+        records.append(input_type.model_validate(row))
+    if q.py_filter:
+        if isinstance(records[0], AmherstOrderBase):
+            records = filter_orders(records)
+        pass
+    return records, more
 
+
+async def pycommence_search(
+    q: SearchRequest,
+    pycmc: PyCommence,
+) -> AMHERST_TABLE_MODELS | None:
+    record_type: type[BaseModel] = await record_model(q.csrname)
     record = None
-    if search_request.row_id:
-        record = pycmc.read_row(csrname=search_request.csrname, id=search_request.row_id)
-    elif search_request.pk_value:
-        record = pycmc.read_row(csrname=search_request.csrname, pk=search_request.pk_value)
+    if q.row_id:
+        record = pycmc.read_row(csrname=q.csrname, id=q.row_id)
+    elif q.pk_value:
+        if q.condition == ConditionType.EQUAL:
+            record = pycmc.read_row(csrname=q.csrname, pk=q.pk_value)
     if record:
-        validated = record_type.model_validate(record)
-        return SearchResponse(records=[validated], more=None, search_request=search_request)
+        return record_type.model_validate(record)
 
-    more, records = await gather_records(input_type=record_type, pycmc=pycmc, sq=search_request)
-    return SearchResponse(records=records, more=more, search_request=search_request)
+    # records, more = await gather_records(pycmc=pycmc, csrname=q.csrname, pagination=q.pagination)
+    # return SearchResponse(records=records, more=more, search_request=q)
+    #
 
 
 async def pycommence_response(
-    search_request: SearchRequest = Depends(SearchRequest.from_query),
+    q: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_query),
-) -> SearchResponse:
-    resp = await pycommence_search(search_request, pycmc)
-    if search_request.max_rtn and resp.length > search_request.max_rtn:
+) -> AMHERST_TABLE_MODELS | SearchResponse:
+    if record := await pycommence_search(q, pycmc):
+        return record
+    records, more = await gather_records_q(pycmc=pycmc, q=q)
+    resp = SearchResponse(records=records, more=more, search_request=q)
+
+    if q.max_rtn and resp.length > q.max_rtn:
         raise HTTPException(
             status_code=404,
-            detail=f'Too many items found: Specified {search_request.max_rtn} rows and returned {resp.length}',
+            detail=f'Too many items found: Specified {q.max_rtn} rows and returned {resp.length}',
         )
     return resp
 
@@ -150,11 +128,7 @@ async def get_one(
     pycmc: PyCommence = Depends(pycmc_f_query),
 ) -> AMHERST_TABLE_MODELS:
     search_request.max_rtn = 1
-    resp = await pycommence_search(search_request, pycmc)
-    if resp.length == 1:
-        return resp.records[0]
-    elif resp.length == 0:
-        raise ValueError(f'No {search_request.csrname} record found for {search_request.pk_value}')
+    return await pycommence_search(search_request, pycmc)
 
 
 def record_tracking(record, shipment_response):

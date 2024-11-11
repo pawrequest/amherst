@@ -11,7 +11,7 @@ from amherst.models.filters import (
     DEFAULT_CUSTOMER_FILTER,
     DEFAULT_HIRE_FILTER,
     DEFAULT_SALE_FILTER,
-    HIRE_CUSOMER_CONNECTION, SALE_CUSOMER_CONNECTION,
+    CUSOMER_CONNECTION, CUSOMER_CONNECTION,
 )
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection
@@ -32,7 +32,7 @@ Hire_Map = AmherstMapping(
     record_model=AmherstHire,
     aliases=HireAliases,
     default_filter=DEFAULT_HIRE_FILTER,
-    customer_connection=HIRE_CUSOMER_CONNECTION,
+    customer_connection=CUSOMER_CONNECTION,
 )
 
 Sale_Map = AmherstMapping(
@@ -40,7 +40,7 @@ Sale_Map = AmherstMapping(
     record_model=AmherstSale,
     aliases=SaleAliases,
     default_filter=DEFAULT_SALE_FILTER,
-    customer_connection=SALE_CUSOMER_CONNECTION,
+    customer_connection=CUSOMER_CONNECTION,
 )
 
 Customer_Map = AmherstMapping(

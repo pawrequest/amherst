@@ -10,7 +10,6 @@ import pydantic as _p
 from pydantic import Field
 
 from pycommence.pycmc_types import (
-    Connection,
     get_cmc_date,
 )
 from shipaw.ship_types import limit_daterange_no_weekends
@@ -49,6 +48,17 @@ class HireStatus(StrEnum):
     CANCELLED = 'Cancelled'
     EXTENDED = 'Extended'
     SOLD = 'Sold to customer'
+
+
+class SaleStatus(StrEnum):
+    BOOKED = 'Ordered Ready To Go'
+    PACKED = 'Packed'
+    SENT = 'Sent'
+    WAITING_PAYMENT = 'Waiting For Payment'
+    WAITING_OTHER = 'Waiting For Other'
+    QUOTE = 'Quote Sent'
+    LOST_KIT = 'Lost Kit Invoice'
+    CANCELLED = 'Cancelled'
 
 
 class AbstractAmherstShipable(str, ABC):
@@ -233,6 +243,8 @@ class TrialAliases(StrEnum):
     ARRANGED_IN = 'Pickup Arranged'
     TRACK_OUT = 'Track Outbound'
     TRACK_IN = 'Track Inbound'
+
+    STATUS = 'Status'
 
 
 # def get_alias(tablename: str, field_name: str) -> str:

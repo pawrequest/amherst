@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import functools
+from datetime import datetime, timedelta
 from typing import Literal
 
+from amherst.models.amherst_models import AmherstCustomer, AmherstOrderBase
 from pycommence.filters import (
     ConditionType,
     ConnectedFieldFilter,
@@ -16,13 +18,24 @@ from amherst.models.commence_adaptors import HireAliases, SaleAliases
 FilterName = Literal['hire', 'sale', 'customer']
 
 
+def filter_orders[T: AmherstOrderBase](recs: list[T]) -> list[T]:
+    recs = [r for r in recs if r.send_date > (datetime.now() - timedelta(days=30)).date()]
+    recs = [r for r in recs if not r.arranged_out]
+    recs = [r for r in recs if 'return' not in r.status.lower()]
+    return recs
+
+
+def filter_customers(custs: list[AmherstCustomer]) -> list[AmherstCustomer]:
+    custs = [c for c in custs if c.hires or c.sales]
+    return custs
+
+
 DEFAULT_HIRE_FILTER = FilterArray(
     filters={
-        1: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one month ago'),
-        2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one month from today'),
-        3: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_CONTAIN, value='return'),
+        1: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.CONTAIN, value='Booked'),
+        2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one month ago'),
+        3: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one month from today'),
         4: FieldFilter(column=HireAliases.ARRANGED_OUT, condition=ConditionType.NOT),
-        # 4: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
     },
     sorts=[
         (HireAliases.SEND_DATE, SortOrder.ASC),
@@ -39,32 +52,30 @@ DEFAULT_SALE_FILTER = FilterArray(
 )
 
 
-CUSTOMER_HIRE_CONNECTION = Connection(name='Has Hired', category='Hire', column='Name')
-CUSTOMER_SALE_CONNECTION = Connection(name='Involves', category='Sale', column='Name')
-HIRE_CUSOMER_CONNECTION = Connection(name='To', category='Customer', column='Name')
-SALE_CUSOMER_CONNECTION = Connection(name='To', category='Customer', column='Name')
+HIRE_CONNECTION = Connection(name='Has Hired', category='Hire', column='Name')
+SALE_CONNECTION = Connection(name='Involves', category='Sale', column='Name')
+CUSOMER_CONNECTION = Connection(name='To', category='Customer', column='Name')
 
 
 @functools.lru_cache
 def get_customer_filter():
     hire_fils = DEFAULT_HIRE_FILTER.filters.values()
     hire_logics = DEFAULT_HIRE_FILTER.logics
-    customer_hire_filters = [ConnectedFieldFilter.from_fil(f, CUSTOMER_HIRE_CONNECTION) for f in hire_fils]
+    customer_hire_filters = [ConnectedFieldFilter.from_fil(f, HIRE_CONNECTION) for f in hire_fils]
     sale_fils = DEFAULT_SALE_FILTER.filters.values()
     sale_logics = DEFAULT_SALE_FILTER.logics
-    customer_sale_filters = [ConnectedFieldFilter.from_fil(f, CUSTOMER_SALE_CONNECTION) for f in sale_fils]
-    # assert len(customer_hire_filters) == 4
-    # assert len(customer_sale_filters) == 1
+    customer_sale_filters = [ConnectedFieldFilter.from_fil(f, SALE_CONNECTION) for f in sale_fils]
 
     return FilterArray(
         filters={
             1: customer_hire_filters[0],
             2: customer_hire_filters[1],
             3: customer_hire_filters[2],
-            4: customer_hire_filters[2],  # dupe to make logics work?
+            4: customer_hire_filters[3],
             5: customer_sale_filters[0],
         },
-        logics=hire_logics + ['Or'] + sale_logics,
+        logics=['And', 'And', 'And', 'Or'],
+        # logics=hire_logics + ['Or'] + sale_logics,
     )
 
 

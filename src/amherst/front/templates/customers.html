@@ -3,15 +3,13 @@
     {#    <div class="record"#}
     {#    >#}
     <div class="record record__customer">
-        <div class="record-head"
-             hx-get="/customer?customer_name={{ record.customer_name | urlencode }}"
-{#                             hx-target="this"#}
+        <h3 class="record-head"
+             hx-get="/customer?customer_name={{ record.customer_name | urlencode }}&filtered=true"
              hx-target="#{{ record.customer_name | sanitise_id }}_records"
-{#             hx-swap="beforeend"#}
              hx-swap="outerHTML"
         >
             {{ record.name }}
-        </div>
+        </h3>
     </div>
     <div id="{{ record.customer_name | sanitise_id }}_records" class="records"></div>
 {% endfor %}

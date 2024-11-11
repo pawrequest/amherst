@@ -1,18 +1,21 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import Self
+from collections.abc import Sequence
 
 from fastapi import Depends, Form, Query
 from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
-from pycommence.filters import ConditionType
+from amherst.models.commence_adaptors import CustomerAliases
+from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 # from amherst.back.pyc_backend import pycmc_f_path
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.amherst_models import AMHERST_ORDER_MODELS, AMHERST_TABLE_MODELS
 from amherst.models.maps import AmherstTableName, CMAP
 
 PAGE_SIZE = 30
@@ -52,7 +55,8 @@ class SearchRequest(BaseModel):
     condition: ConditionType = ConditionType.CONTAIN
     max_rtn: int | None = None
     search_dict: dict = Field(default_factory=dict)
-    pagination: Pagination = Pagination()
+    pagination: Pagination | None = None
+    py_filter: bool = False
 
     def __str__(self):
         return (
@@ -89,17 +93,18 @@ class SearchRequest(BaseModel):
         if self.filtered:
             qstr += f'&filtered={str(self.filtered).lower()}'
         if self.pk_value:
-            qstr += f'&pkvalue={self.pk_value}'
+            qstr += f'&pk_value={self.pk_value}'
         if self.row_id:
             qstr += f'&row_id={self.row_id}'
         if self.customer_id:
             qstr += f'&customer_id={self.customer_id}'
         if self.customer_name:
             qstr += f'&customer_name={self.customer_name}'
-        if pagination.limit:
-            qstr += f'&limit={pagination.limit}'
-        if pagination.offset:
-            qstr += f'&offset={pagination.offset}'
+        if pagination:
+            if pagination.limit:
+                qstr += f'&limit={pagination.limit}'
+            if pagination.offset:
+                qstr += f'&offset={pagination.offset}'
         return qstr
 
     def next_request(self):
@@ -120,6 +125,7 @@ class SearchRequest(BaseModel):
         row_id: str = Query(None),
         customer_name: str = Query(None),
         customer_id: str = Query(None),
+        py_filter: bool = Query(False),
     ):
         res = cls(
             csrname=csrname,
@@ -131,40 +137,33 @@ class SearchRequest(BaseModel):
             row_id=row_id,
             customer_name=customer_name,
             customer_id=customer_id,
+            py_filter=py_filter,
         )
         logger.info(str(res))
         return res
 
-    # @classmethod
-    # def from_body(
-    #     cls,
-    #     csrname: AmherstTableName = Body(...),
-    #     row_id: str = Body(None),
-    #     pk_value: str = Body(None),
-    #     filtered: bool = Body(True),
-    #     search_dict: dict = Body(default_factory=dict),
-    #     pagination: Pagination = Depends(Pagination.from_query),
-    #     condition: ConditionType = Body(ConditionType.CONTAIN),
-    #     max_rtn: int = Body(None),
-    #     customer_name: str = Body(...),
-    # ):
-    #     logger.warning(f'SearchRequest.from_body({csrname=}, {filtered=}, {pk_value=}, {search_dict=}, {pagination=})')
-    #     return cls(
-    #         csrname=csrname,
-    #         filtered=filtered,
-    #         pagination=pagination,
-    #         pk_value=pk_value,
-    #         package=search_dict,
-    #         condition=condition,
-    #         row_id=row_id,
-    #         max_rtn=max_rtn,
-    #     )
+    def filter_array(self):
+        cmap = CMAP[self.csrname]
+        fil_array = cmap.default_filter.__deepcopy__() if self.filtered else FilterArray()
+
+        if self.pk_value:
+            fil_array.add_filter(FieldFilter(column=cmap.aliases.NAME, condition=self.condition, value=self.pk_value))
+
+        if self.customer_name:
+            if cust_con := cmap.customer_connection:
+                customer_filter = FieldFilter(
+                    column=CustomerAliases.CUSTOMER_NAME,
+                    condition=self.condition,
+                    value=self.customer_name,
+                )
+                fil_array.add_filter(ConnectedFieldFilter.from_fil(field_fil=customer_filter, connection=cust_con))
+        return fil_array
 
 
 class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     records: list[T]
     length: int = 0
-    search_request: SearchRequest | list[SearchRequest]
+    search_request: SearchRequest
     more: MoreAvailable | None = None
 
     def __str__(self):
@@ -177,6 +176,17 @@ class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     def set_length(self):
         self.length = len(self.records)
         return self
+
+
+class SearchResponseMulti(SearchResponse):
+    search_request: Sequence[SearchRequest]
+
+    def __str__(self):
+        rtypes = ', '.join([req.csrname for req in self.search_request])
+        return (
+            f'Search Response: {self.length}x {rtypes} records'
+            f', {str(self.more.n_more) + ' more available' if self.more else ''} '
+        )
 
 
 class SearchConversation(BaseModel):
@@ -192,3 +202,5 @@ async def record_from_json_str_form(
     modeltype = CMAP[category].record_model
     res = modeltype.model_validate(record_dict)
     return res
+
+

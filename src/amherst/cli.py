@@ -70,7 +70,8 @@ async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
     with pycommence_context(category) as pycmc:
         search_response = await pycommence_search(search_request, pycmc)
     # search_response = await pycommence_response(search_request)
-    row = await parse_response(search_response)
+    row = search_response
+    # row = await parse_response(search_response)
     url_suffix = await get_url_suffix(row, mode)
     await run_desktop_ui(url_suffix)
 

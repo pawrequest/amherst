@@ -1,24 +1,19 @@
 <!-- templates/sidebar.html -->
-<label for="filterInput">Filter</label>
-<input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">
+{#<label for="filterInput">Filter</label>#}
+{#<input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">#}
 
 <form id="searchForm"
       hx-target="#record-container"
       hx-swap="innerHTML"
-      hx-trigger="input changed delay:1000ms, search"
+      hx-trigger="input changed delay:10ms, search"
       hx-get='/search?csrname=Customer&filtered=false'
+      onsubmit="return false"
 >
-    <label for="searchInput">Search</label>
-    <input type="text" id="searchInput" name="customer_name" placeholder="Fetch New Records...">
+    <label for="searchInput"></label>
+    <input type="text" id="searchInput" name="pk_value" placeholder="Fetch New Records...">
 </form>
 
-<div class="record-container" id="record-container" hx-get="/search?csrname=Customer&filtered=true"
+<div class="record-container" id="record-container" hx-get="/search?csrname=Customer&filtered=true&py_filter=true"
      hx-trigger="load"
      hx-target="this" hx-swap="innerHTML">
 </div>
-
-<script>
-
-    {#document.getElementById('searchInput').addEventListener('keyup', () => {#}
-    {#    delay(loadOrders, 1000)();#}
-</script>
