@@ -5,15 +5,15 @@ from typing import NamedTuple
 
 from fastapi import Query
 
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTableBase, AmherstTrial
-from amherst.models.commence_adaptors import AmherstTableName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
+from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTableBase
+from amherst.models.commence_adaptors import CsrName, CustomerAliases, HireAliases, SaleAliases
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
     CUSTOMER_ARRAY_LOOSE,
     CUSTOMER_ARRAY_TIGHT,
-    HIRE_ARRAY_TIGHT,
-    SALE_ARRAY_TIGHT,
-    customer_row_filter_loose,
+    HIRE_ARRAY_LOOSE, HIRE_ARRAY_TIGHT,
+    HIRE_CONNECTION, SALE_ARRAY_LOOSE, SALE_ARRAY_TIGHT,
+    SALE_CONNECTION, customer_row_filter_loose,
     hire_row_filter_loose,
     sale_row_filter_loose,
 )
@@ -21,147 +21,100 @@ from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
 
 
-class FilterMapRow(NamedTuple):
+class FilterMapPy(NamedTuple):
     loose: RowFilter | None = None
     tight: RowFilter | None = None
 
 
-class FilterMapArray(NamedTuple):
+class FilterMapCmc(NamedTuple):
     loose: FilterArray | None = None
     tight: FilterArray | None = None
 
 
-HireArrayMap = FilterMapArray(
-    loose=HIRE_ARRAY_TIGHT,
-    tight=HIRE_ARRAY_TIGHT,
-)
-
-SaleArrayMap = FilterMapArray(
-    loose=SALE_ARRAY_TIGHT,
-    tight=SALE_ARRAY_TIGHT,
-)
-
-CustomerArrayMap = FilterMapArray(
-    loose=CUSTOMER_ARRAY_LOOSE,
-    tight=CUSTOMER_ARRAY_TIGHT,
-)
+class ConnectionMap(NamedTuple):
+    customer: Connection | None = None
+    hire: Connection | None = None
+    sale: Connection | None = None
 
 
-HireFilterMap = FilterMapRow(
-    loose=hire_row_filter_loose,
-    tight=hire_row_filter_loose,
-)
-
-SaleFilterMap = FilterMapRow(
-    loose=sale_row_filter_loose,
-    tight=sale_row_filter_loose,
-)
-
-CustomerFilterMap = FilterMapRow(
-    loose=customer_row_filter_loose,
-    tight=customer_row_filter_loose,
-)
+class TemplateMap(NamedTuple):
+    listing: str
+    detail: str
 
 
-class AmherstMapping(NamedTuple):
-    category: AmherstTableName
+class AmherstMap(NamedTuple):
+    category: CsrName
     record_model: type(AmherstTableBase)
     aliases: type(StrEnum)
-    listing_template: str = 'customers.html'
-    detail_template: str = 'hires_sales.html'
-    default_filter: FilterArray = FilterArray()
-    customer_connection: Connection | None = None
-    py_filters: FilterMapRow | None = None
-    cmc_filters: FilterMapArray | None = None
-
-
-Hire_Map = AmherstMapping(
-    category=AmherstTableName.Hire,
-    record_model=AmherstHire,
-    aliases=HireAliases,
-    default_filter=HIRE_ARRAY_TIGHT,
-    customer_connection=CUSOMER_CONNECTION,
-    py_filters=HireFilterMap,
-    cmc_filters=HireArrayMap,
-)
+    templates: TemplateMap
+    connections: ConnectionMap | None = None
+    py_filters: FilterMapPy | None = None
+    cmc_filters: FilterMapCmc | None = None
 
 
 class AmherstMaps:
-    hire: AmherstMapping = AmherstMapping(
-        category=AmherstTableName.Hire,
+    hire: AmherstMap = AmherstMap(
+        category=CsrName.Hire,
         record_model=AmherstHire,
         aliases=HireAliases,
-        default_filter=HIRE_ARRAY_TIGHT,
-        customer_connection=CUSOMER_CONNECTION,
-        py_filters=HireFilterMap,
-        cmc_filters=HireArrayMap,
+        templates=TemplateMap(
+            listing='order_list.html',
+            detail='order_detail.html',
+        ),
+        connections=ConnectionMap(
+            customer=CUSOMER_CONNECTION,
+        ),
+        py_filters=FilterMapPy(
+            loose=hire_row_filter_loose,
+            tight=hire_row_filter_loose,
+        ),
+        cmc_filters=FilterMapCmc(
+            loose=HIRE_ARRAY_LOOSE,
+            tight=HIRE_ARRAY_TIGHT,
+        ),
     )
-    sale: AmherstMapping = AmherstMapping(
-        category=AmherstTableName.Sale,
+    sale: AmherstMap = AmherstMap(
+        category=CsrName.Sale,
         record_model=AmherstSale,
         aliases=SaleAliases,
-        default_filter=SALE_ARRAY_TIGHT,
-        customer_connection=CUSOMER_CONNECTION,
-        py_filters=SaleFilterMap,
-        cmc_filters=SaleArrayMap,
+        templates=TemplateMap(
+            listing='order_list.html',
+            detail='order_detail.html',
+        ),
+        connections=ConnectionMap(
+            customer=CUSOMER_CONNECTION,
+        ),
+        py_filters=FilterMapPy(
+            loose=sale_row_filter_loose,
+            tight=sale_row_filter_loose,
+        ),
+        cmc_filters=FilterMapCmc(
+            loose=SALE_ARRAY_LOOSE,
+            tight=SALE_ARRAY_TIGHT,
+        ),
     )
-    customer: AmherstMapping = AmherstMapping(
-        category=AmherstTableName.Customer,
+    customer: AmherstMap = AmherstMap(
+        category=CsrName.Customer,
         record_model=AmherstCustomer,
         aliases=CustomerAliases,
-        default_filter=CUSTOMER_ARRAY_TIGHT,
-        listing_template='customers.html',
-        py_filters=CustomerFilterMap,
-        cmc_filters=CustomerArrayMap,
+        templates=TemplateMap(
+            listing='customer_list.html',
+            detail='customer_detail.html',
+        ),
+        connections=ConnectionMap(
+            hire=HIRE_CONNECTION,
+            sale=SALE_CONNECTION,
+        ),
+        py_filters=FilterMapPy(
+            loose=customer_row_filter_loose,
+            tight=customer_row_filter_loose,
+        ),
+        cmc_filters=FilterMapCmc(
+            loose=CUSTOMER_ARRAY_LOOSE,
+            tight=CUSTOMER_ARRAY_TIGHT,
+        ),
     )
 
 
-async def maps2(csrname: AmherstTableName = Query(...)) -> AmherstMapping:
+async def maps2(csrname: CsrName = Query(...)) -> AmherstMap:
     return getattr(AmherstMaps, csrname.lower())
-
-
-Sale_Map = AmherstMapping(
-    category=AmherstTableName.Sale,
-    record_model=AmherstSale,
-    aliases=SaleAliases,
-    default_filter=SALE_ARRAY_TIGHT,
-    customer_connection=CUSOMER_CONNECTION,
-    py_filters=SaleFilterMap,
-    cmc_filters=SaleArrayMap,
-)
-
-Customer_Map = AmherstMapping(
-    category=AmherstTableName.Customer,
-    record_model=AmherstCustomer,
-    aliases=CustomerAliases,
-    default_filter=CUSTOMER_ARRAY_TIGHT,
-    listing_template='customers.html',
-    py_filters=CustomerFilterMap,
-    cmc_filters=CustomerArrayMap,
-)
-
-Trial_Map = AmherstMapping(
-    category=AmherstTableName.Trial,
-    record_model=AmherstTrial,
-    aliases=TrialAliases,
-)
-
-MODEL_MAPS = {
-    AmherstTableName.Hire: Hire_Map,
-    AmherstTableName.Sale: Sale_Map,
-    AmherstTableName.Customer: Customer_Map,
-    AmherstTableName.Trial: Trial_Map,
-}
-
-
-def model_maps():
-    return {
-        AmherstTableName.Hire: Hire_Map,
-        AmherstTableName.Sale: Sale_Map,
-        AmherstTableName.Customer: Customer_Map,
-        AmherstTableName.Trial: Trial_Map,
-    }
-
-
-async def mapper_csrname(csrname: AmherstTableName = Query(...)) -> AmherstMapping:
-    return MODEL_MAPS[csrname]

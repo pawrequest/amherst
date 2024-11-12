@@ -11,7 +11,7 @@ from pydantic import AliasGenerator, BaseModel, ConfigDict
 from shipaw.models.pf_shipment import Shipment
 from amherst.models.commence_adaptors import (
     AM_DATE,
-    AmherstTableName,
+    CsrName,
     HireStatus,
     SaleStatus,
     customer_alias,
@@ -55,7 +55,7 @@ class AmherstTableBase(BaseModel, ABC):
     row_id: str | None = None
     name: str
     customer_name: str
-    category: AmherstTableName
+    category: CsrName
 
     delivery_contact_name: str
     delivery_contact_business: str
@@ -116,7 +116,7 @@ class AmherstTableBase(BaseModel, ABC):
 class AmherstCustomer(AmherstTableBase):
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=customer_alias))
     # model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=customer_alias, )) WHY comma?!
-    category: AmherstTableName = 'Customer'
+    category: CsrName = 'Customer'
     invoice_email: str = ''
     accounts_email: str = ''
     hires: str = ''
@@ -125,7 +125,7 @@ class AmherstCustomer(AmherstTableBase):
 
 class AmherstTrial(AmherstTableBase):
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=trial_alias))
-    category: AmherstTableName = 'Trial'
+    category: CsrName = 'Trial'
     status: str
 
 
@@ -149,13 +149,13 @@ class AmherstOrderBase(AmherstTableBase, ABC):
 
 
 class AmherstSale(AmherstOrderBase):
-    category: AmherstTableName = 'Sale'
+    category: CsrName = 'Sale'
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=sale_alias))
     status: SaleStatus
 
 
 class AmherstHire(AmherstOrderBase):
-    category: AmherstTableName = 'Hire'
+    category: CsrName = 'Hire'
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=hire_alias))
     status: HireStatus
 

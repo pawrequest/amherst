@@ -6,8 +6,6 @@ from enum import StrEnum
 from typing import Literal
 from collections.abc import Generator
 
-from loguru import logger
-from pydantic import BaseModel
 
 from pycommence.filters import (
     ConditionType,
@@ -20,7 +18,7 @@ from pycommence.pycmc_types import Connection, get_cmc_date
 from amherst.models.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
 
 CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
-FilterName = Literal['hire', 'sale', 'customer']
+FilterVariant = Literal['loose', 'tight']
 
 
 def customer_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
@@ -51,25 +49,6 @@ def hire_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Gene
 
 def sale_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
     yield from order_row_filter_loose(SaleAliases, rowgen)
-
-
-# def filter_sales_rowgen(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
-#     yield from filter_orders_from_alias(SaleAliases, rowgen)
-
-
-#
-#     for r in recs:
-#         if r.get('send_date') > (datetime.now() - timedelta(days=30)).date():
-#             if not r.get('arranged_out'):
-#                 if 'return' not in r.get('status').lower():
-#                     yield r
-
-
-class FilterMap(BaseModel):
-    cmc_filters: tuple[FieldFilter, ...]
-    cmc_logics: tuple[str, ...]
-    cmc_sorts: tuple[tuple[str, SortOrder], ...]
-    filter_array: FilterArray = None
 
 
 HIRE_ARRAY_TIGHT = FilterArray(
@@ -115,10 +94,8 @@ CUSOMER_CONNECTION = Connection(name='To', category='Customer', column='Name')
 @functools.lru_cache
 def customer_array_tight():
     hire_fils = HIRE_ARRAY_TIGHT.filters.values()
-    hire_logics = HIRE_ARRAY_TIGHT.logics
     customer_hire_filters = [ConnectedFieldFilter.from_fil(f, HIRE_CONNECTION) for f in hire_fils]
     sale_fils = SALE_ARRAY_TIGHT.filters.values()
-    sale_logics = SALE_ARRAY_TIGHT.logics
     customer_sale_filters = [ConnectedFieldFilter.from_fil(f, SALE_CONNECTION) for f in sale_fils]
 
     return FilterArray(

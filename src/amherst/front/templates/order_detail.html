@@ -1,10 +1,8 @@
-<!-- templates/hires_sales2.html -->
-{#context = {response: CustomerResponse}#}
+<!-- templates/order_detail.html -->
 {% for record in response.records %}
     <div class="record record__customer">
-
         <h3 class="record-head"
-            hx-get="/customer?customer_name={{ record.customer_name | urlencode }}&filtered=false&py_filter=true"
+            hx-get="/orders?customer_name={{ record.customer_name | urlencode }}&cmc_filter=loose"
             hx-target="#{{ record.customer_name | sanitise_id }}_records"
             hx-swap="outerHTML"
             hx-trigger="click"
@@ -12,8 +10,8 @@
             {{ record.name }}
         </h3>
     </div>
-
 {% endfor %}
-{#{% if response.more %}#}
-{#    {% include 'infinite.html' with context %}#}
-{#{% endif %}#}
+
+{% if response.more %}
+    {% include 'infinite.html' with context %}
+{% endif %}

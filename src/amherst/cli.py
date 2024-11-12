@@ -29,7 +29,7 @@ from amherst.back.backend_pycommence import pycommence_context, pycommence_searc
 from amherst.back.backend_search_paginate import SearchRequest, log_action
 from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
-from amherst.models.commence_adaptors import AmherstTableName
+from amherst.models.commence_adaptors import CsrName
 from pycommence.filters import ConditionType
 
 SCORER = fuzz.partial_ratio
@@ -48,16 +48,16 @@ async def get_url_suffix(record: AmherstTableBase, mode: Mode = MODE):
 
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('category', type=AmherstTableName, choices=list(AmherstTableName))
+    arg_parser.add_argument('category', type=CsrName, choices=list(CsrName))
     arg_parser.add_argument('record_name', type=str)
     args = arg_parser.parse_args()
     if args.category.lower() == 'trial':
         args.category = 'radio trial'
-    args.category = AmherstTableName(args.category.title())
+    args.category = CsrName(args.category.title())
     return args
 
 
-async def main(category: AmherstTableName, record_name: str, mode: Mode = MODE):
+async def main(category: CsrName, record_name: str, mode: Mode = MODE):
     logger.warning('hastily removed filterarray from cursor')
     # logger.info(f'Starting Shipper searching for {category} record: {record_name}')
     search_request = SearchRequest(

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from functools import wraps
-from typing import Literal, Self
+from typing import Self
 from collections.abc import Sequence
 
 from fastapi import Depends, Form, Query
@@ -14,9 +14,10 @@ from amherst.models.commence_adaptors import CustomerAliases
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstTableName, MODEL_MAPS
+from amherst.models.filters import FilterVariant
+from amherst.models.maps import CsrName, maps2
 
-PAGE_SIZE = 100
+PAGE_SIZE = 50
 
 
 def log_action(func):
@@ -45,11 +46,9 @@ class Pagination(_Pagination):
         return cls(limit=limit, offset=offset)
 
 
-FilterVariant = Literal['loose', 'tight']
-
-
 class SearchRequest(BaseModel):
-    csrname: AmherstTableName
+    csrname: CsrName | None = None
+    csrnames: list[CsrName] | None = None
     row_id: str | None = None
     pk_value: str | None = None
     customer_id: str | None = None
@@ -60,11 +59,19 @@ class SearchRequest(BaseModel):
     search_dict: dict = Field(default_factory=dict)
     pagination: Pagination | None = Pagination()
     cmc_filter: FilterVariant | None = 'loose'
-    py_filter: FilterVariant | None = 'none'
+    py_filter: FilterVariant | None = None
+
+    @model_validator(mode='after')
+    def cursornames(self):
+        if not self.csrname and not self.csrnames:
+            raise ValueError('No csrname or csrnames provided')
+        if self.csrname and not self.csrnames:
+            self.csrnames = [self.csrname]
+        return self
 
     def __str__(self):
         return (
-            f'Csr: {self.csrname}'
+            f'Csr: {self.csrname if self.csrname else ', '.join(self.csrnames)}'
             f'{' | pk=:' + self.pk_value if self.pk_value else ''}'
             f'{' | row_id=:' + self.row_id if self.row_id else ''}'
             f'{' | customer_name="' + self.customer_name + '"' if self.customer_name else ''}'
@@ -95,18 +102,18 @@ class SearchRequest(BaseModel):
         pagination = pagination or self.pagination
         qstr = '/api' if api else ''
         qstr += f'/search?csrname={self.csrname}'
-        if self.filtered:
-            qstr += f'&filtered={str(self.filtered).lower()}'
-        if self.cmc_filter:
-            qstr += f'&py_filter={str(self.cmc_filter).lower()}'
-        if self.pk_value:
-            qstr += f'&pk_value={self.pk_value}'
-        if self.row_id:
-            qstr += f'&row_id={self.row_id}'
-        if self.customer_id:
-            qstr += f'&customer_id={self.customer_id}'
-        if self.customer_name:
-            qstr += f'&customer_name={self.customer_name}'
+        for attr in [
+            'condition',
+            'max_rtn',
+            'cmc_filter',
+            'py_filter',
+            'pk_value',
+            'row_id',
+            'customer_id',
+            'customer_name',
+        ]:
+            if val := getattr(self, attr):
+                qstr += f'&{attr}={val}'
         if pagination:
             if pagination.limit:
                 qstr += f'&limit={pagination.limit}'
@@ -120,10 +127,14 @@ class SearchRequest(BaseModel):
     def prev_request(self):
         return self.model_copy(update={'pagination': self.pagination.prev_page()})
 
+    def mapper(self):
+        return maps2(self.csrname)
+
     @classmethod
     def from_query(
         cls,
-        csrname: AmherstTableName = Query(...),
+        csrname: CsrName = Query(None),
+        csrnames: list[CsrName] = Query(None),
         # filtered: bool = Query(False),
         pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query),
@@ -137,6 +148,7 @@ class SearchRequest(BaseModel):
     ):
         return cls(
             csrname=csrname,
+            csrnames=csrnames,
             pagination=pagination,
             pk_value=pk_value,
             cmc_filter=cmc_filter,
@@ -148,15 +160,15 @@ class SearchRequest(BaseModel):
             py_filter=py_filter,
         )
 
-    def filter_array(self):
-        cmap = MODEL_MAPS[self.csrname]
-        fil_array = getattr(cmap.cmc_filters, self.cmc_filter).model_copy() if self.cmc_filter else FilterArray()
+    async def filter_array(self):
+        cmap = await maps2(self.csrname)
+        fil_array = getattr(cmap.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
 
         if self.pk_value:
             fil_array.add_filter(FieldFilter(column=cmap.aliases.NAME, condition=self.condition, value=self.pk_value))
 
         if self.customer_name:
-            if cust_con := cmap.customer_connection:
+            if cust_con := cmap.connections.customer:
                 customer_filter = FieldFilter(
                     column=CustomerAliases.CUSTOMER_NAME,
                     condition=self.condition,
@@ -174,9 +186,9 @@ class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
 
     def __str__(self):
         return (
-            f'Search Response: {self.length}x {self.search_request.csrname} records. '
+            f'Search Response: {self.length}x {self.search_request.csrname if self.search_request.csrname else ', '.join(self.search_request.csrnames)} records'
+            f'{' (' + str(self.more.n_more) + ' more available),' if self.more else '. '} '
             f'SearchRequest[{str(self.search_request)}]'
-            f'{', ' + str(self.more.n_more) + ' more available' if self.more else ''} '
         )
 
     @model_validator(mode='after')
@@ -189,7 +201,7 @@ class SearchResponseMulti(SearchResponse):
     search_request: Sequence[SearchRequest]
 
     def __str__(self):
-        rtypes = '| '.join([req.csrname for req in self.search_request])
+        rtypes = '/'.join([req.csrname for req in self.search_request])
         return (
             f'Search Response with {self.length}x {rtypes} records. '
             f'SearchRequests[{'; '.join(str(_) for _ in self.search_request)}]'

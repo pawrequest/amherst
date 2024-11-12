@@ -8,35 +8,52 @@ from loguru import logger
 from starlette.exceptions import HTTPException
 
 from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
-from pycommence.filters import ConditionType, FilterArray
+from pycommence.filters import ConditionType
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstMapping, AmherstTableName, mapper_csrname, maps2
+from amherst.models.maps import AmherstMap, CsrName, maps2
 
 
 @contextlib.contextmanager
-def pycommence_context(csrname: AmherstTableName) -> PyCommence:
+def pycommence_context(csrname: CsrName) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname)
     yield pyc
     CoUninitialize()
 
 
+@contextlib.contextmanager
+def pycommences_context(csrnames: list[CsrName]) -> PyCommence:
+    CoInitialize()
+    pyc = PyCommence()
+    for csrname in csrnames:
+        pyc.set_csr(csrname)
+    yield pyc
+    CoUninitialize()
+
+
 async def pycmc_f_query(
-    csrname: AmherstTableName = Query(...),
+    csrname: CsrName = Query(...),
 ) -> PyCommence:
     with pycommence_context(csrname=csrname) as pycmc:
+        yield pycmc
+
+
+async def pycmcs_f_query(
+    csrnames: list[CsrName] = Query(...),
+) -> PyCommence:
+    with pycommences_context(csrnames=csrnames) as pycmc:
         yield pycmc
 
 
 async def gather_records_gen(
     pycmc: PyCommence,
     q: SearchRequest,
-    mapper: AmherstMapping = Depends(maps2),
 ) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
+    mapper = await q.mapper()
     input_type = mapper.record_model
-    fil_array = q.filter_array()
+    fil_array = await q.filter_array()
     row_filter = mapper.py_filters.loose if q.cmc_filter else None
     rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end if q.pagination.end else 0
     rowgen = pycmc.read_rows(
@@ -62,21 +79,20 @@ async def pycommence_search(
         if q.condition == ConditionType.EQUAL:
             record = pycmc.read_row(csrname=q.csrname, pk=q.pk_value)
     if record:
-        mapper = await mapper_csrname(csrname=q.csrname)
+        mapper = await maps2(csrname=q.csrname)
         return mapper.record_model.model_validate(record)
 
 
 async def pycommence_response(
     q: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_query),
-    mapper: AmherstMapping = Depends(maps2),
+    mapper: AmherstMap = Depends(maps2),
 ) -> AMHERST_TABLE_MODELS | SearchResponse:
-
     if record := await pycommence_search(q, pycmc):
         records, more = [record], None
 
     else:
-        records, more = await gather_records_gen(pycmc=pycmc, q=q, mapper=mapper)
+        records, more = await gather_records_gen(pycmc=pycmc, q=q)
 
     resp = SearchResponse(records=records, more=more, search_request=q)
 

@@ -17,7 +17,7 @@ from shipaw.ship_types import limit_daterange_no_weekends
 LOCATION = 'HM'
 
 
-class AmherstTableName(StrEnum):
+class CsrName(StrEnum):
     Hire = 'Hire'
     Sale = 'Sale'
     Customer = 'Customer'
