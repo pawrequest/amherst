@@ -2,10 +2,8 @@
 from __future__ import annotations
 
 from abc import ABC
-from datetime import date, datetime
-from typing import Annotated
+from datetime import date
 
-import pydantic as _p
 from pydantic import AliasGenerator, BaseModel, ConfigDict
 
 from shipaw.models.pf_shipment import Shipment
@@ -17,21 +15,16 @@ from amherst.models.commence_adaptors import (
     customer_alias,
     hire_alias,
     sale_alias,
-    trial_alias
+    trial_alias,
 )
-from pycommence.pycmc_types import get_cmc_date
 from shipaw.ship_types import limit_daterange_no_weekends
 
-# TableLit = Literal['Hire', 'Sale', 'Customer']
-SHIP_DATE = Annotated[
-    date,
-    _p.BeforeValidator(limit_daterange_no_weekends),
-]
 
-AM_SHIP_DATE = Annotated[
-    SHIP_DATE,
-    _p.BeforeValidator(get_cmc_date),
-]
+# TableLit = Literal['Hire', 'Sale', 'Customer']
+# SHIP_DATE = Annotated[
+#     date,
+#     _p.BeforeValidator(limit_daterange_no_weekends),
+# ]
 
 
 def split_addr_str(address: str) -> dict[str, str]:
@@ -65,9 +58,9 @@ class AmherstTableBase(BaseModel, ABC):
     delivery_address_str: str
     delivery_address_pc: str
 
-    # @staticmethod
-    # def dt_ordinal(date_or_dt: datetime | date) -> str:
-    #     return dt_ordinal(date_or_dt)
+    send_date: AM_DATE = date.today()
+
+    boxes: int = 1
 
     def contact_dict(self) -> dict:
         return {
@@ -87,30 +80,17 @@ class AmherstTableBase(BaseModel, ABC):
     def og_address(self):
         return self.address_dict()
 
-    def ship_details_dict(self) -> dict:
-        return {
-            'total_number_of_parcels': 1,
-            'shipping_date': limit_daterange_no_weekends(date.today()),
-        }
-
     def shipment_dict(self):
         return {
             'recipient_address': self.address_dict(),
             'recipient_contact': self.contact_dict(),
-            **self.ship_details_dict(),
+            'total_number_of_parcels': self.boxes,
+            'shipping_date': limit_daterange_no_weekends(self.send_date),
             **split_refs_from_str(self.customer_name),
         }
 
     def shipment(self):
         return Shipment.model_validate(self.shipment_dict())
-
-    #
-    # def shipment_dict_jsonable(self):
-    #     return jsonable_encoder(self.shipment_dict())
-
-    # def jsonable(self) -> dict:
-    #     logger.info('dumping jsonable, why not implement this globally?')
-    #     return jsonable_encoder(self)
 
 
 class AmherstCustomer(AmherstTableBase):
@@ -123,12 +103,6 @@ class AmherstCustomer(AmherstTableBase):
     sales: str = ''
 
 
-class AmherstTrial(AmherstTableBase):
-    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=trial_alias))
-    category: CsrName = 'Trial'
-    status: str
-
-
 class AmherstOrderBase(AmherstTableBase, ABC):
     boxes: int = 1
     invoice: str = ''
@@ -139,13 +113,11 @@ class AmherstOrderBase(AmherstTableBase, ABC):
     delivery_method: str = ''
     status: str
 
-    send_date: AM_DATE = date.today()
 
-    def ship_details_dict(self) -> dict:
-        return {
-            'total_number_of_parcels': self.boxes,
-            'shipping_date': limit_daterange_no_weekends(self.send_date),
-        }
+class AmherstTrial(AmherstOrderBase):
+    model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=trial_alias))
+    category: CsrName = 'Trial'
+    status: str
 
 
 class AmherstSale(AmherstOrderBase):

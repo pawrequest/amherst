@@ -46,6 +46,10 @@ class Pagination(_Pagination):
         return cls(limit=limit, offset=offset)
 
 
+async def get_condition(condition: str = Query('')) -> ConditionType:
+    return getattr(ConditionType, condition.upper(), ConditionType.CONTAIN)
+
+
 class SearchRequest(BaseModel):
     csrname: CsrName | None = None
     csrnames: list[CsrName] | None = None
@@ -138,7 +142,8 @@ class SearchRequest(BaseModel):
         # filtered: bool = Query(False),
         pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query),
-        condition: ConditionType = Query(ConditionType.CONTAIN),
+        condition: ConditionType = Depends(get_condition),
+        # condition: ConditionType = Query(ConditionType.CONTAIN),
         max_rtn: int = Query(None),
         row_id: str = Query(None),
         customer_name: str = Query(None),
@@ -219,6 +224,6 @@ async def record_from_json_str_form(
 ) -> AMHERST_TABLE_MODELS:
     record_dict = json.loads(record_str)
     category = record_dict['category']
-    modeltype = MODEL_MAPS[category].record_model
+    modeltype = (await maps2(category)).record_model
     res = modeltype.model_validate(record_dict)
     return res

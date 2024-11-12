@@ -6,14 +6,7 @@ from enum import StrEnum
 from typing import Literal
 from collections.abc import Generator
 
-
-from pycommence.filters import (
-    ConditionType,
-    ConnectedFieldFilter,
-    FieldFilter,
-    FilterArray,
-    SortOrder,
-)
+from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, Sort, SortOrder
 from pycommence.pycmc_types import Connection, get_cmc_date
 from amherst.models.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
 
@@ -58,9 +51,10 @@ HIRE_ARRAY_TIGHT = FilterArray(
         3: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one week from today'),
         4: FieldFilter(column=HireAliases.ARRANGED_OUT, condition=ConditionType.NOT),
     },
-    sorts=[
-        (HireAliases.SEND_DATE, SortOrder.ASC),
-    ],
+    sorts=[Sort(column=HireAliases.SEND_DATE, order=SortOrder.ASC)],
+    # sorts=[
+    #     (HireAliases.SEND_DATE, SortOrder.ASC),
+    # ],
     logics=['And', 'And', 'And'],
 )
 
@@ -70,9 +64,7 @@ HIRE_ARRAY_LOOSE = FilterArray(
         2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='three month from today'),
         # 2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BETWEEN, value='six months ago, three months from today'),
     },
-    sorts=[
-        (HireAliases.SEND_DATE, SortOrder.ASC),
-    ],
+    sorts=[Sort(column=HireAliases.SEND_DATE, order=SortOrder.ASC)],
     logics=['And'],
 )
 
@@ -81,7 +73,8 @@ SALE_ARRAY_TIGHT = FilterArray(
     filters={
         1: FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='one month ago'),
     },
-    sorts=[(SaleAliases.DATE_ORDERED, SortOrder.DESC)],
+    sorts=[Sort(column=SaleAliases.DATE_ORDERED, order=SortOrder.DESC)],
+    # sorts=[(SaleAliases.DATE_ORDERED, SortOrder.DESC)],
 )
 
 SALE_ARRAY_LOOSE = SALE_ARRAY_TIGHT

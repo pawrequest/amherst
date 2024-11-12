@@ -12,7 +12,7 @@ URL_SUFFIX = ''
 
 async def run_desktop_ui(url_suffix=''):
     try:
-        logger.info(f'WebFlaskUI with {url_suffix=}')
+        logger.info(f'Running WebFlaskUI @{url_suffix}')
         FlaskUI(
             fullscreen=True,
             app=app.app,

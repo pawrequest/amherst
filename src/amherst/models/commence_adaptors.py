@@ -286,12 +286,12 @@ AM_DATE = Annotated[
     date | None,
     _p.BeforeValidator(get_cmc_date),
 ]
-AM_SHIP_DATE = Annotated[
-    date,
-    Field(date.today(), alias='Send Out Date'),
-    _p.BeforeValidator(limit_daterange_no_weekends),
-    _p.BeforeValidator(get_cmc_date),
-]
+# AM_SHIP_DATE = Annotated[
+#     date,
+#     Field(date.today(), alias='Send Out Date'),
+#     _p.BeforeValidator(limit_daterange_no_weekends),
+#     _p.BeforeValidator(get_cmc_date),
+# ]
 
 
 def addr_lines_dict_am(address: str) -> dict[str, str]:
