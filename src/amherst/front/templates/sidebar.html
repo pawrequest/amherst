@@ -6,7 +6,7 @@
       hx-target="#record-container"
       hx-swap="innerHTML"
       hx-trigger="input changed delay:10ms, search"
-      hx-get='/search?csrname=Customer&filtered=false'
+      hx-get='/search?csrname=Customer&cmc_filter=loose'
       onsubmit="return false"
 >
     <label>
@@ -18,7 +18,8 @@
     </label>
 </form>
 
-<div class="record-container" id="record-container" hx-get="/search?csrname=Customer&filtered=false&py_filter=true"
+<div class="record-container" id="record-container" hx-get="/search?csrname=Customer&cmc_filter=loose"
+{#<div class="record-container" id="record-container" hx-get="/search?csrname=Customer&cmc_filter=tight&py_filter=none"#}
      hx-trigger="load"
      hx-target="this" hx-swap="innerHTML">
 </div>

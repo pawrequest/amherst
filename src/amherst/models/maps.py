@@ -13,9 +13,9 @@ from amherst.models.filters import (
     CUSTOMER_ARRAY_TIGHT,
     HIRE_ARRAY_TIGHT,
     SALE_ARRAY_TIGHT,
-    customer_row_filter,
-    hire_row_filter,
-    sale_row_filter,
+    customer_row_filter_loose,
+    hire_row_filter_loose,
+    sale_row_filter_loose,
 )
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
@@ -48,18 +48,18 @@ CustomerArrayMap = FilterMapArray(
 
 
 HireFilterMap = FilterMapRow(
-    loose=hire_row_filter,
-    tight=hire_row_filter,
+    loose=hire_row_filter_loose,
+    tight=hire_row_filter_loose,
 )
 
 SaleFilterMap = FilterMapRow(
-    loose=sale_row_filter,
-    tight=sale_row_filter,
+    loose=sale_row_filter_loose,
+    tight=sale_row_filter_loose,
 )
 
 CustomerFilterMap = FilterMapRow(
-    loose=customer_row_filter,
-    tight=customer_row_filter,
+    loose=customer_row_filter_loose,
+    tight=customer_row_filter_loose,
 )
 
 
@@ -71,8 +71,8 @@ class AmherstMapping(NamedTuple):
     detail_template: str = 'hires_sales.html'
     default_filter: FilterArray = FilterArray()
     customer_connection: Connection | None = None
-    filter_map_row: FilterMapRow | None = None
-    filter_map_array: FilterMapArray | None = None
+    py_filters: FilterMapRow | None = None
+    cmc_filters: FilterMapArray | None = None
 
 
 Hire_Map = AmherstMapping(
@@ -81,8 +81,8 @@ Hire_Map = AmherstMapping(
     aliases=HireAliases,
     default_filter=HIRE_ARRAY_TIGHT,
     customer_connection=CUSOMER_CONNECTION,
-    filter_map_row=HireFilterMap,
-    filter_map_array=HireArrayMap,
+    py_filters=HireFilterMap,
+    cmc_filters=HireArrayMap,
 )
 
 
@@ -93,8 +93,8 @@ class AmherstMaps:
         aliases=HireAliases,
         default_filter=HIRE_ARRAY_TIGHT,
         customer_connection=CUSOMER_CONNECTION,
-        filter_map_row=HireFilterMap,
-        filter_map_array=HireArrayMap,
+        py_filters=HireFilterMap,
+        cmc_filters=HireArrayMap,
     )
     sale: AmherstMapping = AmherstMapping(
         category=AmherstTableName.Sale,
@@ -102,8 +102,8 @@ class AmherstMaps:
         aliases=SaleAliases,
         default_filter=SALE_ARRAY_TIGHT,
         customer_connection=CUSOMER_CONNECTION,
-        filter_map_row=SaleFilterMap,
-        filter_map_array=SaleArrayMap,
+        py_filters=SaleFilterMap,
+        cmc_filters=SaleArrayMap,
     )
     customer: AmherstMapping = AmherstMapping(
         category=AmherstTableName.Customer,
@@ -111,8 +111,8 @@ class AmherstMaps:
         aliases=CustomerAliases,
         default_filter=CUSTOMER_ARRAY_TIGHT,
         listing_template='customers.html',
-        filter_map_row=CustomerFilterMap,
-        filter_map_array=CustomerArrayMap,
+        py_filters=CustomerFilterMap,
+        cmc_filters=CustomerArrayMap,
     )
 
 
@@ -126,8 +126,8 @@ Sale_Map = AmherstMapping(
     aliases=SaleAliases,
     default_filter=SALE_ARRAY_TIGHT,
     customer_connection=CUSOMER_CONNECTION,
-    filter_map_row=SaleFilterMap,
-    filter_map_array=SaleArrayMap,
+    py_filters=SaleFilterMap,
+    cmc_filters=SaleArrayMap,
 )
 
 Customer_Map = AmherstMapping(
@@ -136,8 +136,8 @@ Customer_Map = AmherstMapping(
     aliases=CustomerAliases,
     default_filter=CUSTOMER_ARRAY_TIGHT,
     listing_template='customers.html',
-    filter_map_row=CustomerFilterMap,
-    filter_map_array=CustomerArrayMap,
+    py_filters=CustomerFilterMap,
+    cmc_filters=CustomerArrayMap,
 )
 
 Trial_Map = AmherstMapping(

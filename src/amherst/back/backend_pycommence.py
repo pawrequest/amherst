@@ -37,7 +37,7 @@ async def gather_records_gen(
 ) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
     input_type = mapper.record_model
     fil_array = q.filter_array()
-    row_filter = mapper.filter_map_row.loose if q.py_filter else None
+    row_filter = mapper.py_filters.loose if q.cmc_filter else None
     rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end if q.pagination.end else 0
     rowgen = pycmc.read_rows(
         csrname=q.csrname,

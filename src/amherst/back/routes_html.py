@@ -83,14 +83,14 @@ async def customer(
         csrname=AmherstTableName.Hire,
         condition=ConditionType.EQUAL,
         filtered=filtered,
-        py_filter=py_filter,
+        cmc_filter=py_filter,
         pagination=pagination,
     )
     sale_request = SearchRequest(
         csrname=AmherstTableName.Sale,
         condition=ConditionType.EQUAL,
         filtered=filtered,
-        py_filter=py_filter,
+        cmc_filter=py_filter,
         pagination=pagination,
     )
 

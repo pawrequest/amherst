@@ -23,7 +23,7 @@ CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
 FilterName = Literal['hire', 'sale', 'customer']
 
 
-def customer_row_filter(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
+def customer_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
     for row in rowgen:
         if contacted := row.get(CustomerAliases.DATE_LAST_CONTACTED):
             datey = get_cmc_date(contacted)
@@ -33,7 +33,7 @@ def customer_row_filter(rowgen: Generator[dict[str, str], None, None]) -> Genera
             yield row
 
 
-def order_row_filter(
+def order_row_filter_loose(
     aliases: type[StrEnum], rowgen: Generator[dict[str, str], None, None]
 ) -> Generator[dict[str, str], None, None]:
     for row in rowgen:
@@ -45,12 +45,12 @@ def order_row_filter(
         yield row
 
 
-def hire_row_filter(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
-    yield from order_row_filter(HireAliases, rowgen)
+def hire_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
+    yield from order_row_filter_loose(HireAliases, rowgen)
 
 
-def sale_row_filter(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
-    yield from order_row_filter(SaleAliases, rowgen)
+def sale_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
+    yield from order_row_filter_loose(SaleAliases, rowgen)
 
 
 # def filter_sales_rowgen(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
@@ -75,14 +75,26 @@ class FilterMap(BaseModel):
 HIRE_ARRAY_TIGHT = FilterArray(
     filters={
         1: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.CONTAIN, value='Booked'),
-        2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one month ago'),
-        3: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one month from today'),
+        2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one week ago'),
+        3: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one week from today'),
         4: FieldFilter(column=HireAliases.ARRANGED_OUT, condition=ConditionType.NOT),
     },
     sorts=[
         (HireAliases.SEND_DATE, SortOrder.ASC),
     ],
     logics=['And', 'And', 'And'],
+)
+
+HIRE_ARRAY_LOOSE = FilterArray(
+    filters={
+        1: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='six month ago'),
+        2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='three month from today'),
+        # 2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BETWEEN, value='six months ago, three months from today'),
+    },
+    sorts=[
+        (HireAliases.SEND_DATE, SortOrder.ASC),
+    ],
+    logics=['And'],
 )
 
 
@@ -93,6 +105,7 @@ SALE_ARRAY_TIGHT = FilterArray(
     sorts=[(SaleAliases.DATE_ORDERED, SortOrder.DESC)],
 )
 
+SALE_ARRAY_LOOSE = SALE_ARRAY_TIGHT
 
 HIRE_CONNECTION = Connection(name='Has Hired', category='Hire', column='Name')
 SALE_CONNECTION = Connection(name='Involves', category='Sale', column='Name')
@@ -100,7 +113,7 @@ CUSOMER_CONNECTION = Connection(name='To', category='Customer', column='Name')
 
 
 @functools.lru_cache
-def get_customer_filter():
+def customer_array_tight():
     hire_fils = HIRE_ARRAY_TIGHT.filters.values()
     hire_logics = HIRE_ARRAY_TIGHT.logics
     customer_hire_filters = [ConnectedFieldFilter.from_fil(f, HIRE_CONNECTION) for f in hire_fils]
@@ -121,7 +134,7 @@ def get_customer_filter():
     )
 
 
-CUSTOMER_ARRAY_TIGHT = get_customer_filter()
+CUSTOMER_ARRAY_TIGHT = customer_array_tight()
 
 CUSTOMER_ARRAY_LOOSE = FilterArray(
     filters={
