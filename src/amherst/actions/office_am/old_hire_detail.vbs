@@ -119,7 +119,7 @@ Sub Form_OnSave
 	' if the "Send Method" is left blank on save, we can add some text if the Send/Collect flag value is appropriate
 	If Form.Field("Send Method").Value = "" Then
 	
-		If Form.Field("Send / Collect").Value = "Cust. collect/return" Then
+		If Form.Field("Send Or Collect").Value = "Cust. collect/return" Then
 			Form.Field("Send Method").Value = "Customer collects from us"
 		End If
 			
@@ -187,12 +187,23 @@ Sub Form_OnSave
     End If
 		
 	'Prevent saving a hire if it involves a number of walkie-talkies, but the Radio Type field is blank (added Sep 5th 2021)
-    If Form.Field("Radio Type").Value  = "" And Cint(Form.Field("Number UHF").Value) > 0 Then
+    If Form.Field("Radio Type").Value  = "not selected" And Cint(Form.Field("Number UHF").Value) > 0 Then
         MsgBox "Please select the model of walkie-talkie for this hire", vbCritical, "WARNING"
         Form.MoveToField("Radio Type")
         Form.Abort
         Exit Sub
     End If
+	'MsgBox Form.Field("Radio Type").Value, vbOKOnly, "WARNING"
+	
+	If Form.Field("Radio Type").Value  = "Tesunho SIM TH288" Then
+		MsgBox "TH288 no longer used - use TH388", vbOKOnly, "WARNING"
+		Form.Field("Radio Type").Value  = "Tesunho SIM TH388"
+	End If
+	
+	If Form.Field("Radio Type").Value  = "Tesunho SIM TH289" Then
+		MsgBox "TH289 no longer used - use TH388", vbOKOnly, "WARNING"
+		Form.Field("Radio Type").Value  = "Tesunho SIM TH388"
+	End If
 	
 	'Warn if the day of week of the send date is a weekend day
     If Weekday(Form.Field("Send Out Date").Value) = 1 Then
@@ -289,18 +300,32 @@ Sub Form_OnSave
 	    Case 1
   		  Form.Field("Inv UHF Price").Value = "12.00"
 		Case 2
-  		  Form.Field("Inv UHF Price").Value = "16.00"
+  		  Form.Field("Inv UHF Price").Value = "18.00"
 	    Case 3
-  		  Form.Field("Inv UHF Price").Value = "20.00"
+  		  Form.Field("Inv UHF Price").Value = "22.00"
 	    Case 4
-  		  Form.Field("Inv UHF Price").Value = "25.00"
+  		  Form.Field("Inv UHF Price").Value = "27.00"
 	  End Select
 
       ' deal with discounts for bigger quantities
       If Form.Field("Number UHF").Value > 9 Then
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv UHF Price").Value = "11.00"
+  		  Form.Field("Inv UHF Price").Value = "12.00"
+		Case 2
+  		  Form.Field("Inv UHF Price").Value = "16.00"
+	    Case 3
+  		  Form.Field("Inv UHF Price").Value = "21.00"
+	    Case 4
+  		  Form.Field("Inv UHF Price").Value = "25.00"
+	  End Select
+
+		End If
+
+      If Form.Field("Number UHF").Value > 19 Then
+	  Select Case Form.Field("Weeks").Value
+	    Case 1
+  		  Form.Field("Inv UHF Price").Value = "10.00"
 		Case 2
   		  Form.Field("Inv UHF Price").Value = "14.00"
 	    Case 3
@@ -311,30 +336,16 @@ Sub Form_OnSave
 
 		End If
 
-      If Form.Field("Number UHF").Value > 19 Then
-	  Select Case Form.Field("Weeks").Value
-	    Case 1
-  		  Form.Field("Inv UHF Price").Value = "9.00"
-		Case 2
-  		  Form.Field("Inv UHF Price").Value = "12.00"
-	    Case 3
-  		  Form.Field("Inv UHF Price").Value = "17.00"
-	    Case 4
-  		  Form.Field("Inv UHF Price").Value = "21.00"
-	  End Select
-
-		End If
-
       If Form.Field("Number UHF").Value > 29 Then
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv UHF Price").Value = "7.00"
+  		  Form.Field("Inv UHF Price").Value = "8.00"
 		Case 2
-  		  Form.Field("Inv UHF Price").Value = "10.00"
+  		  Form.Field("Inv UHF Price").Value = "12.00"
 	    Case 3
-  		  Form.Field("Inv UHF Price").Value = "16.00"
+  		  Form.Field("Inv UHF Price").Value = "18.00"
 	    Case 4
-  		  Form.Field("Inv UHF Price").Value = "20.00"
+  		  Form.Field("Inv UHF Price").Value = "22.00"
 	  End Select
 
 	End If
@@ -363,13 +374,13 @@ Sub Form_OnSave
 	  ' Mar 2013: set price according to length of hire
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv EM Price").Value = "1.00"
-		Case 2
   		  Form.Field("Inv EM Price").Value = "1.50"
-	    Case 3
+		Case 2
   		  Form.Field("Inv EM Price").Value = "2.00"
-	    Case 4
+	    Case 3
   		  Form.Field("Inv EM Price").Value = "2.50"
+	    Case 4
+  		  Form.Field("Inv EM Price").Value = "3.00"
 	  End Select
 
     End If
@@ -384,13 +395,13 @@ Sub Form_OnSave
 	  ' Mar 2013: set price according to length of hire
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv EMC Price").Value = "2.00"
+  		  Form.Field("Inv EMC Price").Value = "2.50"
 		Case 2
-  		  Form.Field("Inv EMC Price").Value = "3.00"
+  		  Form.Field("Inv EMC Price").Value = "3.50"
 	    Case 3
-  		  Form.Field("Inv EMC Price").Value = "4.00"
-	    Case 4
   		  Form.Field("Inv EMC Price").Value = "5.00"
+	    Case 4
+  		  Form.Field("Inv EMC Price").Value = "6.00"
 	  End Select
 
 
@@ -406,13 +417,13 @@ Sub Form_OnSave
 	  ' Mar 2013: set price according to length of hire
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv Case Price").Value = "1.00"
-		Case 2
   		  Form.Field("Inv Case Price").Value = "1.50"
-	    Case 3
+		Case 2
   		  Form.Field("Inv Case Price").Value = "2.00"
-	    Case 4
+	    Case 3
   		  Form.Field("Inv Case Price").Value = "2.50"
+	    Case 4
+  		  Form.Field("Inv Case Price").Value = "3.00"
 	  End Select
     End If
     
@@ -426,13 +437,13 @@ Sub Form_OnSave
 	  ' Mar 2013: set price according to length of hire
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv Headset Price").Value = "2.00"
+  		  Form.Field("Inv Headset Price").Value = "2.50"
 		Case 2
-  		  Form.Field("Inv Headset Price").Value = "3.00"
+  		  Form.Field("Inv Headset Price").Value = "3.50"
 	    Case 3
-  		  Form.Field("Inv Headset Price").Value = "4.00"
-	    Case 4
   		  Form.Field("Inv Headset Price").Value = "5.00"
+	    Case 4
+  		  Form.Field("Inv Headset Price").Value = "6.00"
 	  End Select
 
 	  End If
@@ -448,13 +459,13 @@ Sub Form_OnSave
 	  ' Mar 2013: set price according to length of hire
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv Bighead Price").Value = "5.00"
+  		  Form.Field("Inv Bighead Price").Value = "6.00"
 		Case 2
-  		  Form.Field("Inv Bighead Price").Value = "8.00"
+  		  Form.Field("Inv Bighead Price").Value = "9.00"
 	    Case 3
-  		  Form.Field("Inv Bighead Price").Value = "11.00"
+  		  Form.Field("Inv Bighead Price").Value = "12.00"
 	    Case 4
-  		  Form.Field("Inv Bighead Price").Value = "14.00"
+  		  Form.Field("Inv Bighead Price").Value = "15.00"
 	  End Select
 	End If
     
@@ -469,13 +480,13 @@ Sub Form_OnSave
 	  ' Mar 2013: set price according to length of hire
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv Parrot Price").Value = "1.00"
-		Case 2
   		  Form.Field("Inv Parrot Price").Value = "1.50"
-	    Case 3
+		Case 2
   		  Form.Field("Inv Parrot Price").Value = "2.00"
-	    Case 4
+	    Case 3
   		  Form.Field("Inv Parrot Price").Value = "2.50"
+	    Case 4
+  		  Form.Field("Inv Parrot Price").Value = "3.00"
 	  End Select
 	  
 	  
@@ -492,13 +503,13 @@ Sub Form_OnSave
 	  ' Mar 2013: set price according to length of hire
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv Batt Price").Value = "1.00"
-		Case 2
   		  Form.Field("Inv Batt Price").Value = "1.50"
-	    Case 3
+		Case 2
   		  Form.Field("Inv Batt Price").Value = "2.00"
-	    Case 4
+	    Case 3
   		  Form.Field("Inv Batt Price").Value = "2.50"
+	    Case 4
+  		  Form.Field("Inv Batt Price").Value = "3.00"
 	  End Select
 
 
@@ -566,13 +577,13 @@ Sub Form_OnSave
 	' Feb 2018: set price according to length of hire for wands
 	  Select Case Form.Field("Weeks").Value
 	    Case 1
-  		  Form.Field("Inv Wand Price").Value = "5.00"
+  		  Form.Field("Inv Wand Price").Value = "6.00"
 		Case 2
-  		  Form.Field("Inv Wand Price").Value = "8.00"
+  		  Form.Field("Inv Wand Price").Value = "9.00"
 	    Case 3
-  		  Form.Field("Inv Wand Price").Value = "12.00"
+  		  Form.Field("Inv Wand Price").Value = "13.00"
 	    Case 4
-  		  Form.Field("Inv Wand Price").Value = "15.00"
+  		  Form.Field("Inv Wand Price").Value = "17.00"
 	  End Select
 		
 	End If
@@ -598,7 +609,7 @@ Sub Form_OnSave
 
 	
     ' insert appropriate values into delivery and collection description fields - this case is for the usual we send, they return
-    If Form.Field("Send / Collect").Value = "We send, cust return" Then
+    If Form.Field("Send Or Collect").Value = "We send, cust return" Then
 
       Form.Field("Inv Delivery Desc").Value = "Delivery"
       Form.Field("Inv Send Desc").Value = "Send Date"
@@ -611,7 +622,7 @@ Sub Form_OnSave
     End If
 
     ' insert appropriate values into delivery and collection description fields - this case is customer collect and return
-    If Form.Field("Send / Collect").Value = "Cust. collect/return" Then
+    If Form.Field("Send Or Collect").Value = "Cust. collect/return" Then
 
       Form.Field("Inv Delivery Desc").Value = ""
       Form.Field("Inv Send Desc").Value = "Collect Date"
@@ -628,7 +639,7 @@ Sub Form_OnSave
     End If
 
     ' insert appropriate values into delivery and collection description fields - this case is us sending and collecting
-    If Form.Field("Send / Collect").Value = "We send and pick up" Then
+    If Form.Field("Send Or Collect").Value = "We send and pick up" Then
 
       Form.Field("Inv Delivery Desc").Value = "Delivery & Collection"
       Form.Field("Inv Send Desc").Value = "Send Date"
@@ -786,7 +797,10 @@ Sub Form_OnSave
       Form.Field("Discount Description").Value = cCust.FieldValue("Discount Description")
     End If    
 	
-  
+  ' call function to tidy up any file path entered to show the correct R: drive letter rather than "D:\amherst" etc
+	If Form.Field("Invoice").Value <> "" Then
+		Form.Field("Invoice").Value = InvoicePath(Form.Field("Invoice").Value)
+	End If
 
 
 End Sub
@@ -829,11 +843,9 @@ Sub Form_OnClick(ControlId)
 				Form.Field("Due Back Date").Value = NotWeekends(Form.Field("Due Back Date").Value)
 				Form.Field("Weeks").Value = 4
 			End If
-
         Case "CommandButton6"
             Form.Field("Discount Description").Value = "Student Discount"
             Form.Field("Discount Percentage").Value = "25%"
-
         Case "CommandButton7"
 			' this button "pulls" the equipment quantity fields from the corresponding fields in the
 			' customer record, that have been put there by being read in from "AutoQuote"
@@ -869,286 +881,69 @@ Sub Form_OnClick(ControlId)
 		Case "CommandButton11"
 			' this button inserts the description "Parcelforce" into the Send Method field
 			Form.Field("Send Method").Value = "Parcelforce / DB"
-			If Form.Field("Send / Collect").Value = "We send and pick up" Then
+			If Form.Field("Send Or Collect").Value = "We send and pick up" Then
 				Form.Field("Send Method").Value = "Parcelforce/DB and we collect"
 			End If
 		
 		Case "CommandButton12"
 			' this button inserts the description "RUSH bike" into the Send Method field
 			Form.Field("Send Method").Value = "RUSH motorbike"
-			If Form.Field("Send / Collect").Value = "We send and pick up" Then
+			If Form.Field("Send Or Collect").Value = "We send and pick up" Then
 				Form.Field("Send Method").Value = "RUSH motorbike and we collect"
 			End If
 		
 		Case "CommandButton13"
 			' this button inserts the description "RUSH car/van" into the Send Method field
 			Form.Field("Send Method").Value = "RUSH car/van"
-			If Form.Field("Send / Collect").Value = "We send and pick up" Then
+			If Form.Field("Send Or Collect").Value = "We send and pick up" Then
 				Form.Field("Send Method").Value = "RUSH car/van and we collect"
 			End If
 		
 		Case "CommandButton14"
 			' this button inserts the description "Absolutely motorbike" into the Send Method field
 			Form.Field("Send Method").Value = "Absolutely motorbike"
-			If Form.Field("Send / Collect").Value = "We send and pick up" Then
+			If Form.Field("Send Or Collect").Value = "We send and pick up" Then
 				Form.Field("Send Method").Value = "Absolutely motorbike and we collect"
 			End If
 		
-	
+		Case "CommandButton15"
+			' this button writes the delivery details to a CSV text file on the PC's local disk, which can 
+			' then be uploaded into the Despatchbay web site
+			'dim fs,fname
+			'set fs=Server.CreateObject("Scripting.FileSystemObject")
+			'set fname=fs.CreateTextFile("c:\test.txt",true)
+			'fname.WriteLine("Hello World!")
+			'fname.Close
+			'set fname=nothing
+			'set fs=nothing
+			
+			Dim fso, DBtextfilename, DBstring
+			Set fso = CreateObject("Scripting.FileSystemObject")
+			Set DBtextfilename = fso.CreateTextFile("c:\Windows\temp\DBaddressfile.txt",True)
+			DBstring = Form.Field("Delivery Contact").Value + ", " + Form.Field("Delivery Address").Value + ", " + Form.Field("Delivery Postcode").Value + ", " + Form.Field("Delivery Telephone").Value + ", " + Form.Field("Delivery Telephone").Value
+			DBtextfilename.WriteLine(DBstring)
+			DBtextfilename.Close
 			
 		Case "CommandButton16"
 			' this button inserts the description "Absolutely car/van" into the Send Method field
 			Form.Field("Send Method").Value = "Absolutely car/van"	
-			If Form.Field("Send / Collect").Value = "We send and pick up" Then
+			If Form.Field("Send Or Collect").Value = "We send and pick up" Then
 				Form.Field("Send Method").Value = "Absolutely car/van and we collect"
 			End If
 		
 		Case "CommandButton17"
 			' this button inserts the description "Amherst Staff" into the Send Method field
 			Form.Field("Send Method").Value = "Amherst staff"	
-			If Form.Field("Send / Collect").Value = "We send and pick up" Then
+			If Form.Field("Send Or Collect").Value = "We send and pick up" Then
 				Form.Field("Send Method").Value = "Amherst staff and we collect"
 			End If
 		
 		Case "CommandButton18"
 		  ' this button inserts the current date into the "Actual Return Date"
 			Form.Field("Actual Return Date").Value = "today"
-
-
-'*************************************************************************'
-'******************  PAUL's BUTTONS *****************************************'
-
-		Case "CommandButton15"
-				GetNewInvoiceNum()
-	
-        Case "CommandButton19"
-            PackHire()
-
-
-        Case "CommandButton20"
-            UnpackHire()
-
-       '  Case "CommandButton21"
-            ' if MsgBox("Launch AmDesp to ship hire?",4) =6 Then
-'            '      ShipHire("C:\AmDesp\data\AmShip.xml")
-             '    ShipHireDbase()
-           ' End if
-
-        Case "CommandButton22"
-        ' Email customer about missing kit
-            if MsgBox("Email " & Form.Field("Delivery Email").Value & "with a list of the 'Return Notes' field?", 4) = 6 Then
-                EmailMissingKit()
-            End if
-
-        Case "CommandButton23"
-        ' Send upcoming hire email'
-            if MsgBox("Send email about upcoming shipment?",4) = 6 Then
-                EmailSendOut()
-           End if
-
-
-
+		
     End Select
 End Sub
-
-
-'***************** PAULS FUNCTIONS *******************'
-
-
-Sub GetNewInvoiceNum()
-	Dim Shell, exec
-
-    Set Shell = CreateObject("WScript.Shell")
-    Shell.Run "R:\paul_notes\inv_num.bat", 1, False
-
-End Sub
-
-
-
-
-
-
-Sub PackHire()
-        Dim packedBy
-
-        packedBy = InputBox("Who packed this hire?", "Hire Packed by?")
-' set who packed and when packed'
-
-
-' ' if parcelforce in send method offer to launch amdesp to arrange shipping'
-'         If InStr(Form.Field("Send Method").Value, "Parcelforce") > 0 Then
-'             if MsgBox("Launch AmDesp to ship hire by parcelforce?",4) = 6 Then
-'                 ShipHire("C:\AmDesp\data\AmShip.xml")
-'             End if
-'         Else MsgBox("Send method is not Parcelforce so i won't launch Amdesp")
-'         End if
-
-' offer to email client about upcoming shipment'
-        if MsgBox("Send pre-shipping email?",4) = 6 Then
-            EmailSendOut()
-        End if
-
-' offer to save and close'
-        if MsgBox("Hire packed now by " & packedBy & " - save and close?", 4) = 6 Then
-            Form.Field("Packed Date").Value = "today"
-            Form.Field("Packed Time").Value = "now"
-            Form.Field("Status").Value = "Booked in and packed"
-            Form.Field("Packed By").Value = packedBy
-            Form.Save
-        End if
-End Sub
-
-Sub UnpackHire()
-        Dim unpackedBy, missing, newReturn
-
-' set who unpacked and when unpacked'
-        unpackedBy = InputBox("Who unpacked this hire?", "Hire Unpacked by?")
-
-' all ok? if so set returned ok and offer to save/close'
-        if MsgBox("all ok?",4) = 6 Then
-            if MsgBox("Close Hire save and exit?",4) = 6 Then
-                Form.Field("Status").Value = "Returned all OK"
-                Form.Field("Unpacked Date").Value = "today"
-                Form.Field("Unpacked Time").Value = "now"
-                Form.Field("Actual Return Date").Value = "today"
-                Form.Field("Unpacked By").Value = unpackedBy
-                Form.Field("Closed").Value = 1
-                Form.Save
-            End if
-
-' if not ok then offer to manually enter missing kit, else use missing-kit field on form'
-        Else
-            missing = InputBox("What was missing?" & vbNewLine & "(cancel to use existing 'Missing Kit' field)", "What's Missing?")
-            if missing <> "" Then
-                if MsgBox ("Replace Missing Kit field with:" & vbNewLine & missing, 4) = 6 Then
-                    Form.Field("Missing Kit").Value = missing
-                End if
-            End if
-
-' email customer about missing kit'
-        EmailMissingKit()
-
-' offer to save and exit'
-            if MsgBox("Set status to returned with problems, save, and exit?",4) = 6 Then
-                Form.Field("Status").Value = "Returned with problems"
-                Form.Field("Unpacked By").Value = unpackedBy
-                Form.Field("Actual Return Date").Value = "today"
-                Form.Field("Unpacked Date").Value = "today"
-                Form.Field("Unpacked Time").Value = "now"
-                Form.Save
-            End if
-
-        End if
-End Sub
-
-
-Sub EmailSendOut()
-'emails customer conforming address and schedule and gear'
-        Dim olApp : Set olApp = CreateObject("Outlook.Application")
-        Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
-        Dim cCust : Set cCust = Form.Connection("To","Customer")
-        Dim returnStr, del_email, sendMeth, invoice_email
-
-'tbc include parcelforce tracking numbers in email'
-'         MsgBox Form.Field("Tracking Numbers").value
-
-'*** create email ***'
-'* if invoice and delivery emails are differnt then combine into a string
-        invoice_email = cCust.FieldValue("Email")
-        del_email = Form.Field("Delivery Email").Value
-        if invoice_email <> del_email Then
-            del_email = del_email & ";" & invoice_email
-        End if
-
-' get send method from horrible strings
-        If InStr(Form.Field("Send / Collect").Value, "Cust. collect") > 0 OR InStr(Form.Field("Send / Collect").Value, "We pick up only") > 0 Then
-            sendMeth = "collected by yourself or at your expense "
-        Else sendMeth = "sent out "
-        End If
-
-' get return method from horrible strings'
-        if Form.Field("Send / Collect").Value = "We send, cust return" Or Form.Field("Send / Collect").Value = "Cust. collect/return" Then
-            returnStr = "Our records indicate you have not pre-paid for return shipping and are required to send the gear back at your expense." & vbNewLine & _
-            vbNewLine & "Please use a trackable service and send us the tracking details when you have dispatched the shipment."
-
-        Elseif Form.Field("Send / Collect").Value = "We send and pick up" Or Form.Field("Send / Collect").Value = "We pick up only" Then
-            returnStr = "Our records indicate that you have paid for return shipping - please contact us two days before the equipment will be ready to collect so that we can arrange the courier."
-        End if
-
-' compose email'
-        objMailItem.Subject = "Radio Hire - upcoming shipment details"
-        objMailItem.To = del_email
-        objMailItem.Body = "Hi," & vbNewLine & _
-                           vbNewLine & "Thanks for choosing to hire from Amherst." & vbNewLine & vbNewLine &"Your upcoming hire is due to be " & sendMeth & "on " & Form.Field("Send Out Date").Value & vbNewLine & vbNewLine & _
-                           "Please check the following details and contact us urgently if there are any discrepancies."& vbNewLine & _
-                           vbNewLine & "Delivery To:" & vbNewLine & vbNewLine & _
-                           Form.Field("Delivery Contact").Value & vbNewLine & _
-                           Form.Field("Delivery Address").Value & vbNewLine & _
-                           Form.Field("Delivery Postcode").Value & vbNewLine & _
-                           vbNewLine & "Hire Contents:" & Form.Field("Hire Sheet Text").Value & vbNewLine & _
-                           vbNewLine & "Your Hire is due back with us by the " & Form.Field("Due Back Date").Value &  vbNewLine & _
-                           vbNewLine & returnStr & vbNewLine & _
-                           vbNewLine & "Kind regards" & vbNewLine & "The Amherst team" & vbNewLine & vbNewLine & "(this email generated automatically)"
-
-'* Get user inputs*'
-'confirm/amend email address or cancel'
-    Dim email_or_change
-    email_or_change = MsgBox("Send email to: " & del_email & "?" & vbNewLine & _
-    "'No' to enter an alternative, 'Cancel' to abort emailing",3)
-    if email_or_change = 7 Then
-        del_email = InputBox("Enter new email address")
-    Elseif email_or_change = 2 Then
-        Exit Sub
-    End if
-
-    ' show user the email and get confirmation to send email'
-    objMailItem.Send
-    Form.Field("PreShip Emailed").Value = True
-
-    ' close objects'
-    Set olApp = Nothing
-    Set objMailItem = Nothing
-
-End Sub
-
-Sub EmailMissingKit()
-' emails 'Missing Kit' field to invoice and delivery email addresse
-        Dim cCust : Set cCust = Form.Connection("To","Customer")
-        Dim olApp : Set olApp = CreateObject("Outlook.Application")
-        Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
-        Dim del_email, invoice_email
-
-    ' make email address string if delivery and invoice emails are different send to both
-        invoice_email = cCust.FieldValue("Email")
-        del_email = Form.Field("Delivery Email").Value
-        if invoice_email <> del_email Then
-            del_email = del_email & ";" & invoice_email
-        End if
-
-
-'compose email'
-        objMailItem.Subject = "Radio Hire - Missing Kit"
-        objMailItem.To = del_email
-        objMailItem.Body = "Hi," & vbNewLine & _
-                           vbNewLine & "Thanks for returning the hired equipment - I hope it worked well for your event." & vbNewLine & _
-                           vbNewLine & "Unfortunately the return was missing the following items - can you please look/check with colleagues to see if they can be recovered - otherwise i'll draw up an invoice for replacement." & vbNewLine & _
-                           "Kind regards," & vbNewLine & "the Amherst team" & vbNewLine & _
-                           vbNewLine & "MISSING KIT:" & vbNewLine & _
-                           Form.Field("Missing Kit").value & vbNewLine & vbNewLine & "(If you have already discussed missing items with us please disregard this automatically generated email)"
-
-' show user the email and if confirmed send email'
-        if MsgBox ("Confirm Email:" & vbNewLine & vbNewLine & objMailItem & vbNewLine & objMailItem.Body, 4) = 6 Then
-            objMailItem.Send
-            MsgBox("EMAILED")
-        End if
-
-' close objects'
-        Set olApp = Nothing
-        Set objMailItem = Nothing
-        Set cCust = Nothing
-
-End Sub
-
 
 
 '****** start of functions
@@ -1375,4 +1170,29 @@ Function MakeInvoiceDate(datefield)
 
   MakeInvoiceDate = WeekdayName(WeekDay(datefield), True) + " " + Cstr(Day(datefield)) +  " " + MonthName(Month(datefield)) + " " + Cstr(Year(datefield))
   
+End Function
+
+' function to correct file paths to our invoices if they use drive D: or the network (\\) path instead of the R: shared path
+Function InvoicePath(Filepath)
+	
+	' change incoming path to UPPER CASE
+	Filepath = Ucase(Filepath)
+	
+	' now set the returned value to the incoming file path, so we simply send back the incoming path unless it needs changing
+	InvoicePath = Filepath
+		
+	' check if path is drive D: and change to R: if it is
+	If Left(Filepath, 10) = "D:\AMHERST" Then
+
+		InvoicePath = Ucase("R:" + Mid(Filepath, 11))
+
+	End If
+	
+	' check if path is a \\ network drive path and change to R:\ if it is
+	If Left(Filepath, 21) = "\\AMHERSTMAIN\AMHERST" Then
+
+		InvoicePath = Ucase("R:" + Mid(Filepath, 22))
+		
+	End If
+
 End Function
