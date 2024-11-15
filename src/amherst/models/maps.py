@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import StrEnum
 from typing import NamedTuple
 
@@ -11,14 +12,20 @@ from amherst.models.filters import (
     CUSOMER_CONNECTION,
     CUSTOMER_ARRAY_LOOSE,
     CUSTOMER_ARRAY_TIGHT,
-    HIRE_ARRAY_LOOSE, HIRE_ARRAY_TIGHT,
-    HIRE_CONNECTION, SALE_ARRAY_LOOSE, SALE_ARRAY_TIGHT,
-    SALE_CONNECTION, customer_row_filter_loose,
+    HIRE_ARRAY_LOOSE,
+    HIRE_ARRAY_TIGHT,
+    HIRE_CONNECTION,
+    SALE_ARRAY_LOOSE,
+    SALE_ARRAY_TIGHT,
+    SALE_CONNECTION,
+    customer_row_filter_loose,
     hire_row_filter_loose,
     sale_row_filter_loose,
 )
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
+from shipaw.models.pf_msg import ShipmentResponse
+from shipaw.models.pf_shipment import Shipment
 
 
 class FilterMapPy(NamedTuple):
@@ -42,11 +49,28 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
+CMC_UPDATE_FN = Callable[[Shipment, ShipmentResponse], dict[str, str]]
+
+
+def hire_update_shipment(shipment: Shipment, shipment_response: ShipmentResponse):
+    tracking_link = shipment_response.tracking_link()
+    return (
+        {
+            HireAliases.TRACK_IN: tracking_link,
+            HireAliases.ARRANGED_IN: True,
+            HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+        }
+        if shipment.direction in ['in', 'dropoff']
+        else {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
+    )
+
+
 class AmherstMap(NamedTuple):
     category: CsrName
     record_model: type(AmherstTableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
+    cmc_update_fn: CMC_UPDATE_FN | None = None
     connections: ConnectionMap | None = None
     py_filters: FilterMapPy | None = None
     cmc_filters: FilterMapCmc | None = None
@@ -72,6 +96,7 @@ class AmherstMaps:
             loose=HIRE_ARRAY_LOOSE,
             tight=HIRE_ARRAY_TIGHT,
         ),
+        cmc_update_fn=hire_update_shipment,
     )
     sale: AmherstMap = AmherstMap(
         category=CsrName.Sale,

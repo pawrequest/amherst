@@ -11,6 +11,7 @@ from amherst.config import TEMPLATES, settings
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_ship import router as ship_router
+from amherst.back.routes_ship2 import router as ship_router2
 from shipaw import pf_config
 
 
@@ -33,6 +34,7 @@ app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(settings().src_dir / 'front' / 'static')), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/ship')
+app.include_router(ship_router2, prefix='/ship')
 app.include_router(html_router)
 app.ship_live = pf_config.pf_sett().ship_live
 

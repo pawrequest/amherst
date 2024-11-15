@@ -26,10 +26,8 @@ from jinja2.utils import url_quote
 from loguru import logger
 from thefuzz import fuzz
 
-from amherst.models.amherst_models import AmherstTableBase
 from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import CsrName
-from pycommence.filters import ConditionType
 
 SCORER = fuzz.partial_ratio
 
@@ -41,12 +39,8 @@ class Mode(StrEnum):
 MODE = Mode.SHIP_BY_SRCH
 
 
-async def get_url_suffix(record: AmherstTableBase, mode: Mode = MODE):
-    return f'ship/form?csrname={record.category}&row_id={record.row_id}'
-
-
 async def get_url_suffix2(category, pk):
-    return f'ship/form?csrname={category}&pk_value={url_quote(pk)}&condition=equal&filtered=false&max_rtn=1'
+    return f'ship/form2?csrname={category}&pk_value={url_quote(pk)}&condition=equal&filtered=false&max_rtn=1'
 
 
 def parse_arguments():

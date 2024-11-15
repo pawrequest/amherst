@@ -6,7 +6,8 @@ from datetime import date
 
 from pydantic import AliasGenerator, BaseModel, ConfigDict
 
-from shipaw.models.pf_shipment import Shipment
+from shipaw.models.pf_msg import BaseResponse, ShipmentResponse
+from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection, ShipmentAwayDropoff
 from amherst.models.commence_adaptors import (
     AM_DATE,
     CsrName,
@@ -45,7 +46,7 @@ class AmherstTableBase(BaseModel, ABC):
         populate_by_name=True,
         use_enum_values=True,
     )
-    row_id: str | None = None
+    row_id: str
     name: str
     customer_name: str
     category: CsrName
@@ -89,8 +90,18 @@ class AmherstTableBase(BaseModel, ABC):
             **split_refs_from_str(self.customer_name),
         }
 
+    def amherst_shipment_dict(self):
+        return {
+            'category': self.category,
+            'row_id': self.row_id,
+            **self.shipment_dict(),
+        }
+
     def shipment(self):
         return Shipment.model_validate(self.shipment_dict())
+
+    def am_shipment(self):
+        return AmherstShipment.model_validate(self.amherst_shipment_dict())
 
 
 class AmherstCustomer(AmherstTableBase):
@@ -130,6 +141,26 @@ class AmherstHire(AmherstOrderBase):
     category: CsrName = 'Hire'
     model_config = ConfigDict(alias_generator=AliasGenerator(validation_alias=hire_alias))
     status: HireStatus
+
+
+class AmherstShipment(Shipment):
+    category: str
+    row_id: str
+
+    def shipment(self):
+        shipdict = self.model_dump(exclude={'category', 'row_id'})
+        return Shipment.model_validate(shipdict)
+
+
+class AmherstShipmentAwayCollection(AmherstShipment, ShipmentAwayCollection): ...
+
+
+class AmherstShipmentAwayDropoff(AmherstShipment, ShipmentAwayDropoff): ...
+
+
+class AmherstShipmentResponse(ShipmentResponse):
+    row_id: str
+    category: str
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial

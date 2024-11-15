@@ -13,9 +13,9 @@ from amherst.back.backend_search_paginate import record_from_json_str_form
 from amherst.back.backend_shipper import (
     book_shipment,
     get_el_client,
-    record_from_form,
+    record_str_to_record,
     shipment_f_form,
-    shipment_str_form_to_shipment,
+    shipment_str_to_shipment,
     wait_label,
 )
 from amherst.back.backend_pycommence import get_one
@@ -50,7 +50,7 @@ async def post_form(
     request: Request,
     # record: dict,
     shipment_proposed: Shipment = Depends(shipment_f_form),
-    record=Depends(record_from_form),
+    record=Depends(record_str_to_record),
 ):
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
@@ -62,7 +62,7 @@ async def post_form(
 @router.post('/post_confirm', response_class=HTMLResponse)
 async def post_confirm_booking(
     request: Request,
-    shipment_proposed: Shipment = Depends(shipment_str_form_to_shipment),
+    shipment_proposed: Shipment = Depends(shipment_str_to_shipment),
     record: AmherstTableBase = Depends(record_from_json_str_form),
     el_client: ELClient = Depends(get_el_client),
     ship2: str = Form(''),

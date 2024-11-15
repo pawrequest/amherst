@@ -126,6 +126,10 @@ def record_tracking(record, shipment_response):
         logger.exception(exce)
         raise
 
+#
+# def do_record_tracking(shipment: Shipment, shipment_response: ShipmentResponse, pycmc: PyCommence):
+#     ...
+
 
 # def do_record_tracking(shipment: Shipment, shipment_response: ShipmentResponse, pycmc: PyCommence):
 #     tracking_link = shipment_response.tracking_link()
