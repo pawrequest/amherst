@@ -102,7 +102,6 @@ class SearchRequest(BaseModel):
         return self.q_str_paginate(self.pagination.next_page(), api=True) if self.pagination else None
 
     def q_str_paginate(self, pagination: Pagination = None, api: bool = False):
-        # todo package?
         pagination = pagination or self.pagination
         qstr = '/api' if api else ''
         qstr += f'/search?csrname={self.csrname}'

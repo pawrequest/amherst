@@ -11,7 +11,7 @@ from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
 from pycommence.filters import ConditionType
 from pycommence.pycmc_types import MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment, AmherstShipmentResponse
 from amherst.models.maps import AmherstMap, CsrName, maps2
 
 
@@ -74,7 +74,7 @@ async def pycommence_search(
 ) -> AMHERST_TABLE_MODELS | None:
     record = None
     if q.row_id:
-        record = pycmc.read_row(csrname=q.csrname, id=q.row_id)
+        record = pycmc.read_row(csrname=q.csrname, row_id=q.row_id)
     elif q.pk_value:
         if q.condition == ConditionType.EQUAL:
             record = pycmc.read_row(csrname=q.csrname, pk=q.pk_value)
@@ -127,8 +127,6 @@ def record_tracking(record, shipment_response):
         raise
 
 #
-# def do_record_tracking(shipment: Shipment, shipment_response: ShipmentResponse, pycmc: PyCommence):
-#     ...
 
 
 # def do_record_tracking(shipment: Shipment, shipment_response: ShipmentResponse, pycmc: PyCommence):

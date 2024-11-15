@@ -6,7 +6,14 @@ from typing import NamedTuple
 
 from fastapi import Query
 
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstTableBase
+from amherst.models.amherst_models import (
+    AmherstCustomer,
+    AmherstHire,
+    AmherstSale,
+    AmherstShipment,
+    AmherstShipmentResponse,
+    AmherstTableBase,
+)
 from amherst.models.commence_adaptors import CsrName, CustomerAliases, HireAliases, SaleAliases
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
@@ -24,8 +31,6 @@ from amherst.models.filters import (
 )
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
-from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment
 
 
 class FilterMapPy(NamedTuple):
@@ -49,10 +54,10 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
-CMC_UPDATE_FN = Callable[[Shipment, ShipmentResponse], dict[str, str]]
+CMC_UPDATE_FN = Callable[[AmherstShipment, AmherstShipmentResponse], dict[str, str]]
 
 
-def hire_update_shipment(shipment: Shipment, shipment_response: ShipmentResponse):
+def update_hire_shipment(shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
     tracking_link = shipment_response.tracking_link()
     return (
         {
@@ -63,6 +68,14 @@ def hire_update_shipment(shipment: Shipment, shipment_response: ShipmentResponse
         if shipment.direction in ['in', 'dropoff']
         else {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
     )
+
+
+def update_sale_shipment(shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
+    tracking_link = shipment_response.tracking_link()
+    return {
+        SaleAliases.TRACK_OUT: tracking_link,
+        SaleAliases.ARRANGED_OUT: True,
+    }
 
 
 class AmherstMap(NamedTuple):
@@ -96,7 +109,7 @@ class AmherstMaps:
             loose=HIRE_ARRAY_LOOSE,
             tight=HIRE_ARRAY_TIGHT,
         ),
-        cmc_update_fn=hire_update_shipment,
+        cmc_update_fn=update_hire_shipment,
     )
     sale: AmherstMap = AmherstMap(
         category=CsrName.Sale,
@@ -117,6 +130,7 @@ class AmherstMaps:
             loose=SALE_ARRAY_LOOSE,
             tight=SALE_ARRAY_TIGHT,
         ),
+        cmc_update_fn=update_sale_shipment,
     )
     customer: AmherstMap = AmherstMap(
         category=CsrName.Customer,

@@ -23,7 +23,7 @@ from shipaw.models import pf_msg, pf_shared
 from shipaw.models.pf_models import AddressCollection, AddressRecipient, AddressSender
 from shipaw.models.pf_msg import Alert, BaseResponse
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import Shipment, ShipmentReferenceFields, to_collection, to_dropoff
+from shipaw.models.pf_shipment import Shipment, ShipmentReferenceFields
 from shipaw.models.pf_top import CollectionInfo, Contact, ContactCollection, ContactSender
 from shipaw.pf_config import pf_sett
 from shipaw.ship_types import (
@@ -45,12 +45,6 @@ def book_shipment(el_client, shipment: Shipment) -> pf_msg.ShipmentResponse:
     if resp.alerts:
         adict = get_alert_dict(resp)
         logger.warning(f'Alerts: {adict}')
-
-    if resp.completed_shipment_info:
-        if completed_list := resp.completed_shipment_info.completed_shipments.completed_shipment:
-            logger.info(rf'Shipment/s booked: {[_.shipment_number for _ in completed_list]}')
-    else:
-        logger.warning('No shipment booked')
 
     return resp
 
@@ -135,70 +129,6 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
     return notes
 
 
-async def shipment_f_form(
-    contact: Contact = Depends(contact_f_form),
-    address: AddressCollection = Depends(address_f_form),
-    notes: list[tuple[str, str]] = Depends(notes_f_form),
-    shipping_date: date = Form(...),
-    total_number_of_parcels: int = Form(...),
-    service_code: ServiceCode = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    own_label: str = Form(...),
-) -> Shipment:
-    logger.warning('Creating Shipment Request from form')
-
-    own_label = own_label.lower() == 'true'
-    shipment_request = Shipment(
-        recipient_address=address,
-        recipient_contact=contact,
-        service_code=service_code,
-        shipping_date=shipping_date,
-        total_number_of_parcels=total_number_of_parcels,
-    )
-    if direction == ShipDirection.DROPOFF:
-        shipment_request = to_dropoff(shipment_request)
-    elif direction == ShipDirection.INBOUND:
-        shipment_request = to_collection(shipment_request, own_label=own_label)
-
-    for fieldname, value in notes:
-        setattr(shipment_request, fieldname, value)
-    return shipment_request
-
-
-async def shipment_f_form2(
-    contact: Contact = Depends(contact_f_form),
-    address: AddressCollection = Depends(address_f_form),
-    notes: list[tuple[str, str]] = Depends(notes_f_form),
-    shipping_date: date = Form(...),
-    total_number_of_parcels: int = Form(...),
-    service_code: ServiceCode = Form(...),
-    direction: ship_types.ShipDirection = Form(...),
-    own_label: str = Form(...),
-    row_id: str = Form(...),
-    category: str = Form(...),
-) -> Shipment:
-    logger.warning('Creating Shipment Request from form')
-
-    own_label = own_label.lower() == 'true'
-    shipment_request = AmherstShipment(
-        recipient_address=address,
-        recipient_contact=contact,
-        service_code=service_code,
-        shipping_date=shipping_date,
-        total_number_of_parcels=total_number_of_parcels,
-        row_id=row_id,
-        category=category,
-    )
-    if direction == ShipDirection.DROPOFF:
-        shipment_request = to_amherst_dropoff(shipment_request)
-    elif direction == ShipDirection.INBOUND:
-        shipment_request = to_amherst_collection(shipment_request, own_label=own_label)
-
-    for fieldname, value in notes:
-        setattr(shipment_request, fieldname, value)
-    return shipment_request
-
-
 def to_amherst_dropoff(
     shipment: AmherstShipment, home_address=pf_sett().home_address, home_contact=pf_sett().home_contact
 ) -> AmherstShipmentAwayDropoff:
@@ -271,9 +201,9 @@ async def shipment_f_form2(
         category=category,
     )
     if direction == ShipDirection.DROPOFF:
-        shipment_request = to_dropoff(shipment_request)
+        shipment_request = to_amherst_dropoff(shipment_request)
     elif direction == ShipDirection.INBOUND:
-        shipment_request = to_collection(shipment_request, own_label=own_label)
+        shipment_request = to_amherst_collection(shipment_request, own_label=own_label)
 
     for fieldname, value in notes:
         setattr(shipment_request, fieldname, value)

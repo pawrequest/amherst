@@ -144,7 +144,7 @@ class AmherstHire(AmherstOrderBase):
 
 
 class AmherstShipment(Shipment):
-    category: str
+    category: CsrName
     row_id: str
 
     def shipment(self):
