@@ -57,6 +57,7 @@ Sub UnpackHire()
         if MsgBox("all ok? - Close Hire, save, and exit form?", 4) = 6 Then
             ReturnedOkNow(unpackedBy)
             Form.Save
+            Exit Sub
         End if
     End if
 
