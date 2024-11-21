@@ -12,14 +12,13 @@
     <label>
         <input type="text" name="pk_value" placeholder="Fetch New Records...">
     </label>
-    <label>
-        filter
+{#    <label>#}
+{#        filter#}
 {#        <input type="checkbox" name="py_filtered">#}
-    </label>
+{#    </label>#}
 </form>
 
 <div class="record-container" id="record-container" hx-get="/search?csrname=Customer&cmc_filter=tight"
-{#<div class="record-container" id="record-container" hx-get="/search?csrname=Customer&cmc_filter=tight&py_filter=none"#}
      hx-trigger="load"
      hx-target="this" hx-swap="innerHTML">
 </div>
