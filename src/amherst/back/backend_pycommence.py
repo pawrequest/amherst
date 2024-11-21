@@ -54,12 +54,12 @@ async def gather_records_gen(
     mapper = await q.mapper()
     input_type = mapper.record_model
     fil_array = await q.filter_array()
-    row_filter = mapper.py_filters.loose if q.cmc_filter else None
+    py_filter = getattr(mapper.py_filters, q.py_filter) if q.py_filter else None
     rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end if q.pagination.end else 0
     rowgen = pycmc.read_rows(
         csrname=q.csrname,
         pagination=q.pagination,
-        row_filter=row_filter,
+        row_filter=py_filter,
         filter_array=fil_array,
     )
 
