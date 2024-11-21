@@ -54,17 +54,20 @@ async def orders(
     reqs = []
     for cat in q.csrnames:
         logger.warning('pagination maybe sketchy for multiple categories?')
-        reqs.append(
-            SearchRequest(
-                csrname=cat,
-                condition=q.condition,
-                py_filter=q.py_filter,
-                cmc_filter=q.cmc_filter,
-                pagination=q.pagination,
-                customer_name=q.customer_name,
-                customer_id=q.customer_id,
+        if q.customer_name and q.customer_names:
+            raise ValueError('Cannot have both customer_name and customer_names')
+        for customer in q.customer_names or [q.customer_name]:
+            reqs.append(
+                SearchRequest(
+                    csrname=cat,
+                    condition=q.condition,
+                    py_filter=q.py_filter,
+                    cmc_filter=q.cmc_filter,
+                    pagination=q.pagination,
+                    customer_name=customer,
+                    customer_id=q.customer_id,
+                )
             )
-        )
     records: list[AMHERST_ORDER_MODELS] = []
     for req in reqs:
         with pycommence_context(req.csrname) as pycmc:
