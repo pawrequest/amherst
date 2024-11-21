@@ -57,6 +57,7 @@ class SearchRequest(BaseModel):
     pk_value: str | None = None
     customer_id: str | None = None
     customer_name: str | None = None
+    customer_names: list[str] | None = Field(default_factory=list)
     filtered: bool = False
     condition: ConditionType = ConditionType.CONTAIN
     max_rtn: int | None = None
@@ -166,7 +167,6 @@ class SearchRequest(BaseModel):
     async def filter_array(self):
         cmap = await maps2(self.csrname)
         fil_array = getattr(cmap.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
-
         if self.pk_value:
             fil_array.add_filter(FieldFilter(column=cmap.aliases.NAME, condition=self.condition, value=self.pk_value))
 
