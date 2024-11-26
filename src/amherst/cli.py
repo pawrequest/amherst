@@ -40,7 +40,7 @@ MODE = Mode.SHIP_BY_SRCH
 
 
 async def get_url_suffix2(category, pk):
-    return f'ship/form2?csrname={category}&pk_value={url_quote(pk)}&condition=equal&filtered=false&max_rtn=1'
+    return f'ship/form2?csrname={category}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
 
 
 def parse_arguments():

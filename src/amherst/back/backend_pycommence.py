@@ -9,16 +9,16 @@ from starlette.exceptions import HTTPException
 
 from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
 from pycommence.filters import ConditionType
-from pycommence.pycmc_types import MoreAvailable
+from pycommence.pycmc_types import CursorType, MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS, AmherstShipment, AmherstShipmentResponse
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.maps import AmherstMap, CsrName, maps2
 
 
 @contextlib.contextmanager
-def pycommence_context(csrname: CsrName) -> PyCommence:
+def pycommence_context(csrname: CsrName, mode: CursorType = CursorType.CATEGORY) -> PyCommence:
     CoInitialize()
-    pyc = PyCommence.with_csr(csrname)
+    pyc = PyCommence.with_csr(csrname, mode=mode)
     yield pyc
     CoUninitialize()
 
@@ -55,7 +55,7 @@ async def gather_records_gen(
     input_type = mapper.record_model
     fil_array = await q.filter_array()
     py_filter = getattr(mapper.py_filters, q.py_filter) if q.py_filter else None
-    rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end if q.pagination.end else 0
+    rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end
     rowgen = pycmc.read_rows(
         csrname=q.csrname,
         pagination=q.pagination,
@@ -125,6 +125,7 @@ def record_tracking(record, shipment_response):
     except Exception as exce:
         logger.exception(exce)
         raise
+
 
 #
 
