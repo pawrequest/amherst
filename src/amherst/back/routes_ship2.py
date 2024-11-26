@@ -87,6 +87,8 @@ async def post_confirm_booking2(
         update_dict = mapper.cmc_update_fn(shipment_proposed, amherst_ship_response)
         logger.info(f'Updating CMC: {update_dict}')
         pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
+    else:
+        logger.info(f'No CMC Update Function for {mapper.category}')
 
     return TEMPLATES.TemplateResponse(
         'ship/order_confirmed.html',
