@@ -2,13 +2,13 @@ Option Explicit
 ' define variables length and atpos for use in calculations
 DIM length, atpos
 
-ExecuteGlobal CreateObject("Scripting.FileSystemObject").OpenTextFile("C:\prdev\repos\amdev\amherst\src\amherst\actions\office_am\commence vbs\paul_funcs.vbs").ReadAll()
+ExecuteGlobal CreateObject("Scripting.FileSystemObject").OpenTextFile("C:\ProgramData\Commence\Commence\8.0\vbs\paul_funcs.vbs").ReadAll()
 ' import paul's functions:
 '   - PackHire(packedBy)
 '   - UnpackHire(unpackedBy)
 '   - EmailSendOut()
 '   - EmailMissingKit()
-ExecuteGlobal CreateObject("Scripting.FileSystemObject").OpenTextFile("C:\prdev\repos\amdev\amherst\src\amherst\actions\office_am\commence vbs\giles_funcs.vbs").ReadAll()
+ExecuteGlobal CreateObject("Scripting.FileSystemObject").OpenTextFile("C:\ProgramData\Commence\Commence\8.0\vbs\giles_funcs.vbs").ReadAll()
 ' import giles's functions:
 '   - FormatTelNumber(telNum)
 '   - FormatPersonName(PersonName)
