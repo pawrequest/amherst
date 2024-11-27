@@ -49,7 +49,7 @@ def parse_arguments():
     return arg_parser.parse_args()
 
 
-async def main(category: commence_adaptors.CsrName, record_name: str):
+async def main(category: commence_adaptors.CategoryName, record_name: str):
     logger.info(f'Starting Shipper with {category} record: {record_name}')
     alert = None
     create_db()

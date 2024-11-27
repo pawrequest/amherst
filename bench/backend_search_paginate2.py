@@ -8,7 +8,7 @@ from amherst.back.backend_search_paginate import Pagination
 from pycommence.filters import FieldFilter, Logic, SortOrder
 from pycommence.pycmc_types import MoreAvailable
 from amherst.models.amherst_models import AmherstHire, AmherstSale
-from amherst.models.maps import CsrName
+from amherst.models.maps import CategoryName
 
 
 # class SearchRequest2(BaseModel):

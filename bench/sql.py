@@ -144,7 +144,7 @@ async def get_or_make_customer(customer_dict, session):
 
 
 async def cust_frm_sql(customer_name: str, session):
-    stmt = select(AmherstCustomerDB).where(AmherstCustomerDB.name == customer_name)
+    stmt = select(AmherstCustomerDB).where(AmherstCustomerDB.delivery_contact_name == customer_name)
     inb = session.exec(stmt).first()
     return inb
 

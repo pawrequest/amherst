@@ -9,11 +9,15 @@
     <section class="requested requested__head">
         <h3 class="requested-title"> {{ shipment_proposed.direction.name }} Shipment:</h3>
         <form hx-post="/ship/post_confirm2?csrname={{ shipment_proposed.category }}"
-              hx-target=#content_main
-              hx-swap="innerHTML"
+              hx-target=#content_top
+              hx-swap="beforeend"
+              onclick="hide_content_main()"
+{#              hx-target=#content_main#}
+{#              hx-swap="innerHTML"#}
         >
             <input type="hidden" name="shipment_str" value="{{ shipment_proposed.model_dump_json() }}">
-            <button id="btn_ship" class="submit-confirm-btn" hx-on:click="this.style.display='none'">
+            <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">
+{#            <button id="btn_ship" class="submit-confirm-btn" hx-on:click="this.style.display='none'">#}
                 Confirm Booking
             </button>
         </form>
@@ -112,6 +116,12 @@
 
 
 <script>
+    function hide_content_main() {
+        const contentMain = document.querySelector('#content_main');
+        contentMain.style.display = 'none';
+    }
+
+
     {#function hide_div() {#}
     {#    const spinner = document.querySelector('.loading-spinner');#}
     {#    const resultsDiv = document.querySelector('#content_main');#}

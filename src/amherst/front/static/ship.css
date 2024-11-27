@@ -34,6 +34,7 @@
     text-overflow: ellipsis; /* Truncate text with ellipsis */
     white-space: nowrap; /* Prevent text wrapping */
 }
+
 .inputs {
     /*max-width: 100%;*/
     /*overflow: hidden; !* Prevent overflow *!*/
@@ -50,7 +51,7 @@
     width: 13rem;
     grid-area: shipment;
 
-    #own_label{
+    #own_label {
         /*display: none;*/
         opacity: 0;
     }
@@ -185,10 +186,14 @@ select:focus {
 }
 
 .wrapper__requested {
-    display: grid;
+    /*display: grid;*/
     grid-template-areas:
         "head      head    head      head    head "
          "col-cont col-add rec-cont rec-add details";
+}
+
+.wrapper__results {
+    /*display: flex*/
 }
 
 .requested {
@@ -246,7 +251,15 @@ select:focus {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    padding: 1rem;
+    border-radius: var(--border-radius);
+    padding: .5rem 1rem;
+    align-items: center;
+    justify-content: center;
+    margin-inline: auto;
+}
+
+.result__success {
+    background-color: var(--clr-success);
 }
 
 
@@ -277,12 +290,6 @@ select:focus {
     flex-direction: row;
     gap: 2rem;
     border-radius: var(--border-radius);
-}
-
-.result__success {
-    /*background-color: var(--clr-success);*/
-    border-radius: var(--border-radius);
-    padding: .5rem 1rem;
 }
 
 .label-actions {

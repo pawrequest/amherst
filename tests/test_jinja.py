@@ -64,7 +64,7 @@ async def customer_record(b_fxt: BookingStateDB):
 @pytest.mark.asyncio
 async def test_email_options(b_fxt: BookingStateDB):
     assert b_fxt.email_options
-    assert b_fxt.email_options[0].email
+    assert b_fxt.email_options[0].delivery_contact_email
     ...
 
 

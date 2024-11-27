@@ -27,7 +27,7 @@ from loguru import logger
 from thefuzz import fuzz
 
 from amherst.ui_runner import run_desktop_ui
-from amherst.models.commence_adaptors import CsrName
+from amherst.models.commence_adaptors import CategoryName
 
 SCORER = fuzz.partial_ratio
 
@@ -45,16 +45,16 @@ async def get_url_suffix2(category, pk):
 
 def parse_arguments():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('category', type=CsrName, choices=list(CsrName))
+    arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
     arg_parser.add_argument('record_name', type=str)
     args = arg_parser.parse_args()
     if args.category.lower() == 'trial':
         args.category = 'radio trial'
-    args.category = CsrName(args.category.title())
+    args.category = CategoryName(args.category.title())
     return args
 
 
-async def main(category: CsrName, record_name: str, mode: Mode = MODE):
+async def main(category: CategoryName, record_name: str, mode: Mode = MODE):
     logger.warning('hastily removed filterarray from cursor')
     # logger.info(f'Starting Shipper searching for {category} record: {record_name}')
     # search_request = SearchRequest(

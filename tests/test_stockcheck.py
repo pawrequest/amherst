@@ -18,7 +18,7 @@ def pyc_hire_new():
 
     # pycmc = PyCommence.with_csr('paul hires', mode=CursorType.VIEW)
     pycmc = PyCommence.with_csr('Hire', filter_array=filter_array)
-    if not pycmc.cmc_wrapper.name == 'Radios':
+    if not pycmc.cmc_wrapper.delivery_contact_name == 'Radios':
         raise ValueError('Expected Radio DB')
     return pycmc
 

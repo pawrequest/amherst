@@ -64,12 +64,17 @@ async def post_confirm_booking2(
     el_client: ELClient = Depends(get_el_client),
     pycmc=Depends(pycmc_f_query),
     mapper=Depends(maps2),
+    record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
     logger.info('Booking Shipent')
     shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed.shipment())
     amherst_ship_response: AmherstShipmentResponse = AmherstShipmentResponse(
         row_id=shipment_proposed.row_id, category=shipment_proposed.category, **shipment_response.model_dump()
     )
+    # amherst_ship_response: AmherstShipmentResponse = AmherstShipmentResponse.model_validate(
+    #     shipment_response.model_copy(update={'row_id': shipment_proposed.row_id, 'category': shipment_proposed.category}),
+    #     from_attributes=True,
+    # )
     logger.info(f'Booked AmherstShipment Response: {amherst_ship_response}')
 
     if not amherst_ship_response.success:

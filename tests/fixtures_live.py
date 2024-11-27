@@ -24,7 +24,7 @@ async def random_amrec(pycmc) -> AmherstRecord:
     record['category'] = pycmc.csr().category
     amrec = await cmc_record_to_amrec(record)
     amrec.telephone = FAKE_PHONE
-    amrec.email = FAKE_EMAIL
+    amrec.delivery_contact_email = FAKE_EMAIL
     return amrec
 
 

@@ -12,11 +12,12 @@ from pycommence.filters import ConditionType
 from pycommence.pycmc_types import CursorType, MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstMap, CsrName, maps2
+# from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.maps import AmherstMap, CategoryName, maps2
 
 
 @contextlib.contextmanager
-def pycommence_context(csrname: CsrName, mode: CursorType = CursorType.CATEGORY) -> PyCommence:
+def pycommence_context(csrname: CategoryName, mode: CursorType = CursorType.CATEGORY) -> PyCommence:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname, mode=mode)
     yield pyc
@@ -24,7 +25,7 @@ def pycommence_context(csrname: CsrName, mode: CursorType = CursorType.CATEGORY)
 
 
 @contextlib.contextmanager
-def pycommences_context(csrnames: list[CsrName]) -> PyCommence:
+def pycommences_context(csrnames: list[CategoryName]) -> PyCommence:
     CoInitialize()
     pyc = PyCommence()
     for csrname in csrnames:
@@ -34,14 +35,14 @@ def pycommences_context(csrnames: list[CsrName]) -> PyCommence:
 
 
 async def pycmc_f_query(
-    csrname: CsrName = Query(...),
+    csrname: CategoryName = Query(...),
 ) -> PyCommence:
     with pycommence_context(csrname=csrname) as pycmc:
         yield pycmc
 
 
 async def pycmcs_f_query(
-    csrnames: list[CsrName] = Query(...),
+    csrnames: list[CategoryName] = Query(...),
 ) -> PyCommence:
     with pycommences_context(csrnames=csrnames) as pycmc:
         yield pycmc

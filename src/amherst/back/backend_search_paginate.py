@@ -14,8 +14,10 @@ from amherst.models.commence_adaptors import CustomerAliases
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+# from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import FilterVariant
-from amherst.models.maps import CsrName, maps2
+from amherst.models.maps2 import CategoryName, maps2
+# from amherst.models.maps import CategoryName, maps2
 
 PAGE_SIZE = 50
 
@@ -51,8 +53,8 @@ async def get_condition(condition: str = Query('')) -> ConditionType:
 
 
 class SearchRequest(BaseModel):
-    csrname: CsrName | None = None
-    csrnames: list[CsrName] | None = None
+    csrname: CategoryName | None = None
+    csrnames: list[CategoryName] | None = None
     row_id: str | None = None
     pk_value: str | None = None
     customer_id: str | None = None
@@ -137,8 +139,8 @@ class SearchRequest(BaseModel):
     @classmethod
     def from_query(
         cls,
-        csrname: CsrName = Query(None),
-        csrnames: list[CsrName] = Query(None),
+        csrname: CategoryName = Query(None),
+        csrnames: list[CategoryName] = Query(None),
         pk_value: str = Query(''),
         pagination: Pagination = Depends(Pagination.from_query),
         condition: ConditionType = Depends(get_condition),

@@ -1,40 +1,32 @@
 from __future__ import annotations
 
 import re
-from abc import ABC
 from datetime import date
 from enum import Enum, StrEnum
 from typing import Annotated
 
 import pydantic as _p
-from pydantic import Field
 
 from pycommence.pycmc_types import (
     get_cmc_date,
 )
-from shipaw.ship_types import limit_daterange_no_weekends
 
 LOCATION = 'HM'
 
 
-class CsrName(StrEnum):
+class CategoryName(StrEnum):
     Hire = 'Hire'
     Sale = 'Sale'
     Customer = 'Customer'
     Trial = 'Radio Trial'
 
 
-# SALE_CUSTOMERS = Connection(
-#     name='SaleCustomers',
-#     to_table='Customers',
-#     from_table='Sale',
-# )
-#
-# HIRE_CUSTOMERS = Connection(
-#     name='HireCustomers',
-#     to_table='Customers',
-#     from_table='Hire',
-# )
+class ViewCursorName(StrEnum):
+    HiresOut = 'Hires Outbound - Paul'
+    HiresIn = 'Hires Inbound - Paul'
+
+
+CursorName = CategoryName | ViewCursorName
 
 
 class HireStatus(StrEnum):
@@ -59,23 +51,6 @@ class SaleStatus(StrEnum):
     QUOTE = 'Quote Sent'
     LOST_KIT = 'Lost Kit Invoice'
     CANCELLED = 'Cancelled'
-
-
-class AbstractAmherstShipable(str, ABC):
-    NAME: str
-    CUSTOMER_NAME: str
-
-    DELIVERY_CONTACT_BUSINESS: str
-    DELIVERY_CONTACT_NAME: str
-    DELIVERY_CONTACT_EMAIL: str
-    DELIVERY_CONTACT_PHONE: str
-
-    DELIVERY_ADDRESS_STR: str
-    DELIVERY_ADDRESS_PC: str
-
-
-class AmherstCustomerShipable(AbstractAmherstShipable):
-    Name: str = 'Name'
 
 
 class CustomerAliases(str, Enum):
@@ -104,6 +79,10 @@ class CustomerAliases(str, Enum):
     HIRES = 'Has Hired Hire'
     SALES = 'Involves Sale'
 
+    TRACK_OUT = 'Track Outbound'
+    TRACK_IN = 'Track Inbound'
+    TRACKING_NUMBERS = 'Tracking Numbers'
+
 
 class HireAliases(StrEnum):
     NAME = 'Name'
@@ -125,6 +104,7 @@ class HireAliases(StrEnum):
     ARRANGED_IN = 'Pickup Arranged'
     TRACK_OUT = 'Track Outbound'
     TRACK_IN = 'Track Inbound'
+    TRACKING_NUMBERS = 'Tracking Numbers'
     MISSING_KIT_STR = 'Missing Kit'
 
     ACTUAL_RETURN_DATE = 'Actual Return Date'
@@ -202,7 +182,7 @@ class SaleAliases(StrEnum):
     ARRANGED_IN = 'Pickup Arranged'
     TRACK_OUT = 'Track Outbound'
     TRACK_IN = 'Track Inbound'
-    MISSING_KIT_STR = 'Missing Kit'
+    TRACKING_NUMBERS = 'Tracking Numbers'
 
     LOST_EQUIPMENT = 'Lost Equipment'
     STATUS = 'Status'
