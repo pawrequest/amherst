@@ -40,40 +40,40 @@ def split_addr_str(address: str) -> dict[str, str]:
     return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
 
 
-class AmherstAddress(BaseModel):
-    address_str: str
-    postcode: str
-
-    def address_dict(self) -> dict:
-        return {
-            **split_addr_str(self.address_str),
-            'postcode': self.postcode,
-        }
-
-    def pf_address_base(self) -> AddressBase:
-        return AddressBase.model_validate(self, from_attributes=True)
-
-
-class AmherstContact(BaseModel):
-    contact_name: str
-    business_name: str
-    mobile_phone: str
-    email_address: str
-
-    def pf_contact(self) -> Contact:
-        return Contact.model_validate(self, from_attributes=True)
+# class AmherstAddress(BaseModel):
+#     address_str: str
+#     postcode: str
+#
+#     def address_dict(self) -> dict:
+#         return {
+#             **split_addr_str(self.address_str),
+#             'postcode': self.postcode,
+#         }
+#
+#     def pf_address_base(self) -> AddressBase:
+#         return AddressBase.model_validate(self, from_attributes=True)
 
 
-class AmherstDeliveryAddress(AmherstAddress):
-    address_str: str = Field(..., alias='Delivery Address')
-    postcode: str = Field(..., alias='Delivery Postcode')
+# class AmherstContact(BaseModel):
+#     contact_name: str
+#     business_name: str
+#     mobile_phone: str
+#     email_address: str
+#
+#     def pf_contact(self) -> Contact:
+#         return Contact.model_validate(self, from_attributes=True)
 
 
-class AmherstDeliveryContact(AmherstContact):
-    contact_name: str = Field(..., alias='Delivery Contact')
-    business_name: str = Field(..., alias='Delivery Name')
-    mobile_phone: str = Field(..., alias='Delivery Telephone')
-    email_address: str = Field(..., alias='Delivery Email')
+# class AmherstDeliveryAddress(AmherstAddress):
+#     address_str: str = Field(..., alias='Delivery Address')
+#     postcode: str = Field(..., alias='Delivery Postcode')
+
+
+# class AmherstDeliveryContact(AmherstContact):
+#     contact_name: str = Field(..., alias='Delivery Contact')
+#     business_name: str = Field(..., alias='Delivery Name')
+#     mobile_phone: str = Field(..., alias='Delivery Telephone')
+#     email_address: str = Field(..., alias='Delivery Email')
 
 
 class AmherstTableBase(BaseModel, ABC):
@@ -89,8 +89,6 @@ class AmherstTableBase(BaseModel, ABC):
 
     # mandatory fields
     row_id: str
-
-    # mandatory fields
     category: CategoryName
     customer_name: str
     delivery_contact_name: str

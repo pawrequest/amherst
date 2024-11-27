@@ -31,7 +31,7 @@ def test_pycmc(pycmc):
 
 @pytest.mark.asyncio
 async def test_record(pycmc):
-    mapper: AmherstMap = await maps2(pycmc.csr().csrname)
+    mapper: AmherstMap = await maps2(pycmc.get_csrname())
     pag = Pagination(
         offset=random.randint(0, 30),
     )
