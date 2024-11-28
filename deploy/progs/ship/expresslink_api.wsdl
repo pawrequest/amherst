@@ -1,0 +1,977 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:s1="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:ns="http://www.parcelforce.net/ws/ship/v14"
+    targetNamespace="http://www.parcelforce.net/ws/ship/v14"
+    name="ShipServiceDefinitions">
+
+  <types>
+    <xs:schema 
+    attributeFormDefault="unqualified"
+    elementFormDefault="qualified"
+    targetNamespace="http://www.parcelforce.net/ws/ship/v14"
+    xmlns:ns="http://www.parcelforce.net/ws/ship/v14"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema">
+        <xs:element name="CreateShipmentRequest" type="ns:CreateShipmentRequest"/>
+        <xs:element name="CreateShipmentReply" type="ns:CreateShipmentReply"/>
+        <xs:element name="CreatePrintRequest" type="ns:CreatePrintRequest"/>
+        <xs:element name="CreatePrintReply" type="ns:CreatePrintReply"/>
+        <xs:element name="PrintLabelRequest" type="ns:PrintLabelRequest"/>
+        <xs:element name="PrintLabelReply" type="ns:PrintLabelReply"/>
+        <xs:element name="PrintDocumentRequest" type="ns:PrintDocumentRequest"/>
+        <xs:element name="PrintDocumentReply" type="ns:PrintDocumentReply"/>
+        <xs:element name="CreateManifestRequest" type="ns:CreateManifestRequest"/>
+        <xs:element name="CreateManifestReply" type="ns:CreateManifestReply"/>
+        <xs:element name="PrintManifestRequest" type="ns:PrintManifestRequest"/>
+        <xs:element name="PrintManifestReply" type="ns:PrintManifestReply"/>
+        <xs:element name="ReturnShipmentRequest" type="ns:ReturnShipmentRequest"/>
+        <xs:element name="ReturnShipmentReply" type="ns:ReturnShipmentReply"/>
+        <xs:element name="FindRequest" type="ns:FindRequest"/>
+        <xs:element name="FindReply" type="ns:FindReply"/>
+        <xs:element name="CCReserveRequest" type="ns:CCReserveRequest"/>
+        <xs:element name="CCReserveReply" type="ns:CCReserveReply"/>
+        <xs:element name="CancelShipmentRequest" type="ns:CancelShipmentRequest"/>
+        <xs:element name="CancelShipmentReply" type="ns:CancelShipmentReply"/>
+        <xs:complexType name="BaseRequest">
+            <xs:sequence>
+              <xs:element name="Authentication" type="ns:Authentication"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="BaseReply">
+            <xs:sequence>
+              <xs:element name="Alerts" type="ns:Alerts" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CreateShipmentRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="RequestedShipment" type="ns:RequestedShipment"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CreateShipmentReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="CompletedShipmentInfo" type="ns:CompletedShipmentInfo" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CreatePrintRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="RequestedShipment" type="ns:RequestedShipment"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CreatePrintReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="CompletedShipmentInfoCreatePrint" type="ns:CompletedShipmentInfoCreatePrint" minOccurs="0"/>
+                  <xs:element name="Label" type="ns:Document" minOccurs="0"/>
+                  <xs:element name="LabelData" type="ns:ShipmentLabelData" minOccurs="0"/>
+                  <xs:element name="PartnerCode" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PrintLabelRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="ShipmentNumber" type="xs:string"/>
+                  <xs:element name="PrintFormat" type="xs:string" minOccurs="0"/>
+                  <xs:element name="BarcodeFormat" type="xs:string" minOccurs="0"/>
+                  <xs:element name="PrintType" type="ns:PrintType" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PrintLabelReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="Label" type="ns:Document" minOccurs="0"/>
+                  <xs:element name="LabelData" type="ns:ShipmentLabelData" minOccurs="0"/>
+                  <xs:element name="PartnerCode" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PrintDocumentRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="ShipmentNumber" type="xs:string"/>
+                  <xs:element name="DocumentType" type="xs:integer"/>
+                  <xs:element name="PrintFormat" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PrintDocumentReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="Label" type="ns:Document" minOccurs="0"/>
+                  <xs:element name="LabelData" type="ns:ShipmentLabelData" minOccurs="0"/>
+                  <xs:element name="DocumentType" type="ns:Document" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CreateManifestReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="CompletedManifests" type="ns:CompletedManifests" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CreateManifestRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="DepartmentId" type="xs:integer" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PrintManifestRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="ManifestNumber" type="xs:string"/>
+                  <xs:element name="PrintFormat" type="xs:string" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="PrintManifestReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="Manifest" type="ns:Document" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="ReturnShipmentRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="ShipmentNumber" type="xs:string"/>
+                  <xs:element name="CollectionTime" type="ns:DateTimeRange"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="ReturnShipmentReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="CompletedShipmentInfo" type="ns:CompletedReturnInfo" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="RequestedShipment">
+            <xs:sequence>
+              <xs:element name="DepartmentId" type="xs:integer" minOccurs="0"/>
+              <xs:element name="ShipmentType" type="xs:string"/>
+              <xs:element name="ContractNumber" type="xs:string"/>
+              <xs:element name="RequestId" type="xs:integer" minOccurs="0"/>
+              <xs:element name="ServiceCode" type="xs:string"/>
+              <xs:element name="PrePrinted" type="xs:boolean" minOccurs="0"/>
+              <xs:element name="ShippingDate" type="xs:date" minOccurs="0"/>
+              <xs:element name="JobReference" type="xs:string" minOccurs="0"/>
+              <xs:element name="RecipientContact" type="ns:Contact"/>
+              <xs:element name="RecipientAddress" type="ns:Address"/>
+              <xs:element name="ImporterContact" type="ns:Contact" minOccurs="0"/>
+              <xs:element name="ImporterAddress" type="ns:Address" minOccurs="0"/>
+              <xs:element name="ExporterContact" type="ns:Contact" minOccurs="0"/>
+              <xs:element name="ExporterAddress" type="ns:Address" minOccurs="0"/>
+              <xs:element name="SenderContact" type="ns:Contact" minOccurs="0"/>
+              <xs:element name="SenderAddress" type="ns:Address" minOccurs="0"/>
+              <xs:element name="TotalNumberOfParcels" type="xs:integer" minOccurs="0"/>
+              <xs:element name="TotalShipmentWeight" type="ns:Weight" minOccurs="0"/>
+              <xs:element name="Enhancement" type="ns:Enhancement" minOccurs="0"/>
+              <xs:element name="DeliveryOptions" type="ns:DeliveryOptions" minOccurs="0"/>
+              <xs:element name="HazardousGoods" type="ns:HazardousGoods" minOccurs="0"/>
+              <xs:element name="Returns" type="ns:Returns" minOccurs="0"/>
+              <xs:element name="DropOffInd" type="xs:string" minOccurs="0"/>
+              <xs:element name="PrintOwnLabel" type="xs:boolean" minOccurs="0"/>
+              <xs:element name="CollectionInfo" type="ns:CollectionInfo" minOccurs="0"/>
+              <xs:element name="InternationalInfo" type="ns:InternationalInfo" minOccurs="0"/>
+              <xs:element name="ReferenceNumber1" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber2" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber3" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber4" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber5" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions1" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions2" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions3" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions4" type="xs:string" minOccurs="0"/>
+              <xs:element name="InBoundContact" type="ns:Contact" minOccurs="0"/>
+              <xs:element name="InBoundAddress" type="ns:Address" minOccurs="0"/>
+              <xs:element name="InBoundDetails" type="ns:InBoundDetails" minOccurs="0"/>
+              <xs:element name="ExchangeInstructions1" type="xs:string" minOccurs="0"/>
+              <xs:element name="ExchangeInstructions2" type="xs:string" minOccurs="0"/>
+              <xs:element name="ExchangeInstructions3" type="xs:string" minOccurs="0"/>
+              <xs:element name="ConsignmentHandling" type="xs:boolean" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Contact">
+            <xs:sequence>
+              <xs:element name="BusinessName" type="xs:string"/>
+              <xs:element name="ContactName" type="xs:string" minOccurs="0"/>
+              <xs:element name="EmailAddress" type="xs:string" minOccurs="0"/>
+              <xs:element name="Telephone" type="xs:string" minOccurs="0"/>
+              <xs:element name="Fax" type="xs:string" minOccurs="0"/>
+              <xs:element name="MobilePhone" type="xs:string" minOccurs="0"/>
+              <xs:element name="SendersName" type="xs:string" minOccurs="0"/>
+              <xs:element name="Notifications" type="ns:Notifications" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Notifications">
+            <xs:sequence>
+              <xs:element name="NotificationType" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Address">
+            <xs:sequence>
+              <xs:element name="AddressLine1" type="xs:string" minOccurs="1"/>
+              <xs:element name="AddressLine2" type="xs:string" minOccurs="0"/>
+              <xs:element name="AddressLine3" type="xs:string" minOccurs="0"/>
+              <xs:element name="Town" type="xs:string" minOccurs="0"/>
+              <xs:element name="Postcode" type="xs:string" minOccurs="0"/>
+              <xs:element name="Country" type="xs:string" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="InBoundDetails">
+            <xs:sequence>
+              <xs:element name="ContractNumber" type="xs:string" minOccurs="1"/>
+              <xs:element name="ServiceCode" type="xs:string" minOccurs="1"/>
+              <xs:element name="TotalShipmentWeight" type="xs:string" minOccurs="0"/>
+              <xs:element name="Enhancement" type="ns:Enhancement" minOccurs="0" />
+              <xs:element name="ReferenceNumber1" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber2" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber3" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber4" type="xs:string" minOccurs="0"/>
+              <xs:element name="ReferenceNumber5" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions1" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions2" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions3" type="xs:string" minOccurs="0"/>
+              <xs:element name="SpecialInstructions4" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Enhancement">
+            <xs:sequence>
+              <xs:element name="EnhancedCompensation" type="xs:string" minOccurs="0"/>
+              <xs:element name="SaturdayDeliveryRequired" type="xs:boolean" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="DeliveryOptions">
+            <xs:sequence>
+              <xs:element name="ConvenientCollect" type="ns:ConvenientCollect" minOccurs="0" />
+              <xs:element name="IRTS" type="xs:boolean" minOccurs="0" />
+              <xs:element name="Letterbox" type="xs:boolean" minOccurs="0" />
+              <xs:element name="SpecifiedPostOffice" type="ns:SpecifiedPostOffice" minOccurs="0" />
+              <xs:element name="SpecifiedNeighbour" type="xs:string" minOccurs="0" />
+              <xs:element name="SafePlace" type="xs:string" minOccurs="0" />
+              <xs:element name="PIN" type="xs:integer" minOccurs="0" />
+              <xs:element name="NamedRecipient" type="xs:boolean" minOccurs="0" />
+              <xs:element name="AddressOnly" type="xs:boolean" minOccurs="0" />
+              <xs:element name="NominatedDeliveryDate" type="xs:date" minOccurs="0" />
+              <xs:element name="PersonalParcel" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="HazardousGoods">
+            <xs:sequence>
+              <xs:element name="HazardousGood" type="ns:HazardousGood" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="HazardousGood">
+            <xs:sequence>
+              <xs:element name="LQDGUNCode" type="xs:string" minOccurs="0"/>
+              <xs:element name="LQDGDescription" type="xs:string" minOccurs="0"/>
+              <xs:element name="LQDGVolume" type= "ns:Weight" minOccurs="0"/>
+              <xs:element name="Firearms" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Returns">
+            <xs:sequence>
+              <xs:element name="ReturnsEmail" type="xs:string" minOccurs="0"/>
+              <xs:element name="EmailMessage" type="xs:string" minOccurs="0"/>
+              <xs:element name="EmailLabel" type="xs:boolean" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="InternationalInfo">
+            <xs:annotation>
+              <xs:documentation>Only for international shipments</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+              <xs:element name="Parcels" type="ns:Parcels" minOccurs="0"/>
+              <xs:element name="ExporterCustomsReference" type="xs:string" minOccurs="0"/>
+              <xs:element name="RecipientImporterVatNo" type="xs:string" minOccurs="0"/>
+              <xs:element name="OriginalExportShipmentNo" type="xs:string" minOccurs="0"/>
+              <xs:element name="DocumentsOnly" type="xs:boolean" minOccurs="0"/>
+              <xs:element name="DocumentsDescription" type="xs:string" minOccurs="0"/>
+              <xs:element name="ValueUnder200USDollars" type="xs:boolean" minOccurs="0"/>
+              <xs:element name="ShipmentDescription" type="xs:string" minOccurs="0"/>
+              <xs:element name="Comments" type="xs:string" minOccurs="0"/>
+              <xs:element name="InvoiceDate" type="xs:date" minOccurs="0"/>
+              <xs:element name="TermsOfDelivery" type="xs:string" minOccurs="0"/>
+              <xs:element name="PurchaseOrderRef" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Parcels">
+            <xs:sequence>
+              <xs:element name="Parcel" type="ns:Parcel" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Parcel">
+            <xs:sequence>
+              <xs:element name="Weight" type="ns:Weight" minOccurs="0"/>
+              <xs:element name="Length" type="xs:positiveInteger" minOccurs="0"/>
+              <xs:element name="Height" type="xs:positiveInteger" minOccurs="0"/>
+              <xs:element name="Width" type="xs:positiveInteger" minOccurs="0"/>
+              <xs:element name="PurposeOfShipment" type="xs:string" minOccurs="0"/>
+              <xs:element name="InvoiceNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="ExportLicenseNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="CertificateNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="ContentDetails" type="ns:ContentDetails" minOccurs="0"/>
+              <xs:element name="ShippingCost" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+        </xs:complexType>
+        <xs:simpleType name="Weight">
+            <xs:restriction base="xs:decimal">
+            </xs:restriction>
+        </xs:simpleType>
+        <xs:complexType name="ContentDetails">
+            <xs:sequence>
+              <xs:element name="ContentDetail" type="ns:ContentDetail" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ContentDetail">
+            <xs:sequence>
+              <xs:element name="CountryOfManufacture" type="xs:string"/>
+              <xs:element name="CountryOfOrigin" type="xs:string" minOccurs="0"/>
+              <xs:element name="ManufacturersName" type="xs:string" minOccurs="0"/>
+              <xs:element name="Description" type="xs:string"/>
+              <xs:element name="UnitWeight" type="ns:Weight"/>
+              <xs:element name="UnitQuantity" type="xs:positiveInteger"/>
+              <xs:element name="UnitValue" type="xs:decimal"/>
+              <xs:element name="Currency" type="xs:string"/>
+              <xs:element name="TariffCode" type="xs:string" minOccurs="0"/>
+              <xs:element name="TariffDescription" type="xs:string" minOccurs="0"/>
+              <xs:element name="ArticleReference" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CollectionInfo">
+            <xs:annotation>
+              <xs:documentation>Only required for collections</xs:documentation>
+            </xs:annotation>
+            <xs:sequence>
+              <xs:element name="CollectionContact" type="ns:Contact" minOccurs="1"/>
+              <xs:element name="CollectionAddress" type="ns:Address" minOccurs="1"/>
+              <xs:element name="CollectionTime" type="ns:DateTimeRange" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="DateTimeRange">
+            <xs:sequence>
+              <xs:element name="From" type="xs:dateTime"/>
+              <xs:element name="To" type="xs:dateTime"/>
+            </xs:sequence>
+        </xs:complexType>
+          <xs:complexType name="ShipmentLabelData">
+            <xs:sequence>
+              <xs:element name="ParcelLabelData" type="ns:ParcelLabelData" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ParcelLabelData">
+            <xs:sequence>
+              <xs:element name="ParcelNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="ShipmentNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="JourneyLeg" type="xs:string" minOccurs="0"/>
+              <xs:element name="LabelData" type="ns:LabelData" minOccurs="0"/>
+              <xs:element name="Barcodes" type="ns:Barcodes" minOccurs="0"/>
+              <xs:element name="Images" type="ns:Images" minOccurs="0"/>
+              <xs:element name="ParcelContents" type="ns:ParcelContents" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ParcelContents">
+            <xs:sequence>
+              <xs:element name="Item" type="ns:ContentData" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ContentData">
+            <xs:sequence>
+              <xs:element name="Name" type="xs:string"/>
+              <xs:element name="Data" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="LabelData">
+            <xs:sequence>
+              <xs:element name="Item" type="ns:LabelItem" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="LabelItem">
+            <xs:sequence>
+              <xs:element name="Name" type="xs:string"/>
+              <xs:element name="Data" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Barcodes">
+            <xs:sequence>
+              <xs:element name="Barcode" type="ns:Barcode" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Barcode">
+            <xs:sequence>
+              <xs:element name="Name" type="xs:string"/>
+              <xs:element name="Data" type="xs:base64Binary"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Images">
+            <xs:sequence>
+              <xs:element name="Image" type="ns:Image" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Image">
+            <xs:sequence>
+              <xs:element name="Name" type="xs:string"/>
+              <xs:element name="Data" type="xs:base64Binary"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:simpleType name="PrintType">
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="ALL_PARCELS"/>
+              <xs:enumeration value="SINGLE_PARCEL"/>
+            </xs:restriction>
+        </xs:simpleType>
+        <xs:complexType name="Document">
+            <xs:sequence>
+              <xs:element name="Data" type="xs:base64Binary"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedManifests">
+            <xs:sequence>
+              <xs:element name="CompletedManifestInfo" type="ns:CompletedManifestInfo" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedManifestInfo">
+            <xs:sequence>
+              <xs:element name="DepartmentId" type="xs:integer" minOccurs="1"/>
+              <xs:element name="ManifestNumber" type="xs:string" minOccurs="1"/>
+              <xs:element name="ManifestType" type="xs:string" minOccurs="1"/>
+              <xs:element name="TotalShipmentCount" type="xs:integer" minOccurs="1"/>
+              <xs:element name="ManifestShipments" type="ns:ManifestShipments" minOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ManifestShipments">
+            <xs:sequence>
+              <xs:element name="ManifestShipment" type="ns:ManifestShipment" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ManifestShipment">
+            <xs:sequence>
+              <xs:element name="ShipmentNumber" type="xs:string"/>
+              <xs:element name="ServiceCode" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedShipmentInfo">
+            <xs:sequence>
+              <xs:element name="LeadShipmentNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="DeliveryDate" type="xs:date" minOccurs="0"/>
+              <xs:element name="Status" type="xs:string"/>
+              <xs:element name="CompletedShipments" type="ns:CompletedShipments"/>
+              <xs:element name="RequestedShipment" type="ns:RequestedShipment"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedShipmentInfoCreatePrint">
+            <xs:sequence>
+              <xs:element name="LeadShipmentNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="ShipmentNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="DeliveryDate" type="xs:date" minOccurs="0"/>
+              <xs:element name="Status" type="xs:string"/>
+              <xs:element name="CompletedShipments" type="ns:CompletedShipments"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedShipments">
+            <xs:sequence>
+              <xs:element name="CompletedShipment" type="ns:CompletedShipment" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedShipment">
+            <xs:sequence>
+              <xs:element name="ShipmentNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="OutBoundShipmentNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="InBoundShipmentNumber" type="xs:string" minOccurs="0"/>
+              <xs:element name="PartnerNumber" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedReturnInfo">
+            <xs:sequence>
+              <xs:element name="Status" type="xs:string"/>
+              <xs:element name="ShipmentNumber" type="xs:string"/>
+              <xs:element name="CollectionTime" type="ns:DateTimeRange"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Authentication">
+            <xs:sequence>
+              <xs:element name="UserName" type="xs:string"/>
+              <xs:element name="Password" type="xs:string"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Alerts">
+            <xs:sequence>
+              <xs:element name="Alert" type="ns:Alert" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Alert">
+            <xs:sequence>
+              <xs:element name="Code" type="xs:integer"/>
+              <xs:element name="Message" type="xs:string"/>
+              <xs:element name="Type" type="ns:AlertType"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="FindRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="ConvenientCollect" type="ns:ConvenientCollect" minOccurs="0"/>
+                  <xs:element name="SpecifiedPostOffice" type="ns:SpecifiedPostOffice" minOccurs="0"/>
+                  <xs:element name="PAF" type="ns:PAF" minOccurs="0" />
+                  <xs:element name="SafePlaces" type="xs:boolean" minOccurs="0" />
+                  <xs:element name="NominatedDeliveryDates" type="ns:NominatedDeliveryDates" minOccurs="0"/>
+                  <xs:element name="PostcodeExclusion" type="ns:PostcodeExclusion" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="FindReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="ConvenientCollect" type="ns:ConvenientCollect" minOccurs="0"/>
+                  <xs:element name="SpecifiedPostOffice" type="ns:SpecifiedPostOffice" minOccurs="0"/>
+                  <xs:element name="PAF" type="ns:PAF" minOccurs="0"/>
+                  <xs:element name="SafePlaceList" type="ns:SafePlaceList" minOccurs="0"/>
+                  <xs:element name="NominatedDeliveryDates" type="ns:NominatedDeliveryDates" minOccurs="0"/>
+                  <xs:element name="PostcodeExclusion" type="ns:PostcodeExclusion" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CCReserveRequest">
+            <xs:complexContent>
+                <xs:extension base="ns:BaseRequest">
+                    <xs:sequence>
+                        <xs:element name="BookingReference" type="xs:string"/>
+                    </xs:sequence>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+       <xs:complexType name="CCReserveReply">
+            <xs:complexContent>
+                <xs:extension base="ns:BaseReply">
+                    <xs:sequence>
+                        <xs:element name="PostOffice" type="ns:PostOffice" minOccurs="0"/>
+                    </xs:sequence>
+                </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CancelShipmentRequest">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseRequest">
+                <xs:sequence>
+                  <xs:element name="ShipmentNumber" type="xs:string"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CancelShipmentReply">
+            <xs:complexContent>
+              <xs:extension base="ns:BaseReply">
+                <xs:sequence>
+                  <xs:element name="CompletedCancel" type="ns:CompletedCancel" minOccurs="0"/>
+                </xs:sequence>
+              </xs:extension>
+            </xs:complexContent>
+        </xs:complexType>
+        <xs:complexType name="CompletedCancel">
+            <xs:sequence>
+              <xs:element name="CompletedCancelInfo" type="ns:CompletedCancelInfo" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="CompletedCancelInfo">
+            <xs:sequence>
+              <xs:element name="Status" type="xs:string" minOccurs="0"/>
+              <xs:element name="ShipmentNumber" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ConvenientCollect">
+            <xs:sequence>
+              <xs:element name="Postcode" type="xs:string" minOccurs="0"/>
+              <xs:element name="PostOffice" type="ns:PostOffice" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="Count" type="xs:integer" minOccurs="0"/>
+              <xs:element name="PostOfficeID" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="SpecifiedPostOffice">
+            <xs:sequence>
+              <xs:element name="Postcode" type="xs:string" minOccurs="0"/>
+              <xs:element name="PostOffice" type="ns:PostOffice" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="Count" type="xs:integer" minOccurs="0"/>
+              <xs:element name="PostOfficeID" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="PAF">
+            <xs:sequence>
+              <xs:element name="Postcode" type="xs:string" minOccurs="0"/>
+              <xs:element name="Count" type="xs:integer" minOccurs="0"/>
+              <xs:element name="SpecifiedNeighbour" type="ns:SpecifiedNeighbour" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="SpecifiedNeighbour">
+            <xs:sequence>
+              <xs:element name="Address" type="ns:Address" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="SafePlaceList">
+            <xs:sequence>
+              <xs:element name="SafePlace" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="NominatedDeliveryDates">
+            <xs:sequence>
+              <xs:element name="ServiceCode" type="xs:string" minOccurs="0"/>
+              <xs:element name="Departments" type="ns:Departments" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="NominatedDeliveryDateList">
+            <xs:sequence>
+              <xs:element name="NominatedDeliveryDate" type="xs:date" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="PostcodeExclusion">
+            <xs:sequence>
+              <xs:element name="DeliveryPostcode" type="xs:string" minOccurs="0"/>
+              <xs:element name="CollectionPostcode" type="xs:string" minOccurs="0"/>
+              <xs:element name="Departments" type="ns:Departments" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Departments">
+            <xs:sequence>
+              <xs:element name="Department" type="ns:Department" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Department">
+            <xs:sequence>
+              <xs:element name="DepartmentID" type="xs:integer" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="ServiceCodes" type="ns:ServiceCodes" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="NominatedDeliveryDateList" type="ns:NominatedDeliveryDateList" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="ServiceCodes">
+            <xs:sequence>
+              <xs:element name="ServiceCode" type="xs:string"  minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="PostOffice">
+            <xs:sequence>
+                <xs:element name="PostOfficeID" type="xs:string" minOccurs="0"/>
+                <xs:element name="Business" type="xs:string" minOccurs="0"/>
+                <xs:element name="Address" type="ns:Address" minOccurs="0"/>
+                <xs:element name="OpeningHours" type="ns:OpeningHours" minOccurs="0"/>
+                <xs:element name="Distance" type="xs:decimal" minOccurs="0"/>
+                <xs:element name="Availability" type="xs:boolean" minOccurs="0"/>
+                <xs:element name="Position" type="ns:Position" minOccurs="0"/>
+                <xs:element name="BookingReference" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="OpeningHours">
+            <xs:sequence>
+              <xs:element name="Mon" type="ns:Mon" minOccurs="0"/>
+              <xs:element name="Tue" type="ns:Tue" minOccurs="0"/>
+              <xs:element name="Wed" type="ns:Wed" minOccurs="0"/>
+              <xs:element name="Thu" type="ns:Thu" minOccurs="0"/>
+              <xs:element name="Fri" type="ns:Fri" minOccurs="0"/>
+              <xs:element name="Sat" type="ns:Sat" minOccurs="0"/>
+              <xs:element name="Sun" type="ns:Sun" minOccurs="0"/>
+              <xs:element name="BankHol" type="ns:BankHol" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Mon">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Tue">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Wed">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Thu">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Fri">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Sat">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Sun">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="BankHol">
+            <xs:sequence>
+              <xs:element name="Hours" type="ns:Hours" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Hours">
+            <xs:sequence>
+              <xs:element name="Open" type="xs:string" minOccurs="0"/>
+              <xs:element name="Close" type="xs:string" minOccurs="0"/>
+              <xs:element name="CloseLunch" type="xs:string" minOccurs="0"/>
+              <xs:element name="AfterLunchOpening" type="xs:string" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:complexType name="Position">
+            <xs:sequence>
+                <xs:element name="Longitude" type="xs:decimal" minOccurs="0"/>
+                <xs:element name="Latitude" type="xs:decimal" minOccurs="0"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:simpleType name="AlertType">
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="ERROR"/>
+              <xs:enumeration value="WARNING"/>
+              <xs:enumeration value="NOTIFICATION"/>
+            </xs:restriction>
+        </xs:simpleType>
+    </xs:schema>
+  </types>
+  <message name="CreateShipmentRequest">
+    <part name="CreateShipmentRequest" element="ns:CreateShipmentRequest"/>
+  </message>
+  <message name="CreateShipmentReply">
+    <part name="CreateShipmentReply" element="ns:CreateShipmentReply"/>
+  </message>
+  <message name="CreatePrintRequest">
+    <part name="CreatePrintRequest" element="ns:CreatePrintRequest"/>
+  </message>
+  <message name="CreatePrintReply">
+    <part name="CreatePrintReply" element="ns:CreatePrintReply"/>
+  </message>
+  <message name="PrintLabelRequest">
+    <part name="PrintLabelRequest" element="ns:PrintLabelRequest"/>
+  </message>
+  <message name="PrintLabelReply">
+    <part name="PrintLabelReply" element="ns:PrintLabelReply"/>
+  </message>
+  <message name="PrintDocumentRequest">
+    <part name="PrintDocumentRequest" element="ns:PrintDocumentRequest"/>
+  </message>
+  <message name="PrintDocumentReply">
+    <part name="PrintDocumentReply" element="ns:PrintDocumentReply"/>
+  </message>
+  <message name="CreateManifestRequest">
+    <part name="CreateManifestRequest" element="ns:CreateManifestRequest"/>
+  </message>
+  <message name="CreateManifestReply">
+    <part name="CreateManifestReply" element="ns:CreateManifestReply"/>
+  </message>
+  <message name="PrintManifestRequest">
+    <part name="PrintManifestRequest" element="ns:PrintManifestRequest"/>
+  </message>
+  <message name="PrintManifestReply">
+    <part name="PrintManifestReply" element="ns:PrintManifestReply"/>
+  </message>
+  <message name="ReturnShipmentRequest">
+    <part name="ReturnShipmentRequest" element="ns:ReturnShipmentRequest"/>
+  </message>
+  <message name="ReturnShipmentReply">
+    <part name="ReturnShipmentReply" element="ns:ReturnShipmentReply"/>
+  </message>
+  <message name="FindRequest">
+    <part name="FindRequest" element="ns:FindRequest"/>
+  </message>
+  <message name="FindReply">
+    <part name="FindReply" element="ns:FindReply"/>
+  </message>
+  <message name="CCReserveRequest">
+    <part name="CCReserveRequest" element="ns:CCReserveRequest"/>
+  </message>
+  <message name="CCReserveReply">
+    <part name="CCReserveReply" element="ns:CCReserveReply"/>
+  </message>
+  <message name="CancelShipmentRequest">
+    <part name="CancelShipmentRequest" element="ns:CancelShipmentRequest"/>
+  </message>
+  <message name="CancelShipmentReply">
+    <part name="CancelShipmentReply" element="ns:CancelShipmentReply"/>
+  </message>
+  <portType name="ShipPortType">
+    <operation name="createShipment" parameterOrder="CreateShipmentRequest">
+      <input message="ns:CreateShipmentRequest"/>
+      <output message="ns:CreateShipmentReply"/>
+    </operation>
+    <operation name="createPrint" parameterOrder="CreatePrintRequest">
+      <input message="ns:CreatePrintRequest"/>
+      <output message="ns:CreatePrintReply"/>
+    </operation>
+    <operation name="printLabel" parameterOrder="PrintLabelRequest">
+      <input message="ns:PrintLabelRequest"/>
+      <output message="ns:PrintLabelReply"/>
+    </operation>
+    <operation name="printDocument" parameterOrder="PrintDocumentRequest">
+      <input message="ns:PrintDocumentRequest"/>
+      <output message="ns:PrintDocumentReply"/>
+    </operation>
+    <operation name="createManifest" parameterOrder="CreateManifestRequest">
+      <input message="ns:CreateManifestRequest"/>
+      <output message="ns:CreateManifestReply"/>
+    </operation>
+    <operation name="printManifest" parameterOrder="PrintManifestRequest">
+      <input message="ns:PrintManifestRequest"/>
+      <output message="ns:PrintManifestReply"/>
+    </operation>
+    <operation name="returnShipment" parameterOrder="ReturnShipmentRequest">
+      <input message="ns:ReturnShipmentRequest"/>
+      <output message="ns:ReturnShipmentReply"/>
+    </operation>
+    <operation name="Find" parameterOrder="FindRequest">
+      <input message="ns:FindRequest"/>
+      <output message="ns:FindReply"/>
+    </operation>
+    <operation name="CCReserve" parameterOrder="CCReserveRequest">
+      <input message="ns:CCReserveRequest"/>
+      <output message="ns:CCReserveReply"/>
+    </operation>
+    <operation name="CancelShipment" parameterOrder="CancelShipmentRequest">
+      <input message="ns:CancelShipmentRequest"/>
+      <output message="ns:CancelShipmentReply"/>
+    </operation>
+  </portType>
+  <binding name="ShipServiceSoapBinding" type="ns:ShipPortType">
+    <s1:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <operation name="createShipment">
+      <s1:operation soapAction="createShipment" style="document"/>
+      <input>
+        <s1:body use="literal"/>
+      </input>
+      <output>
+        <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="createPrint">
+      <s1:operation soapAction="createPrint" style="document"/>
+      <input>
+        <s1:body use="literal"/>
+      </input>
+      <output>
+        <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="printLabel">
+      <s1:operation soapAction="printLabel" style="document"/>
+      <input>
+        <s1:body use="literal"/>
+      </input>
+      <output>
+        <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="printDocument">
+      <s1:operation soapAction="printDocument" style="document"/>
+      <input>
+        <s1:body use="literal"/>
+      </input>
+      <output>
+        <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="createManifest">
+      <s1:operation soapAction="createManifest" style="document"/>
+      <input>
+        <s1:body use="literal"/>
+      </input>
+      <output>
+        <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="printManifest">
+      <s1:operation soapAction="printManifest" style="document"/>
+      <input>
+        <s1:body use="literal"/>
+      </input>
+      <output>
+        <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="returnShipment">
+      <s1:operation soapAction="returnShipment" style="document"/>
+      <input>
+    <s1:body use="literal"/>
+      </input>
+      <output>
+    <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="Find">
+      <s1:operation soapAction="Find" style="document"/>
+      <input>
+    <s1:body use="literal"/>
+      </input>
+      <output>
+    <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="CCReserve">
+      <s1:operation soapAction="CCReserve" style="document"/>
+      <input>
+        <s1:body use="literal"/>
+      </input>
+      <output>
+        <s1:body use="literal"/>
+      </output>
+    </operation>
+    <operation name="CancelShipment">
+      <s1:operation soapAction="CancelShipment" style="document"/>
+      <input>
+    <s1:body use="literal"/>
+      </input>
+      <output>
+    <s1:body use="literal"/>
+      </output>
+    </operation>
+  </binding>
+  <service name="ShipService">
+    <port name="ShipServicePort" binding="ns:ShipServiceSoapBinding">
+      <s1:address location="https://expresslink-uat1.neopost-id.com/ws/"/>
+    </port>
+  </service>
+</definitions>
