@@ -1,7 +1,3 @@
-param (
-    [switch]$Uninstall
-)
-
 $appName = "paul_r"
 $SourceDir = Split-Path -Path $MyInvocation.MyCommand.Path -Parent
 $TargetDir = "C:\Program Files\" + $appName
@@ -9,38 +5,22 @@ $script:DataDir = $env:LOCALAPPDATA + "\" + $appName
 $DateTime = Get-Date -Format "yyyyMMdd_HHmmss"
 $LogFile = Join-Path -Path $script:DataDir -ChildPath "DeployLog_$DateTime.txt"
 
-If (-Not (Test-Path -Path $script:DataDir))
-{
-    New-Item -Path $script:DataDir -ItemType Directory | Out-Null
-}
-
-"Deployment started at $DateTime" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
-
-$Additional = @{
-    "\\AMHERSTMAIN\amherst\paul_r\.internal\envs\pf_live.env" = $script:DataDir + "\envs"
-    "\\AMHERSTMAIN\amherst\paul_r\.internal\envs\am_live.env" = $script:DataDir + "\envs"
-}
-
-
-
-function SetEnvVarsTest()
-{
-    [System.Environment]::SetEnvironmentVariable("SHIP_ENV", "sdgsdg", [System.EnvironmentVariableTarget]::User)
-    [System.Environment]::SetEnvironmentVariable("AM_ENV", "asdfdsgfbbf", [System.EnvironmentVariableTarget]::User)
-    "Environment variables set" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
-}
-function RemoveEnvVars()
-{
-    [System.Environment]::SetEnvironmentVariable("SHIP_ENV", $null, [System.EnvironmentVariableTarget]::User)
-    [System.Environment]::SetEnvironmentVariable("AM_ENV", $null, [System.EnvironmentVariableTarget]::User)
-    "Environment variables set" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
-
-}
-function SetEnvVars()
-{
-    [System.Environment]::SetEnvironmentVariable("SHIP_ENV", $script:DataDir + "\envs\pf_live.env", [System.EnvironmentVariableTarget]::User)
-    [System.Environment]::SetEnvironmentVariable("AM_ENV", $script:DataDir + "\envs\am_live.env", [System.EnvironmentVariableTarget]::User)
-    "Environment variables set" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+function IsUninstalling{
+    $mode = Read-Host -Prompt "[I]nstall or [U]ninstall?"
+    $mode = $mode.Trim().ToLower()
+    if ($mode -eq "u")
+    {
+        return $true
+    }
+    elseif ($mode -eq "i")
+    {
+        return $false
+    }
+    else
+    {
+        Write-Host "Invalid entry. Please enter 'i' or 'u'."
+        IsUninstalling
+    }
 
 }
 
@@ -60,7 +40,31 @@ function CheckAdmin($scriptPath = $PSCommandPath)
     }
 }
 
-CheckAdmin
+
+function CreateDataDir
+{
+    If (-Not (Test-Path -Path $script:DataDir))
+    {
+        New-Item -Path $script:DataDir -ItemType Directory | Out-Null
+    }
+}
+
+function RemoveEnvVars()
+{
+    [System.Environment]::SetEnvironmentVariable("SHIP_ENV", $null, [System.EnvironmentVariableTarget]::User)
+    [System.Environment]::SetEnvironmentVariable("AM_ENV", $null, [System.EnvironmentVariableTarget]::User)
+    "Environment variables set" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+
+}
+function SetEnvVars()
+{
+    [System.Environment]::SetEnvironmentVariable("SHIP_ENV", $script:DataDir + "\envs\pf_live.env", [System.EnvironmentVariableTarget]::User)
+    [System.Environment]::SetEnvironmentVariable("AM_ENV", $script:DataDir + "\envs\am_live.env", [System.EnvironmentVariableTarget]::User)
+    "Environment variables set" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+
+}
+
+
 function ConfirmActions
 {
     if ($Uninstall)
@@ -90,7 +94,6 @@ function ConfirmActions
 
 }
 
-ConfirmActions
 function InstallProgs
 {
     # Install
@@ -115,6 +118,10 @@ function InstallProgs
             Copy-Item -Path $_.FullName -Destination $Destination -Force
             "Copied: $( $_.FullName ) -> $Destination" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
         }
+    }
+    $Additional = @{
+        "\\AMHERSTMAIN\amherst\paul_r\.internal\envs\pf_live.env" = $script:DataDir + "\envs"
+        "\\AMHERSTMAIN\amherst\paul_r\.internal\envs\am_live.env" = $script:DataDir + "\envs"
     }
 
     # Copy additional files
@@ -142,7 +149,6 @@ function MaybeRemoveDataDir
     {
         Remove-Item -Path $script:DataDir -Recurse -Force
         Write-Host "Deleted $script:DataDir"
-        return $true
     }
 }
 function UninstallProgs
@@ -160,19 +166,21 @@ function UninstallProgs
     RemoveEnvVars
     "Environment variables removed" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
 }
+
+
+CheckAdmin
+CreateDataDir
+"Deployment started at $DateTime" | Out-File -FilePath $LogFile -Encoding UTF8 -Append
+$Uninstall = IsUninstalling
+ConfirmActions
 if ($Uninstall)
 {
     UninstallProgs
-    $dataRemoved = MaybeRemoveDataDir
+    MaybeRemoveDataDir
 }
 else
 {
     InstallProgs
-}
-
-if (-not $dataRemoved)
-{
-    Write-Host "See log file: $LogFile"
 }
 Write-Host "Process complete at $( Get-Date )"
 Read-Host -Prompt "[Enter] to exit"
