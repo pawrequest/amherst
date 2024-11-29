@@ -935,12 +935,12 @@ Sub Form_OnClick(ControlId)
         'set fname=nothing
         'set fs=nothing
 
-            Dim fso, DBtextfilename, DBstring
-            Set fso = CreateObject("Scripting.FileSystemObject")
-            Set DBtextfilename = fso.CreateTextFile("c:\Windows\temp\DBaddressfile.txt", True)
-            DBstring = Form.Field("Delivery Contact").Value + ", " + Form.Field("Delivery Address").Value + ", " + Form.Field("Delivery Postcode").Value + ", " + Form.Field("Delivery Telephone").Value + ", " + Form.Field("Delivery Telephone").Value
-            DBtextfilename.WriteLine(DBstring)
-            DBtextfilename.Close
+'            Dim fso, DBtextfilename, DBstring
+'            Set fso = CreateObject("Scripting.FileSystemObject")
+'            Set DBtextfilename = fso.CreateTextFile("c:\Windows\temp\DBaddressfile.txt", True)
+'            DBstring = Form.Field("Delivery Contact").Value + ", " + Form.Field("Delivery Address").Value + ", " + Form.Field("Delivery Postcode").Value + ", " + Form.Field("Delivery Telephone").Value + ", " + Form.Field("Delivery Telephone").Value
+'            DBtextfilename.WriteLine(DBstring)
+'            DBtextfilename.Close
 
         Case "CommandButton16"
         ' this button inserts the description "Absolutely car/van" into the Send Method field
@@ -957,23 +957,25 @@ Sub Form_OnClick(ControlId)
             End If
 
         Case "CommandButton18"
-        ' this button inserts the current date into the "Actual Return Date"
+        ' actual return today
             Form.Field("Actual Return Date").Value = "today"
 
         Case "CommandButton19"
-        'Paul's button to pack a hire"
+        'pack a hire
             PackHire()
 
         Case "CommandButton20"
-        'Paul's button to unpack a hire"
+        'unpack a hire
             UnpackHire()
 
         Case "CommandButton21"
+        'actual send today'
             Form.Field("Actual Send Date").Value = "today"
             Form.Field("Status").Value = "Out"
             Form.Field("DB label printed").Value = "True"
 
         Case "CommandButton22"
+        'return arranged tomorrow'
             Form.Field("Pickup Date").Value = "tomorrow"
             Form.Field("Pickup Arranged").Value = "True"
 
