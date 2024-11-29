@@ -135,18 +135,13 @@ class AmherstTableBase(BaseModel, ABC):
             **shipment_refs_dict_from_str(self.customer_name),
         }
 
-    def amherst_shipment_dict(self):
-        return {
-            'category': self.category,
-            'row_id': self.row_id,
-            **self.shipment_dict(),
-        }
-
     def shipment(self):
         return Shipment.model_validate(self.shipment_dict())
 
     def am_shipment(self):
-        return AmherstShipment.model_validate(self.amherst_shipment_dict())
+        return AmherstShipment.model_validate(
+            {**self.shipment_dict(), 'category': self.category, 'row_id': self.row_id}
+        )
 
 
 class AmherstCustomer(AmherstTableBase):
