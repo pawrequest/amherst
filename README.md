@@ -38,7 +38,7 @@ Instead we produce a full FastAPI based web-application wrapped in FlaskWebGui t
 - currently uses Parcelforce's ExpressLink API but could easily be replaced with other suppliers
 
 ### [PawDantic](https://github.com/pawrequest/pawdantic)
-- tools for working in the Pydantic ecosystem, specifically helper functions to produce FastUI componenets from common workflows 
+- tools for working in the Pydantic ecosystem, specifically some custom types like TruncatedPrintableString(length:int)', ValidUkPostcode
 
 ### [PawRequest/FlaskWebGui](https://github.com/pawrequest/pawdantic) 
 - a fork of Climente's FlaskWebGui injecting a 'URL_Suffix' param to allow dynamic definiition of the initially loaded URL
