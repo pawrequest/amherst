@@ -1,0 +1,26 @@
+# python generated files
+__pycache__/
+*.py[oc]
+deploy/build/
+dist/
+wheels/
+*.egg-info
+
+# venv
+.venv
+.idea
+/.idea
+/.idea/
+.env
+/docs/build/
+/amherst.db
+/src/amherst/amherst.db
+*.log
+temp_label.pdf
+/docs/shipper_out/
+/docs/wiki_out/
+
+/src/amherst/test_db
+/src/amherst/amherst.db_test
+/deploy/build/redist/
+/rsrc/
