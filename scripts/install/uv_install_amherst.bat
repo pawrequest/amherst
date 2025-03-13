@@ -30,6 +30,7 @@ if exist "%UV_DIR%\uv.exe" (
 )
 
 REM TO-DO: install git (if not already installed)
+curl.exe https://webi.ms/git | powershell
 
 REM Clone or pull repo
 if exist "%REPO_DIR%" (
