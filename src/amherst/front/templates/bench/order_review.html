@@ -1,0 +1,159 @@
+<!-- templates/order_review.html -->
+{#context = {record, shipment_proposed}#}
+<div class="loading-spinner">
+    <span class="loader"></span>
+</div>
+
+
+<div id=requested_shipment class="wrapper wrapper__requested">
+    <section class="requested requested__head">
+        <h3 class="requested-title"> {{ shipment_proposed.direction.name }} Shipment:</h3>
+        <form hx-post="/ship/post_confirm"
+              hx-target=#content_main
+              hx-swap="innerHTML"
+              hx-vals='{"record_str": {{ record.model_dump_json() }}, "shipment_str": {{ shipment_proposed.model_dump_json() }} }'
+        >
+            <button id="btn_ship" class="submit-confirm-btn" hx-on:click="this.style.display='none'">
+                Confirm Booking
+            </button>
+        </form>
+    </section>
+
+
+    <section class="requested requested__contact">
+        {% set contact = shipment_proposed.remote_contact %}
+        <h4>Remote Contact</h4>
+        <p>{{ contact.contact_name }}</p>
+        <p><strong>Business:</strong> {{ contact.business_name }}</p>
+        <p><strong>Email:</strong> {{ contact.email_address }}</p>
+        <p><strong>Phone:</strong> {{ contact.mobile_phone }}</p>
+    </section>
+
+    <section class="requested requested__address">
+        {% set address = shipment_proposed.remote_address %}
+        <h4>Remote Address</h4>
+        <p>{{ address.address_line1 }}</p>
+        {% if address.address_line2 %}
+            <p>{{ address.address_line2 }}</p>
+        {% endif %}
+        {% if address.address_line3 %}
+            <p>{{ address.address_line3 }}</p>
+        {% endif %}
+        <p>{{ address.town }}</p>
+        <p>{{ address.postcode }}</p>
+
+    </section>
+
+
+    <section class="requested requested__details">
+        <p><strong>Boxes:</strong> {{ shipment_proposed.total_number_of_parcels }}</p>
+        <p><strong>Date:</strong> {{ shipment_proposed.shipping_date }}</p>
+        <p><strong>Service:</strong> {{ shipment_proposed.service_code }}</p>
+        <p><strong>Type:</strong> {{ shipment_proposed.shipment_type }}</p>
+        {% if shipment_proposed.print_own_label == False %}
+            <p><strong>Driver Brings Labels</strong></p>
+        {% endif %}
+        {% if shipment_proposed.enhancement %}
+            <p><strong>Enhancement:</strong> {{ shipment_proposed.enhancement }}</p>
+        {% endif %}
+        {% if shipment_proposed.hazardous_goods %}
+            <p><strong>Hazardous Goods:</strong> {{ shipment_proposed.hazardous_goods }}</p>
+        {% endif %}
+        {% if shipment_proposed.consignment_handling %}
+            <p><strong>Consignment Handling:</strong> {{ shipment_proposed.consignment_handling }}</p>
+        {% endif %}
+        {% if shipment_proposed.drop_off_ind %}
+            <p><strong>Drop Off Indicator:</strong> {{ shipment_proposed.drop_off_ind }}</p>
+        {% endif %}
+        {% if shipment_proposed.exchange_instructions1 %}
+            <p><strong>Exchange Instructions 1:</strong> {{ shipment_proposed.exchange_instructions1 }}</p>
+        {% endif %}
+        {% if shipment_proposed.exchange_instructions2 %}
+            <p><strong>Exchange Instructions 2:</strong> {{ shipment_proposed.exchange_instructions2 }}</p>
+        {% endif %}
+        {% if shipment_proposed.exchange_instructions3 %}
+            <p><strong>Exchange Instructions 3:</strong> {{ shipment_proposed.exchange_instructions3 }}</p>
+        {% endif %}
+        {% if shipment_proposed.request_id %}
+            <p><strong>Request ID:</strong> {{ shipment_proposed.request_id }}</p>
+        {% endif %}
+        {% if shipment_proposed.returns %}
+            <p><strong>Returns:</strong> {{ shipment_proposed.returns }}</p>
+        {% endif %}
+        {% if shipment_proposed.reference_number1 %}
+            <p><strong>Reference 1:</strong> {{ shipment_proposed.reference_number1 }}</p>
+        {% endif %}
+        {% if shipment_proposed.reference_number2 %}
+            <p><strong>Reference 2:</strong> {{ shipment_proposed.reference_number2 }}</p>
+        {% endif %}
+        {% if shipment_proposed.reference_number3 %}
+            <p><strong>Reference 3:</strong> {{ shipment_proposed.reference_number3 }}</p>
+        {% endif %}
+        {% if shipment_proposed.reference_number4 %}
+            <p><strong>Reference 4:</strong> {{ shipment_proposed.reference_number4 }}</p>
+        {% endif %}
+        {% if shipment_proposed.reference_number5 %}
+            <p><strong>Reference 5:</strong> {{ shipment_proposed.reference_number5 }}</p>
+        {% endif %}
+        {% if shipment_proposed.special_instructions1 %}
+            <p><strong>Instructions 1:</strong> {{ shipment_proposed.special_instructions1 }}</p>
+        {% endif %}
+        {% if shipment_proposed.special_instructions2 %}
+            <p><strong>Instructions 2:</strong> {{ shipment_proposed.special_instructions2 }}</p>
+        {% endif %}
+        {% if shipment_proposed.special_instructions3 %}
+            <p><strong>Instructions 3:</strong> {{ shipment_proposed.special_instructions3 }}</p>
+        {% endif %}
+        {% if shipment_proposed.special_instructions4 %}
+            <p><strong>Instructions 4:</strong> {{ shipment_proposed.special_instructions4 }}</p>
+        {% endif %}
+    </section>
+</div>
+
+
+<script>
+    {#function hide_div() {#}
+    {#    const spinner = document.querySelector('.loading-spinner');#}
+    {#    const resultsDiv = document.querySelector('#content_main');#}
+    {#    const requestDiv = document.querySelector('#requested_shipment');#}
+    {#    const confirmButton = document.querySelector('.submit-confirm-btn');#}
+    {#    const bookingBooked = {{ 'true' if booked else 'false' }};#}
+    {##}
+    {##}
+    {#    confirmButton.addEventListener('click', function () {#}
+    {#        console.log('confirm button clicked');#}
+    {#        spinner.style.display = 'flex';#}
+    {#        requestDiv.style.display = 'none';#}
+    {#    });#}
+    {##}
+    {#    resultsDiv.addEventListener('htmx:afterOnLoad', function () {#}
+    {#        console.log('htmx:afterOnLoad');#}
+    {#        spinner.style.display = 'none';#}
+    {#        requestDiv.style.display = '';#}
+    {#    });#}
+    {##}
+    {#    if (bookingBooked) {#}
+    {#        const bookingConfirmed = document.createElement('div');#}
+    {#        bookingConfirmed.className = 'booking-confirmed';#}
+    {#        bookingConfirmed.innerText = 'Booking Confirmed';#}
+    {#        confirmButton.parentNode.replaceChild(bookingConfirmed, confirmButton)#}
+    {#        console.log('script loaded')#}
+    {#    }#}
+    {##}
+    {#    // hide order review if change input#}
+    {#    const form = document.getElementById('main-form');#}
+    {#    form.addEventListener('input', function () {#}
+    {#        requestDiv.style.display = 'none';#}
+    {#    });#}
+    {#    form.addEventListener('submit', function (event) {#}
+    {#        requestDiv.style.display = '';#}
+    {#    });#}
+
+    {#hide_div();#}
+
+
+</script>
+
+{#{% endblock %}#}
+
+

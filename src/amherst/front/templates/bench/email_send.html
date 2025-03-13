@@ -1,0 +1,26 @@
+<form hx-post="email" hx-target="#email-result" hx-swap="innerHTML" class="email-form">
+    <section class="checkbox-group checkbox-group__recip">
+        <h3>Send Email To:</h3>
+        {% for addr in booking.email_options  %}
+            <div>
+                <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                <input type="checkbox" id="{{ addr.name }}" name="email-{{ addr.name }}"
+                       value="{{ addr.email }}">
+                <label for="{{ addr.name }}">{{ addr.email }} ({{ addr.description }})</label>
+            </div>
+        {% endfor %}
+    </section>
+
+    <section class="checkbox-group checkbox-group__attach">
+        <h3>With Atatchments:</h3>
+        {% for att in ['invoice', 'missing', 'label'] %}
+            <div>
+                <input type="checkbox" id="{{ att }}" name="att-{{ att }}">
+                <label for="{{ att }}">{{ att.title() }}</label>
+            </div>
+        {% endfor %}
+    </section>
+
+    <button id="email-btn" class="btn email-btn" type="submit">Send Email</button>
+</form>
+<div id="email-result"></div>

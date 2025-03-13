@@ -1,0 +1,34 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PyCommence Helper{% endblock %}</title>
+    <script src="https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js"></script>
+    <script src="{{ url_for('static', path='script.js') }}" defer></script>
+{#    <script src="{{ url_for('static', path='ship.js') }}"></script>#}
+    <link href="{{ url_for('static', path='style.css') }}" rel="stylesheet">
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+<main>
+    <div class="main_div"
+    >
+{#        <div id="sidebar">#}
+        <div id="sidebar">
+            {% include 'sidebar.html' %}
+        </div>
+        <div id="content_top">
+            {% block content_top %}{% endblock %}
+        </div>
+        <div id="content_main">
+            {% block content_main %}{% endblock %}
+        </div>
+    </div>
+    {% block content_extra %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

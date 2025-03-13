@@ -1,0 +1,14 @@
+<!-- templates/alerts.html -->
+{% if alerts %}
+    {{ alerts }}
+    <div class="wrapper">
+        <div class="alert alert-{{ type }}">
+            {% for alert in alerts %}
+                <strong>{{ alert.type }}</strong> {{ alert.message }} ({{ alert.code }})
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+
+

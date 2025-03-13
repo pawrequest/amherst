@@ -1,0 +1,57 @@
+<!-- templates/order_confirmed.html -->
+{#context = {response, shipment_confirmed}#}
+<div class="wrapper wrapper__results">
+    {% if response.alerts %}
+        <div class="result result__alerts">
+            {% for alert in response.alerts.alert %}
+                <div class="alert">
+                    <p>{{ alert.message }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if response.completed_shipment_info %}
+        <div class="result result__success">
+            <h2>Shipment Confirmed</h2>
+            <h3>Shipment Number: {{ response.shipment_num }}</h3>
+
+            {% if shipment_confirmed.direction == 'in' and not shipment_confirmed.print_own_label %}
+                <p>Driver bringing Labels</p>
+            {% else %}
+                <p>label downloaded to {{ shipment_confirmed.label_file }}</p>
+                <div class="label-actions">
+                    <div class="label-action">
+                        <form hx-post="/print-file?filepath={{ shipment_confirmed.label_file | urlencode }}"
+                              hx-target="#label-action-result"
+                              hx-swap="innerHTML">
+                            <button type="submit" class="btn-print-label">Print Label</button>
+                        </form>
+                    </div>
+
+                    <div class="label-action">
+                        <script>console.log("OPEN FILE{{ shipment_confirmed.label_file }}")</script>
+                        <form hx-get="/open-file?filepath={{ shipment_confirmed.label_file | urlencode }}"
+                              hx-target="#label-action-result"
+                              hx-swap="innerHTML">
+                            <button type="submit" class="btn-print-label">Open Label</button>
+                        </form>
+                    </div>
+
+                    <div id="label-action-result"></div>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+    {% else %}
+        <div class="result result__failure">
+            <h2>Booking Failed</h2>
+            <p>There was a problem with your booking.</p>
+        </div>
+    {% endif %}
+
+</div>

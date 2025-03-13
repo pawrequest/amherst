@@ -1,0 +1,27 @@
+<!-- templates/sidebar.html -->
+{#<label for="filterInput">Filter</label>#}
+{#<input type="text" id="filterInput" placeholder="Filter records..." onkeyup="filterRecords()">#}
+<link href="{{ url_for('static', path='sidebar.css') }}" rel="stylesheet">
+
+<form id="searchForm"
+      hx-target="#record-container"
+      hx-swap="innerHTML"
+      hx-trigger="input changed delay:10ms, search"
+      hx-get='/search?csrname=Customer&cmc_filter=loose'
+      onsubmit="return false"
+>
+    <label>
+        <input type="text" name="pk_value" placeholder="Fetch New Records...">
+    </label>
+{#    <label>#}
+{#        filter#}
+{#        <input type="checkbox" name="py_filtered">#}
+{#    </label>#}
+</form>
+
+<div class="record-container" id="record-container"
+{#     hx-get="/search?csrname=Customer&cmc_filter=tight"#}
+{#     hx-trigger="load"#}
+{#     hx-target="this" hx-swap="innerHTML"#}
+>
+</div>

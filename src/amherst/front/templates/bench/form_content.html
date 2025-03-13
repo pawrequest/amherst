@@ -1,0 +1,125 @@
+<!-- templates/form_content.html -->
+{#context = {record, shipment }#}
+{#<link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">#}
+{#<script src="{{ url_for('static', path='ship.js') }}"></script>#}
+
+<!--suppress HtmlFormInputWithoutLabel -->
+<form id="main-form" class='main_form'
+      hx-post="/ship/post_ship/"
+      hx-target=#content_top
+      hx-swap="innerHTML"
+      hx-vals='{"record_str": {{ record.model_dump_json() }}}'
+>
+    <div class="wrapper wrapper__booking">
+
+        <section class="inputs inputs__ship">
+            <h1>Shipment</h1>
+            <label for="ship_date">Date:</label>
+            <input type="date" id="ship_date" name="shipping_date" required>
+
+            <label for="boxes">Boxes:</label>
+            <select id="boxes" name="total_number_of_parcels">
+                {% for i in range(1,13) %}
+                    <option value="{{ i }}">{{ i }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="service">Service:</label>
+            <select id="service" name="service_code">
+                <option value="SND" selected>Express 24</option>
+                <option value="09">Express Pre-9am</option>
+                <option value="S10">Express Pre-10am</option>
+                <option value="S12">Express Pre-Noon</option>
+                <option value="SUP">Express 48</option>
+                <option value="SPM">Express PM</option>
+            </select>
+
+            <label for="direction">Direction:</label>
+            <select id="direction" name="direction" onchange="toggleOwnLabel()">
+                <option value="out" selected>Outbound</option>
+                <option value="in">Inbound Collection</option>
+                <option value="dropoff">Inbound Dropoff</option>
+            </select>
+
+            <div id ="own_label">
+                <label>Label Printing:
+                    <select name="own_label">
+                        <option value="True" selected>We Print Labels</option>
+                        <option value="False">Driver Brings Labels</option>
+                    </select>
+                </label>
+            </div>
+            {#            <label for="own_label" id="own_label_label">Label Printing:</label>#}
+            {#            <select id="own_label" name="own_label">#}
+            {#                <option value="True" selected>We Print Labels</option>#}
+            {#                <option value="False">Driver Brings Labels</option>#}
+            {#            </select>#}
+        </section>
+
+        <section class="inputs inputs__contact">
+            <h1>Contact</h1>
+            <label for="business_name">Business Name:</label>
+            <input type="text" id="business_name" name="business_name" required>
+
+            <label for="contact_name">Contact Name:</label>
+            <input type="text" id="contact_name" name="contact_name" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email_address" required>
+
+            <label for="mobile_phone">Mobile Phone:</label>
+            <input type="tel" id="mobile_phone" name="mobile_phone" required>
+        </section>
+
+        <section class="inputs inputs__address">
+            <!--suppress HtmlFormInputWithoutLabel -->
+            <div id="score-span" data-score=""></div>
+            <h1>
+                <label for="address_line1">Address:</label>
+            </h1>
+            <input type="text" id="address_line1" name="address_line1" required>
+            <input type="text" id="address_line2" name="address_line2" aria-labelledby="address_line1">
+            <input type="text" id="address_line3" name="address_line3" aria-labelledby="address_line1">
+            <label for="town">Town:</label>
+            <input type="text" id="town" name="town" required>
+            <label for="postcode">Postcode:</label>
+            <input type="text" id="postcode" name="postcode" required>
+
+            <button type="button" class="update-address-btn" onclick="loadAddrChoices()">Update Addresses From
+                Postcode
+            </button>
+            <label for="address-select">Choose Address</label>
+            <select id="address-select" name="address" onchange="updateAddressFromSelect()">
+            </select>
+        </section>
+
+        <section class="inputs inputs__notes">
+            <label for="reference_number1">Reference Numbers:</label>
+            <input type="text" id="reference_number1" name="reference_number1" maxlength="24">
+            <input type="text" id="reference_number2" name="reference_number2" maxlength="24"
+                   aria-labelledby="reference_number1">
+            <input type="text" id="reference_number3" name="reference_number3" maxlength="24"
+                   aria-labelledby="reference_number1">
+
+            <label for="special_instructions1">Special Instructions:</label>
+            <input type="text" id="special_instructions1" name="special_instructions1" maxlength="25">
+            <input type="text" id="special_instructions2" name="special_instructions2" maxlength="24"
+                   aria-labelledby="special_instructions1">
+            <input type="text" id="special_instructions3" name="special_instructions3" maxlength="24"
+                   aria-labelledby="special_instructions1">
+        </section>
+
+        <section class="inputs inputs__submit">
+            <button type="submit" class="submit-request">Submit</button>
+        </section>
+    </div>
+</form>
+
+
+<script>
+    shipment = {{ record.shipment() | jsonable | tojson }};
+    record = {{ record | jsonable | tojson}};
+    console.log('record', record);
+    console.log('shipment', shipment);
+    initShipForm2(shipment);
+</script>

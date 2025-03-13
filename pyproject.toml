@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "amherst"
+description = "Add your description here"
+version = "0.2.0"
+authors = [
+    { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
+]
+readme = "README.md"
+requires-python = ">= 3.12"
+dependencies = [
+    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
+    'pawdf @ git+https://github.com/pawrequest/pawdf',
+    'pawdantic @ git+https://github.com/pawrequest/pawdantic',
+    'suppawt @ git+https://github.com/pawrequest/suppawt',
+    'pawlogger @ git+https://github.com/pawrequest/pawlogger',
+    'shipaw @ git+https://github.com/pawrequest/shipaw',
+    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'phonenumbers',
+    'sqlmodel',
+    'pydantic-settings',
+    'pydantic[email]',
+    'pydantic-extra-types',
+    'fastapi',
+    'pypdf',
+    'sqlmodel',
+    'uvicorn[standard]',
+    'python-dotenv',
+    'httpx',
+    "pywin32",
+    'jinja2',
+    'pandas',
+    'loguru',
+]
+
+[project.optional-dependencies]
+dev = [
+    'pyinstaller-hooks-contrib',
+    'pyinstaller',
+    "pytest",
+    "pytest_asyncio",
+    'beautifulsoup4',
+    'coverage',
+]
+
+docs = [
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx-autodoc2",
+    "sphinx-rtd-theme",
+    "sphinx-readme",
+    "myst-parser",
+    "sphinx_rtd_dark_mode",
+]
+
+from-git = [
+    'shipaw @ git+https://github.com/pawrequest/shipaw',
+    'pycommence @ git+https://github.com/pawrequest/pycommence',
+]
+
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.ruff]
+line-length = 120
+extend-select = ["Q", "RUF100", "UP"]
+flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
+format.quote-style = "single"
+
+#[tool.
