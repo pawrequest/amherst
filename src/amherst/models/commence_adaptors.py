@@ -48,6 +48,7 @@ class SaleStatus(StrEnum):
     SENT = 'Sent'
     WAITING_PAYMENT = 'Waiting For Payment'
     WAITING_OTHER = 'Waiting For Other'
+    WAITING_STOCK = 'Waiting For Stock'
     QUOTE = 'Quote Sent'
     LOST_KIT = 'Lost Kit Invoice'
     CANCELLED = 'Cancelled'
