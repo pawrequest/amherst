@@ -1,4 +1,4 @@
-@echo off
+rem @echo off
 REM Set paths
 set UV_DIR=%USERPROFILE%\.local\bin
 

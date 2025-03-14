@@ -1,4 +1,4 @@
-echo off
+@echo off
 REM Set paths
 set DATA_DIR=%LocalAppData%\amherst_pr
 set PROG_DIR=%ProgramFiles%\amherst_pr
@@ -35,6 +35,7 @@ setx SHIP_ENV %SHIPPING_ENV_FILE_LOCAL%
 echo setting session environment variables 'AM_ENV' and 'SHIP_ENV'
 set AM_ENV=%AM_ENV_FILE_LOCAL%
 set SHIP_ENV=%SHIPPING_ENV_FILE_LOCAL%
+
 call ./install_amherst_runner.bat
 
 pause
