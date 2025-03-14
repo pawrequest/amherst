@@ -1,0 +1,317 @@
+/*.ship-form {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*}*/
+
+
+.wrapper__booking {
+    /*grid-template-columns: 12rem 15rem 20rem 15rem;*/
+    grid-template-areas:
+           "shipment contact address notes"
+           "shipment contact address sub-btns";
+}
+
+/*.inputs > * {*/
+/*    overflow: hidden; !* Prevent overflow *!*/
+/*    text-overflow: ellipsis; !* Truncate text with ellipsis *!*/
+/*    white-space: nowrap; !* Prevent text wrapping *!*/
+/*}*/
+
+.booking-confirmed {
+    /* used in js*/
+    background-color: var(--clr-wrapper);
+    color: var(--clr-success-font);
+}
+
+.email-body {
+    font-family: "Roboto", sans-serif;
+}
+
+#address-select {
+    max-width: 100%; /* Constrain width to parent container */
+    width: 100%; /* Ensure it takes up full width of the container */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Truncate text with ellipsis */
+    white-space: nowrap; /* Prevent text wrapping */
+}
+
+.inputs {
+    /*max-width: 100%;*/
+    /*overflow: hidden; !* Prevent overflow *!*/
+
+
+    display: grid;
+    border: 2px solid black;
+    padding: 1rem;
+    gap: .5rem;
+    border-radius: 1rem;
+}
+
+.inputs__ship {
+    width: 13rem;
+    grid-area: shipment;
+
+    #own_label {
+        /*display: none;*/
+        opacity: 0;
+    }
+}
+
+.inputs__contact {
+    width: 15rem;
+    grid-area: contact;
+}
+
+
+.inputs__address {
+    width: 20rem;
+    grid-area: address;
+}
+
+
+.inputs__notes {
+    width: 15rem;
+    grid-area: notes;
+}
+
+
+#score-span {
+    /*display: none;*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-radius: 1rem;
+    padding-inline: .6rem;
+    padding-block: .2rem;
+    text-align: center;
+    height: 6rem;
+}
+
+.high-score {
+    background-color: var(--clr-success);
+}
+
+.medium-score {
+    background-color: var(--clr-warning);
+}
+
+.low-score {
+    background-color: var(--clr-danger);
+}
+
+.inputs__submit {
+    grid-area: sub-btns;
+    background-color: purple;
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*gap: 3px;*/
+}
+
+
+.postcode-div {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    /*align-items: center;*/
+    /*margin-block: 1rem;*/
+
+    .postcode-pair {
+        display: flex;
+        flex-direction: column;
+        /*gap: 1rem;*/
+    }
+
+    #postcode {
+        /*max-width: max(50%, 150px);*/
+        /*display: inline;*/
+    }
+
+    button {
+        align-self: end;
+        font-size: 18px;
+    }
+}
+
+
+button {
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding-inline: 5px;
+    padding-block: 2px;
+    background-color: var(--clr-btn);
+    color: var(--clr-success-font);
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+
+button.update-address-btn {
+    font-size: 18px;
+}
+
+button:hover {
+    background-color: var(--clr-btn-hover);
+}
+
+
+input:focus,
+select:focus {
+    border: 3px solid #186d9a;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+
+/*    grid-template-areas:*/
+/*        "... head head ..."*/
+/*        "details contact address notes"*/
+/*        "collection collection collection collection";*/
+/*}*/
+
+.shipper {
+    padding-inline: 3rem;
+    display: flex;
+    justify-content: center;
+}
+
+.shipper__live {
+    background-color: var(--clr-danger);
+}
+
+.shipper__sandbox {
+    background: var(--clr-warning);
+
+}
+
+.wrapper__requested {
+    /*display: grid;*/
+    grid-template-areas:
+        "head      head    head      head    head "
+         "col-cont col-add rec-cont rec-add details";
+}
+
+.wrapper__results {
+    /*display: flex*/
+}
+
+.requested {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    border-radius: 1rem;
+}
+
+.requested__head {
+    grid-area: head;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    /*gap: .5rem;*/
+    justify-content: center;
+    text-align: center;
+}
+
+.requested-title {
+    /*grid-area: title;*/
+}
+
+.requested__col_contact {
+    grid-area: col-cont;
+}
+
+.requested__col_address {
+    grid-area: col-add;
+}
+
+.requested__contact {
+    grid-area: rec-cont;
+
+}
+
+.requested__address {
+    grid-area: rec-add;
+
+}
+
+.requested__details {
+    grid-area: details;
+}
+
+.requested__notes {
+    grid-area: notes;
+}
+
+.requested__collection {
+    grid-area: collection;
+}
+
+.result {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border-radius: var(--border-radius);
+    padding: .5rem 1rem;
+    align-items: center;
+    justify-content: center;
+    margin-inline: auto;
+}
+
+.result__success {
+    background-color: var(--clr-success);
+}
+
+
+.result__fail {
+    background-color: var(--clr-danger);
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.label-action {
+
+}
+
+.label-file__print {
+}
+
+
+.email-form {
+    background: var(--clr-wrapper);
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    border-radius: var(--border-radius);
+}
+
+.label-actions {
+    display: flex;
+    flex-direction: row;
+    gap: 4rem
+}
+
+.label-action__email {
+    display: flex;
+    flex-direction: row;
+
+}
+
+.label-email-options {
+    display: flex;
+    flex-direction: column;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: .5rem;
+}
