@@ -35,8 +35,6 @@ setx SHIP_ENV %SHIPPING_ENV_FILE_LOCAL%
 echo setting session environment variables 'AM_ENV' and 'SHIP_ENV'
 set AM_ENV=%AM_ENV_FILE_LOCAL%
 set SHIP_ENV=%SHIPPING_ENV_FILE_LOCAL%
-
-pause
 call ./install_amherst_runner.bat
 
 pause

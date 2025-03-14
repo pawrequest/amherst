@@ -23,5 +23,3 @@ if %errorlevel% neq 0 (
 rem Copy the file from the current directory (SCRIPT_DIR) to the destination directory
 echo COPYING FILE FROM %RUNNER_IN% TO %RUNNER_OUT%
 copy "%RUNNER_IN%" "%RUNNER_OUT%"
-
-pause

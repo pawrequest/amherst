@@ -13,5 +13,3 @@ if exist "%UV_DIR%\uv.exe" (
 
 REM TO-DO: install git (if not already installed)
 REM curl.exe https://webi.ms/git | powershell
-
-pause
