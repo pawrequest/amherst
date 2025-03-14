@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 [project]
 name = "amherst"
 description = "Add your description here"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
 readme = "README.md"
-requires-python = ">= 3.12"
+requires-python = ">= 3.13"
 dependencies = [
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
     'pawdf @ git+https://github.com/pawrequest/pawdf',
@@ -38,8 +38,6 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    'pyinstaller-hooks-contrib',
-    'pyinstaller',
     "pytest",
     "pytest_asyncio",
     'beautifulsoup4',
