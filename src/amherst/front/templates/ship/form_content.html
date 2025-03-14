@@ -10,6 +10,11 @@
       hx-target=#content_top
       hx-swap="innerHTML"
 >
+    {% if ship_live == True %}
+        <div> SHIPPER IS LIVE</div>
+    {% else %}
+        <div> SHIPPER IS SANDBOX</div>
+    {% endif %}
     <div class="wrapper wrapper__booking">
         <input type="hidden" name="row_id" value="{{ record.row_id }}">
         <input type="hidden" name="category" value="{{ record.category }}">

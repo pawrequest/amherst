@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Body, Depends
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
+from shipaw.pf_config import pf_sett
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
@@ -32,9 +33,11 @@ async def ship_form_extends_p2(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
+    pf_settings = pf_sett()
+    ship_live = pf_settings.ship_live
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
-    return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record})
+    return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record, 'ship_live': ship_live})
 
 
 @router.get('/form_content2', response_class=HTMLResponse)
@@ -43,8 +46,14 @@ async def ship_form_content2(
     record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
     logger.debug(f'Ship Form Content: {record.row_id}')
+    pf_settings = pf_sett()
+    logger.warning(pf_settings.model_dump())
+    logger.warning(pf_settings.model_dump())
+    logger.warning(pf_settings.model_dump())
+    logger.warning(pf_settings.model_dump())
+    ship_live = pf_settings.ship_live
     template = 'ship/form_content.html'
-    return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record})
+    return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record, 'ship_live': ship_live})
 
 
 @router.post('/post_ship2', response_class=HTMLResponse)
