@@ -227,7 +227,7 @@ def get_el_client() -> ELClient:
 #         shipment = jsonable_encoder(shipment)
 #     return shipment
 
-
+# unused?
 async def shipment_str_to_shipment(shipment_str: str = Form(...)):
     return Shipment.model_validate_json(shipment_str)
 
@@ -235,14 +235,14 @@ async def shipment_str_to_shipment(shipment_str: str = Form(...)):
 async def amherst_shipment_str_to_shipment(shipment_str: str = Form(...)):
     return AmherstShipment.model_validate_json(shipment_str)
 
-
+# unused?
 async def record_str_to_record(record_str: str = Form(...)) -> AmherstTableBase:
     record_dict = json.loads(record_str)
     category = record_dict['category']
     rectype: AmherstTableBase = (await maps2(category)).record_model
     return rectype.model_validate_json(record_str)
 
-
+# unused?
 async def check_dates(booking, request):
     alert = None
     if not booking.shipment_request.shipping_date.weekday() < 5:

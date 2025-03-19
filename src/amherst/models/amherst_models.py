@@ -183,9 +183,9 @@ class AmherstOrderBase(AmherstTableBase, ABC):
     invoice: PathLike = Field('', alias='Invoice')
 
     # order fields mandatory
-    delivery_method: str
 
     # order fields optional
+    delivery_method: str | None = None
     date_sent: AM_DATE | None = None
     booking_date: AM_DATE | None = None
 
@@ -196,7 +196,7 @@ class AmherstSale(AmherstOrderBase):
 
     # optional overrides master
     send_date: date = date.today()
-#        # return self.booking_date or date.today()
+    #        # return self.booking_date or date.today()
 
     # mandatory overrides order
     delivery_method: str = Field('', alias='Delivery Method')
@@ -214,6 +214,20 @@ class AmherstSale(AmherstOrderBase):
     serial_numbers: str = Field('', alias='Serial Numbers')
     delivery_notes: str = Field('', alias='Delivery Notes')
     notes: str = Field('', alias='Notes')
+
+
+class AmherstTrial(AmherstOrderBase):
+    category: CategoryName = CategoryName.Trial
+    customer_name: str = Field(..., alias='Involves Customer')
+    delivery_contact_name: str = Field(..., alias='Trial Contact')
+    delivery_contact_business: str = Field(..., alias='Trial Name')
+    delivery_contact_phone: str = Field(..., alias='Trial Telephone')
+    delivery_contact_email: str = Field(..., alias='Trial Email')
+    delivery_address_str: str = Field(..., alias='Trial Address')
+    delivery_address_pc: str = Field(..., alias='Trial Postcode')
+
+    invoice: str = Field('', alias='Our Invoice')
+
 
 
 class AmherstHire(AmherstOrderBase):

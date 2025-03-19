@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from suppawt.office_ps.email_handler import Email
+from suppawt.office_ps.ms.outlook_handler import OutlookHandler
 
 from amherst.config import TEMPLATES
 
@@ -31,3 +32,24 @@ async def make_email(addresses, invoice, label, missing, booking_state):
         attachment_paths=[x for x in [label, invoice] if x],
     )
     return email_obj
+
+
+label_subject = f'Amherst Radios - Shipping Label Attached'
+
+
+async def make_label_email(addresses, label):
+    email_body = TEMPLATES.get_template('label_email_body.html').render({'label': label})
+    email_obj = Email(
+        to_address=addresses,
+        subject=label_subject,
+        body=email_body,
+        attachment_paths=[label],
+    )
+    return email_obj
+
+
+async def send_label_email(addresses, label):
+    email: Email = await make_label_email(addresses, label)
+    OutlookHandler().create_open_email(email)
+
+

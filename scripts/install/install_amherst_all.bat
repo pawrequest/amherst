@@ -8,11 +8,14 @@ set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live_beta.env"
 set SHIPPING_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\pf_live.env"
 
 set UV_EXE=%USERPROFILE%\.local\bin\uv.exe
+set GIT_DIR=%USERPROFILE%\.local\opt\git
+set GIT_EXE=%GIT_DIR%\cmd\git.exe
+
 set AM_ENV_FILE_LOCAL=%DATA_DIR%\am.env
 set SHIPPING_ENV_FILE_LOCAL=%DATA_DIR%\pf.env
 
 call ./install_amherst_tools.bat
-
+set git=%GIT_EXE%
 REM Clone or pull repo
 if exist "%DATA_DIR%" (
     echo Repository exists, updating repo...

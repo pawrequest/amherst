@@ -13,8 +13,9 @@ from amherst.models.amherst_models import (
     AmherstShipment,
     AmherstShipmentResponse,
     AmherstTableBase,
+    AmherstTrial,
 )
-from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases
+from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
     CUSTOMER_ARRAY_LOOSE,
@@ -212,6 +213,28 @@ class AmherstMaps:
         ),
     )
 
+    trial: AmherstMap = AmherstMap(
+        category=CategoryName.Trial,
+        record_model=AmherstTrial,
+        aliases=TrialAliases,
+        templates=TemplateMap(
+            listing='customer_list.html',
+            detail='customer_detail.html',
+        ),
+        # connections=ConnectionMap(
+        #     hire=HIRE_CONNECTION,
+        #     sale=SALE_CONNECTION,
+        # ),
+        # py_filters=FilterMapPy(
+        #     loose=customer_row_filter_loose,
+        #     tight=customer_row_filter_loose,
+        # ),
+        # cmc_filters=FilterMapCmc(
+        #     loose=CUSTOMER_ARRAY_LOOSE,
+        #     tight=CUSTOMER_ARRAY_TIGHT,
+        # ),
+    )
+
 
 async def maps2(csrname: CategoryName = Query(...)) -> AmherstMap:
-    return getattr(AmherstMaps, csrname.lower())
+    return getattr(AmherstMaps, csrname.name.lower())
