@@ -21,6 +21,7 @@
             {% else %}
                 <p>label downloaded to {{ shipment_confirmed.label_file }}</p>
                 <div class="label-actions">
+
                     <div class="label-action">
                         <form hx-post="/print-file?filepath={{ shipment_confirmed.label_file | urlencode }}"
                               hx-target="#label-action-result"
@@ -37,17 +38,20 @@
                             <button type="submit" class="btn-print-label">Open Label</button>
                         </form>
                     </div>
+
                     {% if shipment_confirmed.direction == 'in' and not shipment_confirmed.print_own_label %}
                             <p>Driver bringing Labels</p>
                         {% else %}
-                    <div class="label-action">
-                        <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>
-                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed. | urlencode }}"
-                              hx-target="#label-action-result"
-                              hx-swap="innerHTML">
-                            <button type="submit" class="btn-print-label">Open Label</button>
-                        </form>
-                    </div>
+                        <p> ADD EMAIL-LABEL LOGIC HERE</p>
+
+{#                    <div class="label-action">#}
+{#                        <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>#}
+{#                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed. | urlencode }}"#}
+{#                              hx-target="#label-action-result"#}
+{#                              hx-swap="innerHTML">#}
+{#                            <button type="submit" class="btn-print-label">Open Label</button>#}
+{#                        </form>#}
+{#                    </div>#}
 
                     <div id="label-action-result"></div>
 
