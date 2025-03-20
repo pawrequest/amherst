@@ -15,9 +15,9 @@ if exist "%UV_DIR%\uv.exe" (
 )
 
 REM TO-DO: install git (if not already installed)
-REM if exist %GIT_EXE% (
-REM     echo Git already installed
-REM ) else (
-REM     echo Installing Git...
-REM     curl.exe https://webi.ms/git | powershell
-REM )
+if exist %GIT_EXE% (
+    echo Git already installed
+) else (
+    echo Installing Git...
+    curl.exe https://webi.ms/git | powershell
+)
