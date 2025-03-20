@@ -1,3 +1,4 @@
+@echo off
 
 set DATA_DIR=%LocalAppData%\amherst_pr
 
@@ -22,5 +23,3 @@ set AM_ENV=%AM_ENV_FILE_LOCAL%
 echo setting 'SHIP_ENV' User and session environment variables
 setx SHIP_ENV %SHIPPING_ENV_FILE_LOCAL%
 set SHIP_ENV=%SHIPPING_ENV_FILE_LOCAL%
-
-pause

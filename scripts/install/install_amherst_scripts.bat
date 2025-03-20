@@ -19,4 +19,3 @@ copy /Y "%SCRIPT_DIR%" "%PROG_DIR%"
 
 rem fin
 echo Finished - reverting to user privileges...
-pause

@@ -1,3 +1,5 @@
+@echo off
+
 set REPO_URL=https://github.com/pawrequest/amherst/
 set DATA_DIR=%LocalAppData%\amherst_pr
 
@@ -11,5 +13,3 @@ if exist "%DATA_DIR%" (
     echo Repository not found, cloning repo...
     git clone "%REPO_URL%" "%DATA_DIR%"
 )
-
-pause
