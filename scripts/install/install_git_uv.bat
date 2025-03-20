@@ -21,3 +21,4 @@ REM ) else (
 REM     echo Installing Git...
 REM     curl.exe https://webi.ms/git | powershell
 REM )
+pause

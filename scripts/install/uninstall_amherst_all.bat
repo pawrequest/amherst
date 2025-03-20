@@ -25,7 +25,6 @@ echo     - the files: %UV_DIR%\uv.exe and %UV_DIR%\uvx.exe
 echo     - the user environment variables: AM_ENV and SHIP_ENV
 echo.
 echo Press any key to continue, or CTRL+C to cancel...
-pause
 
 NET SESSION >nul 2>nul
 if %errorlevel% neq 0 (
