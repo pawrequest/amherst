@@ -38,12 +38,6 @@
                             <button type="submit" class="btn-print-label">Open Label</button>
                         </form>
                     </div>
-
-                    {% if shipment_confirmed.direction == 'in' and not shipment_confirmed.print_own_label %}
-                            <p>Driver bringing Labels</p>
-                        {% else %}
-                        <p> ADD EMAIL-LABEL LOGIC HERE</p>
-
 {#                    <div class="label-action">#}
 {#                        <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>#}
 {#                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed. | urlencode }}"#}
@@ -52,15 +46,11 @@
 {#                            <button type="submit" class="btn-print-label">Open Label</button>#}
 {#                        </form>#}
 {#                    </div>#}
-
                     <div id="label-action-result"></div>
-
                 </div>
-
             {% endif %}
-
         </div>
-    {% elseif %}
+    {% else %}
         <div class="result result__failure">
             <h2>Booking Failed</h2>
             <p>There was a problem with your booking.</p>
