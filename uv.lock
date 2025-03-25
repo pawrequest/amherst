@@ -109,10 +109,6 @@ docs = [
     { name = "sphinx-rtd-dark-mode" },
     { name = "sphinx-rtd-theme" },
 ]
-from-git = [
-    { name = "pycommence" },
-    { name = "shipaw" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -130,7 +126,6 @@ requires-dist = [
     { name = "pawlogger", git = "https://github.com/pawrequest/pawlogger" },
     { name = "phonenumbers" },
     { name = "pycommence", git = "https://github.com/pawrequest/pycommence" },
-    { name = "pycommence", marker = "extra == 'from-git'", git = "https://github.com/pawrequest/pycommence" },
     { name = "pydantic", extras = ["email"] },
     { name = "pydantic-extra-types" },
     { name = "pydantic-settings" },
@@ -139,8 +134,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
     { name = "python-dotenv" },
     { name = "pywin32" },
-    { name = "shipaw", git = "https://github.com/pawrequest/shipaw" },
-    { name = "shipaw", marker = "extra == 'from-git'", git = "https://github.com/pawrequest/shipaw" },
+    { name = "shipaw", git = "https://github.com/pawrequest/shipaw?rev=0f2950fa1c0deab22e8d340e1fe4201d87ee5276" },
     { name = "sphinx", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc2", marker = "extra == 'docs'" },
@@ -151,7 +145,7 @@ requires-dist = [
     { name = "suppawt", git = "https://github.com/pawrequest/suppawt" },
     { name = "uvicorn", extras = ["standard"] },
 ]
-provides-extras = ["dev", "docs", "from-git"]
+provides-extras = ["dev", "docs"]
 
 [[package]]
 name = "annotated-types"
@@ -1097,8 +1091,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.1.0"
-source = { git = "https://github.com/pawrequest/shipaw#52bfc47b9d4abc756b0dcff158126ea0e7dcaff4" }
+version = "0.1.3"
+source = { git = "https://github.com/pawrequest/shipaw?rev=0f2950fa1c0deab22e8d340e1fe4201d87ee5276#0f2950fa1c0deab22e8d340e1fe4201d87ee5276" }
 dependencies = [
     { name = "aiohttp" },
     { name = "combadge", extra = ["zeep"] },
