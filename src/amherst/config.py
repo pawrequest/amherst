@@ -62,7 +62,7 @@ class Settings(BaseSettings):
             v.touch(exist_ok=True)
         return v
 
-    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AM_ENV)
+    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AM_ENV, extra='ignore')
 
 
 @functools.lru_cache
