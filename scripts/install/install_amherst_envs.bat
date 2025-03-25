@@ -1,19 +1,14 @@
 @echo off
 
-set DATA_DIR=%LocalAppData%\amherst_pr
-
-if not exist "%DATA_DIR%" (
-    echo no repo found
-    call .\install_update_amherst_repo.bat
-)
-
-set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live_beta.env"
+set DATA_DIR=C:\ProgramData\AmherstPR
+set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live.env"
 set SHIPPING_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\pf_live.env"
 set AM_ENV_FILE_LOCAL=%DATA_DIR%\am.env
 set SHIPPING_ENV_FILE_LOCAL=%DATA_DIR%\pf.env
 
-echo copying env files to local directory
+echo copying AM_ENV to local directory
 copy %AM_ENV_FILE_REMOTE% %AM_ENV_FILE_LOCAL%
+echo copying SHIP_ENV to local directory
 copy %SHIPPING_ENV_FILE_REMOTE% %SHIPPING_ENV_FILE_LOCAL%
 
 echo setting 'AM_ENV' User and session environment variables

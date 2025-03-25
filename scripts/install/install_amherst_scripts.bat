@@ -7,7 +7,7 @@ if %errorlevel% neq 0 (
     powershell -Command "Start-Process cmd.exe -ArgumentList '/c, %~s0' -Verb RunAs"
     exit
 )
-set PROG_DIR=%ProgramFiles%\amherst_pr
+set PROG_DIR=C:\ProgramData\AmherstPR
 if not exist "%PROG_DIR%" (
     echo Creating directory %PROG_DIR%
     mkdir "%PROG_DIR%"
