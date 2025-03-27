@@ -1,28 +1,15 @@
 import os
 import re
 import sys
-
-# from entities.const import DFLT
-from src.amherst.office_am.dflt import DFLT_PATHS
+import pyperclip
 
 REAL_INV_FOLDER = r'R:\ACCOUNTS\invoices'
 
 
-def main():
-    print(next_inv_num())
-    input('Press Enter to close...')
-    sys.exit(0)
-
-
-if __name__ == '__main__':
-    main()
-
-
-def next_inv_num(inv_dir=DFLT_PATHS.INV_DIR):
-    inv_dir = inv_dir if inv_dir.exists() else DFLT_PATHS.INV_DIR_MOCK
+def next_inv_num(inv_dir=REAL_INV_FOLDER):
     inv_numbers = list(get_inv_nums(inv_dir))
     if not inv_numbers:
-        return 'A00001'
+        return f'no invoices found in {inv_dir}'
     inv_numbers = sorted(inv_numbers, reverse=True)
     for index, num in enumerate(inv_numbers):
         if has_20_after(index=index, nums=inv_numbers):
@@ -58,3 +45,15 @@ def has_20_after(index: int, nums: {int}):
         else:
             return False
     return True
+
+
+def main():
+    res = next_inv_num()
+    pyperclip.copy(res)
+    print(res, 'copied to clipboard')
+    input('Press Enter to close...')
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()
