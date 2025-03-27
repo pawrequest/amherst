@@ -10,14 +10,6 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
 
-def set_pf_env():
-    am_pr = os.getenv('AMHERSTPR')
-    pf_env = str(Path(am_pr) / 'pf.env')
-    os.environ['SHIP_ENV'] = pf_env
-    return pf_env
-
-
-set_pf_env()
 
 from amherst.config import TEMPLATES, settings
 from amherst.back.routes_json import router as json_router
