@@ -48,7 +48,9 @@ async def get_url_suffix2(category, pk, mode=MODE):
         case Mode.SHIP_BY_SRCH:
             return f'ship/form2?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
         case Mode.SHIP_CONTENT:
-            return f'ship/form_content2?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
+            return (
+                f'ship/form_content2?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
+            )
         case Mode.NONE:
             return ''
 
@@ -66,20 +68,6 @@ def parse_arguments():
 
 async def main(category: CategoryName, record_name: str, mode: Mode = MODE):
     logger.warning('hastily removed filterarray from cursor')
-    # logger.info(f'Starting Shipper searching for {category} record: {record_name}')
-    # search_request = SearchRequest(
-    #     csrname=category,
-    #     pk_value=record_name,
-    #     filtered=False,
-    #     condition=ConditionType.EQUAL,
-    #     max_rtn=1,
-    # )
-    # with pycommence_context(category) as pycmc:
-    #     search_response = await pycommence_search(search_request, pycmc)
-    # # search_response = await pycommence_response(search_request)
-    # row = search_response
-    # row = await parse_response(search_response)
-    # url_suffix = await get_url_suffix(row, mode)
     url_suffix = await get_url_suffix2(category, record_name)
     await run_desktop_ui(url_suffix)
 
@@ -95,6 +83,10 @@ async def parse_response(res):
         )
 
 
-if __name__ == '__main__':
+def main_cli():
     args = parse_arguments()
     asyncio.run(main(args.category, args.record_name))
+
+
+if __name__ == '__main__':
+    main_cli()

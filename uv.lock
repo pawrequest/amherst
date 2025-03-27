@@ -67,7 +67,7 @@ wheels = [
 
 [[package]]
 name = "amherst"
-version = "0.3.0"
+version = "0.3.5"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },

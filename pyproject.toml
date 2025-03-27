@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "amherst"
 description = "Add your description here"
-version = "0.3.0"
+version = "0.3.5"
 authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
@@ -37,6 +37,10 @@ dependencies = [
     'xlrd',
 ]
 
+[project.scripts]
+payment-status = "amherst.actions.payment_status:payment_status_cli"
+shipper = "amherst.cli:main_cli"
+
 [project.optional-dependencies]
 dev = [
     "pytest",
@@ -64,4 +68,3 @@ extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
-#[tool.

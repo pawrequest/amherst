@@ -1,5 +1,5 @@
+import argparse
 from pathlib import Path
-
 import pandas as pd
 
 AC_FILE = Path(r'R:\ACCOUNTS\ye2025\ac2425.xls')
@@ -19,4 +19,14 @@ def get_status(inv_num: str, df: pd.DataFrame = AC_DF) -> str:
     return rs[0] if rs else 'Not Found'
 
 
-print(get_status('A25712'))
+# print(get_status('A25712'))
+
+
+def payment_status_cli():
+    parser = argparse.ArgumentParser(description='Check invoice payment status')
+    parser.add_argument('invoice_number', type=str, help='Invoice number to check')
+    parser.add_argument(
+        'accounts_spreadsheet', type=Path, help='Path to accounts spreadsheet', nargs='?', default=AC_DF
+    )
+    args = parser.parse_args()
+    print(get_status(args.invoice_number, args.accounts_spreadsheet))
