@@ -1,4 +1,6 @@
 import contextlib
+import os
+from pathlib import Path
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
@@ -12,6 +14,15 @@ from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_ship import router as ship_router2
 from shipaw import pf_config
+
+
+def set_pf_env():
+    am_pr = os.getenv('AMHERSTPR')
+    am_pr = Path(am_pr)
+    pf_env = str(am_pr / 'pf.env')
+    logger.info(f'using {pf_env} for parcelforce settings')
+    os.environ['SHIP_ENV'] = pf_env
+    return pf_env
 
 
 @contextlib.asynccontextmanager
