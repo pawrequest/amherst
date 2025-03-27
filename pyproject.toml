@@ -41,6 +41,7 @@ dependencies = [
 [project.scripts]
 payment-status = "amherst.actions.payment_status:payment_status_cli"
 shipper = "amherst.cli:main_cli"
+invoice-number = "amherst.actions.invoice_number:main"
 
 [project.optional-dependencies]
 dev = [
