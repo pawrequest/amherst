@@ -3,6 +3,7 @@
 set DATA_DIR=C:\ProgramData\AmherstPR
 set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live.env"
 set SHIPPING_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\pf_live.env"
+
 set AM_ENV_FILE_LOCAL=%DATA_DIR%\am.env
 set SHIPPING_ENV_FILE_LOCAL=%DATA_DIR%\pf.env
 
@@ -18,3 +19,7 @@ set AM_ENV=%AM_ENV_FILE_LOCAL%
 echo setting 'SHIP_ENV' User and session environment variables
 setx SHIP_ENV %SHIPPING_ENV_FILE_LOCAL%
 set SHIP_ENV=%SHIPPING_ENV_FILE_LOCAL%
+
+echo setting 'AMHERSTPR' User and session environment variables
+setx AMHERSTPR %DATA_DIR%
+set AMHERSTPR=%DATA_DIR%
