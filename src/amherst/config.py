@@ -16,14 +16,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pawlogger import get_loguru
 from starlette.templating import Jinja2Templates
 
-AM_DIR = Path(os.getenv('AMHERSTPR'))
+AM_DIR = os.getenv('AMHERSTPR')
 if not AM_DIR:
     raise ValueError('AMHERSTPR environment variable not set')
-if not Path(AM_DIR).exists():
-    raise ValueError(f'{AM_DIR} directory does not exist: {AM_DIR}')
-AM_ENV = AM_DIR / 'am.env'
-if not Path(AM_ENV).exists():
-    raise ValueError(f'{AM_ENV} .env file does not exist: {AM_ENV}')
+AM_ENV = Path(AM_DIR) / 'am.env'
+if not AM_ENV.exists():
+    raise ValueError(f'{AM_ENV} env file does not exist.')
 
 # AM_ENV = os.getenv('AM_ENV')
 # if not AM_ENV:
