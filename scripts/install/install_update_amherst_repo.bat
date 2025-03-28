@@ -1,5 +1,7 @@
 @echo off
 
+echo Install / Update Amherst Repository to %AMHERSTPR%
+
 set REPO_URL=https://github.com/pawrequest/amherst/
 
 REM Clone or pull repo
