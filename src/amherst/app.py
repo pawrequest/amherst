@@ -1,4 +1,6 @@
 import contextlib
+import os
+from pathlib import Path
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
@@ -6,6 +8,8 @@ from loguru import logger
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
+
+
 
 from amherst.config import TEMPLATES, settings
 from amherst.back.routes_json import router as json_router
@@ -17,6 +21,7 @@ from shipaw import pf_config
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
+        # set_pf_env()
         # pythoncom.CoInitialize()
         # with sqm.Session(am_db.ENGINE) as session:
         #     pf_shipper = ELClient()

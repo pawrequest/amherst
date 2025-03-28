@@ -16,11 +16,31 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pawlogger import get_loguru
 from starlette.templating import Jinja2Templates
 
-AM_ENV = os.getenv('AM_ENV')
-if not AM_ENV:
-    raise ValueError('AM_ENV environment variable not set')
-if not Path(AM_ENV).exists():
-    raise ValueError(f'{AM_ENV} .env file does not exist: {AM_ENV}')
+
+@functools.lru_cache
+def get_ampr():
+    amherstpr = os.getenv('AMHERSTPR')
+    if not amherstpr:
+        raise ValueError('AMHERSTPR environment variable not set')
+    amherstpr = Path(amherstpr)
+    if not amherstpr.exists():
+        raise ValueError(f'{amherstpr} directory does not exist.')
+    return amherstpr
+
+
+AMHERSTPR = get_ampr()
+
+
+def set_env(filename: str, keyname: str):
+    env_file = AMHERSTPR / filename
+    if not env_file.exists():
+        raise ValueError(f'{env_file} env file does not exist.')
+    os.environ[keyname.upper()] = str(env_file)
+    return env_file
+
+
+set_env('pf.env', 'SHIP_ENV')
+set_env('am.env', 'AM_ENV')
 
 
 def set_src_dir(v, values):
@@ -31,6 +51,10 @@ def set_src_dir(v, values):
             return Path(sys._MEIPASS)
         else:
             return Path(__file__).resolve().parent
+
+
+def src_dir_no_exec(v, values):
+    return Path(__file__).resolve().parent
 
 
 class Settings(BaseSettings):
@@ -62,7 +86,7 @@ class Settings(BaseSettings):
             v.touch(exist_ok=True)
         return v
 
-    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AM_ENV, extra='ignore')
+    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AMHERSTPR / 'am.env', extra='ignore')
 
 
 @functools.lru_cache
