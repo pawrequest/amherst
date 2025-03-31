@@ -9,6 +9,8 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
+
+
 from amherst.config import TEMPLATES, settings
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
@@ -28,6 +30,7 @@ def set_pf_env():
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
+        # set_pf_env()
         # pythoncom.CoInitialize()
         # with sqm.Session(am_db.ENGINE) as session:
         #     pf_shipper = ELClient()
