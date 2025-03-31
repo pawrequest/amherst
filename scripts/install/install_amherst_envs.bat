@@ -1,8 +1,6 @@
 @echo off
 
-set AMHERSTPR=C:\ProgramData\AmherstPR
-setx AMHERSTPR %AMHERSTPR%
-
+echo Configuring Envirnoment
 set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live_beta.env"
 set SHIPPING_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\pf_live.env"
 
