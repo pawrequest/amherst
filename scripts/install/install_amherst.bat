@@ -7,8 +7,6 @@ setx AMHERSTPR %AMHERSTPR%
 rem call %thisDir%/install_amherst_envs.bat
 
 call %thisDir%/install_git_uv.bat
-pause
-start /wait cmd /k %thisDir%/clone_or_pull_amherstpr_repo.bat
-pause
-start /wait cmd /k %thisDir%/install_amherst_envs.bat
-pause
+call %thisDir%/clone_or_pull_amherstpr_repo.bat
+call %thisDir%/install_amherst_envs.bat
+
