@@ -8,7 +8,7 @@ rem call %thisDir%/install_amherst_envs.bat
 
 call %thisDir%/install_git_uv.bat
 pause
-start /wait cmd /k %thisDir%/install_update_amherst_repo.bat
+start /wait cmd /k %thisDir%/clone_or_pull_amherstpr_repo.bat
 pause
 start /wait cmd /k %thisDir%/install_amherst_envs.bat
 pause

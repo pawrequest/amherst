@@ -4,7 +4,6 @@ echo Installing Git and UV
 REM Set paths
 
 set UV_DIR=%USERPROFILE%\.local\bin
-set GIT_DIR=%USERPROFILE%\.local\opt\git
 set GIT_EXE=%GIT_DIR%\cmd\git.exe
 
 
