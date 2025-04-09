@@ -50,8 +50,7 @@ def has_20_after(index: int, nums: {int}):
 def main():
     res = next_inv_num()
     pyperclip.copy(res)
-    print(res, 'copied to clipboard')
-    input('Press Enter to close...')
+    print(f'next available invoice number is {res} and is copied to clipboard')
     sys.exit(0)
 
 
