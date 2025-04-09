@@ -29,4 +29,4 @@ def payment_status_cli():
         'accounts_spreadsheet', type=Path, help='Path to accounts spreadsheet', nargs='?', default=AC_DF
     )
     args = parser.parse_args()
-    print(get_status(args.invoice_number, args.accounts_spreadsheet))
+    print(get_status(args.invoice_number))
