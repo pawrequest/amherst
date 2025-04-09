@@ -26,9 +26,26 @@ from jinja2.utils import url_quote
 from loguru import logger
 from thefuzz import fuzz
 
-from amherst.config import set_live_env, set_sandbox_env
-from amherst.ui_runner import run_desktop_ui
+from amherst.set_env import set_amherstpr_env
 from amherst.models.commence_adaptors import CategoryName
+
+
+def parse_arguments():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
+    arg_parser.add_argument('record_name', type=str)
+    arg_parser.add_argument('--sandbox', action='store_true', help="Run in sandbox mode")
+    args = arg_parser.parse_args()
+    set_amherstpr_env(sandbox=args.sandbox)
+    if args.category.lower() == 'trial':
+        args.category = 'radio trial'
+    args.category = CategoryName(args.category.title())
+    return args
+
+
+ARGS = parse_arguments()
+
+from amherst.ui_runner import run_desktop_ui
 
 SCORER = fuzz.partial_ratio
 
@@ -56,42 +73,25 @@ async def get_url_suffix2(category, pk, mode=MODE):
             return ''
 
 
-def parse_arguments():
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
-    arg_parser.add_argument('record_name', type=str)
-    arg_parser.add_argument('sandbox', type=bool, nargs='?', default=False)
-    args = arg_parser.parse_args()
-    if args.sandbox:
-        set_sandbox_env()
-    else:
-        set_live_env()
-    if args.category.lower() == 'trial':
-        args.category = 'radio trial'
-    args.category = CategoryName(args.category.title())
-    return args
-
-
 async def main(category: CategoryName, record_name: str, mode: Mode = MODE):
     logger.warning('hastily removed filterarray from cursor')
     url_suffix = await get_url_suffix2(category, record_name)
     await run_desktop_ui(url_suffix)
 
 
-async def parse_response(res):
-    if res.length == 1 or res.search_request.pk_value == 'Test':
-        return res.records[0]
-    elif res.length == 0:
-        raise ValueError(f'No {res.search_request.csrname} record found for {res.search_request.pk_value}')
-    else:
-        raise NotImplementedError(
-            f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}'
-        )
+# async def parse_response(res):
+#     if res.length == 1 or res.search_request.pk_value == 'Test':
+#         return res.records[0]
+#     elif res.length == 0:
+#         raise ValueError(f'No {res.search_request.csrname} record found for {res.search_request.pk_value}')
+#     else:
+#         raise NotImplementedError(
+#             f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}'
+#         )
 
 
 def main_cli():
-    args = parse_arguments()
-    asyncio.run(main(args.category, args.record_name))
+    asyncio.run(main(ARGS.category, ARGS.record_name))
 
 
 if __name__ == '__main__':
