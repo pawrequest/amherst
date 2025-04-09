@@ -1,7 +1,7 @@
 @echo off
 
 echo Configuring Envirnoment
-set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live_beta.env"
+set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live.env"
 set SHIPPING_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\pf_live.env"
 
 set AM_ENV_FILE_LOCAL=%AMHERSTPR%\am.env
