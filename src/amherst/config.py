@@ -49,9 +49,6 @@ def set_sandbox_env():
     set_env('am_sandbox.env', 'AM_ENV')
 
 
-set_sandbox_env()
-
-
 def set_src_dir(v, values):
     # pyinstaller compatibility
     if v is None:
@@ -67,14 +64,13 @@ def src_dir_no_exec(v, values):
 
 
 class Settings(BaseSettings):
-    """Set by env file at location specified by AM_ENV."""
-
     # db_loc: Path
     log_file: Path
     src_dir: _t.Annotated[Path, _p.BeforeValidator(set_src_dir)] = None
     # data_dir: Path = Path(__file__).parent / '_data'
     templates: Path | None = None
     log_level: str = 'INFO'
+    sandbox: bool = False
 
     @_p.field_validator('templates', mode='after')
     def set_templates(cls, v, values):
@@ -128,3 +124,5 @@ TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
 TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
+
+set_live_env()
