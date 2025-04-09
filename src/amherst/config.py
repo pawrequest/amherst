@@ -39,8 +39,17 @@ def set_env(filename: str, keyname: str):
     return env_file
 
 
-set_env('pf.env', 'SHIP_ENV')
-set_env('am.env', 'AM_ENV')
+def set_live_env():
+    set_env('pf.env', 'SHIP_ENV')
+    set_env('am.env', 'AM_ENV')
+
+
+def set_sandbox_env():
+    set_env('pf_sandbox.env', 'SHIP_ENV')
+    set_env('am_sandbox.env', 'AM_ENV')
+
+
+set_sandbox_env()
 
 
 def set_src_dir(v, values):
