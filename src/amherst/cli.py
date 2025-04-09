@@ -26,6 +26,7 @@ from jinja2.utils import url_quote
 from loguru import logger
 from thefuzz import fuzz
 
+from amherst.config import set_live_env, set_sandbox_env
 from amherst.ui_runner import run_desktop_ui
 from amherst.models.commence_adaptors import CategoryName
 
@@ -59,7 +60,12 @@ def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
     arg_parser.add_argument('record_name', type=str)
+    arg_parser.add_argument('sandbox', type=bool, nargs='?', default=False)
     args = arg_parser.parse_args()
+    if args.sandbox:
+        set_sandbox_env()
+    else:
+        set_live_env()
     if args.category.lower() == 'trial':
         args.category = 'radio trial'
     args.category = CategoryName(args.category.title())

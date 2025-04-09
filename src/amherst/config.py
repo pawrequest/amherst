@@ -121,8 +121,8 @@ TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
 TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
-
-if AM_SETTINGS.sandbox:
-    set_sandbox_env()
-else:
-    set_live_env()
+#
+# if AM_SETTINGS.sandbox:
+#     set_sandbox_env()
+# else:
+#     set_live_env()
