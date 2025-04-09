@@ -10,7 +10,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
 
-from amherst.config import AM_SETTINGS, TEMPLATES, set_sandbox_env, settings
+from amherst.config import AM_SETTINGS, TEMPLATES
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_ship import router as ship_router2
