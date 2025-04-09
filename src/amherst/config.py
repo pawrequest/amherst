@@ -94,12 +94,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AMHERSTPR / 'am.env', extra='ignore')
 
 
-@functools.lru_cache
-def settings():
-    return Settings()
+AM_SETTINGS = Settings()
 
-
-logger = get_loguru(log_file=settings().log_file, profile='local', level=settings().log_level)
+logger = get_loguru(log_file=AM_SETTINGS.log_file, profile='local', level=AM_SETTINGS.log_level)
 
 
 def sanitise_id(value):
@@ -119,10 +116,13 @@ def ordinal_dt(dt: datetime | date) -> str:
     return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
 
 
-TEMPLATES = Jinja2Templates(directory=str(settings().src_dir / 'front' / 'templates'))
+TEMPLATES = Jinja2Templates(directory=str(AM_SETTINGS.src_dir / 'front' / 'templates'))
 TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
 TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
 
-set_live_env()
+if AM_SETTINGS.sandbox:
+    set_sandbox_env()
+else:
+    set_live_env()

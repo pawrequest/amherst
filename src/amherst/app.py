@@ -10,7 +10,7 @@ from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
 
 
-from amherst.config import TEMPLATES, set_sandbox_env, settings
+from amherst.config import AM_SETTINGS, TEMPLATES, set_sandbox_env, settings
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_ship import router as ship_router2
@@ -43,7 +43,7 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory=str(settings().src_dir / 'front' / 'static')), name='static')
+app.mount('/static', StaticFiles(directory=str(AM_SETTINGS.src_dir / 'front' / 'static')), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router2, prefix='/ship')
 app.include_router(html_router)
