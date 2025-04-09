@@ -19,7 +19,8 @@ def get_status(inv_num: str, df: pd.DataFrame = AC_DF) -> str:
     return rs[0] if rs else 'Not Found'
 
 
-# print(get_status('A25712'))
+def invoice_num_from_path(inv_path: str):
+    return Path(inv_path).stem
 
 
 def payment_status_cli():
@@ -29,4 +30,4 @@ def payment_status_cli():
         'accounts_spreadsheet', type=Path, help='Path to accounts spreadsheet', nargs='?', default=AC_DF
     )
     args = parser.parse_args()
-    print(get_status(args.invoice_number))
+    print(get_status(invoice_num_from_path(args.invoice_number)))
