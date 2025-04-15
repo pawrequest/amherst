@@ -12,7 +12,7 @@ from amherst.models.amherst_models import (
     AmherstSale,
     AmherstShipment,
     AmherstShipmentResponse,
-    AmherstTableBase,
+    AmherstShipableBase,
     AmherstTrial,
 )
 from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
@@ -56,7 +56,7 @@ class TemplateMap(NamedTuple):
 
 
 CMC_UPDATE_FN = Callable[[AmherstShipment, AmherstShipmentResponse], dict[str, str]]
-CMC_UPDATE_FN2 = Callable[[AmherstTableBase, AmherstShipment, AmherstShipmentResponse], dict[str, str]]
+CMC_UPDATE_FN2 = Callable[[AmherstShipableBase, AmherstShipment, AmherstShipmentResponse], dict[str, str]]
 
 
 def update_hire_shipment(shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
@@ -72,7 +72,7 @@ def update_hire_shipment(shipment: AmherstShipment, shipment_response: AmherstSh
     )
 
 
-def update_shipment(record: AmherstTableBase, shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
+def update_shipment(record: AmherstShipableBase, shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
     tracking_link = shipment_response.tracking_link()
     update_package = {
         HireAliases.TRACKING_NUMBERS: f'{record.tracking_numbers}, {shipment_response.shipment_num}',
@@ -139,7 +139,7 @@ def update_sale_shipment(shipment: AmherstShipment, shipment_response: AmherstSh
 
 class AmherstMap(NamedTuple):
     category: CategoryName
-    record_model: type(AmherstTableBase)
+    record_model: type(AmherstShipableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
     cmc_update_fn: CMC_UPDATE_FN | None = None
@@ -237,4 +237,4 @@ class AmherstMaps:
 
 
 async def maps2(csrname: CategoryName = Query(...)) -> AmherstMap:
-    return getattr(AmherstMaps, csrname.name.lower())
+    return getattr(AmherstMaps, csrname.lower())

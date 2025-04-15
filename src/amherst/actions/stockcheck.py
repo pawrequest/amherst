@@ -11,9 +11,10 @@ import pandas as pd
 from pawlogger import get_loguru
 
 from amherst.models.commence_adaptors import HireAliases
-from amherst.models.filters import get_filter_array
 from pycommence.pycmc_types import CmcDateFormat, MoreAvailable, RadioType
 from pycommence.pycommence_v2 import PyCommence
+
+from amherst.models.filters import HIRE_ARRAY_LOOSE
 
 logger = get_loguru(profile='local')
 
@@ -43,7 +44,7 @@ class StockChecker:
         self.radiotype = radiotype
         self.stock = 500
         self.date_range_gen = daterang_gen(start_date, end_date)
-        self.pycommence = pycmc or PyCommence.with_csr('Hire', filter_array=self.filters)
+        self.pycommence = pycmc or PyCommence.with_csr('Hire')
         self.data = self._prepare_data()
 
     def _prepare_data(self):
@@ -54,7 +55,8 @@ class StockChecker:
     @property
     def filters(self):
         # todo break this
-        return get_filter_array('Hire')
+        return HIRE_ARRAY_LOOSE
+        # return get_filter_array('Hire')
 
     def run(self):
         dates = list(self.date_range_gen)
