@@ -15,7 +15,8 @@ from amherst.models.amherst_models import (
     AmherstShipableBase,
     AmherstTrial,
 )
-from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
+from amherst.models.commence_adaptors import CategoryName
+from amherst.models.commence_aliases import CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
     CUSTOMER_ARRAY_LOOSE,
@@ -56,7 +57,7 @@ class TemplateMap(NamedTuple):
 
 
 CMC_UPDATE_FN = Callable[[AmherstShipment, AmherstShipmentResponse], dict[str, str]]
-CMC_UPDATE_FN2 = Callable[[AmherstShipableBase, AmherstShipment, AmherstShipmentResponse], dict[str, str]]
+# CMC_UPDATE_FN2 = Callable[[AmherstShipableBase, AmherstShipment, AmherstShipmentResponse], dict[str, str]]
 
 
 def update_hire_shipment(shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):

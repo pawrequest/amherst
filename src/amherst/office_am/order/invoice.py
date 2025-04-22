@@ -38,7 +38,7 @@ def render_tmplt(inv_o: HireInvoice, tmplt=DFLT_PATHS.INV_TMPLT) -> DocxTemplate
 
 def invoice_template_context(invoice):
     return {
-        'dates': invoice.dates,
+        'dates': invoice.hire_dates,
         'inv_address': invoice.inv_add,
         'del_address': invoice.del_add,
         'order': invoice.order,
