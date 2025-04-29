@@ -77,7 +77,7 @@ def split_addr_str(address: str) -> dict[str, str]:
 #     email_address: str = Field(..., alias='Delivery Email')
 
 
-class AmherstTableBase(BaseModel, ABC):
+class AmherstShipableBase(BaseModel, ABC):
     model_config = ConfigDict(
         populate_by_name=True,
         use_enum_values=True,
@@ -145,7 +145,7 @@ class AmherstTableBase(BaseModel, ABC):
         )
 
 
-class AmherstCustomer(AmherstTableBase):
+class AmherstCustomer(AmherstShipableBase):
     # mandatory overrides
     category: CategoryName = 'Customer'
     delivery_contact_name: str = Field(..., alias='Deliv Contact')
@@ -166,7 +166,7 @@ class AmherstCustomer(AmherstTableBase):
     sales: str = ''
 
 
-class AmherstOrderBase(AmherstTableBase, ABC):
+class AmherstOrderBase(AmherstShipableBase, ABC):
     # mandatory overrides
     customer_name: str = Field(..., alias='To Customer')
     delivery_contact_name: str = Field(..., alias='Delivery Contact')

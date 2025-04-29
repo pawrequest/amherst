@@ -15,7 +15,7 @@ from amherst.models.amherst_models import (
     AmherstShipmentOut,
     AmherstShipmentAwayCollection,
     AmherstShipmentAwayDropoff,
-    AmherstTableBase,
+    AmherstShipableBase,
 )
 from amherst.config import TEMPLATES
 from shipaw import ship_types
@@ -272,10 +272,10 @@ async def amherst_shipment_str_to_shipment(shipment_str: str = Form(...)):
 
 
 # unused?
-async def record_str_to_record(record_str: str = Form(...)) -> AmherstTableBase:
+async def record_str_to_record(record_str: str = Form(...)) -> AmherstShipableBase:
     record_dict = json.loads(record_str)
     category = record_dict['category']
-    rectype: AmherstTableBase = (await maps2(category)).record_model
+    rectype: AmherstShipableBase = (await maps2(category)).record_model
     return rectype.model_validate_json(record_str)
 
 

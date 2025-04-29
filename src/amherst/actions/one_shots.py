@@ -1,6 +1,7 @@
 from pprint import pprint
 
-from amherst.models.commence_adaptors import CustomerAliases, HireAliases, HireStatus
+from amherst.models.commence_adaptors import HireStatus
+from amherst.models.commence_aliases import CustomerAliases, HireAliases
 from pycommence.filters import ConditionType, FieldFilter, FilterArray
 from pycommence.pycommence_v2 import PyCommence
 

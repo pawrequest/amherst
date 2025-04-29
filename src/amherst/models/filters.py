@@ -8,7 +8,7 @@ from collections.abc import Generator
 
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, Sort, SortOrder
 from pycommence.pycmc_types import Connection, get_cmc_date
-from amherst.models.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
+from amherst.models.commence_aliases import CustomerAliases, HireAliases, SaleAliases
 
 CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
 FilterVariant = Literal['loose', 'tight']

@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 
-from office_tools.email_handler import Email
+from suppawt.office_ps.email_handler import Email
 
 DEBUG = True
 USE_MICROSOFT = False
@@ -30,7 +30,7 @@ class DFLT_PATHS:
 class DFLT_CONST:
     FW_VERSION = 'XXXX'
     MIN_DUR = 'Min Duration'
-    MODEL = "Model"
+    MODEL = 'Model'
     SERIAL = 'Barcode'
     ID = 'Number'
     FW = 'FW'
@@ -55,11 +55,6 @@ def get_hire_invoice_email(hire: dict) -> Email:
     body = f'Thanks for hiring from amherst, your order contains the following: {nl*2}{hire["Hire Sheet Text"]}'
     return Email(to_address, subject, body)
 
-class FILTER_(Enum):
-    FIELD = 'F'
-    C_TO_ITEM = 'CTI'
-    C_TO_CAT_TO_ITEM = 'CTCTI'
-    C_TO_CAT_FIELD = 'CTCF'
 
 
 class DTYPES:
@@ -69,7 +64,6 @@ class DTYPES:
         'Min Qty': 'int',
         'Min Duration': 'int',
         'Price': 'float',
-
     }
     HIRE_RECORD = {
         'Items': 'string',
@@ -85,29 +79,39 @@ class DTYPES:
 
 class FIELDS:
     CUSTOMER = [
-        "Contact Name",
-        "Name",
-        "Address",
-        "Postcode",
-        "Charity?",
-        "Discount Percentage",
-        "Email",
+        'Contact Name',
+        'Name',
+        'Address',
+        'Postcode',
+        'Charity?',
+        'Discount Percentage',
+        'Email',
     ]
     HIRE = [
-        "Delivery Contact",
-        "Delivery Name",
-        "Delivery Address",
-        "Delivery Postcode",
-        "Number UHF",
-        "Booked Date",
-        "Name",
-    ]
-    SALE = [
-        "Invoice Address",
+        'Delivery Contact',
+        'Delivery Name',
+        'Delivery Address',
+        'Delivery Postcode',
+        'Number UHF',
+        'Booked Date',
         'Name',
     ]
-    FREE_ITEMS = ['Sgl Charger', 'UHF 6-way', 'Wand Battery', 'ICOM PSU', 'Megaphone Bat', 'ICOM Car Lead', 'Magmount',
-                  'Clipon Aerial', 'Wand Charger', 'Aerial Adapt']
+    SALE = [
+        'Invoice Address',
+        'Name',
+    ]
+    FREE_ITEMS = [
+        'Sgl Charger',
+        'UHF 6-way',
+        'Wand Battery',
+        'ICOM PSU',
+        'Megaphone Bat',
+        'ICOM Car Lead',
+        'Magmount',
+        'Clipon Aerial',
+        'Wand Charger',
+        'Aerial Adapt',
+    ]
 
 
 NOT_HIRE = ['Min Duration', 'Closed']
