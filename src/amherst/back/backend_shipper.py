@@ -11,7 +11,8 @@ from pydantic import EmailStr, ValidationError
 from starlette.requests import Request
 
 from amherst.models.amherst_models import (
-    AmherstShipment,
+    AmherstShipmentAddIn,
+    AmherstShipmentOut,
     AmherstShipmentAwayCollection,
     AmherstShipmentAwayDropoff,
     AmherstTableBase,
@@ -34,6 +35,7 @@ from shipaw.ship_types import (
     ShipDirection,
     ShipmentType,
     VALID_POSTCODE,
+    get_ship_direction,
 )
 
 from amherst.models.maps import maps2
@@ -130,7 +132,7 @@ async def notes_f_form(request: Request) -> list[tuple[str, str]]:
 
 
 def to_amherst_dropoff(
-    shipment: AmherstShipment, home_address=pf_sett().home_address, home_contact=pf_sett().home_contact
+    shipment: AmherstShipmentOut, home_address=pf_sett().home_address, home_contact=pf_sett().home_contact
 ) -> AmherstShipmentAwayDropoff:
     try:
         return AmherstShipmentAwayDropoff.model_validate(
@@ -150,7 +152,10 @@ def to_amherst_dropoff(
 
 
 def to_amherst_collection(
-    shipment: AmherstShipment, home_address=pf_sett().home_address, home_contact=pf_sett().home_contact, own_label=True
+    shipment: AmherstShipmentOut,
+    home_address=pf_sett().home_address,
+    home_contact=pf_sett().home_contact,
+    own_label=True,
 ) -> AmherstShipmentAwayCollection:
     try:
         return AmherstShipmentAwayCollection.model_validate(
@@ -191,7 +196,7 @@ async def shipment_f_form2(
     logger.warning('Creating Amherst Shipment Request from form')
 
     own_label = own_label.lower() == 'true'
-    shipment_request = AmherstShipment(
+    shipment_request = AmherstShipmentOut(
         recipient_address=address,
         recipient_contact=contact,
         service_code=service_code,
@@ -228,12 +233,43 @@ def get_el_client() -> ELClient:
 #     return shipment
 
 # unused?
-async def shipment_str_to_shipment(shipment_str: str = Form(...)):
-    return Shipment.model_validate_json(shipment_str)
+# async def shipment_str_to_shipment(shipment_str: str = Form(...)):
+#     return Shipment.model_validate_json(shipment_str)
+
+
+# def get_ship_direction(ship_dict: dict) -> ShipDirection:
+#     if ship_dict['shipment_type'] == ShipmentType.DELIVERY:
+#         if ship_dict['sender_address'] is None:
+#             return ShipDirection.OUTBOUND
+#         else:
+#             return ShipDirection.DROPOFF
+#     elif ship_dict['shipment_type'] == ShipmentType.COLLECTION:
+#         return ShipDirection.INBOUND
+#     else:
+#         raise ValueError()
+
+
+def get_amherst_ship_type(
+    ship_direction: ShipDirection,
+) -> type[AmherstShipmentOut] | type[AmherstShipmentAwayCollection] | type[AmherstShipmentAwayDropoff]:
+    match ship_direction:
+        case ShipDirection.OUTBOUND:
+            return AmherstShipmentOut
+        case ShipDirection.INBOUND:
+            return AmherstShipmentAwayCollection
+        case ShipDirection.DROPOFF:
+            return AmherstShipmentAwayDropoff
+        case _: raise ValueError
 
 
 async def amherst_shipment_str_to_shipment(shipment_str: str = Form(...)):
-    return AmherstShipment.model_validate_json(shipment_str)
+    # res = AmherstShipmentOut.model_validate_json(shipment_str)
+    ship_json = json.loads(shipment_str)
+    ship_dir = get_ship_direction(ship_json)
+    ship_type = get_amherst_ship_type(ship_dir)
+    res = ship_type.model_validate_json(shipment_str)
+    return res
+
 
 # unused?
 async def record_str_to_record(record_str: str = Form(...)) -> AmherstTableBase:
@@ -241,6 +277,7 @@ async def record_str_to_record(record_str: str = Form(...)) -> AmherstTableBase:
     category = record_dict['category']
     rectype: AmherstTableBase = (await maps2(category)).record_model
     return rectype.model_validate_json(record_str)
+
 
 # unused?
 async def check_dates(booking, request):

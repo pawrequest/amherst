@@ -7,10 +7,12 @@ from typing import NamedTuple
 from fastapi import Query
 
 from amherst.models.amherst_models import (
+    AMHERST_SHIPMENT_TYPES,
+    AMHERST_TABLE_MODELS,
     AmherstCustomer,
     AmherstHire,
     AmherstSale,
-    AmherstShipment,
+    AmherstShipmentOut,
     AmherstShipmentResponse,
     AmherstTableBase,
     AmherstTrial,
@@ -55,60 +57,83 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
-CMC_UPDATE_FN = Callable[[AmherstShipment, AmherstShipmentResponse], dict[str, str]]
-CMC_UPDATE_FN2 = Callable[[AmherstTableBase, AmherstShipment, AmherstShipmentResponse], dict[str, str]]
+CMC_UPDATE_FN = Callable[[AmherstShipmentOut, AmherstShipmentResponse], dict[str, str]]
+CMC_UPDATE_FN2 = Callable[[AMHERST_TABLE_MODELS, AMHERST_SHIPMENT_TYPES, AmherstShipmentResponse], dict[str, str]]
 
 
-def update_hire_shipment(shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
+def update_trial_2(
+    record: AmherstTrial, shipment: AMHERST_SHIPMENT_TYPES, resp: AmherstShipmentResponse
+) -> dict[str, str]:
+    tracking_link = resp.tracking_link()
+    if record.tracking_numbers:
+        shipment_ids = record.tracking_numbers.split(',')
+        shipment_ids.append(resp.shipment_num)
+        shipment_ids_str = ', '.join(shipment_ids)
+    else:
+        shipment_ids_str = resp.shipment_num
+    update_dict = {TrialAliases.TRACKING_NUMBERS: shipment_ids_str}
+    match shipment.direction:
+        case 'out':
+            update_dict.update({TrialAliases.TRACK_OUT: tracking_link})
+        case ['in', 'dropoff']:
+            update_dict.update({TrialAliases.TRACK_IN: tracking_link})
+        case _:
+            raise ValueError
+    return update_dict
+
+
+def update_hire_shipment(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
     tracking_link = shipment_response.tracking_link()
-    return (
-        {
-            HireAliases.TRACK_IN: tracking_link,
-            HireAliases.ARRANGED_IN: True,
-            HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-        }
-        if shipment.direction in ['in', 'dropoff']
-        else {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
-    )
-
-
-def update_shipment(record: AmherstTableBase, shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
-    tracking_link = shipment_response.tracking_link()
-    update_package = {
-        HireAliases.TRACKING_NUMBERS: f'{record.tracking_numbers}, {shipment_response.shipment_num}',
-    }
-    if shipment.direction in ['in', 'dropoff']:
-        update_package.update(
-            {
+    match shipment.direction:
+        case ['in', 'dropoff']:
+            return {
                 HireAliases.TRACK_IN: tracking_link,
                 HireAliases.ARRANGED_IN: True,
                 HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
             }
-        )
-    else:
-        update_package.update({HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True})
-    return update_package
+        case 'out':
+            return {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
+        case _:
+            raise ValueError
 
 
-def update_hire_shipment2(hire: AmherstHire, shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
-    tracking_link = shipment_response.tracking_link()
-    update_package = {
-        HireAliases.TRACKING_NUMBERS: f'{hire.tracking_numbers}, {shipment_response.shipment_num}',
-    }
-    if shipment.direction in ['in', 'dropoff']:
-        update_package.update(
-            {
-                HireAliases.TRACK_IN: tracking_link,
-                HireAliases.ARRANGED_IN: True,
-                HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-            }
-        )
-    else:
-        update_package.update({HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True})
-    return update_package
+# def update_shipment(record: AmherstTableBase, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
+#     tracking_link = shipment_response.tracking_link()
+#     update_package = {
+#         HireAliases.TRACKING_NUMBERS: f'{record.tracking_numbers}, {shipment_response.shipment_num}',
+#     }
+#     if shipment.direction in ['in', 'dropoff']:
+#         update_package.update(
+#             {
+#                 HireAliases.TRACK_IN: tracking_link,
+#                 HireAliases.ARRANGED_IN: True,
+#                 HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+#             }
+#         )
+#     else:
+#         update_package.update({HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True})
+#     return update_package
 
 
-def update_sale_shipment2(sale: AmherstSale, shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
+# def update_hire_shipment2(hire: AmherstHire, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
+#     tracking_link = shipment_response.tracking_link()
+#     update_package = {
+#         HireAliases.TRACKING_NUMBERS: f'{hire.tracking_numbers}, {shipment_response.shipment_num}',
+#     }
+#     if shipment.direction in ['in', 'dropoff']:
+#         update_package.update(
+#             {
+#                 HireAliases.TRACK_IN: tracking_link,
+#                 HireAliases.ARRANGED_IN: True,
+#                 HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+#             }
+#         )
+#     else:
+#         update_package.update({HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True})
+#     return update_package
+
+
+def update_sale_shipment2(sale: AmherstSale, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
     tracking_link = shipment_response.tracking_link()
     update_package = {
         SaleAliases.TRACKING_NUMBERS: f'{sale.tracking_numbers}, {shipment_response.shipment_num}',
@@ -119,7 +144,7 @@ def update_sale_shipment2(sale: AmherstSale, shipment: AmherstShipment, shipment
 
 
 def update_customer_shipment2(
-    customer: AmherstCustomer, shipment: AmherstShipment, shipment_response: AmherstShipmentResponse
+    customer: AmherstCustomer, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse
 ):
     tracking_link = shipment_response.tracking_link()
     update_package = {
@@ -129,12 +154,15 @@ def update_customer_shipment2(
     return update_package
 
 
-def update_sale_shipment(shipment: AmherstShipment, shipment_response: AmherstShipmentResponse):
+def update_sale_shipment(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
     tracking_link = shipment_response.tracking_link()
     return {
         SaleAliases.TRACK_OUT: tracking_link,
         SaleAliases.ARRANGED_OUT: True,
     }
+
+
+def update_trial_shipment(): ...
 
 
 class AmherstMap(NamedTuple):
@@ -143,6 +171,7 @@ class AmherstMap(NamedTuple):
     aliases: type(StrEnum)
     templates: TemplateMap
     cmc_update_fn: CMC_UPDATE_FN | None = None
+    cmc_update_fn2: CMC_UPDATE_FN2 | None = None
     connections: ConnectionMap | None = None
     py_filters: FilterMapPy | None = None
     cmc_filters: FilterMapCmc | None = None
@@ -221,6 +250,7 @@ class AmherstMaps:
             listing='customer_list.html',
             detail='customer_detail.html',
         ),
+        cmc_update_fn2=update_trial_2
         # connections=ConnectionMap(
         #     hire=HIRE_CONNECTION,
         #     sale=SALE_CONNECTION,

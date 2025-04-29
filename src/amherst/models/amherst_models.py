@@ -7,7 +7,7 @@ from os import PathLike
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from shipaw.models.pf_models import AddressBase
+from shipaw.models.pf_models import AddressBase, AddressSender
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection, ShipmentAwayDropoff
 from amherst.models.commence_adaptors import (
@@ -16,8 +16,8 @@ from amherst.models.commence_adaptors import (
     HireStatus,
     SaleStatus,
 )
-from shipaw.models.pf_top import Contact
-from shipaw.ship_types import limit_daterange_no_weekends
+from shipaw.models.pf_top import CollectionInfo, Contact, ContactSender
+from shipaw.ship_types import ShipmentType, limit_daterange_no_weekends
 
 
 # TableLit = Literal['Hire', 'Sale', 'Customer']
@@ -140,7 +140,7 @@ class AmherstTableBase(BaseModel, ABC):
         return Shipment.model_validate(self.shipment_dict())
 
     def am_shipment(self):
-        return AmherstShipment.model_validate(
+        return AmherstShipmentOut.model_validate(
             {**self.shipment_dict(), 'category': self.category, 'row_id': self.row_id}
         )
 
@@ -225,9 +225,9 @@ class AmherstTrial(AmherstOrderBase):
     delivery_contact_email: str = Field(..., alias='Trial Email')
     delivery_address_str: str = Field(..., alias='Trial Address')
     delivery_address_pc: str = Field(..., alias='Trial Postcode')
+    tracking_numbers: str = Field('', alias='Tracking Numbers')
 
     invoice: str = Field('', alias='Our Invoice')
-
 
 
 class AmherstHire(AmherstOrderBase):
@@ -251,7 +251,7 @@ class AmherstHire(AmherstOrderBase):
     missing_kit_str: str = Field('', alias='Missing Kit')
 
 
-class AmherstShipment(Shipment):
+class AmherstShipmentAddIn(BaseModel, ABC):
     category: CategoryName
     row_id: str
 
@@ -260,10 +260,18 @@ class AmherstShipment(Shipment):
         return Shipment.model_validate(shipdict)
 
 
-class AmherstShipmentAwayCollection(AmherstShipment, ShipmentAwayCollection): ...
+class AmherstShipmentOut(AmherstShipmentAddIn, Shipment):
+    shipment_type: ShipmentType = ShipmentType.DELIVERY
 
 
-class AmherstShipmentAwayDropoff(AmherstShipment, ShipmentAwayDropoff): ...
+class AmherstShipmentAwayCollection(AmherstShipmentAddIn, ShipmentAwayCollection):
+    collection_info: CollectionInfo
+    shipment_type: ShipmentType = ShipmentType.COLLECTION
+
+
+class AmherstShipmentAwayDropoff(AmherstShipmentAddIn, ShipmentAwayDropoff):
+    sender_address: AddressSender
+    sender_contact: ContactSender
 
 
 class AmherstShipmentResponse(ShipmentResponse):
@@ -273,6 +281,7 @@ class AmherstShipmentResponse(ShipmentResponse):
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale
 AMHERST_TABLE_MODELS = AMHERST_ORDER_MODELS | AmherstCustomer
+AMHERST_SHIPMENT_TYPES = AmherstShipmentOut | AmherstShipmentAwayDropoff | AmherstShipmentAwayCollection
 
 
 #

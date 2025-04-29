@@ -11,7 +11,7 @@ from pycommence.pycommence_v2 import PyCommence
 # from amherst.commence import HireFields, HireStatus
 # from pycommence import FilterArray, PyCommence
 # from pycommence.pycmc_types import CmcFilter, ConditionType, RadioType
-# from shipaw.expresslink_client import ELClient
+# from shipaw.expresslink_client importELClient
 # from shipaw.pf_config import PFSettings
 #
 #

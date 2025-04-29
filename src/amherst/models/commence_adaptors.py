@@ -104,9 +104,9 @@ class HireAliases(StrEnum):
     INVOICE = 'Invoice'
     ARRANGED_OUT = 'DB label printed'
     ARRANGED_IN = 'Pickup Arranged'
-    TRACK_OUT = 'Track Outbound'
-    TRACK_IN = 'Track Inbound'
-    TRACKING_NUMBERS = 'Tracking Numbers'
+    TRACK_OUT = 'Track Outbound'  # single link
+    TRACK_IN = 'Track Inbound'  # single link
+    TRACKING_NUMBERS = 'Tracking Numbers'  # comma sep list
     MISSING_KIT_STR = 'Missing Kit'
 
     ACTUAL_RETURN_DATE = 'Actual Return Date'
@@ -225,6 +225,7 @@ class TrialAliases(StrEnum):
     ARRANGED_IN = 'Pickup Arranged'
     TRACK_OUT = 'Track Outbound'
     TRACK_IN = 'Track Inbound'
+    TRACKING_NUMBERS = 'Tracking Numbers'
 
     STATUS = 'Status'
 

@@ -12,6 +12,7 @@ from pycommence.filters import ConditionType
 from pycommence.pycmc_types import CursorType, MoreAvailable
 from pycommence.pycommence_v2 import PyCommence
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+
 # from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.maps import AmherstMap, CategoryName, maps2
 
@@ -110,7 +111,10 @@ async def get_one(
     pycmc: PyCommence = Depends(pycmc_f_query),
 ) -> AMHERST_TABLE_MODELS:
     search_request.max_rtn = 1
-    return await pycommence_search(search_request, pycmc)
+    res = await pycommence_search(search_request, pycmc)
+    if not res:
+        logger.warning('No Results')
+    return res
 
 
 def record_tracking(record, shipment_response):

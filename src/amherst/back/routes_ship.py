@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Body, Depends, Query
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
+from pycommence.pycommence_v2 import PyCommence
 from shipaw.pf_config import pf_sett
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
 from amherst.actions.emailer import send_label_email
-from amherst.models.maps import maps2
+from amherst.models.maps import AmherstMap, maps2
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressBase, AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
@@ -21,7 +22,7 @@ from amherst.back.backend_pycommence import get_one, pycmc_f_query
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import (
     AMHERST_TABLE_MODELS,
-    AmherstShipment,
+    AmherstShipmentOut,
     AmherstShipmentResponse,
 )
 from shipaw.ship_types import VALID_POSTCODE
@@ -60,7 +61,7 @@ async def ship_form_content2(
 @router.post('/post_ship2', response_class=HTMLResponse)
 async def post_form2(
     request: Request,
-    shipment_proposed: AmherstShipment = Depends(shipment_f_form2),
+    shipment_proposed: AmherstShipmentOut = Depends(shipment_f_form2),
 ):
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
@@ -70,12 +71,14 @@ async def post_form2(
 @router.post('/post_confirm2', response_class=HTMLResponse)
 async def post_confirm_booking2(
     request: Request,
-    shipment_proposed: AmherstShipment = Depends(amherst_shipment_str_to_shipment),
+    shipment_proposed: AmherstShipmentOut = Depends(amherst_shipment_str_to_shipment),
     el_client: ELClient = Depends(get_el_client),
-    pycmc=Depends(pycmc_f_query),
-    mapper=Depends(maps2),
-    record: AMHERST_TABLE_MODELS = Depends(get_one),
+    pycmc: PyCommence=Depends(pycmc_f_query),
+    mapper:AmherstMap=Depends(maps2),
+    # record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
+    record_dict = pycmc.read_row(row_id=shipment_proposed.row_id)
+    record = mapper.record_model.model_validate(record_dict)
     logger.info('Booking Shipent')
     shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed.shipment())
     amherst_ship_response: AmherstShipmentResponse = AmherstShipmentResponse(
@@ -106,6 +109,11 @@ async def post_confirm_booking2(
         update_dict = mapper.cmc_update_fn(shipment_proposed, amherst_ship_response)
         logger.info(f'Updating CMC: {update_dict}')
         pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
+    elif mapper.cmc_update_fn2:
+        update_dict = mapper.cmc_update_fn2(record, shipment_proposed, amherst_ship_response)
+        logger.info(f'Updating CMC V2222222222222222: {update_dict}')
+        pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
+
     else:
         logger.info(f'No CMC Update Function for {mapper.category}')
 

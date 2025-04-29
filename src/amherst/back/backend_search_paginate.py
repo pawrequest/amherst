@@ -16,8 +16,8 @@ from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 # from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import FilterVariant
-from amherst.models.maps2 import CategoryName, maps2
-# from amherst.models.maps import CategoryName, maps2
+# from amherst.models.maps2 import CategoryName, maps2
+from amherst.models.maps import CategoryName, maps2
 
 PAGE_SIZE = 50
 
