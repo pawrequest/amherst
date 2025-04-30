@@ -1,11 +1,11 @@
 import os
-from amherst.set_env import get_ampr
+from amherst.set_env import get_envs_dir
 
 SANDBOX = True
 
 
 def setup_env():
-    amherstpr = get_ampr()
+    amherstpr = get_envs_dir()
     if SANDBOX:
         ship_env = amherstpr / 'pf_sandbox.env'
     else:
