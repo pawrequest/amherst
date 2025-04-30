@@ -14,7 +14,7 @@ from amherst.models.amherst_models import (
     AmherstSale,
     AmherstShipmentOut,
     AmherstShipmentResponse,
-    AmherstTableBase,
+    AmherstShipableBase,
     AmherstTrial,
 )
 from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
@@ -97,7 +97,7 @@ def update_hire_shipment(shipment: AmherstShipmentOut, shipment_response: Amhers
             raise ValueError
 
 
-# def update_shipment(record: AmherstTableBase, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
+# def update_shipment(record: AmherstShipableBase, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
 #     tracking_link = shipment_response.tracking_link()
 #     update_package = {
 #         HireAliases.TRACKING_NUMBERS: f'{record.tracking_numbers}, {shipment_response.shipment_num}',
@@ -167,7 +167,7 @@ def update_trial_shipment(): ...
 
 class AmherstMap(NamedTuple):
     category: CategoryName
-    record_model: type(AmherstTableBase)
+    record_model: type(AmherstShipableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
     cmc_update_fn: CMC_UPDATE_FN | None = None
