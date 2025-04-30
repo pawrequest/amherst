@@ -16,32 +16,7 @@ from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pawlogger import get_loguru
 
-
-@functools.lru_cache
-def get_ampr():
-    amherstpr = os.getenv('AMHERSTPR')
-    if not amherstpr:
-        raise ValueError('AMHERSTPR environment variable not set')
-    amherstpr = Path(amherstpr)
-    if not amherstpr.exists():
-        raise ValueError(f'{amherstpr} directory does not exist.')
-    return amherstpr
-
-
-AMHERSTPR = get_ampr()
-
-def set_src_dir(v, values):
-    # pyinstaller compatibility
-    if v is None:
-        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-            # noinspection PyProtectedMember
-            return Path(sys._MEIPASS)
-        else:
-            return Path(__file__).resolve().parent
-
-
-def src_dir_no_exec(v, values):
-    return Path(__file__).resolve().parent
+from amherst.set_env import get_envs_dir
 
 
 class Settings(BaseSettings):
@@ -60,11 +35,6 @@ class Settings(BaseSettings):
             return Jinja2Templates(directory=str(values.data['src_dir'] / 'front' / 'templates'))
         return v
 
-    # @cached_property
-    # def db_url(self):
-    #     return f'sqlite:///{self.db_loc.as_posix()}'
-
-    # @_p.field_validator('db_loc', 'log_file', mode='after')
     @_p.field_validator('log_file', mode='after')
     def path_exists(cls, v, values):
         if not v.parent.exists():
@@ -73,7 +43,7 @@ class Settings(BaseSettings):
             v.touch(exist_ok=True)
         return v
 
-    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=AMHERSTPR / 'am.env', extra='ignore')
+    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=get_envs_dir() / 'am.env', extra='ignore')
 
 
 AM_SETTINGS = Settings()
@@ -103,8 +73,3 @@ TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
 TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
-#
-# if AM_SETTINGS.sandbox:
-#     set_sandbox_env()
-# else:
-#     set_live_env()

@@ -6,7 +6,6 @@ from loguru import logger
 from amherst import app
 
 PORT = 8000
-# URL_SUFFIX = 'ship/form/'
 URL_SUFFIX = ''
 
 

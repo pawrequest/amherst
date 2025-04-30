@@ -17,8 +17,6 @@ from amherst.back.routes_ship import router as ship_router2
 from shipaw import pf_config
 
 
-
-
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
