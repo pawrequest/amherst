@@ -1,4 +1,9 @@
+from pathlib import Path
 from pprint import pprint
+
+from amherst.set_env import set_amherstpr_env
+
+set_amherstpr_env(sandbox=False)
 
 from amherst.models.commence_adaptors import HireStatus
 from amherst.models.commence_aliases import CustomerAliases, HireAliases
@@ -19,8 +24,10 @@ from pycommence.pycommence_v2 import PyCommence
 from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSettings
 
+from amherst.set_env import set_amherstpr_env
 
-def expresslink_live():
+
+def expresslink_live() -> ELClient:
     return ELClient(
         settings=PFSettings(
             _env_file=r'R:\paul_r\.internal\envs\pf_live.env',
@@ -28,16 +35,59 @@ def expresslink_live():
     )
 
 
-#
-#
-# # el_client = expresslink_live()
-# el_client = ELClient()
-#
-#
-# def get_a_label(dl_path, shipment_number):
-#     return el_client.get_label(shipment_number, dl_path)
-#
-#
+def get_a_label(dl_path, shipment_number):
+    return
+
+
+def good_hires_fils():
+    return (
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+    )
+
+
+def good_hires_array():
+    return FilterArray(filters={i: fil for i, fil in enumerate(good_hires_fils(), 1)})
+
+
+def cust_array():
+    return FilterArray(
+        filters={
+            1: FieldFilter(column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2022'),
+        }
+    )
+
+
+def pyc_test():
+    pyc2 = PyCommence.with_csr('Hire')
+    pyc2.filter_cursor(good_hires_array(), 'Hire')
+    assert pyc2.csrs['Hire'].row_count > 0
+    pyc2.set_csr('Customer')
+    pyc2.filter_cursor(cust_array(), 'Customer')
+    assert pyc2.csrs['Customer'].row_count > 0
+
+
+# pyc_test()
+
+
+def pf_play(el_client):
+    candidates = el_client.get_candidates('SG8 5HW')
+    return candidates
+
+
+if __name__ == '__main__':
+    dl_path = Path(r'C:\prdev\myfile.png')
+    ship_nuim = 'XB3851625'
+    el_client = expresslink_live()
+    # res = pf_play(el_client)
+    res = el_client.get_label(ship_nuim, str(dl_path))
+    pprint(res)
+    ...
+
+    # print(el_client.get_candidates('PE25 2QH'))
+
+
 # # def rads_out_filter(datecheck: date):
 # #     hires_fil = good_hires_array()
 # #     hires_fil.filters[4] = CmcFilter(
@@ -161,48 +211,3 @@ def expresslink_live():
 #     # do_how_many()
 #     # print(el_client.get_candidates('PE25 2QH'))
 
-
-def good_hires_fils():
-    return (
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-    )
-
-
-def good_hires_array():
-    return FilterArray(filters={i: fil for i, fil in enumerate(good_hires_fils(), 1)})
-
-
-def cust_array():
-    return FilterArray(
-        filters={
-            1: FieldFilter(column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2022'),
-        }
-    )
-
-
-def pyc_test():
-    pyc2 = PyCommence.with_csr('Hire')
-    pyc2.filter_cursor(good_hires_array(), 'Hire')
-    assert pyc2.csrs['Hire'].row_count > 0
-    pyc2.set_csr('Customer')
-    pyc2.filter_cursor(cust_array(), 'Customer')
-    assert pyc2.csrs['Customer'].row_count > 0
-
-
-# pyc_test()
-
-
-def pf_play(el_client):
-    candidates = el_client.get_candidates('SG8 5HW')
-    return candidates
-
-
-if __name__ == '__main__':
-    el_client = expresslink_live()
-    res = pf_play(el_client)
-    pprint(res)
-    ...
-
-    # print(el_client.get_candidates('PE25 2QH'))
