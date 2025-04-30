@@ -105,13 +105,13 @@ async def post_confirm_booking2(
         )
 
     # update commence
-    if mapper.cmc_update_fn:
+    if mapper.cmc_update_fn2:
+        update_dict = mapper.cmc_update_fn2(record, shipment_proposed, amherst_ship_response)
+        logger.info(f'Updating CMC V2: {update_dict}')
+        pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
+    elif mapper.cmc_update_fn:
         update_dict = mapper.cmc_update_fn(shipment_proposed, amherst_ship_response)
         logger.info(f'Updating CMC: {update_dict}')
-        pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
-    elif mapper.cmc_update_fn2:
-        update_dict = mapper.cmc_update_fn2(record, shipment_proposed, amherst_ship_response)
-        logger.info(f'Updating CMC V2222222222222222: {update_dict}')
         pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
 
     else:
