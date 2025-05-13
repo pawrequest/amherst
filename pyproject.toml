@@ -12,7 +12,7 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.13"
 dependencies = [
-    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui',
+    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.0',
     'pawdf @ git+https://github.com/pawrequest/pawdf',
     'pawdantic @ git+https://github.com/pawrequest/pawdantic',
     'suppawt @ git+https://github.com/pawrequest/suppawt',
