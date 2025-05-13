@@ -24,11 +24,10 @@ dependencies = [
     'pydantic[email]',
     'fastapi',
     'docxtpl',
-    'sqlmodel',
     'jinja2',
     'pandas',
     'loguru',
-    'pyperclip',
+    'pyperclip', # clipboard management
 ]
 
 [project.scripts]
