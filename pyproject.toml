@@ -12,21 +12,21 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.13"
 dependencies = [
-    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.2',
-    'pawdf @ git+https://github.com/pawrequest/pawdf',
+    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.2', # desktop-ify fastapi app
+    'pawdf @ git+https://github.com/pawrequest/pawdf', # pdf resize and print
     'suppawt @ git+https://github.com/pawrequest/suppawt', # emailer
     'pawlogger @ git+https://github.com/pawrequest/pawlogger', # logger config
-    'shipaw @ git+https://github.com/pawrequest/shipaw@v0.1.10',
-    'pycommence @ git+https://github.com/pawrequest/pycommence',
+    'shipaw @ git+https://github.com/pawrequest/shipaw@v0.1.10', # shipper
+    'pycommence @ git+https://github.com/pawrequest/pycommence', # commence python api
     'python-multipart',
-    'matplotlib',
+    'matplotlib', # stockcheck charts
     'pydantic-settings',
     'pydantic[email]',
-    'fastapi',
-    'docxtpl',
-    'jinja2',
-    'pandas',
-    'loguru',
+    'fastapi', # frontend
+    'docxtpl', # doc templating
+    'jinja2', # web templating
+    'pandas', # excel docs
+    'loguru', # logging
     'pyperclip', # clipboard management
 ]
 
