@@ -15,7 +15,7 @@ from amherst.back.backend_search_paginate import (
 )
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_ORDER_MODELS
-from amherst.models.maps import AmherstMap, maps2
+from amherst.models.maps import AmherstMap, get_mapper
 from pycommence.pycommence_v2 import PyCommence
 
 router = APIRouter()
@@ -38,7 +38,7 @@ async def search(
     request: Request,
     pycmc: PyCommence = Depends(pycmc_f_query),
     search_request: SearchRequest = Depends(SearchRequest.from_query),
-    mapper: AmherstMap = Depends(maps2),
+    mapper: AmherstMap = Depends(get_mapper),
 ):
     search_response: SearchResponse = await pycommence_response(search_request, pycmc, mapper=mapper)
     logger.debug(str(search_response))

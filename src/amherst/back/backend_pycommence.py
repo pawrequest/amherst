@@ -14,7 +14,7 @@ from pycommence.pycommence_v2 import PyCommence
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
 # from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from amherst.models.maps import AmherstMap, CategoryName, maps2
+from amherst.models.maps import AmherstMap, CategoryName, get_mapper
 
 
 @contextlib.contextmanager
@@ -81,14 +81,14 @@ async def pycommence_search(
         if q.condition == ConditionType.EQUAL:
             record = pycmc.read_row(csrname=q.csrname, pk=q.pk_value)
     if record:
-        mapper = await maps2(csrname=q.csrname)
+        mapper = await get_mapper(csrname=q.csrname)
         return mapper.record_model.model_validate(record)
 
 
 async def pycommence_response(
     q: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_query),
-    mapper: AmherstMap = Depends(maps2),
+    mapper: AmherstMap = Depends(get_mapper),
 ) -> AMHERST_TABLE_MODELS | SearchResponse:
     if record := await pycommence_search(q, pycmc):
         records, more = [record], None

@@ -7,7 +7,7 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 
 from amherst.actions.emailer import send_label_email
-from amherst.models.maps import AmherstMap, maps2
+from amherst.models.maps import AmherstMap, get_mapper
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressBase, AddressChoice
 from shipaw.models.pf_msg import ShipmentResponse
@@ -74,7 +74,7 @@ async def post_confirm_booking2(
     shipment_proposed: AmherstShipmentOut = Depends(amherst_shipment_str_to_shipment),
     el_client: ELClient = Depends(get_el_client),
     pycmc: PyCommence=Depends(pycmc_f_query),
-    mapper:AmherstMap=Depends(maps2),
+    mapper:AmherstMap=Depends(get_mapper),
     # record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
     record_dict = pycmc.read_row(row_id=shipment_proposed.row_id)
@@ -106,7 +106,7 @@ async def post_confirm_booking2(
 
     # update commence
     if mapper.cmc_update_fn2:
-        update_dict = mapper.cmc_update_fn2(record, shipment_proposed, amherst_ship_response)
+        update_dict = await mapper.cmc_update_fn2(record, shipment_proposed, amherst_ship_response)
         logger.info(f'Updating CMC V2: {update_dict}')
         pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
     elif mapper.cmc_update_fn:

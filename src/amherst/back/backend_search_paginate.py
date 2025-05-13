@@ -17,7 +17,7 @@ from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 # from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import FilterVariant
 # from amherst.models.maps2 import CategoryName, maps2
-from amherst.models.maps import CategoryName, maps2
+from amherst.models.maps import CategoryName, get_mapper
 
 PAGE_SIZE = 50
 
@@ -134,7 +134,7 @@ class SearchRequest(BaseModel):
         return self.model_copy(update={'pagination': self.pagination.prev_page()})
 
     def mapper(self):
-        return maps2(self.csrname)
+        return get_mapper(self.csrname)
 
     @classmethod
     def from_query(
@@ -166,7 +166,7 @@ class SearchRequest(BaseModel):
         )
 
     async def filter_array(self):
-        cmap = await maps2(self.csrname)
+        cmap = await get_mapper(self.csrname)
         fil_array = getattr(cmap.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
         if self.pk_value:
             fil_array.add_filter(FieldFilter(column=cmap.aliases.NAME, condition=self.condition, value=self.pk_value))
@@ -223,6 +223,6 @@ async def record_from_json_str_form(
 ) -> AMHERST_TABLE_MODELS:
     record_dict = json.loads(record_str)
     category = record_dict['category']
-    modeltype = (await maps2(category)).record_model
+    modeltype = (await get_mapper(category)).record_model
     res = modeltype.model_validate(record_dict)
     return res
