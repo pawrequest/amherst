@@ -12,31 +12,31 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.13"
 dependencies = [
+#    'pawdantic @ git+https://github.com/pawrequest/pawdantic', # used in shipaw
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.0',
     'pawdf @ git+https://github.com/pawrequest/pawdf',
-    'pawdantic @ git+https://github.com/pawrequest/pawdantic',
-    'suppawt @ git+https://github.com/pawrequest/suppawt',
-    'pawlogger @ git+https://github.com/pawrequest/pawlogger',
+    'suppawt @ git+https://github.com/pawrequest/suppawt', # emailer
+    'pawlogger @ git+https://github.com/pawrequest/pawlogger', # logger config
     'shipaw @ git+https://github.com/pawrequest/shipaw',
     'pycommence @ git+https://github.com/pawrequest/pycommence',
-    'phonenumbers',
+#    'phonenumbers',
     'matplotlib',
-    'sqlmodel',
+#    'sqlmodel',
     'pydantic-settings',
     'pydantic[email]',
-    'pydantic-extra-types',
+#    'pydantic-extra-types',
     'fastapi',
-    'pypdf',
+#    'pypdf',
     'docxtpl',
     'sqlmodel',
-    'uvicorn[standard]',
-    'python-dotenv',
-    'httpx',
-    "pywin32",
+#    'uvicorn[standard]',
+#    'python-dotenv',
+#    'httpx',
+#    "pywin32",
     'jinja2',
     'pandas',
     'loguru',
-    'xlrd',
+#    'xlrd',
     'pyperclip',
 ]
 
