@@ -28,14 +28,14 @@ It is ludicrously over-engineered. Previous iterations used PySimpleGui, but tha
 
 ### [PyCommence](https://github.com/pawrequest/pycommence) 
 - a nascent ORM (currently just simple CRUD) to access Commence RM Designer edition via python
-- next version is creating json-schema from the db data and dynamically defininf Pydantic Models / SQL schema 
+- next version is creating json-schema from the db data and dynamically defining Pydantic Models / SQL schema 
 
 ### [Shipaw](https://github.com/pawrequest/shipaw) 
 - a shipping client to book collections and produce labels
 - currently uses Parcelforce's ExpressLink API but could easily be replaced with other suppliers
 
-### [PawDantic](https://github.com/pawrequest/pawdantic)
-- tools for working in the Pydantic ecosystem, specifically custom types like `TruncatedPrintableString(length:int)`, `ValidUkPostcode`
+~~### [PawDantic](https://github.com/pawrequest/pawdantic)~~
+~~- tools for working in the Pydantic ecosystem, specifically custom types like `TruncatedPrintableString(length:int)`, `ValidUkPostcode`~~
 
 ### [PawRequest/FlaskWebGui](https://github.com/pawrequest/FlaskWebGui) 
 - a fork of Climente's FlaskWebGui injecting a 'URL_Suffix' param to allow dynamic definiition of the initially loaded URL
@@ -44,7 +44,7 @@ It is ludicrously over-engineered. Previous iterations used PySimpleGui, but tha
 -PDF tooling, specifically for arraying the A6 labels Parcelforce provide on A4 - 2 to a page - and sending to printer
 
 ### [Suppawt](https://github.com/pawrequest/suppawt)
-- general pytyon support
+- emailer
 
 ## Dev Dependencies
 ### pytest
