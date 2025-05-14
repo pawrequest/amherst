@@ -2,9 +2,9 @@ from pathlib import Path
 
 from docxtpl import DocxTemplate
 
-from office_am import dflt
-from office_am.dflt import DFLT_PATHS
-from office_tools.doc_handler import DocHandler
+from amherst.office_am import dflt
+from amherst.office_am.dflt import DFLT_PATHS
+from amherst.office_tools.doc_handler import DocHandler
 
 
 def address_rows_limited(address: str):

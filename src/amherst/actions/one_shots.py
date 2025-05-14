@@ -77,8 +77,8 @@ def pf_play(el_client):
 
 
 if __name__ == '__main__':
-    dl_path = Path(r'C:\prdev\myfile.png')
-    ship_nuim = 'XB3851625'
+    dl_path = Path(r'C:\prdev\myfile.pdf')
+    ship_nuim = 'XG0442462'
     el_client = expresslink_live()
     # res = pf_play(el_client)
     res = el_client.get_label(ship_nuim, str(dl_path))

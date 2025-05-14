@@ -5,6 +5,7 @@ from decimal import Decimal
 from amherst.actions.invoice_number import next_inv_num
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale
 
+
 @dataclass
 class InventoryItem:
     name: str
@@ -46,7 +47,7 @@ class LineItem(Product):
 class Order:
     customer: dict
     line_items: list[LineItem] = field(default_factory=list)
-    free_items: list[FreeItem] | None = None
+    # free_items: list[FreeItem] | None = None
     tax_percent: int = 20
     shipping: Decimal = 15.00
     charity_percent: int = 0
