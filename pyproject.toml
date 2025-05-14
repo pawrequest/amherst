@@ -16,7 +16,7 @@ dependencies = [
     'pawdf @ git+https://github.com/pawrequest/pawdf', # pdf resize and print
     'suppawt @ git+https://github.com/pawrequest/suppawt', # emailer
     'pawlogger @ git+https://github.com/pawrequest/pawlogger', # logger config
-    'shipaw @ git+https://github.com/pawrequest/shipaw@v0.1.10', # shipper
+    'shipaw @ git+https://github.com/pawrequest/shipaw@v0.1.11', # shipper
     'pycommence @ git+https://github.com/pawrequest/pycommence', # commence python api
     'python-multipart',
     'matplotlib', # stockcheck charts

@@ -72,7 +72,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
     { name = "python-multipart" },
-    { name = "shipaw", git = "https://github.com/pawrequest/shipaw?rev=v0.1.10" },
+    { name = "shipaw", git = "https://github.com/pawrequest/shipaw?rev=v0.1.11" },
     { name = "sphinx", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc2", marker = "extra == 'docs'" },
@@ -1112,7 +1112,7 @@ wheels = [
 [[package]]
 name = "shipaw"
 version = "0.1.10"
-source = { git = "https://github.com/pawrequest/shipaw?rev=v0.1.10#4dbc03c7b52656d3973f751978502c7ba280277b" }
+source = { git = "https://github.com/pawrequest/shipaw?rev=v0.1.11#8d6f1541f1cdcb78814e2664e8a49f23cf1055f7" }
 dependencies = [
     { name = "combadge", extra = ["zeep"] },
     { name = "loguru" },
