@@ -70,52 +70,41 @@ async def get_alias(record) -> type(StrEnum):
     return aliases
 
 
-async def get_track_dir(aliases, shipment) -> str:
-    match shipment.direction:
-        case ShipDirection.OUTBOUND:
-            track_dir = aliases.TRACK_OUT
-        case [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-            track_dir = aliases.TRACK_IN
-        case _:
-            raise ValueError('Invalid shipment direction')
-    return track_dir
-
-
-def add_tracking_to_list(record, resp) -> str:
-    if record.tracking_numbers:
-        shipment_ids = record.tracking_numbers.split(',')
-        shipment_ids.append(resp.shipment_num)
-        shipment_ids_str = ', '.join(shipment_ids)
+async def get_track_dir_field(aliases, shipment) -> str:
+    if shipment.direction == ShipDirection.OUTBOUND:
+        return aliases.TRACK_OUT
+    elif shipment.direction in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
+        return aliases.TRACK_IN
     else:
-        shipment_ids_str = resp.shipment_num
-    return shipment_ids_str
+        raise ValueError('Invalid shipment direction')
+
+
+def split_com_sep_str_field(record, fieldname: str, default='') -> list[str]:
+    data = getattr(record, fieldname, default)
+    data = data.split(',')
+    return data
+
+
+def add_to_com_sep_str_field(data: list, value):
+    data.append(value)
+    return ','.join(data)
+
+
+async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp) -> str:
+    tracks = split_com_sep_str_field(record, 'tracking_numbers')
+    return add_to_com_sep_str_field(tracks, resp.shipment_num)
 
 
 async def base_update_dict2(
     record: AMHERST_TABLE_MODELS, shipment: AMHERST_SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
 ) -> dict[str, Any]:
-    """ Adds tracking numbers and link."""
+    """Adds tracking numbers and link."""
     aliases = await get_alias(record)
-    tracks = add_tracking_to_list(record, shipment_response)
+    tracks = await add_tracking_to_list(record, shipment_response)
     tracking_link = shipment_response.tracking_link()
-    track_dir = await get_track_dir(aliases, shipment)
-    update_package = {aliases.TRACKING_NUMBERS: tracks, track_dir: tracking_link}
+    track_direction_field = await get_track_dir_field(aliases, shipment)
+    update_package = {aliases.TRACKING_NUMBERS: tracks, track_direction_field: tracking_link}
     return update_package
-
-
-def hire_shipment_update_dict1(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
-    tracking_link = shipment_response.tracking_link()
-    match shipment.direction:
-        case ['in', 'dropoff']:
-            return {
-                HireAliases.TRACK_IN: tracking_link,
-                HireAliases.ARRANGED_IN: True,
-                HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-            }
-        case 'out':
-            return {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
-        case _:
-            raise ValueError
 
 
 async def hire_shipment_update_dict2(
@@ -124,24 +113,13 @@ async def hire_shipment_update_dict2(
     aliases = await get_alias(record)
     update_base = await base_update_dict2(record, shipment, shipment_response)
     shipdir = shipment.direction
-    match shipdir:
-        case [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-            update_base.update(
-                {aliases.ARRANGED_IN: 'True', HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}'}
-            )
-        case ShipDirection.OUTBOUND:
-            update_base.update({aliases.ARRANGED_OUT: 'True'})
-        case _:
-            raise ValueError(f'Invalid shipment direction: {shipdir}')
+    if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
+        update_base.update({aliases.ARRANGED_IN: 'True', HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}'})
+    elif shipdir == ShipDirection.OUTBOUND:
+        update_base.update({aliases.ARRANGED_OUT: 'True'})
+    else:
+        raise ValueError(f'Invalid shipment direction: {shipdir}')
     return update_base
-
-
-def sale_shipment_update_dict1(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
-    tracking_link = shipment_response.tracking_link()
-    return {
-        SaleAliases.TRACK_OUT: tracking_link,
-        SaleAliases.ARRANGED_OUT: True,
-    }
 
 
 class AmherstMap(NamedTuple):
@@ -286,3 +264,24 @@ async def get_mapper(csrname: CategoryName = Query(...)) -> AmherstMap:
 #     else:
 #         update_package.update({HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True})
 #     return update_package
+
+
+# def hire_shipment_update_dict1(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
+#     tracking_link = shipment_response.tracking_link()
+#     if shipment.direction in ['in', 'dropoff']:
+#         return {
+#             HireAliases.TRACK_IN: tracking_link,
+#             HireAliases.ARRANGED_IN: True,
+#             HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+#         }
+#     elif shipment.direction == 'out':
+#         return {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
+#     else:
+#         raise ValueError
+#
+# def sale_shipment_update_dict1(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
+#     tracking_link = shipment_response.tracking_link()
+#     return {
+#         SaleAliases.TRACK_OUT: tracking_link,
+#         SaleAliases.ARRANGED_OUT: True,
+#     }
