@@ -6,6 +6,7 @@ import pandas as pd
 from .order_ent import FreeItem, HireInvoice, HireOrder, LineItem
 from ..dflt import DFLT_CONST, DFLT_PATHS, DTYPES, FIELDS
 from office_tools.excel import df_overwrite_wb
+from suppawt.office_ps.o_tool import
 
 
 def transaction_closure(prices_wb=DFLT_PATHS.PRC_WB, prcs_out=DFLT_PATHS.PRC_OUT, jsong_file=DFLT_PATHS.PRCS_JSON,
