@@ -79,10 +79,10 @@ async def get_track_dir_field(aliases, shipment) -> str:
         raise ValueError('Invalid shipment direction')
 
 
-def split_com_sep_str_field(record, fieldname: str, default='') -> list[str]:
-    data = getattr(record, fieldname, default)
-    data = data.split(',')
-    return data
+def split_com_sep_str_field(record, fieldname: str) -> list[str]:
+    data_s: str = getattr(record, fieldname, None)
+    data_l = data_s.split(',') if data_s else []
+    return data_l
 
 
 def add_to_com_sep_str_field(data: list, value):
