@@ -127,7 +127,7 @@ class AmherstMap(NamedTuple):
     record_model: type(AmherstShipableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
-    cmc_update_fn: CMC_UPDATE_FN | None = None
+    # cmc_update_fn: CMC_UPDATE_FN | None = None
     cmc_update_fn2: CMC_UPDATE_FN2 | None = None
     connections: ConnectionMap | None = None
     py_filters: FilterMapPy | None = None
