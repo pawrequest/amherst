@@ -73,8 +73,8 @@ async def post_confirm_booking2(
     request: Request,
     shipment_proposed: AmherstShipmentOut = Depends(amherst_shipment_str_to_shipment),
     el_client: ELClient = Depends(get_el_client),
-    pycmc: PyCommence=Depends(pycmc_f_query),
-    mapper:AmherstMap=Depends(get_mapper),
+    pycmc: PyCommence = Depends(pycmc_f_query),
+    mapper: AmherstMap = Depends(get_mapper),
     # record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
     record_dict = pycmc.read_row(row_id=shipment_proposed.row_id)
