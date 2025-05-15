@@ -14,13 +14,9 @@ class AddressStrings:
 
 
 @dataclass
-class InventoryItem:
+class LineItem:
     name: str
     description: str
-
-
-@dataclass
-class LineItem(InventoryItem):
     quantity: int
     price_each: Decimal
 
@@ -68,10 +64,10 @@ class Order:
 
 @dataclass
 class Invoice:
-    inv_num: str
-    invoice_date: datetime.date
+    order: Order
     inv_add: AddressStrings
     del_add: AddressStrings
-    order: Order
+    invoice_date: datetime.date = field(default_factory=datetime.date.today)
+    inv_num: str = field(default_factory=next_inv_num)
 
 
