@@ -269,7 +269,21 @@ class AmherstShipmentOut(AmherstShipmentAddIn, Shipment):
 class AmherstShipmentAwayCollection(AmherstShipmentAddIn, ShipmentAwayCollection):
     collection_info: CollectionInfo
     shipment_type: ShipmentType = ShipmentType.COLLECTION
+    sender_address: AddressSender | None = None
+    sender_contact: ContactSender | None = None
 
+    @model_validator(mode='after')
+    def get_sender_contact(self):
+        if self.sender_contact is None:
+            self.sender_contact = ContactSender(
+                contact_name=self.collection_info.collection_contact.contact_name,
+                business_name=self.collection_info.collection_contact.business_name,
+                mobile_phone=self.collection_info.collection_contact.mobile_phone,
+                email_address=self.collection_info.collection_contact.email_address,
+            )
+        if self.sender_address is None:
+            self.sender_address = AddressSender(**self.collection_info.collection_address.model_dump())
+        return self
 
 class AmherstShipmentAwayDropoff(AmherstShipmentAddIn, ShipmentAwayDropoff):
     sender_address: AddressSender
