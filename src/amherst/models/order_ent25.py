@@ -79,9 +79,26 @@ class Order:
         return self.subtotal + self.tax
 
 
+def two_dates_period(start: datetime.date, end: datetime.date, period: int) -> int:
+    """Returns the number of periods between two dates."""
+    delta = end - start - datetime.timedelta(days=4)
+    if delta.days < 0:
+        return 0
+    return delta.days // period
+
+
 @dataclass
 class HireOrder(Order):
     duration: int = 1
+
+    @classmethod
+    def from_amherst_hire(cls, hire: AmherstHire):
+        return cls(
+            duration=two_dates_period(
+                hire.send_date,
+                hire.due_back_date,
+            )
+        )
 
     def __str__(self):
         return f'Order for {self.duration} weeks with {len(self.line_items)} lines for £{self.total}'
@@ -122,6 +139,9 @@ class HireInvoice(SaleInvoice):
         del_add, inv_add = Address1.from_hire(hire)
         dates = HireDates.from_hire(hire)
         return cls(inv_num=inv_num, dates=dates, inv_add=inv_add, del_add=del_add, order=order)
+
+    @classmethod
+    def from_amherst_hire(cls, hire: AmherstHire): ...
 
 
 @dataclass
