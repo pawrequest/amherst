@@ -13,6 +13,7 @@ from shipaw.models.pf_shipment import Shipment, ShipmentAwayCollection, Shipment
 from amherst.models.commence_adaptors import (
     AM_DATE,
     CategoryName,
+    HireAliases,
     HireStatus,
     SaleStatus,
 )
@@ -249,6 +250,7 @@ class AmherstHire(AmherstOrderBase):
 
     # hire fields
     missing_kit_str: str = Field('', alias='Missing Kit')
+    due_back_date: AM_DATE = Field(..., alias=HireAliases.DUE_BACK_DATE)
 
 
 class AmherstShipmentAddIn(BaseModel, ABC):
