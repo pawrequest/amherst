@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     # src_dir: _t.Annotated[Path, _p.BeforeValidator(set_src_dir)] = None
     # data_dir: Path = Path(__file__).parent / '_data'
     templates: Path | None = None
-    log_level: str = 'INFO'
+    log_level: str = 'DEBUG'
     sandbox: bool = False
 
     @_p.field_validator('templates', mode='after')
