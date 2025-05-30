@@ -5,6 +5,7 @@ from abc import ABC
 from datetime import date
 from os import PathLike
 
+from loguru import logger
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from shipaw.models.pf_models import AddressBase, AddressSender
@@ -266,7 +267,12 @@ class AmherstShipmentOut(AmherstShipmentAddIn, Shipment):
     shipment_type: ShipmentType = ShipmentType.DELIVERY
 
 
-class AmherstShipmentAwayCollection(AmherstShipmentAddIn, ShipmentAwayCollection):
+class AmherstShipmentAwayDropoff(AmherstShipmentAddIn, ShipmentAwayDropoff):
+    sender_address: AddressSender
+    sender_contact: ContactSender
+
+
+class AmherstShipmentAwayCollection(AmherstShipmentAwayDropoff):
     collection_info: CollectionInfo
     shipment_type: ShipmentType = ShipmentType.COLLECTION
     sender_address: AddressSender | None = None
@@ -275,6 +281,7 @@ class AmherstShipmentAwayCollection(AmherstShipmentAddIn, ShipmentAwayCollection
     @model_validator(mode='after')
     def get_sender_contact(self):
         if self.sender_contact is None:
+            logger.info('Copying collection contact to sender')
             self.sender_contact = ContactSender(
                 contact_name=self.collection_info.collection_contact.contact_name,
                 business_name=self.collection_info.collection_contact.business_name,
@@ -284,10 +291,6 @@ class AmherstShipmentAwayCollection(AmherstShipmentAddIn, ShipmentAwayCollection
         if self.sender_address is None:
             self.sender_address = AddressSender(**self.collection_info.collection_address.model_dump())
         return self
-
-class AmherstShipmentAwayDropoff(AmherstShipmentAddIn, ShipmentAwayDropoff):
-    sender_address: AddressSender
-    sender_contact: ContactSender
 
 
 class AmherstShipmentResponse(ShipmentResponse):
