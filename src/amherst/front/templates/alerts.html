@@ -4,7 +4,7 @@
     <div class="wrapper">
         <div class="alert alert-{{ type }}">
             {% for alert in alerts.alert %}
-                <strong>{{ alert.type }}</strong> {{ alert.message }} ({{ alert.code }})
+                <strong>{{ alert.type }}: </strong> {{ alert.message }} (ErrorCode={{ alert.code }})
             {% endfor %}
         </div>
     </div>
