@@ -65,6 +65,7 @@ header {
     font-size: 1.5rem;
     border-radius: .5rem;
     text-align: center;
+    /*border-color: red;*/
 }
 
 .alert__ERROR {

@@ -1,15 +1,11 @@
 <!-- templates/order_confirmed.html -->
 {#context = {response, shipment_confirmed}#}
+{% if response.alerts %}
+    {% set alerts = response.alerts %}
+    {% include "alerts.html" with context %}
+{% endif %}
 <div class="wrapper wrapper__results">
-    {% if response.alerts %}
-        <div class="result result__alerts">
-            {% for alert in response.alerts.alert %}
-                <div class="alert">
-                    <p>{{ alert.message }}</p>
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+
 
     {% if response.completed_shipment_info %}
         <div class="result result__success">
@@ -38,14 +34,14 @@
                             <button type="submit" class="btn-print-label">Open Label</button>
                         </form>
                     </div>
-{#                    <div class="label-action">#}
-{#                        <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>#}
-{#                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed. | urlencode }}"#}
-{#                              hx-target="#label-action-result"#}
-{#                              hx-swap="innerHTML">#}
-{#                            <button type="submit" class="btn-print-label">Open Label</button>#}
-{#                        </form>#}
-{#                    </div>#}
+                    {#                    <div class="label-action">#}
+                    {#                        <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>#}
+                    {#                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed. | urlencode }}"#}
+                    {#                              hx-target="#label-action-result"#}
+                    {#                              hx-swap="innerHTML">#}
+                    {#                            <button type="submit" class="btn-print-label">Open Label</button>#}
+                    {#                        </form>#}
+                    {#                    </div>#}
                     <div id="label-action-result"></div>
                 </div>
             {% endif %}

@@ -22,15 +22,7 @@
         </div>
         <div id="content_top">
             {% if alerts %}
-                {% include 'alerts.html' with context %}
-                {#                #}
-                {#                <div class="result result__alerts">#}
-                {#                    {% for alert in alerts.alert %}#}
-                {#                        <div class="alert">#}
-                {#                            <p>{{ alert.message }}</p>#}
-                {#                        </div>#}
-                {#                    {% endfor %}#}
-                {#                </div>#}
+                {% include "alerts.html" with context %}
             {% endif %}
             {% block content_top %}{% endblock %}
         </div>
