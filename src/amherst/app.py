@@ -5,6 +5,9 @@ from pathlib import Path
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
+from pydantic import ValidationError
+from shipaw.models.pf_msg import Alert, Alerts
+from shipaw.ship_types import AlertType
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from starlette.staticfiles import StaticFiles
@@ -43,8 +46,18 @@ app.ship_live = pf_config.pf_sett().ship_live
 
 @app.exception_handler(RequestValidationError)
 async def request_exception_handler(request: Request, exc: RequestValidationError):
-    logger.error(f'Validation error at {request.url}: {exc.errors()}')
-    return JSONResponse(status_code=422, content={'detail': exc.errors()})
+    msg = f'Validation error at {request.url}: {exc.errors()}'
+    errors = exc.errors()
+    msg2 = ''
+    for err in errors:
+        msg2 += f'{err.get('type')} in {err.get('loc')}: {err.get('ctx').get('reason')}. Input = {err.get('input')} '
+
+    logger.error(msg2)
+    alert = Alert(code=1, message=msg2, type=AlertType.ERROR)
+    alerts = Alerts(alert=[alert])
+    return TEMPLATES.TemplateResponse('alerts.html', {'request': request, 'alerts': alerts})
+
+    # return JSONResponse(status_code=422, content={'detail': exc.errors()})
 
 
 @app.get('/robots.txt', response_class=responses.PlainTextResponse)
