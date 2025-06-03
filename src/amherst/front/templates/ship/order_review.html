@@ -4,7 +4,6 @@
     <span class="loader"></span>
 </div>
 
-
 <div id=requested_shipment class="wrapper wrapper__requested">
     <section class="requested requested__head">
         <h3 class="requested-title"> {{ shipment_proposed.direction.name }} Shipment:</h3>
@@ -12,12 +11,9 @@
               hx-target=#content_top
               hx-swap="beforeend"
               onclick="hide_content_main()"
-{#              hx-target=#content_main#}
-{#              hx-swap="innerHTML"#}
         >
             <input type="hidden" name="shipment_str" value="{{ shipment_proposed.model_dump_json() }}">
             <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">
-{#            <button id="btn_ship" class="submit-confirm-btn" hx-on:click="this.style.display='none'">#}
                 Confirm Booking
             </button>
         </form>
@@ -118,7 +114,6 @@
 <script>
     function hide_content_main() {
         const contentMain = document.querySelector('#content_main');
-        
         contentMain.style.display = 'none';
     }
 
