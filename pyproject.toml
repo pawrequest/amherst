@@ -27,7 +27,7 @@ dependencies = [
     'pandas', # excel docs
     'loguru', # logging
     'pyperclip', # clipboard management
-    "shipaw >= 0.0.13",
+    "shipaw >= 0.1.13",
 ]
 
 [project.scripts]
@@ -61,4 +61,7 @@ line-length = 120
 extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
+
+[tool.uv.sources]
+shipaw = { git = "git+https://github.com/pawrequest/shipaw", tag = "v0.1.13"}
 
