@@ -10,7 +10,7 @@ from amherst.actions.emailer import send_label_email
 from amherst.models.maps import AmherstMap, get_mapper
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressBase, AddressChoice
-from shipaw.models.pf_msg import ShipmentResponse
+from shipaw.models.pf_msg import Alert, Alerts, ShipmentResponse
 from amherst.back.backend_shipper import (
     amherst_shipment_str_to_shipment,
     book_shipment,
@@ -25,7 +25,7 @@ from amherst.models.amherst_models import (
     AmherstShipmentOut,
     AmherstShipmentResponse,
 )
-from shipaw.ship_types import VALID_POSTCODE
+from shipaw.ship_types import AlertType, VALID_POSTCODE
 
 router = APIRouter()
 
@@ -39,7 +39,14 @@ async def ship_form_extends_p2(
     ship_live = pf_settings.ship_live
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
-    return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record, 'ship_live': ship_live})
+    ctx = {'request': request, 'record': record, 'ship_live': ship_live}
+    if 'parcelforce' not in record.delivery_method.lower():
+        msg = '"Parcelforce" not in delivery_method'
+        logger.warning(msg)
+        alert = Alert(code=1, message=msg, type=AlertType.WARNING)
+        alerts = Alerts(alert=[alert])
+        ctx.update({'alerts': alerts})
+    return TEMPLATES.TemplateResponse(template, ctx)
 
 
 @router.get('/form_content2', response_class=HTMLResponse)
@@ -55,7 +62,12 @@ async def ship_form_content2(
     logger.warning(pf_settings.model_dump())
     ship_live = pf_settings.ship_live
     template = 'ship/form_content.html'
-    return TEMPLATES.TemplateResponse(template, {'request': request, 'record': record, 'ship_live': ship_live})
+    ctx = {'request': request, 'record': record, 'ship_live': ship_live}
+    # if 'parcelforce' not in record.delivery_method.lower():
+    #     alert = Alert(code=1, message='"Parcelforce" not in delivery_method', type=AlertType.WARNING)
+    #     alerts = Alerts(alert=[alert])
+    #     ctx.update({'alerts': alerts})
+    return TEMPLATES.TemplateResponse(template, ctx)
 
 
 @router.post('/post_ship2', response_class=HTMLResponse)
