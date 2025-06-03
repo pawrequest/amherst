@@ -298,7 +298,7 @@ class AmherstShipmentResponse(ShipmentResponse):
     category: str
 
 
-AMHERST_ORDER_MODELS = AmherstHire | AmherstSale
+AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
 AMHERST_TABLE_MODELS = AMHERST_ORDER_MODELS | AmherstCustomer
 AMHERST_SHIPMENT_TYPES = AmherstShipmentOut | AmherstShipmentAwayDropoff | AmherstShipmentAwayCollection
 
