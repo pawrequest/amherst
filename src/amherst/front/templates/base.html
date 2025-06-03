@@ -7,7 +7,7 @@
     <title>{% block title %}PyCommence Helper{% endblock %}</title>
     <script src="https://unpkg.com/htmx.org@2.0.3/dist/htmx.min.js"></script>
     <script src="{{ url_for('static', path='script.js') }}" defer></script>
-{#    <script src="{{ url_for('static', path='ship.js') }}"></script>#}
+    {#    <script src="{{ url_for('static', path='ship.js') }}"></script>#}
     <link href="{{ url_for('static', path='style.css') }}" rel="stylesheet">
 
     {% block head %}{% endblock %}
@@ -16,11 +16,22 @@
 <main>
     <div class="main_div"
     >
-{#        <div id="sidebar">#}
+        {#        <div id="sidebar">#}
         <div id="sidebar">
             {% include 'sidebar.html' %}
         </div>
         <div id="content_top">
+            {% if alerts %}
+                {% include 'alerts.html' with context %}
+                {#                #}
+                {#                <div class="result result__alerts">#}
+                {#                    {% for alert in alerts.alert %}#}
+                {#                        <div class="alert">#}
+                {#                            <p>{{ alert.message }}</p>#}
+                {#                        </div>#}
+                {#                    {% endfor %}#}
+                {#                </div>#}
+            {% endif %}
             {% block content_top %}{% endblock %}
         </div>
         <div id="content_main">
