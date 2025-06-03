@@ -116,7 +116,7 @@ async def contact_f_form(
         mobile_phone=mobile_phone,
     )
     cont = cont.model_validate(cont)
-    logger.debug(f'{contact_class.__name__} Contact validated: {cont}')
+    logger.debug(f'{contact_class.__name__} validated: {cont}')
     return cont
 
 
@@ -193,7 +193,7 @@ async def shipment_f_form2(
     row_id: str = Form(...),
     category: str = Form(...),
 ) -> Shipment:
-    logger.warning('Creating Amherst Shipment Request from form')
+    logger.info('Creating Amherst Shipment Request from form')
 
     own_label = own_label.lower() == 'true'
     shipment_request = AmherstShipmentOut(
