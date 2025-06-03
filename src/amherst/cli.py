@@ -45,7 +45,7 @@ def parse_arguments():
 
 ARGS = parse_arguments()
 
-from amherst.ui_runner import run_desktop_ui
+from amherst.ui_runner import run_desktop_ui # after setting env
 
 SCORER = fuzz.partial_ratio
 
