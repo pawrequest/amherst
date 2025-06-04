@@ -108,6 +108,7 @@ class AmherstShipableBase(BaseModel, ABC):
     # parcelforce objects
     delivery_contact: Contact | None = None
     delivery_address: AddressBase | None = None
+    # todo addressBase could be AddressRecipient for outbound, and AddressSender for inbound, to allow longer strings
 
     @model_validator(mode='after')
     def get_contact(self):
