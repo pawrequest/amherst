@@ -85,7 +85,7 @@ def split_com_sep_str_field(record, fieldname: str) -> list[str]:
     return data_l
 
 
-def add_to_com_sep_str_field(data: list, value):
+def add_to_com_sep_str_field(data: list, value) -> str:
     data.append(value)
     return ','.join(data)
 
