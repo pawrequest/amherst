@@ -29,7 +29,7 @@ from amherst.models.amherst_models import (
     AmherstShipmentOut,
     AmherstShipmentResponse,
 )
-from shipaw.ship_types import AlertType, VALID_POSTCODE
+from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE
 
 router = APIRouter()
 
@@ -113,10 +113,12 @@ async def post_confirm_booking2(
         )
 
     # get label
-    if shipment_proposed.direction == 'out' or shipment_proposed.print_own_label:
+    if shipment_proposed.direction in [ShipDirection.DROPOFF, ShipDirection.OUTBOUND] or shipment_proposed.print_own_label:
         wait_label(
             shipment_num=amherst_ship_response.shipment_num, dl_path=shipment_proposed.label_file, el_client=el_client
         )
+    else:
+        logger.warning("No label Requested")
 
     # update commence
     if mapper.cmc_update_fn2:
