@@ -11,12 +11,11 @@ from shipaw.ship_types import ShipDirection
 from win32com.client import Dispatch
 
 from amherst.config import TEMPLATES
+from amherst.models.amherst_models import AMHERST_SHIPMENT_TYPES
 
 
 @dataclass
 class Email:
-    """Dataclass representing an email"""
-
     to_address: str
     subject: str
     body: str
@@ -32,7 +31,7 @@ class Email:
 
 class OutlookHandler:
     """
-    Email handler for Outlook
+    Email handler for Outlook (ripped from pawsupport where it has a superclass and siblings for Gmail etc)
     """
 
     @staticmethod
@@ -41,10 +40,8 @@ class OutlookHandler:
         Send email via Outlook
 
         :param email: Email object
+        :param html: format email from html input
         :return: None
-
-        Args:
-            html: Format email as html
         """
         try:
             pythoncom.CoInitialize()
@@ -69,7 +66,7 @@ class OutlookHandler:
             pythoncom.CoUninitialize()
 
 
-async def subject(invoice_num: str | None = None, missing=None, label=None):
+async def subject(*, invoice_num: str | None = None, missing: bool = False, label: bool = False):
     return (
         f'Amherst Radios'
         f'{f"- Invoice {invoice_num} Attached" if invoice_num else ""} '
@@ -78,16 +75,25 @@ async def subject(invoice_num: str | None = None, missing=None, label=None):
     )
 
 
-async def make_email(addresses: str, invoice: Path, label: Path, missing: str, booking_state):
+async def make_email(
+    *,
+    shipment: AMHERST_SHIPMENT_TYPES,
+    addresses: str,
+    invoice: Path | None = None,
+    label: Path | None = None,
+    missing: list | None = None,
+):
     email_body = TEMPLATES.get_template('email_body.html').render(
         {
-            'booking_state': booking_state,
+            'shipment': shipment,
             'invoice': invoice,
             'label': label,
             'missing': missing,
         }
     )
-    subject_str = await subject(invoice.stem if invoice else None, missing is not False, label is not False)
+    subject_str = await subject(
+        invoice_num=invoice.stem if invoice else None, missing=missing is not False, label=label is not False
+    )
     email_obj = Email(
         to_address=addresses,
         subject=subject_str,
@@ -101,40 +107,13 @@ label_subject = f'Amherst Radios - Shipping Label Attached'
 
 
 async def make_label_email(*, shipment: Shipment):
-
-    email_body = TEMPLATES.get_template('ship/label_email_body.html').render({'shipment': shipment})
-
     label = shipment.label_file
-    addresses = [shipment.recipient_contact.email_address]
-    addresses = '; '.join(addresses)
-    email_obj = Email(
-        to_address=addresses,
-        subject=label_subject,
-        body=email_body,
-        attachment_paths=[label],
-    )
-    return email_obj
-
-
-# async def make_label_email1(addresses: list[str], label: Path):
-#     email_body = TEMPLATES.get_template('ship/label_email_body.html').render({'label': label, 'dropoff': False})
-#     addresses = '; '.join(addresses)
-#     email_obj = Email(
-#         to_address=addresses,
-#         subject=label_subject,
-#         body=email_body,
-#         attachment_paths=[label],
-#     )
-#     return email_obj
+    addresses = shipment.recipient_contact.email_address
+    em = await make_email(shipment=shipment, addresses=addresses, label=label)
+    return em
 
 
 async def send_label_email(shipment: Shipment):
     email: Email = await make_label_email(shipment=shipment)
     OutlookHandler.create_open_email(email, html=True)
-
-#
-# async def send_label_email1(addresses: list[str], label: Path, boxes='unknown number of'):
-#     email: Email = await make_label_email(addresses, label)
-#     OutlookHandler.create_open_email(email, html=True)
-
 

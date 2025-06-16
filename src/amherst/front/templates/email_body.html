@@ -1,39 +1,44 @@
-
+{# context = invoice:path, label:path, missing:list, shipment:AMHERST_SHIPMENT_TYPES,  #}
 <div class="email-body">
     Hi,
 
     <p>Thanks for choosing to hire from Amherst.</p>
 
     {% if invoice %}
-    <p>Please find your invoice attached.</p>
+        <p>Please find invoice number {{ invoice.stem }} attached.</p>
     {% endif %}
 
     {% if missing %}
-    <p>Thanks for returning the hired equipment - I hope it worked well for your event.</p>
+        <p>Thanks for returning the hired equipment - I hope it worked well for your event.</p>
 
-    <p>Unfortunately, the return was missing the following items - can you please look/check with colleagues to see if they can be recovered - otherwise we will draw up an invoice for replacement costs.</p>
-    <p>MISSING KIT:</p>
-    <ul>
-        {% for item in missing %}
-        <li>{{ item }}</li>
-        {% endfor %}
-    </ul>
+        <p>Unfortunately, the return was missing the following items - can you please look/check with colleagues to see
+            if they can be recovered - otherwise we will draw up an invoice for replacement costs.</p>
+        <p>MISSING KIT:</p>
+        <ul>
+            {% for item in missing %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
 
-    <p>(If you have already discussed missing items with us please disregard this automatically generated email)</p>
+        <p>(If you have already discussed missing items with us please disregard this automatically generated email)</p>
     {% endif %}
 
     {% if label %}
-    <p>Please find a pre-paid Parcelforce label attached – it needs to be printed and attached to the box.</p>
-    <p>Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!</p>
+        <p>Please find a pre-paid Parcelforce label attached – it needs to be printed and attached to the box.</p>
+        <p>Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be
+            delivered back to you instead of coming home!</p>
 
-    {% if booking_state.direction == 'in' %}
-    <p>Collection is booked from {{ booking_state.shipment_request.collection_info.collection_contact_business_name }}{{ booking_state.shipment_request.collection_info.collection_address.address_line1 }} on {{ booking_state.shipment_request.shipping_date }}.</p>
-    <p>We are unable to give precise timings, however you should receive notifications by SMS and email where provided.</p>
+        {% if shipment.direction == 'in' %}
+            <p>Collection is booked from
+                {{ shipment.collection_info.collection_contact.business_name }} {{ shipment.collection_info.collection_address.address_line1 }}
+                on {{ shipment.shipping_date }}.</p>
+            <p>We are unable to give precise timings, however you should receive notifications by SMS and email where
+                provided.</p>
 
-    <p>If for any reason the courier is missed you can drop the labelled box at any UK post office.</p>
-    {% else %}
-    <p>Please drop the labelled box at any UK post office.</p>
-    {% endif %}
+            <p>If for any reason the courier is missed you can drop the labelled box at any UK post office.</p>
+        {% elif shipment.direction == 'dropoff' %}
+            <p>Please drop the labelled box at any UK post office.</p>
+        {% endif %}
     {% endif %}
 
     <p>If you have any queries please let us know.</p>
@@ -41,44 +46,3 @@
     <p>Kind Regards,<br>Amherst Enterprises</p>
 </div>
 
-{#{% block content %} Hi,#}
-{#Thanks for choosing to hire from Amherst.#}
-{#{% if invoice %}#}
-{#    Please find your invoice attached.#}
-{#{% endif %}#}
-{##}
-{#{% if missing %}#}
-{#Thanks for returning the hired equipment - I hope it worked well for your event.#}
-{##}
-{#Unfortunately, the return was missing the following items - can you please look/check with colleagues to see if they can be recovered - otherwise we will draw up an invoice for replacement costs.#}
-{#MISSING KIT:#}
-{#{% for item in missing %}#}
-{#{{ item }}#}
-{#{%  endfor %}#}
-{##}
-{#(If you have already discussed missing items with us please disregard this automatically generated email)#}
-{#{% endif %}#}
-{##}
-{#{% if label %}#}
-{#Please find a pre-paid Parcelforce label attached – it needs to be printed and attached to the box.#}
-{#Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!#}
-{##}
-{#{% if booking_state.collection_info %}#}
-{#Collection is booked for {{ booking_state.shipment.shipping_date }} from {{ booking_state.collection_info.recipient_address.address_line1 }}.#}
-{#we are unable to give precise timings, however you should receive notifications by sms and email where provided.#}
-{##}
-{#If for any reason the courier is missed you can drop the labelled box at any UK post office.#}
-{#{% else %}#}
-{#Please drop the labelled box at any UK post office.#}
-{#{% endif %}#}
-{#{% endif %}#}
-{##}
-{#If you have any queries please let us know.#}
-{##}
-{#Kind Regards,#}
-{#Amherst Enterprises#}
-{#{% endblock %}#}
-
-
-{#{% block content %}#}
-{#{% endblock %}#}
