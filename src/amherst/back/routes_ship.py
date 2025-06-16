@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Body, Depends, Query
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
@@ -150,7 +152,7 @@ async def get_addr_choices(
 @router.get('/email_label', response_class=HTMLResponse)
 async def email_label(
     request: Request,
-    filepath: str = Query(...),
+    filepath: Path = Query(...),
     addresses: list[str] = Query(...),
 ):
     logger.info(f'Emailing {filepath=} to {addresses=}')

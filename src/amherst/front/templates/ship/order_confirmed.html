@@ -34,14 +34,14 @@
                             <button type="submit" class="btn-print-label">Open Label</button>
                         </form>
                     </div>
-                    {#                    <div class="label-action">#}
-                    {#                        <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>#}
-                    {#                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed. | urlencode }}"#}
-                    {#                              hx-target="#label-action-result"#}
-                    {#                              hx-swap="innerHTML">#}
-                    {#                            <button type="submit" class="btn-print-label">Open Label</button>#}
-                    {#                        </form>#}
-                    {#                    </div>#}
+                    <div class="label-action">
+                        <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>
+                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed.recipient_contact.email_address | urlencode }}"
+                              hx-target="#label-action-result"
+                              hx-swap="innerHTML">
+                            <button type="submit" class="btn-print-label">Email Label</button>
+                        </form>
+                    </div>
                     <div id="label-action-result"></div>
                 </div>
             {% endif %}
