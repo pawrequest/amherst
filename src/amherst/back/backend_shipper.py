@@ -11,6 +11,7 @@ from pydantic import EmailStr, ValidationError
 from starlette.requests import Request
 
 from amherst.models.amherst_models import (
+    AMHERST_SHIPMENT_TYPES,
     AmherstShipmentAddIn,
     AmherstShipmentOut,
     AmherstShipmentAwayCollection,
@@ -259,16 +260,26 @@ def get_amherst_ship_type(
             return AmherstShipmentAwayCollection
         case ShipDirection.DROPOFF:
             return AmherstShipmentAwayDropoff
-        case _: raise ValueError
+        case _:
+            raise ValueError
 
 
-async def amherst_shipment_str_to_shipment(shipment_str: str = Form(...)):
+async def amherst_shipment_str_to_shipment(shipment_str: str = Form(...)) -> AMHERST_SHIPMENT_TYPES:
     # res = AmherstShipmentOut.model_validate_json(shipment_str)
     ship_json = json.loads(shipment_str)
     ship_dir = get_ship_direction(ship_json)
     ship_type = get_amherst_ship_type(ship_dir)
     res = ship_type.model_validate_json(shipment_str)
     return res
+
+#
+# async def shipment_str_to_shipment(shipment_str: str = Query(...)):
+#     # res = AmherstShipmentOut.model_validate_json(shipment_str)
+#     ship_json = json.loads(shipment_str)
+#     ship_dir = get_ship_direction(ship_json)
+#     ship_type = get_amherst_ship_type(ship_dir)
+#     res = ship_type.model_validate_json(shipment_str)
+#     return res
 
 
 # unused?

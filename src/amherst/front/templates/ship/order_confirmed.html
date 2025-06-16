@@ -35,11 +35,16 @@
                         </form>
                     </div>
                     <div class="label-action">
+
                         <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>
-                        <form hx-get="email_label/?filepath={{ shipment_confirmed.label_file | urlencode }}&addresses={{ shipment_confirmed.recipient_contact.email_address | urlencode }}"
+                        <form hx-post="email_label/"
                               hx-target="#label-action-result"
                               hx-swap="innerHTML">
+                            <input type="hidden" name="shipment_str" value="{{ shipment_confirmed.model_dump_json() }}">
+                            <input type="hidden" name="label" value="{{ shipment_confirmed.label_file }}">
                             <button type="submit" class="btn-print-label">Email Label</button>
+
+
                         </form>
                     </div>
                     <div id="label-action-result"></div>

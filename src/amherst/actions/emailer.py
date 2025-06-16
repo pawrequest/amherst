@@ -4,7 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pythoncom
+from fastapi import Form
 from loguru import logger
+from shipaw.models.pf_shipment import Shipment
+from shipaw.ship_types import ShipDirection
 from win32com.client import Dispatch
 
 from amherst.config import TEMPLATES
@@ -97,8 +100,12 @@ async def make_email(addresses: str, invoice: Path, label: Path, missing: str, b
 label_subject = f'Amherst Radios - Shipping Label Attached'
 
 
-async def make_label_email(addresses: list[str], label: Path):
-    email_body = TEMPLATES.get_template('ship/label_email_body.html').render({'label': label, 'dropoff': False})
+async def make_label_email(*, shipment: Shipment):
+
+    email_body = TEMPLATES.get_template('ship/label_email_body.html').render({'shipment': shipment})
+
+    label = shipment.label_file
+    addresses = [shipment.recipient_contact.email_address]
     addresses = '; '.join(addresses)
     email_obj = Email(
         to_address=addresses,
@@ -109,8 +116,25 @@ async def make_label_email(addresses: list[str], label: Path):
     return email_obj
 
 
-async def send_label_email(addresses: list[str], label: Path):
-    email: Email = await make_label_email(addresses, label)
+# async def make_label_email1(addresses: list[str], label: Path):
+#     email_body = TEMPLATES.get_template('ship/label_email_body.html').render({'label': label, 'dropoff': False})
+#     addresses = '; '.join(addresses)
+#     email_obj = Email(
+#         to_address=addresses,
+#         subject=label_subject,
+#         body=email_body,
+#         attachment_paths=[label],
+#     )
+#     return email_obj
+
+
+async def send_label_email(shipment: Shipment):
+    email: Email = await make_label_email(shipment=shipment)
     OutlookHandler.create_open_email(email, html=True)
+
+#
+# async def send_label_email1(addresses: list[str], label: Path, boxes='unknown number of'):
+#     email: Email = await make_label_email(addresses, label)
+#     OutlookHandler.create_open_email(email, html=True)
 
 

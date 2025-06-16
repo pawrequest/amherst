@@ -1,9 +1,10 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Body, Depends, Query
+from fastapi import APIRouter, Body, Depends, Form, Query
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from pycommence.pycommence_v2 import PyCommence
+from shipaw.models.pf_shipment import Shipment
 from shipaw.pf_config import pf_sett
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
@@ -23,6 +24,7 @@ from amherst.back.backend_shipper import (
 from amherst.back.backend_pycommence import get_one, pycmc_f_query
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import (
+    AMHERST_SHIPMENT_TYPES,
     AMHERST_TABLE_MODELS,
     AmherstShipmentOut,
     AmherstShipmentResponse,
@@ -149,12 +151,24 @@ async def get_addr_choices(
     return res
 
 
-@router.get('/email_label', response_class=HTMLResponse)
+@router.post('/email_label', response_class=HTMLResponse)
 async def email_label(
     request: Request,
-    filepath: Path = Query(...),
-    addresses: list[str] = Query(...),
+    shipment: AMHERST_SHIPMENT_TYPES = Depends(amherst_shipment_str_to_shipment),
+    label: Path = Form(...),
 ):
-    logger.info(f'Emailing {filepath=} to {addresses=}')
-    await send_label_email(addresses=addresses, label=filepath)
+    shipment._label_file = label
+    logger.warning(shipment)
+    await send_label_email(shipment)
     return "Email Created"
+
+#
+# @router.get('/email_label1', response_class=HTMLResponse)
+# async def email_label1(
+#     request: Request,
+#     filepath: Path = Query(...),
+#     addresses: list[str] = Query(...),
+# ):
+#     logger.info(f'Emailing {filepath=} to {addresses=}')
+#     await send_label_email(addresses=addresses, label=filepath)
+#     return "Email Created"

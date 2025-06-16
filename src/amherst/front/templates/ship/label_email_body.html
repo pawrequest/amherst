@@ -1,4 +1,4 @@
-{# context = {shipping_date:date, dropoff:bool=False  }
+{# context = {shipment  }
 #}
 <div class="email-body">
     Hi,
@@ -6,15 +6,19 @@
     <p>Thanks for choosing to hire from Amherst.</p>
 
     <p>Please find a pre-paid Parcelforce label attached – it needs to be printed and attached to the box.</p>
-    <p>Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered back to you instead of coming home!</p>
+    <p>Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be delivered
+        back to you instead of coming home!</p>
 
-    {% if dropoff %}
-    <p>Please drop the labelled box at any UK post office.</p>
-    {% else %}
-{#    <p>Collection is booked from {{ booking_state.shipment_request.collection_info.collection_contact_business_name }}{{ booking_state.shipment_request.collection_info.collection_address.address_line1 }} on {{ shipping_date | dt_ordinal???}}.</p>#}
-    <p>We are unable to give precise timings, however you should receive notifications by SMS and email where provided.</p>
+    {% if shipment.direction == 'dropoff' %}
+        <p>Please drop the labelled box at any UK post office.</p>
+    {% elif shipment.direction == 'in' %}
+        <p>Collection is booked from
+            {{ shipment.collection_info.collection_contact.business_name }}, {{ shipment.collection_info.collection_address.address_line1 }},
+            on {{ shipment.shipping_date | ordinal_dt}}.</p>
+        <p>We are unable to give precise timings, however you should receive notifications by SMS and email where
+            provided.</p>
 
-    <p>If for any reason the courier is missed you can drop the labelled box at any UK post office.</p>
+        <p>If for any reason the courier is missed you can drop the labelled box at any UK post office.</p>
     {% endif %}
 
     <p>If you have any queries please let us know.</p>
