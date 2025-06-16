@@ -9,7 +9,9 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 from pawlogger import get_loguru
+from pycommence.filters import FilterArray
 
+from amherst.actions.one_shots import good_hires_fils
 from amherst.models.commence_aliases import HireAliases
 from pycommence.pycmc_types import CmcDateFormat, MoreAvailable, RadioType
 from pycommence.pycommence_v2 import PyCommence
@@ -48,7 +50,12 @@ class StockChecker:
         self.data = self._prepare_data()
 
     def _prepare_data(self):
-        records = [_ for _ in self.pycommence.read_rows(csrname='Hire') if not isinstance(_, MoreAvailable)]
+        filter_array = FilterArray.from_filters(*good_hires_fils())
+        records = [
+            _
+            for _ in self.pycommence.read_rows(csrname='Hire', filter_array=filter_array)
+            if not isinstance(_, MoreAvailable)
+        ]
         df = prep_df(records)
         return df
 
@@ -172,8 +179,8 @@ if __name__ == '__main__':
     starttime = time.perf_counter()
     sc = StockChecker(
         radiotype=RadioType.HYT,
-        start_date=date(2024, 7, 10),
-        end_date=date(2024, 7, 30),
+        start_date=date(2025, 4, 1),
+        end_date=date(2025, 7, 30),
     )
     sc.run()
     endtime = time.perf_counter()

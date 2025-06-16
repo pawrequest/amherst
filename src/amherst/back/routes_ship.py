@@ -40,7 +40,7 @@ async def ship_form_extends_p2(
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
     ctx = {'request': request, 'record': record, 'ship_live': ship_live}
-    if 'parcelforce' not in record.delivery_method.lower():
+    if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
         msg = '"Parcelforce" not in delivery_method'
         logger.warning(msg)
         alert = Alert(code=1, message=msg, type=AlertType.WARNING)
@@ -56,9 +56,6 @@ async def ship_form_content2(
 ):
     logger.debug(f'Ship Form Content: {record.row_id}')
     pf_settings = pf_sett()
-    logger.warning(pf_settings.model_dump())
-    logger.warning(pf_settings.model_dump())
-    logger.warning(pf_settings.model_dump())
     logger.warning(pf_settings.model_dump())
     ship_live = pf_settings.ship_live
     template = 'ship/form_content.html'
@@ -104,7 +101,8 @@ async def post_confirm_booking2(
 
     # handle alerts
     if not amherst_ship_response.success:
-        alerts = jsonable_encoder(amherst_ship_response.alerts)
+        # alerts = jsonable_encoder(amherst_ship_response.alerts)
+        alerts = amherst_ship_response.alerts
         return TEMPLATES.TemplateResponse(
             'alerts.html',
             {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed},
