@@ -4,10 +4,9 @@
     <div class="wrapper">
         {% for alert in alerts.alert %}
             <div class="alert alert__{{ alert.type }}">
-                <strong>{{ alert.type }}: </strong> {{ alert.message }} (ErrorCode={{ alert.code }})
+                <strong>{{ alert.type }}: </strong> {{ alert.message }} {{ "ErrorCode: " + alert.code if alert.code else ""}})
             </div>
         {% endfor %}
-    <p>Refresh Page to restart</p>
     </div>
 {% endif %}
 

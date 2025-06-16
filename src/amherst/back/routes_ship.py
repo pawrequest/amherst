@@ -44,12 +44,14 @@ async def ship_form_extends_p2(
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
     ctx = {'request': request, 'record': record, 'ship_live': ship_live}
+    alerts = Alerts(alert=[Alert(message="BETA MODE - UPDATE BEFORE USING!", type=AlertType.WARNING)])
     if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
         msg = '"Parcelforce" not in delivery_method'
         logger.warning(msg)
-        alert = Alert(code=1, message=msg, type=AlertType.WARNING)
-        alerts = Alerts(alert=[alert])
-        ctx.update({'alerts': alerts})
+        alert = Alert(message=msg, type=AlertType.WARNING)
+        alerts.alert.append(alert)
+
+    ctx.update({'alerts': alerts})
     return TEMPLATES.TemplateResponse(template, ctx)
 
 

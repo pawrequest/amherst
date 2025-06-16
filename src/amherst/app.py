@@ -1,19 +1,16 @@
 import contextlib
-import os
-from pathlib import Path
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
-from pydantic import ValidationError
 from shipaw.models.pf_msg import Alert, Alerts
 from shipaw.ship_types import AlertType
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 
 
-from amherst.config import AM_SETTINGS, TEMPLATES
+from amherst.config import AM_SETTINGS, RESTART, TEMPLATES
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_ship import router as ship_router2
@@ -53,8 +50,7 @@ async def request_exception_handler(request: Request, exc: RequestValidationErro
         msg2 += f'{err.get('type')} in {err.get('loc')}: {err.get('ctx').get('reason')}. Input = {err.get('input')} '
 
     logger.error(msg2)
-    alert = Alert(code=1, message=msg2, type=AlertType.ERROR)
-    alerts = Alerts(alert=[alert])
+    alerts = Alerts(alert=[Alert(code=1, message=msg2, type=AlertType.ERROR), RESTART])
     return TEMPLATES.TemplateResponse('alerts.html', {'request': request, 'alerts': alerts})
 
     # return JSONResponse(status_code=422, content={'detail': exc.errors()})

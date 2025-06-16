@@ -8,6 +8,9 @@ from pathlib import Path
 import sys
 import typing as _t
 from urllib.parse import quote
+
+from shipaw.models.pf_msg import Alert
+from shipaw.ship_types import AlertType
 from starlette.templating import Jinja2Templates
 
 import pydantic as _p
@@ -73,3 +76,4 @@ TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
 TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
+RESTART = Alert(message="Refresh Page To Restart", type=AlertType.NOTIFICATION)
