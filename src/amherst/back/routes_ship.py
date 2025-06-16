@@ -44,7 +44,7 @@ async def ship_form_extends_p2(
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
     ctx = {'request': request, 'record': record, 'ship_live': ship_live}
-    alerts = Alerts(alert=[Alert(message="BETA MODE - UPDATE BEFORE USING!", type=AlertType.WARNING)])
+    alerts = Alerts(alert=[Alert(message="BETA MODE", type=AlertType.WARNING)])
     if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
         msg = '"Parcelforce" not in delivery_method'
         logger.warning(msg)
