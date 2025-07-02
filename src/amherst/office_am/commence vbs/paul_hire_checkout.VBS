@@ -2,33 +2,45 @@ Option Explicit
 ' define variables length and atpos for use in calculations
 DIM length, atpos
 
-
-Sub Imports
-    ' msgbox("importing")
-    dim filePath, scriptDir, scriptPath
-    scriptDir = "C:\ProgramData\Commence\Commence\8.0\vbs\"
-    For Each scriptPath in array("paul_funcs", "giles_funcs")
-        filePath = scriptDir & scriptPath & ".vbs"
-    ExecuteGlobal CreateObject("Scripting.FileSystemObject").OpenTextFile(filePath).ReadAll()
-    Next
+Sub AddMissingKitEmailContact()
+    dim logName, hireName, missing
+    missing = Form.Field("Missing Kit").Value
+    hireName = Form.Field("Name").Value
+    logName = "Missing Kit Email Sent Re: " & hireName
+    Call AddContactLog(logName, missing)
 End Sub
 
+Sub AddContactLog(title, notes)
+    dim cursor, cCustomer, custName, addSet, result
+    dim nameColIndex, dateColIndex, timeColIndex, notesColIndex, custColIndex
+    Set cCustomer = Form.Connection("To", "Customer")
+    custName = cCustomer.FieldValue("Name")
 
-Sub TestDB
-    dim csr, rowCount
-    set csr = Form.Application.Database.GetCursor(0, "Customer", 0)
-    rowCount = csr.RowCount
-    msgbox("DB ROW COUNT =" & rowCount)
+    set cursor = Form.Application.Database.GetCursor(0, "Log", 0)
+    set addSet = cursor.GetAddRowSet(1, 0)
+    nameColIndex = addSet.GetColumnIndex("Name", 0)
+    dateColIndex = addSet.GetColumnIndex("Date", 0)
+    notesColIndex = addSet.GetColumnIndex("Notes", 0)
+    timeColIndex = addSet.GetColumnIndex("Time", 0)
+    custColIndex = addSet.GetColumnIndex("Relates To Customer", 0)
+
+    addSet.ModifyRow 0, nameColIndex, title, 0
+    addSet.ModifyRow 0, dateColIndex, "today", 0
+    addSet.ModifyRow 0, timeColIndex, "now", 0
+    addSet.ModifyRow 0, custColIndex, custName, 0
+    addSet.ModifyRow 0, notesColIndex, notes, 0
+
+    result = addSet.commit(0)
 End Sub
 
 Sub Form_OnLoad
-    ' Imports()
-    ' TestDB()
+' Imports()
+'     TestDB()
 End Sub
 
 
 Sub Form_OnSave
-    
+
 ' stuff to do when the hire screen is saved
 ' this will consist of checking consistency - like querying if you have chosen "Returned all OK" and not checked "Closed" etc
 ' and importantly, using the quantities of each item entered to build up the texty "Hire Sheet Text" field that is displayed on the hire
@@ -976,6 +988,7 @@ Sub Form_OnClick(ControlId)
         'Paul's button to unpack a hire"
             UnpackHire()
 
+
         Case "CommandButton21"
             Form.Field("Actual Send Date").Value = "today"
             Form.Field("Status").Value = "Out"
@@ -988,8 +1001,6 @@ Sub Form_OnClick(ControlId)
 
     End Select
 End Sub
-
-
 
 
 '****** PR_FUNCS ***********
@@ -1067,6 +1078,7 @@ Sub RetunedWithProblemsNow(unpackedBy)
     Form.Field("Unpacked Time").Value = "now"
     MaybeReturnedToday()
 End Sub
+
 
 Sub UnpackHire()
     Dim unpackedBy, missing
@@ -1200,6 +1212,7 @@ Sub EmailMissingKit()
     ' show user the email and if confirmed send email'
     if MsgBox ("Confirm Email:" & vbNewLine & vbNewLine & objMailItem & vbNewLine & objMailItem.Body, 4) = 6 Then
         objMailItem.Send
+        AddMissingKitEmailContact()
         MsgBox("EMAILED")
     End if
 
@@ -1392,6 +1405,7 @@ Function FormatPostcode(pcode)
 End Function
 
 'Function to return string in proper case. The "Smode" parameter decides if ALL UPPER WORDS are allowed (mode "A" or Not (Mode Anything Else)
+
 Function PCase(Str, Smode)
     Const Delimiters = " -,."
     Dim PStr, I, Char
@@ -1415,6 +1429,7 @@ End Function
 
 
 ' make sure due back date is not a weekend
+
 Function NotWeekends(backdate)
 
 ' deal with Saturday (day 7 of week)
@@ -1437,6 +1452,7 @@ Function MakeInvoiceDate(datefield)
 End Function
 
 ' function to correct file paths to our invoices if they use drive D: or the network (\\) path instead of the R: shared path
+
 Function InvoicePath(Filepath)
 
 ' change incoming path to UPPER CASE

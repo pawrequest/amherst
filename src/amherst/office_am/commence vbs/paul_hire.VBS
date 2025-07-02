@@ -2,28 +2,40 @@ Option Explicit
 ' define variables length and atpos for use in calculations
 DIM length, atpos
 
-
-Sub Imports
-' msgbox("importing")
-    dim filePath, scriptDir, scriptPath
-    scriptDir = "C:\ProgramData\Commence\Commence\8.0\vbs\"
-    For Each scriptPath in array("paul_funcs", "giles_funcs")
-        filePath = scriptDir & scriptPath & ".vbs"
-        ExecuteGlobal CreateObject("Scripting.FileSystemObject").OpenTextFile(filePath).ReadAll()
-    Next
+Sub AddMissingKitEmailContact()
+    dim logName, hireName, missing
+    missing = Form.Field("Missing Kit").Value
+    hireName = Form.Field("Name").Value
+    logName = "Missing Kit Email Sent Re: " & hireName
+    Call AddContactLog(logName, missing)
 End Sub
 
+Sub AddContactLog(title, notes)
+    dim cursor, cCustomer, custName, addSet, result
+    dim nameColIndex, dateColIndex, timeColIndex, notesColIndex, custColIndex
+    Set cCustomer = Form.Connection("To", "Customer")
+    custName = cCustomer.FieldValue("Name")
 
-Sub TestDB
-    dim csr, rowCount
-    set csr = Form.Application.Database.GetCursor(0, "Customer", 0)
-    rowCount = csr.RowCount
-    msgbox("DB ROW COUNT =" & rowCount)
+    set cursor = Form.Application.Database.GetCursor(0, "Log", 0)
+    set addSet = cursor.GetAddRowSet(1, 0)
+    nameColIndex = addSet.GetColumnIndex("Name", 0)
+    dateColIndex = addSet.GetColumnIndex("Date", 0)
+    notesColIndex = addSet.GetColumnIndex("Notes", 0)
+    timeColIndex = addSet.GetColumnIndex("Time", 0)
+    custColIndex = addSet.GetColumnIndex("Relates To Customer", 0)
+
+    addSet.ModifyRow 0, nameColIndex, title, 0
+    addSet.ModifyRow 0, dateColIndex, "today", 0
+    addSet.ModifyRow 0, timeColIndex, "now", 0
+    addSet.ModifyRow 0, custColIndex, custName, 0
+    addSet.ModifyRow 0, notesColIndex, notes, 0
+
+    result = addSet.commit(0)
 End Sub
 
 Sub Form_OnLoad
 ' Imports()
-' TestDB()
+'     TestDB()
 End Sub
 
 
@@ -272,7 +284,7 @@ Sub Form_OnSave
     '    Form.MoveToField("Send Out Date")
     '    Form.Abort
     '    Exit Sub
-    'End If
+    'End If	
 
     ' the fields referring to "UHF" now refer to whatever type of walkie-talkie is being hired
     ' if the user hasn't entered any quantities into the "charger" fields, calculate the appropriate numbers of charger units needed
@@ -976,6 +988,7 @@ Sub Form_OnClick(ControlId)
         'Paul's button to unpack a hire"
             UnpackHire()
 
+
         Case "CommandButton21"
             Form.Field("Actual Send Date").Value = "today"
             Form.Field("Status").Value = "Out"
@@ -995,7 +1008,14 @@ End Sub
 Sub FixNoPackedBy()
 'Prevent saving a hire as "Booked in and packed" if the initials field for who packed it is empty
     If Form.Field("Status").Value = "Booked in and packed" And Form.Field("Packed By").Value = "" Then
-        Form.Field("Packed By").Value = InputBox("Who Packed This Hire?", "Who Packed")
+        dim packer
+        packer = InputBox("Who Packed This Hire?", "Who Packed")
+        If packer = "" Then
+            Form.Abort
+            Exit Sub
+        Else
+            Form.Field("Packed By").Value = packer
+        End If
     End If
 End Sub
 
@@ -1059,6 +1079,7 @@ Sub RetunedWithProblemsNow(unpackedBy)
     MaybeReturnedToday()
 End Sub
 
+
 Sub UnpackHire()
     Dim unpackedBy, missing
     unpackedBy = InputBox("Who unpacked this hire?", "Hire Unpacked by?")
@@ -1094,6 +1115,7 @@ End Sub
 
 Sub EmailSendOut()
 'emails customer conforming address and schedule and gear'
+    msgbox("Emailing customer about upcoming shipment")
     Dim olApp : Set olApp = CreateObject("Outlook.Application")
     Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
     Dim cCust : Set cCust = Form.Connection("To", "Customer")
@@ -1190,6 +1212,7 @@ Sub EmailMissingKit()
     ' show user the email and if confirmed send email'
     if MsgBox ("Confirm Email:" & vbNewLine & vbNewLine & objMailItem & vbNewLine & objMailItem.Body, 4) = 6 Then
         objMailItem.Send
+        AddMissingKitEmailContact()
         MsgBox("EMAILED")
     End if
 
@@ -1201,7 +1224,7 @@ Sub EmailMissingKit()
 End Sub
 
 
-' ################ GILE FUNCS
+'Giles_funcs.vbs
 
 ' New Sep 2013 - general function to remove un-needed characters from telephone number fields and try to format the numbers correctly
 ' as UK phone numbers
