@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import pawdf
 from fastapi import APIRouter, Body, Depends, Form, Query
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
@@ -154,13 +155,28 @@ async def get_addr_choices(
     return res
 
 
+@router.post('/email_label1', response_class=HTMLResponse)
+async def email_label1(
+    request: Request,
+    shipment: AMHERST_SHIPMENT_TYPES = Depends(amherst_shipment_str_to_shipment),
+    label: Path = Form(...),
+):
+    shipment._label_file = label
+    logger.warning(shipment)
+    await send_label_email(shipment)
+    return "Email Created"
+
+
 @router.post('/email_label', response_class=HTMLResponse)
 async def email_label(
     request: Request,
     shipment: AMHERST_SHIPMENT_TYPES = Depends(amherst_shipment_str_to_shipment),
     label: Path = Form(...),
 ):
-    shipment._label_file = label
+    label_ona4 = label.with_stem(label.stem + '_on_a4')
+    # label_ona4 = label.with_suffix('.on_a4.pdf')
+    pawdf.array_pdf.array_p.on_a4(label, output_file=label_ona4)
+    shipment._label_file = label_ona4
     logger.warning(shipment)
     await send_label_email(shipment)
     return "Email Created"
