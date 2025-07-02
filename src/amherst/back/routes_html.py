@@ -29,6 +29,12 @@ async def open_file(request: Request, filepath: str = Query(...)):
 
 @router.post('/print-file', response_class=HTMLResponse)
 async def print_file(request: Request, filepath: str = Query(...)):
+    os.startfile(filepath, 'print')
+    return HTMLResponse(content=f'<p>Printed {filepath}</p>')
+
+
+@router.post('/print-file-on-a4', response_class=HTMLResponse)
+async def print_file_on_a4(request: Request, filepath: str = Query(...)):
     pawdf.array_pdf.convert_many(Path(filepath), print_files=True)
     return HTMLResponse(content=f'<p>Printed {filepath}</p>')
 

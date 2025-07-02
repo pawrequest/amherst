@@ -4,6 +4,7 @@ import pawdf
 from fastapi import APIRouter, Body, Depends, Form, Query
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
+from pawdf.array_pdf.array_p import on_a4
 from pycommence.pycommence_v2 import PyCommence
 from shipaw.models.pf_shipment import Shipment
 from shipaw.pf_config import pf_sett
@@ -116,9 +117,10 @@ async def post_confirm_booking2(
 
     # get label
     if shipment_proposed.direction in [ShipDirection.DROPOFF, ShipDirection.OUTBOUND] or shipment_proposed.print_own_label:
-        wait_label(
-            shipment_num=amherst_ship_response.shipment_num, dl_path=shipment_proposed.label_file, el_client=el_client
-        )
+        unsize = shipment_proposed.label_file.parent / 'original_size' / shipment_proposed.label_file.name
+        unsize.parent.mkdir(parents=True, exist_ok=True)
+        wait_label(shipment_num=amherst_ship_response.shipment_num, dl_path=unsize, el_client=el_client)
+        on_a4(input_file=unsize, output_file=shipment_proposed.label_file)
     else:
         logger.warning("No label Requested")
 
@@ -155,8 +157,8 @@ async def get_addr_choices(
     return res
 
 
-@router.post('/email_label1', response_class=HTMLResponse)
-async def email_label1(
+@router.post('/email_label', response_class=HTMLResponse)
+async def email_label(
     request: Request,
     shipment: AMHERST_SHIPMENT_TYPES = Depends(amherst_shipment_str_to_shipment),
     label: Path = Form(...),
@@ -167,8 +169,8 @@ async def email_label1(
     return "Email Created"
 
 
-@router.post('/email_label', response_class=HTMLResponse)
-async def email_label(
+@router.post('/email_label2', response_class=HTMLResponse)
+async def email_label2(
     request: Request,
     shipment: AMHERST_SHIPMENT_TYPES = Depends(amherst_shipment_str_to_shipment),
     label: Path = Form(...),

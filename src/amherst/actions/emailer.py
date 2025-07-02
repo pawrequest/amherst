@@ -92,7 +92,7 @@ async def make_email(
         }
     )
     subject_str = await subject(
-        invoice_num=invoice.stem if invoice else None, missing=missing is not False, label=label is not False
+        invoice_num=invoice.stem if invoice else None, missing=bool(missing), label=bool(label)
     )
     email_obj = Email(
         to_address=addresses,
