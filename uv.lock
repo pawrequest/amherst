@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "amherst"
-version = "0.3.13"
+version = "0.3.16"
 source = { editable = "." }
 dependencies = [
     { name = "docxtpl" },
@@ -72,7 +72,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
     { name = "python-multipart" },
-    { name = "shipaw", git = "https://github.com/pawrequest/shipaw?tag=v0.1.13" },
+    { name = "shipaw", git = "https://github.com/pawrequest/shipaw" },
     { name = "sphinx", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc2", marker = "extra == 'docs'" },
@@ -1111,8 +1111,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.1.13"
-source = { git = "https://github.com/pawrequest/shipaw?tag=v0.1.13#9e9ac0a0bd0eb1f89f68c3c1f7c934ad6187781e" }
+version = "0.1.14"
+source = { git = "https://github.com/pawrequest/shipaw#5af44fc1875844c1e2df5965d63c032b9376138d" }
 dependencies = [
     { name = "combadge", extra = ["zeep"] },
     { name = "loguru" },
