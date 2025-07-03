@@ -5,12 +5,14 @@
 {#    {% set alerts = response.alerts %}#}
 {#    {% include "alerts.html" with context %}#}
 {#{% endif %}#}
-
+<link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
+{% block head %}
+    <script src="{{ url_for('static', path='ship.js') }}"></script>
+    <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
+{% endblock %}
 
 {% include "alerts.html" with context %}
 <div class="wrapper wrapper__results">
-
-
     {% if response.completed_shipment_info %}
         <div class="result result__success">
             <h2>Shipment Confirmed</h2>
@@ -24,29 +26,30 @@
                 <div class="label-actions">
                     <div class="label-action">
                         <form hx-post="/print-file?filepath={{ shipment_confirmed.label_file | urlencode }}"
-                              hx-target="#label-action-result"
-                              hx-swap="innerHTML">
-                            <button type="submit" class="btn-print-label">Print Label</button>
+                              hx-target="#print-btn"
+{#                              hx-target="#label-action-result"#}
+                              hx-swap="beforebegin">
+                            <button type="submit" id="print-btn" class="btn-print-label">Print Label</button>
                         </form>
                     </div>
 
                     <div class="label-action">
                         <script>console.log("OPEN FILE{{ shipment_confirmed.label_file }}")</script>
                         <form hx-get="/open-file?filepath={{ shipment_confirmed.label_file | urlencode }}"
-                              hx-target="#label-action-result"
-                              hx-swap="innerHTML">
-                            <button type="submit" class="btn-print-label">Open Label</button>
+                              hx-target="#open-btn"
+                              hx-swap="afterbegin">
+                            <button type="submit" id="open-btn" class="btn-print-label">Open Label</button>
                         </form>
                     </div>
 
                     <div class="label-action">
                         <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>
                         <form hx-post="email_label/"
-                              hx-target="#label-action-result"
-                              hx-swap="innerHTML">
+                              hx-target="#email-btn"
+                              hx-swap="afterbegin">
                             <input type="hidden" name="shipment_str" value="{{ shipment_confirmed.model_dump_json() }}">
                             <input type="hidden" name="label" value="{{ shipment_confirmed.label_file }}">
-                            <button type="submit" class="btn-print-label">Email Label</button>
+                            <button type="submit" id="email-btn" class="btn-print-label">Email Label</button>
 
 
                         </form>

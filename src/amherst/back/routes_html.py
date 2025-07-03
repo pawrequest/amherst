@@ -24,19 +24,24 @@ router = APIRouter()
 @router.get('/open-file', response_class=HTMLResponse)
 async def open_file(request: Request, filepath: str = Query(...)):
     os.startfile(filepath)
-    return HTMLResponse(content=f'<p>Opened {filepath}</p>')
+    return HTMLResponse(content=f'<span>Re</span>')
+#
+# @router.get('/open-file', response_class=HTMLResponse)
+# async def open_file(request: Request, filepath: str = Query(...)):
+#     os.startfile(filepath)
+#     return HTMLResponse(content=f'<p>Opened {filepath}</p>')
 
 
 @router.post('/print-file', response_class=HTMLResponse)
 async def print_file(request: Request, filepath: str = Query(...)):
     os.startfile(filepath, 'print')
-    return HTMLResponse(content=f'<p>Printed {filepath}</p>')
+    return HTMLResponse(content=f'<span>Re</span>')
 
 
 @router.post('/print-file-on-a4', response_class=HTMLResponse)
 async def print_file_on_a4(request: Request, filepath: str = Query(...)):
     pawdf.array_pdf.convert_many(Path(filepath), print_files=True)
-    return HTMLResponse(content=f'<p>Printed {filepath}</p>')
+    return HTMLResponse(content=f'<p>Printed</p>')
 
 
 @router.get('/search')

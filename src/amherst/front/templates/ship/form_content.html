@@ -3,20 +3,21 @@
 {#<link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">#}
 {#<script src="{{ url_for('static', path='ship.js') }}"></script>#}
 {#{% include "app_alerts.html" with context %}#}
-
-<script src="{{ url_for('static', path='ship.js') }}"></script>
-<link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
+{% block head %}
+    <script src="{{ url_for('static', path='ship.js') }}"></script>
+    <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
+{% endblock %}
 <!--suppress HtmlFormInputWithoutLabel -->
 <form id="main-form" class='main_form'
       hx-post="/ship/order_review/"
       hx-target=#content_top
       hx-swap="innerHTML"
 >
-{#    SHIP LIVE IS {{ ship_live }}#}
+    {#    SHIP LIVE IS {{ ship_live }}#}
     {% if ship_live == False %}
         <div> SHIPPER IS SANDBOX</div>
     {% elif ship_live == True %}
-        <div> SHIPPER IS LIVE </div>
+        <div> SHIPPER IS LIVE</div>
     {% endif %}
     <div class="wrapper wrapper__booking">
         <input type="hidden" name="row_id" value="{{ record.row_id }}">

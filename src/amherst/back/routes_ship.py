@@ -87,10 +87,13 @@ async def order_review(
     request: Request,
     shipment_proposed: AmherstShipmentOut = Depends(shipment_f_form2),
 ):
-    alerts = Alerts.empty().add_content("HERE IS THE ALERTS IN ORDER REVIEW")
+    # alerts = Alerts.empty().add_content("HERE IS THE ALERTS IN ORDER REVIEW")
+    alerts = Alerts.empty()
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
-    return TEMPLATES.TemplateResponse(template, {'request': request, 'shipment_proposed': shipment_proposed, 'alerts':alerts })
+    return TEMPLATES.TemplateResponse(
+        template, {'request': request, 'shipment_proposed': shipment_proposed, 'alerts': alerts}
+    )
 
 
 @router.post('/post_confirm2', response_class=HTMLResponse)
@@ -145,10 +148,14 @@ async def post_confirm_booking2(
     else:
         logger.warning('NO CMC UPDATE FUNCTION')
 
-
     return TEMPLATES.TemplateResponse(
         'ship/order_confirmed.html',
-        {'request': request, 'shipment_confirmed': shipment_proposed, 'response': amherst_ship_response, 'alerts': alerts},
+        {
+            'request': request,
+            'shipment_confirmed': shipment_proposed,
+            'response': amherst_ship_response,
+            'alerts': alerts,
+        },
     )
 
 
@@ -179,22 +186,22 @@ async def email_label(
     shipment._label_file = label
     logger.warning(shipment)
     await send_label_email(shipment)
-    return 'Email Created'
+    return '<span>Re</span>'
 
 
-@router.post('/email_label2', response_class=HTMLResponse)
-async def email_label2(
-    request: Request,
-    shipment: AMHERST_SHIPMENT_TYPES = Depends(amherst_shipment_str_to_shipment),
-    label: Path = Form(...),
-):
-    label_ona4 = label.with_stem(label.stem + '_on_a4')
-    # label_ona4 = label.with_suffix('.on_a4.pdf')
-    pawdf.array_pdf.array_p.on_a4(label, output_file=label_ona4)
-    shipment._label_file = label_ona4
-    logger.warning(shipment)
-    await send_label_email(shipment)
-    return 'Email Created'
+# @router.post('/email_label2', response_class=HTMLResponse)
+# async def email_label2(
+#     request: Request,
+#     shipment: AMHERST_SHIPMENT_TYPES = Depends(amherst_shipment_str_to_shipment),
+#     label: Path = Form(...),
+# ):
+#     label_ona4 = label.with_stem(label.stem + '_on_a4')
+#     # label_ona4 = label.with_suffix('.on_a4.pdf')
+#     pawdf.array_pdf.array_p.on_a4(label, output_file=label_ona4)
+#     shipment._label_file = label_ona4
+#     logger.warning(shipment)
+#     await send_label_email(shipment)
+#     return 'Email Created'
 
 
 #
