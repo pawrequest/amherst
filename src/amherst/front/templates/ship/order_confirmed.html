@@ -16,8 +16,8 @@
                 <p>Driver bringing Labels</p>
             {% else %}
                 <p>label downloaded to {{ shipment_confirmed.label_file }}</p>
+                <div id="label-action-result"></div>
                 <div class="label-actions">
-
                     <div class="label-action">
                         <form hx-post="/print-file?filepath={{ shipment_confirmed.label_file | urlencode }}"
                               hx-target="#label-action-result"
@@ -34,8 +34,8 @@
                             <button type="submit" class="btn-print-label">Open Label</button>
                         </form>
                     </div>
-                    <div class="label-action">
 
+                    <div class="label-action">
                         <script>console.log("Email Label{{ shipment_confirmed.label_file }}")</script>
                         <form hx-post="email_label/"
                               hx-target="#label-action-result"
@@ -47,7 +47,6 @@
 
                         </form>
                     </div>
-                    <div id="label-action-result"></div>
                 </div>
             {% endif %}
         </div>
