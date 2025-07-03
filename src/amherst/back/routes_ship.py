@@ -59,7 +59,7 @@ async def ship_form_extends_p2(
         alerts.alert.append(alert)
         request.app.ship_live = False
 
-    ctx = {'request': request, 'record': record, 'ship_live': ship_live, 'alerts': alerts}
+    ctx = {'request': request, 'record': record, 'ship_live': ship_live}
 
     return TEMPLATES.TemplateResponse(template, ctx)
 
@@ -82,15 +82,15 @@ async def ship_form_extends_p2(
 #     return TEMPLATES.TemplateResponse(template, ctx)
 
 
-@router.post('/post_ship2', response_class=HTMLResponse)
-async def post_form2(
+@router.post('/order_review', response_class=HTMLResponse)
+async def order_review(
     request: Request,
     shipment_proposed: AmherstShipmentOut = Depends(shipment_f_form2),
 ):
-    alerts = request.app.alerts
+    alerts = Alerts.empty().add_content("HERE IS THE ALERTS IN ORDER REVIEW")
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
-    return TEMPLATES.TemplateResponse(template, {'request': request, 'shipment_proposed': shipment_proposed, 'alerts': alerts})
+    return TEMPLATES.TemplateResponse(template, {'request': request, 'shipment_proposed': shipment_proposed, 'alerts':alerts })
 
 
 @router.post('/post_confirm2', response_class=HTMLResponse)
@@ -116,9 +116,9 @@ async def post_confirm_booking2(
     logger.info(f'Booked AmherstShipment Response: {amherst_ship_response}')
 
     # handle alerts
+    alerts = amherst_ship_response.alerts
     if not amherst_ship_response.success:
         # alerts = jsonable_encoder(amherst_ship_response.alerts)
-        alerts = amherst_ship_response.alerts
         return TEMPLATES.TemplateResponse(
             'alerts.html',
             {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed},
@@ -145,9 +145,10 @@ async def post_confirm_booking2(
     else:
         logger.warning('NO CMC UPDATE FUNCTION')
 
+
     return TEMPLATES.TemplateResponse(
         'ship/order_confirmed.html',
-        {'request': request, 'shipment_confirmed': shipment_proposed, 'response': amherst_ship_response},
+        {'request': request, 'shipment_confirmed': shipment_proposed, 'response': amherst_ship_response, 'alerts': alerts},
     )
 
 

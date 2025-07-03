@@ -27,7 +27,7 @@ dependencies = [
     'pandas', # excel docs
     'loguru', # logging
     'pyperclip', # clipboard management
-    "shipaw >= 0.1.14",
+    "shipaw",
 ]
 
 [project.scripts]
@@ -64,5 +64,6 @@ flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
 [tool.uv.sources]
-shipaw = { git = "git+https://github.com/pawrequest/shipaw"}
+shipaw = { path = "C:/prdev/repos/amdev/shipaw", editable = true }
+#shipaw = { git = "git+https://github.com/pawrequest/shipaw/", tag = "v0.1.15" }
 

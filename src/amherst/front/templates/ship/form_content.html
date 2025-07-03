@@ -2,11 +2,13 @@
 {#context = {record, shipment }#}
 {#<link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">#}
 {#<script src="{{ url_for('static', path='ship.js') }}"></script>#}
+{#{% include "app_alerts.html" with context %}#}
+
 <script src="{{ url_for('static', path='ship.js') }}"></script>
 <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
 <!--suppress HtmlFormInputWithoutLabel -->
 <form id="main-form" class='main_form'
-      hx-post="/ship/post_ship2/"
+      hx-post="/ship/order_review/"
       hx-target=#content_top
       hx-swap="innerHTML"
 >

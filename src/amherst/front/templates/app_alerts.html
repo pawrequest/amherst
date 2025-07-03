@@ -1,0 +1,16 @@
+<!-- templates/alerts.html -->
+{% if request.app.alerts %}
+    {#    {{ alerts }}#}
+    <div id="alert_bar">
+        <div class="wrapper">
+            {% for alert in request.app.alerts.alert %}
+                <div class="alert alert__{{ alert.type }}">
+                    <strong>{{ alert.type }}: </strong> {{ alert.message }} {{ "ErrorCode: " + str(alert.code) if alert.code else "" }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+
+

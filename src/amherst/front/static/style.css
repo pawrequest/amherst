@@ -90,6 +90,7 @@ h1 {
     grid-template-columns: max(20rem, 300px) 1fr;
     /*grid-template-rows: 15rem 1fr;*/
     grid-template-areas:
+        "sidebar alerts"
         "sidebar content-top"
         "sidebar content-main";
     height: 100vh;
@@ -121,8 +122,13 @@ h1 {
     gap: 10px;
 }
 
+#alert_bar {
+    padding-top: 1vh;
+    grid-area: alerts;
+}
+
 #content_top {
-    padding-top: 3vh;
+    padding-top: 1vh;
     grid-area: content-top;
 }
 

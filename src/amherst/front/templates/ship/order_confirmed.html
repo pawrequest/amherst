@@ -1,9 +1,13 @@
 <!-- templates/order_confirmed.html -->
 {#context = {response, shipment_confirmed}#}
-{% if response.alerts %}
-    {% set alerts = response.alerts %}
-    {% include "alerts.html" with context %}
-{% endif %}
+{##}
+{#{% if response.alerts %}#}
+{#    {% set alerts = response.alerts %}#}
+{#    {% include "alerts.html" with context %}#}
+{#{% endif %}#}
+
+
+{% include "alerts.html" with context %}
 <div class="wrapper wrapper__results">
 
 
