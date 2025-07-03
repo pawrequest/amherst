@@ -39,6 +39,7 @@ app.include_router(json_router, prefix='/api')
 app.include_router(ship_router2, prefix='/ship')
 app.include_router(html_router)
 app.ship_live = pf_config.pf_sett().ship_live
+app.alerts = Alerts.empty()
 
 
 @app.exception_handler(RequestValidationError)

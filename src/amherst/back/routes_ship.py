@@ -45,33 +45,41 @@ async def ship_form_extends_p2(
     ship_live = pf_settings.ship_live
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
-    alerts = Alerts(alert=[Alert(message="BETA MODE", type=AlertType.WARNING)])
+    # alerts = Alerts(alert=[Alert(message='BETA MODE', type=AlertType.WARNING)])
+    alerts = request.app.alerts
     if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
         msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
         logger.warning(msg)
         alert = Alert(message=msg, type=AlertType.WARNING)
         alerts.alert.append(alert)
+    if not ship_live:
+        msg = 'Ship Live is False, this is a test mode'
+        logger.warning(msg)
+        alert = Alert(message=msg, type=AlertType.WARNING)
+        alerts.alert.append(alert)
+        request.app.ship_live = False
+
     ctx = {'request': request, 'record': record, 'ship_live': ship_live, 'alerts': alerts}
 
     return TEMPLATES.TemplateResponse(template, ctx)
 
 
-@router.get('/form_content2', response_class=HTMLResponse)
-async def ship_form_content2(
-    request: Request,
-    record: AMHERST_TABLE_MODELS = Depends(get_one),
-):
-    logger.debug(f'Ship Form Content: {record.row_id}')
-    pf_settings = pf_sett()
-    logger.warning(pf_settings.model_dump())
-    ship_live = pf_settings.ship_live
-    template = 'ship/form_content.html'
-    ctx = {'request': request, 'record': record, 'ship_live': ship_live}
-    # if 'parcelforce' not in record.delivery_method.lower():
-    #     alert = Alert(code=1, message='"Parcelforce" not in delivery_method', type=AlertType.WARNING)
-    #     alerts = Alerts(alert=[alert])
-    #     ctx.update({'alerts': alerts})
-    return TEMPLATES.TemplateResponse(template, ctx)
+# @router.get('/form_content2', response_class=HTMLResponse)
+# async def ship_form_content2(
+#     request: Request,
+#     record: AMHERST_TABLE_MODELS = Depends(get_one),
+# ):
+#     logger.debug(f'Ship Form Content: {record.row_id}')
+#     pf_settings = pf_sett()
+#     logger.warning(pf_settings.model_dump())
+#     ship_live = pf_settings.ship_live
+#     template = 'ship/form_content.html'
+#     ctx = {'request': request, 'record': record, 'ship_live': ship_live}
+#     # if 'parcelforce' not in record.delivery_method.lower():
+#     #     alert = Alert(code=1, message='"Parcelforce" not in delivery_method', type=AlertType.WARNING)
+#     #     alerts = Alerts(alert=[alert])
+#     #     ctx.update({'alerts': alerts})
+#     return TEMPLATES.TemplateResponse(template, ctx)
 
 
 @router.post('/post_ship2', response_class=HTMLResponse)
@@ -79,9 +87,10 @@ async def post_form2(
     request: Request,
     shipment_proposed: AmherstShipmentOut = Depends(shipment_f_form2),
 ):
+    alerts = request.app.alerts
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
-    return TEMPLATES.TemplateResponse(template, {'request': request, 'shipment_proposed': shipment_proposed})
+    return TEMPLATES.TemplateResponse(template, {'request': request, 'shipment_proposed': shipment_proposed, 'alerts': alerts})
 
 
 @router.post('/post_confirm2', response_class=HTMLResponse)
@@ -116,13 +125,16 @@ async def post_confirm_booking2(
         )
 
     # get label
-    if shipment_proposed.direction in [ShipDirection.DROPOFF, ShipDirection.OUTBOUND] or shipment_proposed.print_own_label:
+    if (
+        shipment_proposed.direction in [ShipDirection.DROPOFF, ShipDirection.OUTBOUND]
+        or shipment_proposed.print_own_label
+    ):
         unsize = shipment_proposed.label_file.parent / 'original_size' / shipment_proposed.label_file.name
         unsize.parent.mkdir(parents=True, exist_ok=True)
         wait_label(shipment_num=amherst_ship_response.shipment_num, dl_path=unsize, el_client=el_client)
         on_a4(input_file=unsize, output_file=shipment_proposed.label_file)
     else:
-        logger.warning("No label Requested")
+        logger.warning('No label Requested')
 
     # update commence
     if mapper.cmc_update_fn2:
@@ -166,7 +178,7 @@ async def email_label(
     shipment._label_file = label
     logger.warning(shipment)
     await send_label_email(shipment)
-    return "Email Created"
+    return 'Email Created'
 
 
 @router.post('/email_label2', response_class=HTMLResponse)
@@ -181,7 +193,8 @@ async def email_label2(
     shipment._label_file = label_ona4
     logger.warning(shipment)
     await send_label_email(shipment)
-    return "Email Created"
+    return 'Email Created'
+
 
 #
 # @router.get('/email_label1', response_class=HTMLResponse)
