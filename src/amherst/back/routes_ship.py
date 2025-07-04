@@ -52,12 +52,16 @@ async def ship_form_extends_p2(
         logger.warning(msg)
         alert = Alert(message=msg, type=AlertType.WARNING)
         alerts.alert.append(alert)
-    if not ship_live:
-        msg = 'Ship Live is False, this is a test mode'
+    if ship_live:
+        msg = 'Welcome To Amherst Shipper - Real Shipments will be booked'
         logger.warning(msg)
-        alert = Alert(message=msg, type=AlertType.WARNING)
-        alerts.alert.append(alert)
-        request.app.ship_live = False
+        alert1 = Alert(message=msg, type=AlertType.NOTIFICATION)
+    else:
+        msg = 'Debug Mode - No Shipments will be booked'
+        logger.warning(msg)
+        alert1 = Alert(message=msg, type=AlertType.WARNING)
+    request.app.ship_live = ship_live
+    alerts.alert.append(alert1)
 
     ctx = {'request': request, 'record': record, 'ship_live': ship_live}
 

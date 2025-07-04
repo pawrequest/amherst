@@ -72,7 +72,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-asyncio", marker = "extra == 'dev'" },
     { name = "python-multipart" },
-    { name = "shipaw", editable = "../shipaw" },
+    { name = "shipaw", git = "https://github.com/pawrequest/shipaw/" },
     { name = "sphinx", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'" },
     { name = "sphinx-autodoc2", marker = "extra == 'docs'" },
@@ -1112,21 +1112,11 @@ wheels = [
 [[package]]
 name = "shipaw"
 version = "0.1.15"
-source = { editable = "../shipaw" }
+source = { git = "https://github.com/pawrequest/shipaw/#0bd50ca5e88b3c9969bc792f00ba86717c119894" }
 dependencies = [
     { name = "combadge", extra = ["zeep"] },
     { name = "loguru" },
     { name = "pawdantic" },
-    { name = "phonenumbers" },
-    { name = "pydantic-settings" },
-    { name = "thefuzz" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "combadge", extras = ["zeep"] },
-    { name = "loguru" },
-    { name = "pawdantic", git = "https://github.com/pawrequest/pawdantic" },
     { name = "phonenumbers" },
     { name = "pydantic-settings" },
     { name = "thefuzz" },

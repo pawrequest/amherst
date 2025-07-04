@@ -14,11 +14,11 @@
       hx-swap="innerHTML"
 >
     {#    SHIP LIVE IS {{ ship_live }}#}
-    {% if ship_live == False %}
-        <div> SHIPPER IS SANDBOX</div>
-    {% elif ship_live == True %}
-        <div> SHIPPER IS LIVE</div>
-    {% endif %}
+{#    {% if ship_live == False %}#}
+{#        <div> SHIPPER IS SANDBOX</div>#}
+{#    {% elif ship_live == True %}#}
+{#        <div> SHIPPER IS LIVE</div>#}
+{#    {% endif %}#}
     <div class="wrapper wrapper__booking">
         <input type="hidden" name="row_id" value="{{ record.row_id }}">
         <input type="hidden" name="category" value="{{ record.category }}">

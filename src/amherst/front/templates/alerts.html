@@ -1,6 +1,6 @@
 <!-- templates/alerts.html -->
+{# ctx=    {{ alerts }}#}
 {% if alerts %}
-    {#    {{ alerts }}#}
     <div class="wrapper">
         {% for alert in alerts.alert %}
             <div class="alert alert__{{ alert.type }}">

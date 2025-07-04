@@ -101,10 +101,12 @@ h1 {
 .wrapper {
     display: grid;
     border-radius: 1rem;
+    border: 1px solid black;
+    
     /*margin-block: .5rem;*/
     padding-block: .5rem;
     padding-inline: 1rem;
-    max-width: min(100% - 3rem, 1200px);
+    max-width: min(100% - 3rem, 1400px);
     margin-inline: auto;
     gap: 1rem;
     background-color: var(--clr-wrapper);
