@@ -24,3 +24,4 @@ temp_label.pdf
 /src/amherst/amherst.db_test
 /deploy/build/redist/
 /rsrc/
+uv.lock
