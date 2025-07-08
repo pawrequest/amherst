@@ -38,12 +38,10 @@
 .inputs {
     /*max-width: 100%;*/
     /*overflow: hidden; !* Prevent overflow *!*/
-
-
     display: grid;
     border: 2px solid black;
     padding: 1rem;
-    gap: .5rem;
+    /*gap: .5rem;*/
     border-radius: 1rem;
 }
 

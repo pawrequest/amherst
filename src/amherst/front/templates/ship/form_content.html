@@ -8,7 +8,8 @@
     <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
 {% endblock %}
 <!--suppress HtmlFormInputWithoutLabel -->
-<form id="main-form" class='main_form'
+{#<form id="main-form" class='main_form'#}
+<form id="main-form"
       hx-post="/ship/order_review/"
       hx-target=#content_top
       hx-swap="innerHTML"
