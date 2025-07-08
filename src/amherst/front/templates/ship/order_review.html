@@ -22,7 +22,8 @@
               hx-swap="innerHTML"
         >
             <input type="hidden" name="shipment_str" value="{{ shipment_proposed.model_dump_json() }}">
-            <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">
+{#            <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">#}
+            <button id="btn_ship" class="submit-confirm-btn" onclick=hide_main_form()>
                 Confirm Booking
             </button>
         </form>
@@ -124,6 +125,13 @@
     function hide_content_main() {
         const contentMain = document.querySelector('#content_main');
         contentMain.style.display = 'none';
+    }
+
+    function hide_main_form() {
+        const main_form = document.querySelector('#main-form');
+        main_form.style.display = 'none';
+        const shipbtn = document.querySelector('#btn_ship');
+        shipbtn.style.display = 'none';
     }
 
 
