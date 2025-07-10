@@ -108,7 +108,7 @@ label_subject = f'Amherst Radios - Shipping Label Attached'
 
 async def make_label_email(*, shipment: Shipment):
     label = shipment.label_file
-    addresses = shipment.recipient_contact.email_address
+    addresses = shipment.remote_contact.email_address
     em = await make_email(shipment=shipment, addresses=addresses, label=label)
     return em
 
