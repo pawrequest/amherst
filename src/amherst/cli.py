@@ -37,8 +37,8 @@ def parse_arguments():
     arg_parser.add_argument('--sandbox', action='store_true', help="Run in sandbox mode")
     args = arg_parser.parse_args()
     set_amherstpr_env(sandbox=args.sandbox)
-    if args.category.lower() == 'trial':
-        args.category = 'radio trial'
+    if 'trial' in args.category.name.lower():
+        args.category = CategoryName.Trial
     args.category = CategoryName(args.category.title())
     return args
 
