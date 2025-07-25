@@ -39,7 +39,7 @@ from shipaw.ship_types import (
     get_ship_direction,
 )
 
-from amherst.models.maps import get_mapper
+from amherst.models.maps import mapper_from_query_csrname
 
 
 def book_shipment(el_client, shipment: Shipment) -> pf_msg.ShipmentResponse:
@@ -286,7 +286,7 @@ async def amherst_shipment_str_to_shipment(shipment_str: str = Form(...)) -> AMH
 async def record_str_to_record(record_str: str = Form(...)) -> AmherstShipableBase:
     record_dict = json.loads(record_str)
     category = record_dict['category']
-    rectype: AmherstShipableBase = (await get_mapper(category)).record_model
+    rectype: AmherstShipableBase = (await mapper_from_query_csrname(category)).record_model
     return rectype.model_validate_json(record_str)
 
 

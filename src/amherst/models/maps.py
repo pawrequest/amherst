@@ -59,14 +59,13 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
-CMC_UPDATE_FN = Callable[[AmherstShipmentOut, AmherstShipmentResponse], dict[str, str]]
-CMC_UPDATE_FN2 = Callable[
+CmcUpdateFunc = Callable[
     [AMHERST_TABLE_MODELS, AMHERST_SHIPMENT_TYPES, AmherstShipmentResponse], Awaitable[dict[str, str]]
 ]
 
 
 async def get_alias(record) -> type(StrEnum):
-    mapper = await get_mapper(record.category)
+    mapper = await mapper_from_query_csrname(record.category)
     aliases = mapper.aliases
     return aliases
 
@@ -96,7 +95,7 @@ async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp) -> str:
     return add_to_com_sep_str_field(tracks, resp.shipment_num)
 
 
-async def base_update_dict2(
+async def make_base_update_dict(
     record: AMHERST_TABLE_MODELS, shipment: AMHERST_SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
 ) -> dict[str, Any]:
     """Adds tracking numbers and link."""
@@ -108,11 +107,11 @@ async def base_update_dict2(
     return update_package
 
 
-async def hire_shipment_update_dict2(
+async def make_hire_update_dict(
     record: AmherstHire, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse
 ):
     aliases = await get_alias(record)
-    update_base = await base_update_dict2(record, shipment, shipment_response)
+    update_base = await make_base_update_dict(record, shipment, shipment_response)
     shipdir = shipment.direction
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
         update_base.update({aliases.ARRANGED_IN: 'True', HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}'})
@@ -128,8 +127,7 @@ class AmherstMap(NamedTuple):
     record_model: type(AmherstShipableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
-    # cmc_update_fn: CMC_UPDATE_FN | None = None
-    cmc_update_fn2: CMC_UPDATE_FN2 | None = None
+    cmc_update_fn: CmcUpdateFunc | None = None
     connections: ConnectionMap | None = None
     py_filters: FilterMapPy | None = None
     cmc_filters: FilterMapCmc | None = None
@@ -155,8 +153,7 @@ class AmherstMaps:
             loose=HIRE_ARRAY_LOOSE,
             tight=HIRE_ARRAY_TIGHT,
         ),
-        # cmc_update_fn=hire_shipment_update_dict1,
-        cmc_update_fn2=hire_shipment_update_dict2,
+        cmc_update_fn=make_hire_update_dict,
     )
     sale: AmherstMap = AmherstMap(
         category=CategoryName.Sale,
@@ -177,8 +174,7 @@ class AmherstMaps:
             loose=SALE_ARRAY_LOOSE,
             tight=SALE_ARRAY_TIGHT,
         ),
-        # cmc_update_fn=sale_shipment_update_dict1,
-        cmc_update_fn2=base_update_dict2,
+        cmc_update_fn=make_base_update_dict,
     )
     customer: AmherstMap = AmherstMap(
         category=CategoryName.Customer,
@@ -200,7 +196,7 @@ class AmherstMaps:
             loose=CUSTOMER_ARRAY_LOOSE,
             tight=CUSTOMER_ARRAY_TIGHT,
         ),
-        cmc_update_fn2=base_update_dict2,
+        cmc_update_fn=make_base_update_dict,
     )
 
     trial: AmherstMap = AmherstMap(
@@ -211,78 +207,10 @@ class AmherstMaps:
             listing='customer_list.html',
             detail='customer_detail.html',
         ),
-        cmc_update_fn2=base_update_dict2,
-        # connections=ConnectionMap(
-        #     hire=HIRE_CONNECTION,
-        #     sale=SALE_CONNECTION,
-        # ),
-        # py_filters=FilterMapPy(
-        #     loose=customer_row_filter_loose,
-        #     tight=customer_row_filter_loose,
-        # ),
-        # cmc_filters=FilterMapCmc(
-        #     loose=CUSTOMER_ARRAY_LOOSE,
-        #     tight=CUSTOMER_ARRAY_TIGHT,
-        # ),
+        cmc_update_fn=make_base_update_dict,
     )
 
 
-async def get_mapper(csrname: CategoryName = Query(...)) -> AmherstMap:
+async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> AmherstMap:
     return getattr(AmherstMaps, csrname.lower())
 
-
-# def update_shipment(record: AmherstShipableBase, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
-#     tracking_link = shipment_response.tracking_link()
-#     update_package = {
-#         HireAliases.TRACKING_NUMBERS: f'{record.tracking_numbers}, {shipment_response.shipment_num}',
-#     }
-#     if shipment.direction in ['in', 'dropoff']:
-#         update_package.update(
-#             {
-#                 HireAliases.TRACK_IN: tracking_link,
-#                 HireAliases.ARRANGED_IN: True,
-#                 HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-#             }
-#         )
-#     else:
-#         update_package.update({HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True})
-#     return update_package
-
-
-# def update_hire_shipment2(hire: AmherstHire, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
-#     tracking_link = shipment_response.tracking_link()
-#     update_package = {
-#         HireAliases.TRACKING_NUMBERS: f'{hire.tracking_numbers}, {shipment_response.shipment_num}',
-#     }
-#     if shipment.direction in ['in', 'dropoff']:
-#         update_package.update(
-#             {
-#                 HireAliases.TRACK_IN: tracking_link,
-#                 HireAliases.ARRANGED_IN: True,
-#                 HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-#             }
-#         )
-#     else:
-#         update_package.update({HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True})
-#     return update_package
-
-
-# def hire_shipment_update_dict1(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
-#     tracking_link = shipment_response.tracking_link()
-#     if shipment.direction in ['in', 'dropoff']:
-#         return {
-#             HireAliases.TRACK_IN: tracking_link,
-#             HireAliases.ARRANGED_IN: True,
-#             HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-#         }
-#     elif shipment.direction == 'out':
-#         return {HireAliases.TRACK_OUT: tracking_link, HireAliases.ARRANGED_OUT: True}
-#     else:
-#         raise ValueError
-#
-# def sale_shipment_update_dict1(shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse):
-#     tracking_link = shipment_response.tracking_link()
-#     return {
-#         SaleAliases.TRACK_OUT: tracking_link,
-#         SaleAliases.ARRANGED_OUT: True,
-#     }

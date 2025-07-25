@@ -18,7 +18,6 @@ def customer_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> 
     for row in rowgen:
         if contacted := row.get(CustomerAliases.DATE_LAST_CONTACTED):
             datey = get_cmc_date(contacted)
-            # logger.debug(f'Contacted: {datey}')
             if datey < CUTOFF_DATE:
                 continue
             yield row
