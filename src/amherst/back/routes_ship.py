@@ -47,11 +47,14 @@ async def ship_form_extends_p2(
     template = 'ship/form_shape.html'
     # alerts = Alerts(alert=[Alert(message='BETA MODE', type=AlertType.WARNING)])
     alerts = request.app.alerts
+
     if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
         msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
         logger.warning(msg)
         alert = Alert(message=msg, type=AlertType.WARNING)
-        alerts.alert.append(alert)
+        if alert not in alerts.alert:
+            alerts.alert.append(alert)
+
     if ship_live:
         msg = 'Welcome To Amherst Shipper - Real Shipments will be booked'
         logger.warning(msg)
@@ -61,7 +64,9 @@ async def ship_form_extends_p2(
         logger.warning(msg)
         alert1 = Alert(message=msg, type=AlertType.WARNING)
     request.app.ship_live = ship_live
-    alerts.alert.append(alert1)
+
+    if alert1 not in alerts.alert:
+        alerts.alert.append(alert1)
 
     ctx = {'request': request, 'record': record, 'ship_live': ship_live}
 
