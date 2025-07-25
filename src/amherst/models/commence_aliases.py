@@ -177,30 +177,37 @@ class TrialAliases(StrEnum):
     STATUS = 'Status'
 
 
-def hire_alias(field_name: str) -> str:
+def get_alias(alias_cls: StrEnum, field_name: str) -> str:
     field_name = field_name.upper()
-    if hasattr(HireAliases, field_name):
-        return getattr(HireAliases, field_name).value
+    if hasattr(alias_cls, field_name):
+        return getattr(alias_cls, field_name).value
     return field_name
 
-
-def customer_alias(field_name: str) -> str:
-    field_name = field_name.upper()
-    if hasattr(CustomerAliases, field_name):
-        return getattr(CustomerAliases, field_name).value
-    return field_name
-
-
-def sale_alias(field_name: str) -> str:
-    # return get_alias('Sale', field_name)
-    field_name = field_name.upper()
-    if hasattr(SaleAliases, field_name):
-        return getattr(SaleAliases, field_name).value
-    return field_name
-
-
-def trial_alias(field_name: str) -> str:
-    field_name = field_name.upper()
-    if hasattr(TrialAliases, field_name):
-        return getattr(TrialAliases, field_name).value
-    return field_name
+#
+# def hire_alias(field_name: str) -> str:
+#     field_name = field_name.upper()
+#     if hasattr(HireAliases, field_name):
+#         return getattr(HireAliases, field_name).value
+#     return field_name
+#
+#
+# def customer_alias(field_name: str) -> str:
+#     field_name = field_name.upper()
+#     if hasattr(CustomerAliases, field_name):
+#         return getattr(CustomerAliases, field_name).value
+#     return field_name
+#
+#
+# def sale_alias(field_name: str) -> str:
+#     # return get_alias('Sale', field_name)
+#     field_name = field_name.upper()
+#     if hasattr(SaleAliases, field_name):
+#         return getattr(SaleAliases, field_name).value
+#     return field_name
+#
+#
+# def trial_alias(field_name: str) -> str:
+#     field_name = field_name.upper()
+#     if hasattr(TrialAliases, field_name):
+#         return getattr(TrialAliases, field_name).value
+#     return field_name
