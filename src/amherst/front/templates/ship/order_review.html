@@ -9,10 +9,10 @@
     {% include "alerts.html" with context %}
 {% endif %}
 
-
-<div class="loading-spinner">
-    <span class="loader"></span>
-</div>
+{##}
+{#<div class="loading-spinner" id="loading-spinner">#}
+{#    <span class="loader"></span>#}
+{#</div>#}
 
 <div id=requested_shipment class="wrapper wrapper__requested">
     <section class="requested requested__head">
@@ -132,7 +132,25 @@
         main_form.style.display = 'none';
         const shipbtn = document.querySelector('#btn_ship');
         shipbtn.style.display = 'none';
+
+        // Create and insert spinner
+        const spinner = document.createElement('div');
+        const contentMain = document.querySelector('#content_main');
+        spinner.className = 'loading-spinner';
+        spinner.innerHTML = '<span class="loader"></span>';
+        contentMain.appendChild(spinner);
+        spinner.style.display = 'flex';
+
     }
+
+        {#const spinner = document.querySelector('.loading-spinner');#}
+        {#if (spinner) spinner.style.display = 'flex';#}
+
+        {#const contentMain = document.querySelector('#content_main');#}
+        {#if (contentMain) {#}
+        {#    contentMain.innerHTML = '<div id="booking-notice" class="booking-notice">Booking shipment...</div>';#}
+
+
 
 
     {#function hide_div() {#}
