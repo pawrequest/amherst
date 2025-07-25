@@ -4,10 +4,8 @@ echo Installing Git and UV
 REM Set paths
 
 set UV_DIR=%USERPROFILE%\.local\bin
-set GIT_EXE=%GIT_DIR%\cmd\git.exe
 
-
-REM install uv if not already installed
+REM maybe install uv
 if exist "%UV_DIR%\uv.exe" (
     echo UV already installed
 ) else (
@@ -16,6 +14,7 @@ if exist "%UV_DIR%\uv.exe" (
     echo UV installed, adding to path...
 )
 
+REM maybe install git
 git --version >nul 2>&1
 if %errorlevel% equ 0 (
     echo Git is installed.
@@ -23,10 +22,3 @@ if %errorlevel% equ 0 (
     echo Installing Git.
     call "R:\paul_r\dist\Git-2.49.0-64-bit.exe"
 )
-
-REM TO-DO: install git (if not already installed)
-rem if exist %GIT_EXE% (
-rem     echo Git already installed
-rem ) else (
-rem     echo Installing Git...
-rem )
