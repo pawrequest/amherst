@@ -36,23 +36,23 @@ shipper = "amherst.cli:main_cli"
 invoice-number = "amherst.actions.invoice_number:main"
 print-file = "amherst.actions.file_printer:main"
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest_asyncio",
-    'beautifulsoup4',
-    'coverage',
-]
+#[project.optional-dependencies]
+#dev = [
+#    "pytest",
+#    "pytest_asyncio",
+#    'beautifulsoup4',
+#    'coverage',
+#]
 
-docs = [
-    "sphinx",
-    "sphinx-autodoc-typehints",
-    "sphinx-autodoc2",
-    "sphinx-rtd-theme",
-    "sphinx-readme",
-    "myst-parser",
-    "sphinx_rtd_dark_mode",
-]
+#docs = [
+#    "sphinx",
+#    "sphinx-autodoc-typehints",
+#    "sphinx-autodoc2",
+#    "sphinx-rtd-theme",
+#    "sphinx-readme",
+#    "myst-parser",
+#    "sphinx_rtd_dark_mode",
+#]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -66,4 +66,9 @@ format.quote-style = "single"
 [tool.uv.sources]
 #shipaw = { path = "C:/prdev/repos/amdev/shipaw", editable = true }
 shipaw = { git = "git+https://github.com/pawrequest/shipaw/" }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
 
