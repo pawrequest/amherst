@@ -10,4 +10,7 @@ call %thisDir%/install_git_uv.bat
 call %thisDir%/clone_or_pull_amherstpr_repo.bat
 call %thisDir%/install_amherst_envs.bat
 
+pushd %AMHERSTPR%
+uv sync --no-dev
+
 pause
