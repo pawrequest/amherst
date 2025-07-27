@@ -46,10 +46,6 @@ from amherst.models.maps import mapper_from_query_csrname
 def book_shipment(el_client, shipment: Shipment) -> pf_msg.ShipmentResponse:
     resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment)
     logger.debug(f'Booking response: {resp.status=}, {resp.success=}')
-    if resp.alerts:
-        adict = get_alert_dict(resp)
-        logger.warning(f'Alerts: {adict}')
-
     return resp
 
 
