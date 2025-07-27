@@ -16,7 +16,7 @@ from amherst.back.backend_search_paginate import (
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_ORDER_MODELS
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence import PyCommence
 
 router = APIRouter()
 
