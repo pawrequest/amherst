@@ -18,9 +18,8 @@ from amherst.models.commence_adaptors import (
     CategoryName,
     # HireAliases,
     HireStatus,
-    SaleStatus,
+    SaleStatus, HireAliases,
 )
-from amherst.models.commence_aliases import HireAliases
 
 
 # TableLit = Literal['Hire', 'Sale', 'Customer']

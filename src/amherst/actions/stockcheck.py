@@ -14,7 +14,7 @@ from pycommence.pycmc_types import CmcDateFormat, MoreAvailable
 from pycommence.pycommence import PyCommence
 
 from amherst.actions.one_shots import good_hires_fils
-from amherst.models.commence_aliases import HireAliases
+from amherst.models.commence_adaptors import HireAliases
 from amherst.models.filters import HIRE_ARRAY_LOOSE
 
 logger = get_loguru(profile='local')

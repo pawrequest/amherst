@@ -5,8 +5,7 @@ from amherst.set_env import set_amherstpr_env
 
 set_amherstpr_env(sandbox=False)
 
-from amherst.models.commence_adaptors import HireStatus
-from amherst.models.commence_aliases import CustomerAliases, HireAliases
+from amherst.models.commence_adaptors import HireStatus, CustomerAliases, HireAliases
 from pycommence.filters import ConditionType, FieldFilter, FilterArray
 from pycommence.pycommence import PyCommence
 

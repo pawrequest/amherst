@@ -18,8 +18,7 @@ from amherst.models.amherst_models import (
     AmherstShipableBase,
     AmherstTrial,
 )
-from amherst.models.commence_adaptors import CategoryName
-from amherst.models.commence_aliases import CustomerAliases, HireAliases, SaleAliases, TrialAliases
+from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
     CUSTOMER_ARRAY_LOOSE,

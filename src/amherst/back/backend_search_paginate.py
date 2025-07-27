@@ -10,7 +10,7 @@ from loguru import logger
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
-from amherst.models.commence_aliases import CustomerAliases
+from amherst.models.commence_adaptors import CustomerAliases
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
