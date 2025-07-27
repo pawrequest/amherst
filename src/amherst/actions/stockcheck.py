@@ -4,18 +4,17 @@ import functools
 import time
 from collections.abc import Generator
 from datetime import date, timedelta
+from enum import StrEnum
 
-import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import pandas as pd
 from pawlogger import get_loguru
 from pycommence.filters import FilterArray
+from pycommence.pycmc_types import CmcDateFormat, MoreAvailable
+from pycommence.pycommence import PyCommence
 
 from amherst.actions.one_shots import good_hires_fils
 from amherst.models.commence_aliases import HireAliases
-from pycommence.pycmc_types import CmcDateFormat, MoreAvailable, RadioType
-from pycommence.pycommence_v2 import PyCommence
-
 from amherst.models.filters import HIRE_ARRAY_LOOSE
 
 logger = get_loguru(profile='local')
@@ -43,6 +42,17 @@ def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
     for x in range((end_date - start_date).days + 1):
         thisdate = start_date + timedelta(days=x)
         yield thisdate
+
+
+class RadioType(StrEnum):
+    HYT = 'HYT'
+    HYTERA = 'HYTERA'
+    MOTOROLA = 'MOTOROLA'
+    ICOM = 'ICOM'
+    KENWOOD = 'KENWOOD'
+    UNIDEN = 'UNIDEN'
+    OTHER = 'OTHER'
+
 
 
 class StockChecker:
