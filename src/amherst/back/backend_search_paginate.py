@@ -15,7 +15,7 @@ from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from amherst.models.commence_adaptors import CursorName, CustomerAliases
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import FilterVariant
-from amherst.models.maps import CategoryName, mapper_from_query_csrname
+from amherst.models.maps import CategoryName, mapper_from_query_csrname, AmherstMap
 
 PAGE_SIZE = 50
 
@@ -155,13 +155,13 @@ class SearchRequest(BaseModel):
         )
 
     async def filter_array(self):
-        cmap = await mapper_from_query_csrname(self.csrname)
-        fil_array = getattr(cmap.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
+        mapper: AmherstMap = await mapper_from_query_csrname(self.csrname)
+        fil_array = getattr(mapper.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
         if self.pk_value:
-            fil_array.add_filter(FieldFilter(column=cmap.aliases.NAME, condition=self.condition, value=self.pk_value))
+            fil_array.add_filter(FieldFilter(column=mapper.aliases.NAME, condition=self.condition, value=self.pk_value))
 
         if self.customer_name:
-            if cust_con := cmap.connections.customer:
+            if cust_con := mapper.connections.customer:
                 customer_filter = FieldFilter(
                     column=CustomerAliases.CUSTOMER_NAME,
                     condition=self.condition,
