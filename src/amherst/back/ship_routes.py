@@ -25,7 +25,7 @@ router = APIRouter()
 async def ship_form(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(pycommence_get_one),
-):
+) -> HTMLResponse:
     pf_settings = pf_sett()
     template = 'ship/form_shape.html'
     alerts: Alerts = request.app.alerts
@@ -52,7 +52,7 @@ async def order_review(
     request: Request,
     shipment_proposed: Shipment = Depends(shipment_f_form),
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
-):
+) -> HTMLResponse:
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
     return TEMPLATES.TemplateResponse(
@@ -66,7 +66,7 @@ async def order_confirm(
     shipment_proposed: Shipment = Depends(shipment_str_to_shipment),
     el_client: ELClient = Depends(get_el_client),
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
-):
+) -> HTMLResponse:
     logger.info('Booking Shipment')
     shipment_response, alerts = await try_book_shipment(el_client, shipment_proposed)
     if not shipment_response or not shipment_response.success:

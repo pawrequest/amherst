@@ -1,8 +1,9 @@
 import os
 from datetime import date
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Body
 from loguru import logger
+from pycommence.pycmc_types import RowInfo
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from pycommence import PyCommence, pycommence_context
@@ -64,7 +65,6 @@ async def orders(
                     cmc_filter_i=q.cmc_filter_i,
                     pagination=q.pagination,
                     customer_name=customer,
-                    customer_id=q.customer_id,
                 )
             )
     records: list[AMHERST_ORDER_MODELS] = []

@@ -37,12 +37,10 @@ class SearchRequest(BaseModel):
     csrnames: list[CursorName] | None = None
     row_id: str | None = None
     pk_value: str | None = None
-    customer_id: str | None = None
     customer_name: str | None = None
     customer_names: list[str] | None = Field(default_factory=list)
     condition: ConditionType = ConditionType.CONTAIN
     max_rtn: int | None = None
-    search_dict: dict = Field(default_factory=dict)
     pagination: Pagination | None = Pagination()
     cmc_filter_i: int = 0
     py_filter_i: int = 0
@@ -61,7 +59,6 @@ class SearchRequest(BaseModel):
             f'{' | pk=:' + self.pk_value if self.pk_value else ''}'
             f'{' | row_id=:' + self.row_id if self.row_id else ''}'
             f'{' | customer_name="' + self.customer_name + '"' if self.customer_name else ''}'
-            f'{' | customer_id="' + self.customer_id + '"' if self.customer_id else ''}'
             f'{' | cmc_filter_i=' + str(self.cmc_filter_i) if self.cmc_filter_i else ''}'
             f'{' | py_filter_i=' + str(self.py_filter_i) if self.py_filter_i else ''}'
             f'{' | ' + str(self.pagination) if self.pagination else ''}'
@@ -137,7 +134,6 @@ class SearchRequest(BaseModel):
         max_rtn: int = Query(None),
         row_id: str = Query(None),
         customer_name: str = Query(None),
-        customer_id: str = Query(None),
         py_filter_i: int = Query(0),
         cmc_filter_i: int = Query(0),
     ):
@@ -150,7 +146,6 @@ class SearchRequest(BaseModel):
             max_rtn=max_rtn,
             row_id=row_id,
             customer_name=customer_name,
-            customer_id=customer_id,
             cmc_filter_i=cmc_filter_i,
             py_filter_i=py_filter_i,
         )

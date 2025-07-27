@@ -1,14 +1,31 @@
 import flaskwebgui
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from loguru import logger
+from pycommence import PyCommence
 from starlette.requests import Request
 
 from amherst.back.backend_search_paginate import SearchResponse
-from amherst.back.backend_pycommence import pycommence_search
+from amherst.back.backend_pycommence import pycmc_f_query, pycommence_search
 from amherst.config import TEMPLATES
+from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
 router = APIRouter()
 
+@router.get('/fetch', response_model=AMHERST_TABLE_MODELS)
+async def fetch(
+    request: Request,
+    pycmc: PyCommence = Depends(pycmc_f_query),
+    csrname: str = Query(..., description='Cursor name to fetch record from'),
+    row_id: str = Query(None, description='Row ID of the record to fetch'),
+    pk_value: str = Query(None, description='Primary key value of the record to fetch'),
+) -> AMHERST_TABLE_MODELS:
+    """Fetch a record from the specified cursor name."""
+    if not csrname or not any([row_id, pk_value]):
+        raise ValueError('CsrName and Either row_id or pk_value must be provided')
+    if not row_id:
+        row_id = pycmc.csr(csrname).pk_to_id(pk_value)
+    record = pycmc.read_row(csrname=csrname, row_id=row_id)
+    return record
 
 @router.get('/close_app/', response_model=None, response_model_exclude_none=True)
 async def close_app():
