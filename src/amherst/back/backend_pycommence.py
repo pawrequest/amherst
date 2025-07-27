@@ -74,15 +74,14 @@ async def pycommence_search(
     q: SearchRequest,
     pycmc: PyCommence,
 ) -> AMHERST_TABLE_MODELS | None:
-    record = None
-    if q.row_id:
-        record = pycmc.read_row(csrname=q.csrname, row_id=q.row_id)
-    elif q.pk_value:
-        if q.condition == ConditionType.EQUAL:
-            record = pycmc.read_row(csrname=q.csrname, pk=q.pk_value)
-    if record:
-        mapper = await mapper_from_query_csrname(csrname=q.csrname)
-        return mapper.record_model.model_validate(record)
+    row_id = q.row_id if q.row_id else pycmc.csr(q.csrname).pk_to_id(q.pk_value) if q.pk_value else None
+    if not row_id:
+        logger.warning('No row_id or pk_value provided for search')
+        return None
+    record = pycmc.read_row(csrname=q.csrname, row_id=row_id)
+    record['row_id'] = row_id
+    mapper = await mapper_from_query_csrname(csrname=q.csrname)
+    return mapper.record_model.model_validate(record)
 
 
 async def pycommence_response(
