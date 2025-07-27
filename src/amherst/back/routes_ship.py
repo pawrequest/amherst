@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, Form, Query
 from fastapi.encoders import jsonable_encoder
 from loguru import logger
 from pawdf.array_pdf.array_p import on_a4
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence import PyCommence
 from shipaw.models.pf_shipment import Shipment
 from shipaw.pf_config import pf_sett
 from starlette.requests import Request
