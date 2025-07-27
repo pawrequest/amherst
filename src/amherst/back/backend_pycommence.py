@@ -73,6 +73,15 @@ async def pycommence_fetch(
         return mapper.record_model.model_validate(row)
 
 
+async def pycommence_fetch_f_info(
+    row_info: RowInfo,
+) -> AMHERST_TABLE_MODELS | None:
+    with pycommence_context(csrname=row_info.category) as pycmc:
+        row = pycmc.read_row2(csrname=row_info.category, row_id=row_info.id).data
+    mapper = await mapper_from_query_csrname(csrname=CategoryName(row_info.category))
+    return mapper.record_model.model_validate(row)
+
+
 async def pycommence_search(
     q: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_query),
