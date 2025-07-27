@@ -79,7 +79,7 @@
 
 /**
  * Populates form fields with shipment data.
- // * @param {ShipmentSnake} shipment - The shipment data.
+ // * @param {ShipmentSnake} shipment - The shipment data in snake_case.
  */
 function populateShipmentSnake(shipment) {
     console.log('Populating form from shipment');
