@@ -10,8 +10,8 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from shipaw.expresslink_client import ELClient
 from shipaw.models.pf_models import AddressBase, AddressChoice
-from shipaw.models.pf_msg import Alert, ShipmentResponse
-from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE
+from shipaw.models.pf_msg import Alert, ShipmentResponse, Alerts
+from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE, ExpressLinkError
 
 from amherst.actions.emailer import send_label_email
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
@@ -42,24 +42,19 @@ async def ship_form(
     pf_settings = pf_sett()
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
-    alerts = request.app.alerts
+    alerts: Alerts = request.app.alerts
 
     if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
         msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
         logger.warning(msg)
-        alert = Alert(message=msg, type=AlertType.WARNING)
-        if alert not in alerts.alert:
-            alerts.alert.append(alert)
+        alerts += Alert(message=msg, type=AlertType.WARNING)
 
     if pf_settings.ship_live:
         msg = 'Welcome To Amherst Shipper - Real Shipments will be booked'
     else:
         msg = 'Debug Mode - No Shipments will be booked'
     logger.warning(msg)
-    alert1 = Alert(message=msg, type=AlertType.NOTIFICATION)
-
-    if alert1 not in alerts.alert:
-        alerts.alert.append(alert1)
+    alerts += Alert(message=msg, type=AlertType.NOTIFICATION)
 
     ctx = {'request': request, 'record': record}
 
@@ -87,19 +82,46 @@ async def order_confirm(
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
 ):
     logger.info('Booking Shipment')
-    shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed)
-    logger.info(f'Booked Shipment Response: {shipment_response}')
-
-    # handle alerts
-    alerts = shipment_response.alerts
-    if not shipment_response.success:
-        # alerts = jsonable_encoder(amherst_ship_response.alerts)
+    shipment_response, alerts = await try_book_shipment(el_client, shipment_proposed)
+    if not shipment_response or not shipment_response.success:
+        logger.error(f'Booking failed')
         return TEMPLATES.TemplateResponse(
             'alerts.html',
             {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed, 'record': record},
         )
 
     # get label
+    await maybe_get_label(el_client, shipment_proposed, shipment_response)
+
+    # update commence
+    await try_update_cmc(record, shipment_proposed, shipment_response)
+
+    return TEMPLATES.TemplateResponse(
+        'ship/order_confirmed.html',
+        {
+            'request': request,
+            'shipment_confirmed': shipment_proposed,
+            'response': shipment_response,
+            'alerts': alerts,
+        },
+    )
+
+
+async def try_book_shipment(el_client, shipment_proposed) -> tuple[ShipmentResponse | None, Alerts]:
+    alerts = Alerts.empty()
+    shipment_response: ShipmentResponse | None = None
+    try:
+        shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed)
+        logger.info(f'Booked Shipment Response: {shipment_response}')
+        alerts += shipment_response.alerts
+
+    except Exception as e:
+        logger.error(f'Error booking shipment: {e}')
+        alerts += Alert.from_exception(e)
+    return shipment_response, alerts
+
+
+async def maybe_get_label(el_client, shipment_proposed, shipment_response):
     if (
         shipment_proposed.direction in [ShipDirection.DROPOFF, ShipDirection.OUTBOUND]
         or shipment_proposed.print_own_label
@@ -111,26 +133,23 @@ async def order_confirm(
     else:
         logger.warning('No label Requested')
 
-    # update commence
-    mapper: AmherstMap = await mapper_from_query_csrname(record.category)
-    if mapper.cmc_update_fn:
-        update_dict = await mapper.cmc_update_fn(record, shipment_proposed, shipment_response)
-        logger.info(f'Updating CMC: {update_dict}')
-        with pycommence_context(csrname=record.category) as pycmc1:
-            pycmc1.update_row(update_dict, row_id=record.row_id)
 
-    else:
-        logger.warning('NO CMC UPDATE FUNCTION')
+async def try_update_cmc(record, shipment_proposed, shipment_response):
+    try:
+        mapper: AmherstMap = await mapper_from_query_csrname(record.category)
+        if mapper.cmc_update_fn:
+            update_dict = await mapper.cmc_update_fn(record, shipment_proposed, shipment_response)
+            logger.info(f'Updating CMC: {update_dict}')
+            with pycommence_context(csrname=record.category) as pycmc1:
+                pycmc1.update_row(update_dict, row_id=record.row_id)
 
-    return TEMPLATES.TemplateResponse(
-        'ship/order_confirmed.html',
-        {
-            'request': request,
-            'shipment_confirmed': shipment_proposed,
-            'response': shipment_response,
-            'alerts': alerts,
-        },
-    )
+        else:
+            logger.warning('NO CMC UPDATE FUNCTION')
+
+    except ValueError as e:
+        msg = f'Error updating Commence: {e}'
+        logger.exception(e)
+        shipment_response.alerts += Alert(message=msg, type=AlertType.ERROR)
 
 
 @router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
@@ -188,3 +207,41 @@ async def email_label(
 #     logger.info(f'Emailing {filepath=} to {addresses=}')
 #     await send_label_email(addresses=addresses, label=filepath)
 #     return "Email Created"
+
+
+# @router.post('/post_confirm', response_class=HTMLResponse)
+# async def order_confirm1(
+#     request: Request,
+#     shipment_proposed: Shipment = Depends(shipment_str_to_shipment),
+#     el_client: ELClient = Depends(get_el_client),
+#     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
+# ):
+#     logger.info('Booking Shipment')
+#     shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed)
+#     logger.info(f'Booked Shipment Response: {shipment_response}')
+#
+#     # handle alerts
+#     alerts = shipment_response.alerts
+#     if not shipment_response.success:
+#         # alerts = jsonable_encoder(amherst_ship_response.alerts)
+#         return TEMPLATES.TemplateResponse(
+#             'alerts.html',
+#             {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed, 'record': record},
+#         )
+#
+#     # get label
+#     await maybe_get_label(el_client, shipment_proposed, shipment_response)
+#
+#     # update commence
+#     await try_update_cmc(record, shipment_proposed, shipment_response)
+#
+#     return TEMPLATES.TemplateResponse(
+#         'ship/order_confirmed.html',
+#         {
+#             'request': request,
+#             'shipment_confirmed': shipment_proposed,
+#             'response': shipment_response,
+#             'alerts': alerts,
+#         },
+#     )
+
