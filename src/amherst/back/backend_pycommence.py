@@ -5,6 +5,7 @@ from typing import AsyncGenerator
 from fastapi import Depends, Query
 from loguru import logger
 from pycommence.exceptions import PyCommenceNotFoundError
+from pycommence.pycmc_types import RowInfo
 from starlette.exceptions import HTTPException
 from pycommence import MoreAvailable, PyCommence, pycommence_context, pycommences_context
 
