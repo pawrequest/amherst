@@ -115,6 +115,7 @@ async def post_confirm_booking2(
     # record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
     record_dict = pycmc.read_row(row_id=shipment_proposed.row_id)
+    record_dict['row_id'] = shipment_proposed.row_id
     record = mapper.record_model.model_validate(record_dict)
     logger.info('Booking Shipent')
     shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed.shipment())
