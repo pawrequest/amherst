@@ -155,7 +155,7 @@ async def test_post_form(test_client, b_fxt: BookingStateDB):
     json_form = jsonable_encoder(valid_form)
     assert valid_form
     pprint(valid_form)
-    response = test_client.post('/test/post_form2/', json=json_form)
+    response = test_client.post('/test/post_form/', json=json_form)
     pprint(response.text)
     assert response.status_code == 200
 

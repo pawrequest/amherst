@@ -5,6 +5,7 @@ from enum import StrEnum
 from typing import Any, Awaitable, NamedTuple
 
 from fastapi import Query
+from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.ship_types import ShipDirection
 
 from amherst.models.amherst_models import (
@@ -59,7 +60,7 @@ class TemplateMap(NamedTuple):
 
 
 CmcUpdateFunc = Callable[
-    [AMHERST_TABLE_MODELS, AMHERST_SHIPMENT_TYPES, AmherstShipmentResponse], Awaitable[dict[str, str]]
+    [AMHERST_TABLE_MODELS, AMHERST_SHIPMENT_TYPES, ShipmentResponse], Awaitable[dict[str, str]]
 ]
 
 
@@ -94,30 +95,37 @@ async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp) -> str:
     return add_to_com_sep_str_field(tracks, resp.shipment_num)
 
 
-async def make_base_update_dict(
+async def make_update_dict(
     record: AMHERST_TABLE_MODELS, shipment: AMHERST_SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
 ) -> dict[str, Any]:
     """Adds tracking numbers and link."""
     aliases = await get_alias(record)
     tracks = await add_tracking_to_list(record, shipment_response)
     update_package = {aliases.TRACKING_NUMBERS: tracks}
+    if isinstance(record, AmherstHire):
+        extra = await make_hire_update_extra(shipment, shipment_response)
+        update_package.update(extra)
     return update_package
 
 
-async def make_hire_update_dict(
-    record: AmherstHire, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse
+async def make_hire_update_extra(
+    shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse
 ):
-    aliases = await get_alias(record)
-    update_base = await make_base_update_dict(record, shipment, shipment_response)
+    aliases = HireAliases
     shipdir = shipment.direction
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-        extra = {aliases.ARRANGED_IN: 'True', HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}'}
+        return {
+            aliases.TRACK_IN: shipment_response.tracking_link(),
+            aliases.ARRANGED_IN: 'True',
+            aliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+        }
     elif shipdir == ShipDirection.OUTBOUND:
-        extra = {aliases.ARRANGED_OUT: 'True'}
+        return {
+            aliases.ARRANGED_OUT: 'True',
+            aliases.TRACK_OUT: shipment_response.tracking_link(),
+        }
     else:
         raise ValueError(f'Invalid shipment direction: {shipdir}')
-    extra.update(update_base)
-    return extra
 
 
 class AmherstMap(NamedTuple):
@@ -125,7 +133,7 @@ class AmherstMap(NamedTuple):
     record_model: type(AmherstShipableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
-    cmc_update_fn: CmcUpdateFunc | None = None
+    cmc_update_fn: CmcUpdateFunc | None = make_update_dict
     connections: ConnectionMap | None = None
     py_filters: FilterMapPy | None = None
     cmc_filters: FilterMapCmc | None = None
@@ -151,7 +159,7 @@ class AmherstMaps:
             loose=HIRE_ARRAY_LOOSE,
             tight=HIRE_ARRAY_TIGHT,
         ),
-        cmc_update_fn=make_hire_update_dict,
+        # cmc_update_fn=make_hire_update_dict,
     )
     sale: AmherstMap = AmherstMap(
         category=CategoryName.Sale,
@@ -172,7 +180,7 @@ class AmherstMaps:
             loose=SALE_ARRAY_LOOSE,
             tight=SALE_ARRAY_TIGHT,
         ),
-        cmc_update_fn=make_base_update_dict,
+        # cmc_update_fn=make_base_update_dict,
     )
     customer: AmherstMap = AmherstMap(
         category=CategoryName.Customer,
@@ -194,7 +202,7 @@ class AmherstMaps:
             loose=CUSTOMER_ARRAY_LOOSE,
             tight=CUSTOMER_ARRAY_TIGHT,
         ),
-        cmc_update_fn=make_base_update_dict,
+        # cmc_update_fn=make_base_update_dict,
     )
 
     trial: AmherstMap = AmherstMap(
@@ -205,10 +213,36 @@ class AmherstMaps:
             listing='customer_list.html',
             detail='customer_detail.html',
         ),
-        cmc_update_fn=make_base_update_dict,
+        # cmc_update_fn=make_base_update_dict,
     )
 
 
 async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> AmherstMap:
     return getattr(AmherstMaps, csrname.lower())
+
+
+# async def make_base_update_dict(
+#     record: AMHERST_TABLE_MODELS, shipment: AMHERST_SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
+# ) -> dict[str, Any]:
+#     """Adds tracking numbers and link."""
+#     aliases = await get_alias(record)
+#     tracks = await add_tracking_to_list(record, shipment_response)
+#     update_package = {aliases.TRACKING_NUMBERS: tracks}
+#     return update_package
+
+
+# async def make_hire_update_dict(
+#     record: AmherstHire, shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse
+# ):
+#     aliases = await get_alias(record)
+#     update_base = await make_base_update_dict(record, shipment, shipment_response)
+#     shipdir = shipment.direction
+#     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
+#         extra = {aliases.ARRANGED_IN: 'True', HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}'}
+#     elif shipdir == ShipDirection.OUTBOUND:
+#         extra = {aliases.ARRANGED_OUT: 'True'}
+#     else:
+#         raise ValueError(f'Invalid shipment direction: {shipdir}')
+#     extra.update(update_base)
+#     return extra
 

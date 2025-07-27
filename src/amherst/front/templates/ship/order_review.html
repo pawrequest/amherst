@@ -17,11 +17,12 @@
 <div id=requested_shipment class="wrapper wrapper__requested">
     <section class="requested requested__head">
         <h3 class="requested-title"> {{ shipment_proposed.direction.name }} Shipment:</h3>
-        <form hx-post="/ship/post_confirm2?csrname={{ shipment_proposed.category }}"
+        <form hx-post="/ship/post_confirm"
               hx-target=#content_main
               hx-swap="innerHTML"
         >
             <input type="hidden" name="shipment_str" value="{{ shipment_proposed.model_dump_json() }}">
+            <input type="hidden" name="record_str" value="{{ record.model_dump_json() }}">
 {#            <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">#}
             <button id="btn_ship" class="submit-confirm-btn" onclick=hide_main_form()>
                 Confirm Booking

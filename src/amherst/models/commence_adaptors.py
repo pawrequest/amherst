@@ -12,11 +12,11 @@ from pycommence.pycmc_types import (
 LOCATION = 'HM'
 
 
-class CategoryNameE(Enum):
-    Hire = 'Hire'
-    Sale = 'Sale'
-    Customer = 'Customer'
-    Trial = 'Radio Trial'
+# class CategoryNameE(Enum):
+#     Hire = 'Hire'
+#     Sale = 'Sale'
+#     Customer = 'Customer'
+#     Trial = 'Radio Trial'
 
 
 class CategoryName(StrEnum):

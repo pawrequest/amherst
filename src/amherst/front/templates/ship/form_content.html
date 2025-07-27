@@ -1,28 +1,17 @@
 <!-- templates/form_content.html -->
 {#context = {record, shipment }#}
-{#<link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">#}
-{#<script src="{{ url_for('static', path='ship.js') }}"></script>#}
-{#{% include "app_alerts.html" with context %}#}
 {% block head %}
     <script src="{{ url_for('static', path='ship.js') }}"></script>
     <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
 {% endblock %}
 <!--suppress HtmlFormInputWithoutLabel -->
-{#<form id="main-form" class='main_form'#}
 <form id="main-form"
       hx-post="/ship/order_review/"
       hx-target=#content_top
       hx-swap="innerHTML"
 >
-    {#    SHIP LIVE IS {{ ship_live }}#}
-{#    {% if ship_live == False %}#}
-{#        <div> SHIPPER IS SANDBOX</div>#}
-{#    {% elif ship_live == True %}#}
-{#        <div> SHIPPER IS LIVE</div>#}
-{#    {% endif %}#}
     <div class="wrapper wrapper__booking">
-        <input type="hidden" name="row_id" value="{{ record.row_id }}">
-        <input type="hidden" name="category" value="{{ record.category }}">
+        <input type="hidden" name="record_str" value="{{ record.model_dump_json() }}">
         <section class="inputs inputs__ship">
             <h1>Shipment</h1>
             <label for="ship_date">Date:</label>
@@ -132,5 +121,5 @@
     record = {{ record | jsonable | tojson}};
     console.log('record', record);
     console.log('shipment', shipment);
-    initShipForm2(shipment);
+    initShipForm(shipment);
 </script>

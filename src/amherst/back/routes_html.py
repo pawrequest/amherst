@@ -51,7 +51,7 @@ async def search(
     search_request: SearchRequest = Depends(SearchRequest.from_query),
     mapper: AmherstMap = Depends(mapper_from_query_csrname),
 ):
-    search_response: SearchResponse = await pycommence_response(search_request, pycmc, mapper=mapper)
+    search_response: SearchResponse = await pycommence_response(search_request, pycmc)
     logger.debug(str(search_response))
     return TEMPLATES.TemplateResponse(mapper.templates.listing, {'request': request, 'response': search_response})
 

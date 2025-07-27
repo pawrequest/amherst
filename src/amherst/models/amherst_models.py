@@ -1,6 +1,3 @@
-# from __future__ import annotations
-from __future__ import annotations
-
 from abc import ABC
 from datetime import date
 from os import PathLike
@@ -13,70 +10,7 @@ from shipaw.models.pf_shipment import Shipment, ShipmentAwayDropoff
 from shipaw.models.pf_top import CollectionInfo, Contact, ContactSender
 from shipaw.ship_types import ShipmentType, limit_daterange_no_weekends
 
-from amherst.models.commence_adaptors import (
-    AM_DATE,
-    CategoryName,
-    # HireAliases,
-    HireStatus,
-    SaleStatus, HireAliases,
-)
-
-
-# TableLit = Literal['Hire', 'Sale', 'Customer']
-# SHIP_DATE = Annotated[
-#     date,
-#     _p.BeforeValidator(limit_daterange_no_weekends),
-# ]
-
-
-def split_addr_str(address: str) -> dict[str, str]:
-    addr_lines = address.splitlines()
-    town = addr_lines.pop() if len(addr_lines) > 1 else ''
-
-    if len(addr_lines) < 3:
-        addr_lines.extend([''] * (3 - len(addr_lines)))
-    elif len(addr_lines) > 3:
-        addr_lines[2] = ','.join(addr_lines[2:])
-        addr_lines = addr_lines[:3]
-
-    used_lines = [_ for _ in addr_lines if _]
-    return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
-
-
-# class AmherstAddress(BaseModel):
-#     address_str: str
-#     postcode: str
-#
-#     def address_dict(self) -> dict:
-#         return {
-#             **split_addr_str(self.address_str),
-#             'postcode': self.postcode,
-#         }
-#
-#     def pf_address_base(self) -> AddressBase:
-#         return AddressBase.model_validate(self, from_attributes=True)
-
-
-# class AmherstContact(BaseModel):
-#     contact_name: str
-#     business_name: str
-#     mobile_phone: str
-#     email_address: str
-#
-#     def pf_contact(self) -> Contact:
-#         return Contact.model_validate(self, from_attributes=True)
-
-
-# class AmherstDeliveryAddress(AmherstAddress):
-#     address_str: str = Field(..., alias='Delivery Address')
-#     postcode: str = Field(..., alias='Delivery Postcode')
-
-
-# class AmherstDeliveryContact(AmherstContact):
-#     contact_name: str = Field(..., alias='Delivery Contact')
-#     business_name: str = Field(..., alias='Delivery Name')
-#     mobile_phone: str = Field(..., alias='Delivery Telephone')
-#     email_address: str = Field(..., alias='Delivery Email')
+from amherst.models.commence_adaptors import (AM_DATE, CategoryName, HireAliases, HireStatus, SaleStatus)
 
 
 class AmherstShipableBase(BaseModel, ABC):
@@ -84,6 +18,7 @@ class AmherstShipableBase(BaseModel, ABC):
         populate_by_name=True,
         use_enum_values=True,
     )
+    category: CategoryName
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
     track_out: str = Field('', alias='Track Outbound')
@@ -92,7 +27,6 @@ class AmherstShipableBase(BaseModel, ABC):
 
     # mandatory fields
     row_id: str
-    category: CategoryName
     customer_name: str
     delivery_contact_name: str
     delivery_contact_business: str
@@ -106,29 +40,50 @@ class AmherstShipableBase(BaseModel, ABC):
     boxes: int = 1
 
     # parcelforce objects
-    delivery_contact: Contact | None = None
-    delivery_address: AddressBase | None = None
+    _delivery_contact: Contact | None = None
+    _delivery_address: AddressBase | None = None
     # todo addressBase could be AddressRecipient for outbound, and AddressSender for inbound, to allow longer strings
 
-    @model_validator(mode='after')
-    def get_contact(self):
-        if self.delivery_contact is None:
-            self.delivery_contact = Contact(
+    @property
+    def delivery_contact(self) -> Contact:
+        if self._delivery_contact is None:
+            self._delivery_contact = Contact(
                 contact_name=self.delivery_contact_name,
                 business_name=self.delivery_contact_business,
                 mobile_phone=self.delivery_contact_phone,
                 email_address=self.delivery_contact_email,
             )
-        return self
+        return self._delivery_contact
 
-    @model_validator(mode='after')
-    def get_address(self):
-        if not self.delivery_address:
-            self.delivery_address = AddressBase(
+    @property
+    def delivery_address(self):
+        if not self._delivery_address:
+            self._delivery_address = AddressBase(
                 **split_addr_str(self.delivery_address_str),
                 postcode=self.delivery_address_pc,
             )
-        return self
+        return self._delivery_address
+
+    #
+    # @model_validator(mode='after')
+    # def get_contact(self):
+    #     if self.delivery_contact is None:
+    #         self.delivery_contact = Contact(
+    #             contact_name=self.delivery_contact_name,
+    #             business_name=self.delivery_contact_business,
+    #             mobile_phone=self.delivery_contact_phone,
+    #             email_address=self.delivery_contact_email,
+    #         )
+    #     return self
+    #
+    # @model_validator(mode='after')
+    # def get_address(self):
+    #     if not self.delivery_address:
+    #         self.delivery_address = AddressBase(
+    #             **split_addr_str(self.delivery_address_str),
+    #             postcode=self.delivery_address_pc,
+    #         )
+    #     return self
 
     def shipment_dict(self):
         return {
@@ -142,10 +97,10 @@ class AmherstShipableBase(BaseModel, ABC):
     def shipment(self):
         return Shipment.model_validate(self.shipment_dict())
 
-    def am_shipment(self):
-        return AmherstShipmentOut.model_validate(
-            {**self.shipment_dict(), 'category': self.category, 'row_id': self.row_id}
-        )
+    # def am_shipment(self):
+    #     return AmherstShipmentOut.model_validate(
+    #         {**self.shipment_dict(), 'category': self.category, 'row_id': self.row_id}
+    #     )
 
 
 class AmherstCustomer(AmherstShipableBase):
@@ -195,7 +150,7 @@ class AmherstOrderBase(AmherstShipableBase, ABC):
 
 class AmherstSale(AmherstOrderBase):
     # mandatory overrides master
-    category: CategoryName = 'Sale'
+    category:CategoryName = 'Sale'
 
     # optional overrides master
     send_date: date = date.today()
@@ -220,7 +175,7 @@ class AmherstSale(AmherstOrderBase):
 
 
 class AmherstTrial(AmherstOrderBase):
-    category: CategoryName = CategoryName.Trial
+    category:CategoryName = CategoryName.Trial
     customer_name: str = Field(..., alias='Involves Customer')
     delivery_contact_name: str = Field(..., alias='Trial Contact')
     delivery_contact_business: str = Field(..., alias='Trial Name')
@@ -328,3 +283,54 @@ def address_from_str(add_str: str, postcode: str) -> dict:
         **split_addr_str(add_str),
         'postcode': postcode,
     }
+
+
+def split_addr_str(address: str) -> dict[str, str]:
+    addr_lines = address.splitlines()
+    town = addr_lines.pop() if len(addr_lines) > 1 else ''
+
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+        addr_lines = addr_lines[:3]
+
+    used_lines = [_ for _ in addr_lines if _]
+    return {f'address_line{num}': line for num, line in enumerate(used_lines, start=1)} | {'town': town}
+
+
+# class AmherstAddress(BaseModel):
+#     address_str: str
+#     postcode: str
+#
+#     def address_dict(self) -> dict:
+#         return {
+#             **split_addr_str(self.address_str),
+#             'postcode': self.postcode,
+#         }
+#
+#     def pf_address_base(self) -> AddressBase:
+#         return AddressBase.model_validate(self, from_attributes=True)
+
+
+# class AmherstContact(BaseModel):
+#     contact_name: str
+#     business_name: str
+#     mobile_phone: str
+#     email_address: str
+#
+#     def pf_contact(self) -> Contact:
+#         return Contact.model_validate(self, from_attributes=True)
+
+
+# class AmherstDeliveryAddress(AmherstAddress):
+#     address_str: str = Field(..., alias='Delivery Address')
+#     postcode: str = Field(..., alias='Delivery Postcode')
+
+
+# class AmherstDeliveryContact(AmherstContact):
+#     contact_name: str = Field(..., alias='Delivery Contact')
+#     business_name: str = Field(..., alias='Delivery Name')
+#     mobile_phone: str = Field(..., alias='Delivery Telephone')
+#     email_address: str = Field(..., alias='Delivery Email')
+

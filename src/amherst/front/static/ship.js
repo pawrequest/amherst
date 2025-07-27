@@ -137,7 +137,7 @@ function updateAddressFields(addressData) {
 }
 
 
-async function initShipForm2(shipment) {
+async function initShipForm(shipment) {
     populateShipmentSnake(shipment);
     await loadAddrChoices();
     toggleOwnLabel();

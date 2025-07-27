@@ -7,15 +7,18 @@ from collections.abc import Sequence
 
 from fastapi import Depends, Form, Query
 from loguru import logger
+from pycommence.resolvers import resolve_row_id
 from pydantic import BaseModel, Field, model_validator
 from starlette.requests import Request
 
-from amherst.models.commence_adaptors import CustomerAliases
+from amherst.models.commence_adaptors import CustomerAliases, CursorName
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+
 # from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import FilterVariant
+
 # from amherst.models.maps2 import CategoryName, maps2
 from amherst.models.maps import CategoryName, mapper_from_query_csrname
 
@@ -41,20 +44,19 @@ def log_action_sync(func):
 
 
 class Pagination(_Pagination):
-    limit: int | None = PAGE_SIZE
-
     @classmethod
-    def from_query(cls, request: Request, limit: int | None = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
+    def from_query(cls, limit: int = Query(0), offset: int = Query(0)) -> Self:
         return cls(limit=limit, offset=offset)
 
 
 async def get_condition(condition: str = Query('')) -> ConditionType:
+    # return ConditionType(condition.upper()) if condition else ConditionType.CONTAIN
     return getattr(ConditionType, condition.upper(), ConditionType.CONTAIN)
 
 
 class SearchRequest(BaseModel):
-    csrname: CategoryName | None = None
-    csrnames: list[CategoryName] | None = None
+    csrname: CursorName | None = None
+    csrnames: list[CursorName] | None = None
     row_id: str | None = None
     pk_value: str | None = None
     customer_id: str | None = None
@@ -135,6 +137,20 @@ class SearchRequest(BaseModel):
 
     def mapper(self):
         return mapper_from_query_csrname(self.csrname)
+
+    @classmethod
+    @resolve_row_id
+    def from_id_or_pk(
+        cls,
+        csrname: CursorName = Query(...),
+        pk: str = Query(''),
+        row_id: str = Query(None),
+    ):
+        return cls(
+            csrname=csrname,
+            pk_value=pk,
+            row_id=row_id,
+        )
 
     @classmethod
     def from_query(

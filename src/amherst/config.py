@@ -59,7 +59,9 @@ def sanitise_id(value):
 
 
 def make_jsonable(thing) -> dict:
-    return jsonable_encoder(thing)
+    res= jsonable_encoder(thing)
+    logger.debug(f'make_jsonable: {thing} -> {res}')
+    return res
 
 
 def date_int_w_ordinal(n):

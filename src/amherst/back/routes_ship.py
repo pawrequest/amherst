@@ -1,51 +1,47 @@
 from pathlib import Path
 
-import pawdf
-from fastapi import APIRouter, Body, Depends, Form, Query
-from fastapi.encoders import jsonable_encoder
+from fastapi import APIRouter, Body, Depends, Form
 from loguru import logger
 from pawdf.array_pdf.array_p import on_a4
-from pycommence.pycommence import PyCommence
+from pycommence.pycommence import pycommence_context
 from shipaw.models.pf_shipment import Shipment
 from shipaw.pf_config import pf_sett
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
+from shipaw.expresslink_client import ELClient
+from shipaw.models.pf_models import AddressBase, AddressChoice
+from shipaw.models.pf_msg import Alert, ShipmentResponse
+from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE
 
 from amherst.actions.emailer import send_label_email
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
-from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressBase, AddressChoice
-from shipaw.models.pf_msg import Alert, Alerts, ShipmentResponse
 from amherst.back.backend_shipper import (
     amherst_shipment_str_to_shipment,
     book_shipment,
     get_el_client,
-    shipment_f_form2,
+    record_str_to_record,
+    shipment_f_form,
+    shipment_str_to_shipment,
     wait_label,
 )
-from amherst.back.backend_pycommence import get_one, pycmc_f_query
+from amherst.back.backend_pycommence import get_one
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import (
     AMHERST_SHIPMENT_TYPES,
     AMHERST_TABLE_MODELS,
-    AmherstShipmentOut,
-    AmherstShipmentResponse,
 )
-from shipaw.ship_types import AlertType, ShipDirection, VALID_POSTCODE
 
 router = APIRouter()
 
 
-@router.get('/form2', response_class=HTMLResponse)
-async def ship_form_extends_p2(
+@router.get('/ship_form', response_class=HTMLResponse)
+async def ship_form(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(get_one),
 ):
     pf_settings = pf_sett()
-    ship_live = pf_settings.ship_live
     logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
-    # alerts = Alerts(alert=[Alert(message='BETA MODE', type=AlertType.WARNING)])
     alerts = request.app.alerts
 
     if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
@@ -55,86 +51,52 @@ async def ship_form_extends_p2(
         if alert not in alerts.alert:
             alerts.alert.append(alert)
 
-    if ship_live:
+    if pf_settings.ship_live:
         msg = 'Welcome To Amherst Shipper - Real Shipments will be booked'
-        logger.warning(msg)
-        alert1 = Alert(message=msg, type=AlertType.NOTIFICATION)
     else:
         msg = 'Debug Mode - No Shipments will be booked'
-        logger.warning(msg)
-        alert1 = Alert(message=msg, type=AlertType.WARNING)
-    request.app.ship_live = ship_live
+    logger.warning(msg)
+    alert1 = Alert(message=msg, type=AlertType.NOTIFICATION)
 
     if alert1 not in alerts.alert:
         alerts.alert.append(alert1)
 
-    ctx = {'request': request, 'record': record, 'ship_live': ship_live}
+    ctx = {'request': request, 'record': record}
 
     return TEMPLATES.TemplateResponse(template, ctx)
-
-
-# @router.get('/form_content2', response_class=HTMLResponse)
-# async def ship_form_content2(
-#     request: Request,
-#     record: AMHERST_TABLE_MODELS = Depends(get_one),
-# ):
-#     logger.debug(f'Ship Form Content: {record.row_id}')
-#     pf_settings = pf_sett()
-#     logger.warning(pf_settings.model_dump())
-#     ship_live = pf_settings.ship_live
-#     template = 'ship/form_content.html'
-#     ctx = {'request': request, 'record': record, 'ship_live': ship_live}
-#     # if 'parcelforce' not in record.delivery_method.lower():
-#     #     alert = Alert(code=1, message='"Parcelforce" not in delivery_method', type=AlertType.WARNING)
-#     #     alerts = Alerts(alert=[alert])
-#     #     ctx.update({'alerts': alerts})
-#     return TEMPLATES.TemplateResponse(template, ctx)
 
 
 @router.post('/order_review', response_class=HTMLResponse)
 async def order_review(
     request: Request,
-    shipment_proposed: AmherstShipmentOut = Depends(shipment_f_form2),
+    shipment_proposed: Shipment = Depends(shipment_f_form),
+    record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
 ):
-    # alerts = Alerts.empty().add_content("HERE IS THE ALERTS IN ORDER REVIEW")
-    alerts = Alerts.empty()
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
     return TEMPLATES.TemplateResponse(
-        template, {'request': request, 'shipment_proposed': shipment_proposed, 'alerts': alerts}
+        template, {'request': request, 'shipment_proposed': shipment_proposed, 'record': record}
     )
 
 
-@router.post('/post_confirm2', response_class=HTMLResponse)
-async def post_confirm_booking2(
+@router.post('/post_confirm', response_class=HTMLResponse)
+async def order_confirm(
     request: Request,
-    shipment_proposed: AmherstShipmentOut = Depends(amherst_shipment_str_to_shipment),
+    shipment_proposed: Shipment = Depends(shipment_str_to_shipment),
     el_client: ELClient = Depends(get_el_client),
-    pycmc: PyCommence = Depends(pycmc_f_query),
-    mapper: AmherstMap = Depends(mapper_from_query_csrname),
-    # record: AMHERST_TABLE_MODELS = Depends(get_one),
+    record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
 ):
-    record_dict = pycmc.read_row(row_id=shipment_proposed.row_id)
-    record_dict['row_id'] = shipment_proposed.row_id
-    record = mapper.record_model.model_validate(record_dict)
-    logger.info('Booking Shipent')
-    shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed.shipment())
-    amherst_ship_response: AmherstShipmentResponse = AmherstShipmentResponse(
-        row_id=shipment_proposed.row_id, category=shipment_proposed.category, **shipment_response.model_dump()
-    )
-    # amherst_ship_response: AmherstShipmentResponse = AmherstShipmentResponse.model_validate(
-    #     shipment_response.model_copy(update={'row_id': shipment_proposed.row_id, 'category': shipment_proposed.category}),
-    #     from_attributes=True,
-    # )
-    logger.info(f'Booked AmherstShipment Response: {amherst_ship_response}')
+    logger.info('Booking Shipment')
+    shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed)
+    logger.info(f'Booked Shipment Response: {shipment_response}')
 
     # handle alerts
-    alerts = amherst_ship_response.alerts
-    if not amherst_ship_response.success:
+    alerts = shipment_response.alerts
+    if not shipment_response.success:
         # alerts = jsonable_encoder(amherst_ship_response.alerts)
         return TEMPLATES.TemplateResponse(
             'alerts.html',
-            {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed},
+            {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed, 'record': record},
         )
 
     # get label
@@ -144,16 +106,18 @@ async def post_confirm_booking2(
     ):
         unsize = shipment_proposed.label_file.parent / 'original_size' / shipment_proposed.label_file.name
         unsize.parent.mkdir(parents=True, exist_ok=True)
-        wait_label(shipment_num=amherst_ship_response.shipment_num, dl_path=unsize, el_client=el_client)
+        wait_label(shipment_num=shipment_response.shipment_num, dl_path=unsize, el_client=el_client)
         on_a4(input_file=unsize, output_file=shipment_proposed.label_file)
     else:
         logger.warning('No label Requested')
 
     # update commence
+    mapper: AmherstMap = await mapper_from_query_csrname(record.category)
     if mapper.cmc_update_fn:
-        update_dict = await mapper.cmc_update_fn(record, shipment_proposed, amherst_ship_response)
-        logger.info(f'Updating CMC V2: {update_dict}')
-        pycmc.update_row(update_dict, row_id=shipment_proposed.row_id)
+        update_dict = await mapper.cmc_update_fn(record, shipment_proposed, shipment_response)
+        logger.info(f'Updating CMC: {update_dict}')
+        with pycommence_context(csrname=record.category) as pycmc1:
+            pycmc1.update_row(update_dict, row_id=record.row_id)
 
     else:
         logger.warning('NO CMC UPDATE FUNCTION')
@@ -163,7 +127,7 @@ async def post_confirm_booking2(
         {
             'request': request,
             'shipment_confirmed': shipment_proposed,
-            'response': amherst_ship_response,
+            'response': shipment_response,
             'alerts': alerts,
         },
     )

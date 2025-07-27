@@ -1,24 +1,22 @@
 from __future__ import annotations
 
 import contextlib
+from typing import Generator, Any, AsyncGenerator
 
 from comtypes import CoInitialize, CoUninitialize
 from fastapi import Depends, Query
 from loguru import logger
 from starlette.exceptions import HTTPException
+from pycommence import PyCommence, CursorType, MoreAvailable
 
 from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
-from pycommence.filters import ConditionType
-from pycommence.pycmc_types import CursorType, MoreAvailable
-from pycommence.pycommence import PyCommence
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-
-# from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.commence_adaptors import CursorName
 from amherst.models.maps import AmherstMap, CategoryName, mapper_from_query_csrname
 
 
 @contextlib.contextmanager
-def pycommence_context(csrname: CategoryName, mode: CursorType = CursorType.CATEGORY) -> PyCommence:
+def pycommence_context(csrname: CategoryName, mode: CursorType = CursorType.CATEGORY) -> Generator[PyCommence, None, None]:
     CoInitialize()
     pyc = PyCommence.with_csr(csrname, mode=mode)
     yield pyc
@@ -26,7 +24,7 @@ def pycommence_context(csrname: CategoryName, mode: CursorType = CursorType.CATE
 
 
 @contextlib.contextmanager
-def pycommences_context(csrnames: list[CategoryName]) -> PyCommence:
+def pycommences_context(csrnames: list[CategoryName]) -> Generator[PyCommence, None, None]:
     CoInitialize()
     pyc = PyCommence()
     for csrname in csrnames:
@@ -36,15 +34,15 @@ def pycommences_context(csrnames: list[CategoryName]) -> PyCommence:
 
 
 async def pycmc_f_query(
-    csrname: CategoryName = Query(...),
-) -> PyCommence:
+    csrname: CursorName = Query(...),
+) -> AsyncGenerator[PyCommence, None]:
     with pycommence_context(csrname=csrname) as pycmc:
         yield pycmc
 
 
 async def pycmcs_f_query(
     csrnames: list[CategoryName] = Query(...),
-) -> PyCommence:
+) -> AsyncGenerator[PyCommence, None]:
     with pycommences_context(csrnames=csrnames) as pycmc:
         yield pycmc
 
@@ -57,17 +55,26 @@ async def gather_records_gen(
     input_type = mapper.record_model
     fil_array = await q.filter_array()
     py_filter = getattr(mapper.py_filters, q.py_filter) if q.py_filter else None
-    rows_left = pycmc.csr(q.csrname).row_count - q.pagination.end
     rowgen = pycmc.read_rows(
         csrname=q.csrname,
         pagination=q.pagination,
         row_filter=py_filter,
         filter_array=fil_array,
     )
-
-    records = [input_type.model_validate(row) for row in rowgen]
-    more = MoreAvailable(n_more=rows_left, json_link=q.next_q_str_json, html_link=q.next_q_str) if rows_left else None
+    records = []
+    more = None
+    for row in rowgen:
+        if isinstance(row, MoreAvailable):
+            more = row
+            more.json_link = q.next_q_str_json
+            more.html_link = q.next_q_str
+            break
+        records.append(input_type.model_validate(row))
     return records, more
+    # records = [input_type.model_validate(row) for row in rowgen if not isinstance(row, MoreAvailable)]
+    # rows_left = records[-1].rows_left if records and isinstance(records[-1], MoreAvailable) else 0
+    # more = MoreAvailable(n_more=rows_left, json_link=q.next_q_str_json, html_link=q.next_q_str) if rows_left else None
+    # return records, more
 
 
 async def pycommence_search(
@@ -87,7 +94,7 @@ async def pycommence_search(
 async def pycommence_response(
     q: SearchRequest = Depends(SearchRequest.from_query),
     pycmc: PyCommence = Depends(pycmc_f_query),
-    mapper: AmherstMap = Depends(mapper_from_query_csrname),
+    # mapper: AmherstMap = Depends(mapper_from_query_csrname),
 ) -> AMHERST_TABLE_MODELS | SearchResponse:
     if record := await pycommence_search(q, pycmc):
         records, more = [record], None

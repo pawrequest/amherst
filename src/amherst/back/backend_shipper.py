@@ -25,7 +25,7 @@ from shipaw.models import pf_msg, pf_shared
 from shipaw.models.pf_models import AddressCollection, AddressRecipient, AddressSender
 from shipaw.models.pf_msg import Alert, BaseResponse
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment import Shipment, ShipmentReferenceFields
+from shipaw.models.pf_shipment import Shipment, ShipmentReferenceFields, ShipmentAwayDropoff, ShipmentAwayCollection
 from shipaw.models.pf_top import CollectionInfo, Contact, ContactCollection, ContactSender
 from shipaw.pf_config import pf_sett
 from shipaw.ship_types import (
@@ -39,6 +39,7 @@ from shipaw.ship_types import (
     get_ship_direction,
 )
 
+from amherst.models.commence_adaptors import CategoryName
 from amherst.models.maps import mapper_from_query_csrname
 
 
@@ -152,6 +153,26 @@ def to_amherst_dropoff(
         raise
 
 
+def to_dropoff(
+    shipment: Shipment, home_address=pf_sett().home_address, home_contact=pf_sett().home_contact
+) -> ShipmentAwayDropoff:
+    try:
+        return ShipmentAwayDropoff.model_validate(
+            shipment.model_copy(
+                update={
+                    'recipient_contact': home_contact,
+                    'recipient_address': home_address,
+                    'sender_contact': ContactSender(**shipment.recipient_contact.model_dump(exclude={'notifications'})),
+                    'sender_address': AddressSender(**shipment.recipient_address.model_dump(exclude_none=True)),
+                }
+            ),
+            from_attributes=True,
+        )
+    except ValidationError as e:
+        logger.error(f'Error converting Shipment to Dropoff: {e}')
+        raise
+
+
 def to_amherst_collection(
     shipment: AmherstShipmentOut,
     home_address=pf_sett().home_address,
@@ -182,7 +203,37 @@ def to_amherst_collection(
         raise e
 
 
-async def shipment_f_form2(
+def to_collection(
+    shipment: Shipment,
+    home_address=pf_sett().home_address,
+    home_contact=pf_sett().home_contact,
+    own_label=True,
+) -> ShipmentAwayCollection:
+    try:
+        return ShipmentAwayCollection.model_validate(
+            shipment.model_copy(
+                update={
+                    'shipment_type': ShipmentType.COLLECTION,
+                    'print_own_label': own_label,
+                    'collection_info': CollectionInfo(
+                        collection_address=AddressCollection(**shipment.recipient_address.model_dump()),
+                        collection_contact=ContactCollection.model_validate(
+                            shipment.recipient_contact.model_dump(exclude={'notifications'})
+                        ),
+                        collection_time=pf_shared.DateTimeRange.null_times_from_date(shipment.shipping_date),
+                    ),
+                    'recipient_contact': home_contact,
+                    'recipient_address': home_address,
+                }
+            ),
+            from_attributes=True,
+        )
+    except ValidationError as e:
+        logger.error(f'Error converting Shipment to Collection: {e}')
+        raise e
+
+
+async def shipment_f_form(
     contact: Contact = Depends(contact_f_form),
     address: AddressCollection = Depends(address_f_form),
     notes: list[tuple[str, str]] = Depends(notes_f_form),
@@ -191,25 +242,21 @@ async def shipment_f_form2(
     service_code: ServiceCode = Form(...),
     direction: ship_types.ShipDirection = Form(...),
     own_label: str = Form(...),
-    row_id: str = Form(...),
-    category: str = Form(...),
 ) -> Shipment:
     logger.info('Creating Amherst Shipment Request from form')
 
     own_label = own_label.lower() == 'true'
-    shipment_request = AmherstShipmentOut(
+    shipment_request = Shipment(
         recipient_address=address,
         recipient_contact=contact,
         service_code=service_code,
         shipping_date=shipping_date,
         total_number_of_parcels=total_number_of_parcels,
-        row_id=row_id,
-        category=category,
     )
     if direction == ShipDirection.DROPOFF:
-        shipment_request = to_amherst_dropoff(shipment_request)
+        shipment_request = to_dropoff(shipment_request)
     elif direction == ShipDirection.INBOUND:
-        shipment_request = to_amherst_collection(shipment_request, own_label=own_label)
+        shipment_request = to_collection(shipment_request, own_label=own_label)
 
     for fieldname, value in notes:
         setattr(shipment_request, fieldname, value)
@@ -272,22 +319,29 @@ async def amherst_shipment_str_to_shipment(shipment_str: str = Form(...)) -> AMH
     res = ship_type.model_validate_json(shipment_str)
     return res
 
+
 #
-# async def shipment_str_to_shipment(shipment_str: str = Query(...)):
-#     # res = AmherstShipmentOut.model_validate_json(shipment_str)
-#     ship_json = json.loads(shipment_str)
-#     ship_dir = get_ship_direction(ship_json)
-#     ship_type = get_amherst_ship_type(ship_dir)
-#     res = ship_type.model_validate_json(shipment_str)
-#     return res
+async def shipment_str_to_shipment(shipment_str: str = Form(...)) -> Shipment:
+    ship_json = json.loads(shipment_str)
+    shipy = Shipment(**ship_json)
+    ship_dir = get_ship_direction(ship_json)
+    match ship_dir:
+        case ShipDirection.OUTBOUND:
+            return shipy
+        case ShipDirection.INBOUND:
+            return to_collection(shipy)
+        case ShipDirection.DROPOFF:
+            return to_dropoff(shipy)
+        case _:
+            raise ValueError(f'Invalid shipment direction: {ship_dir}')
 
 
 # unused?
 async def record_str_to_record(record_str: str = Form(...)) -> AmherstShipableBase:
     record_dict = json.loads(record_str)
-    category = record_dict['category']
-    rectype: AmherstShipableBase = (await mapper_from_query_csrname(category)).record_model
-    return rectype.model_validate_json(record_str)
+    mapper = await mapper_from_query_csrname(record_dict['category'])
+    record = mapper.record_model.model_validate(record_dict)
+    return record
 
 
 # unused?

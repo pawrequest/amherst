@@ -64,7 +64,7 @@ MODE = Mode.SHIP_BY_SRCH
 async def get_url_suffix2(category, pk, mode=MODE):
     match mode:
         case Mode.SHIP_BY_SRCH:
-            return f'ship/form2?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
+            return f'ship/ship_form?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
         # case Mode.SHIP_CONTENT:
         #     return (
         #         f'ship/form_content2?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
