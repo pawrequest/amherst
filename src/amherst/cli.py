@@ -34,7 +34,7 @@ def parse_arguments():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
     arg_parser.add_argument('record_name', type=str)
-    arg_parser.add_argument('--sandbox', action='store_true', help="Run in sandbox mode")
+    arg_parser.add_argument('--sandbox', action='store_true', help='Run in sandbox mode')
     args = arg_parser.parse_args()
     set_amherstpr_env(sandbox=args.sandbox)
     if 'trial' in args.category.name.lower():
@@ -45,7 +45,7 @@ def parse_arguments():
 
 ARGS = parse_arguments()
 
-from amherst.ui_runner import run_desktop_ui # after setting env
+from amherst.ui_runner import run_desktop_ui  # after setting env
 
 SCORER = fuzz.partial_ratio
 
@@ -75,7 +75,6 @@ async def get_url_suffix2(category, pk, mode=MODE):
 
 
 async def main(category: CategoryName, record_name: str, mode: Mode = MODE):
-    logger.warning('hastily removed filterarray from cursor')
     url_suffix = await get_url_suffix2(category, record_name)
     await run_desktop_ui(url_suffix)
 
