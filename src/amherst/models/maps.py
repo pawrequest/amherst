@@ -101,9 +101,7 @@ async def make_base_update_dict(
     """Adds tracking numbers and link."""
     aliases = await get_alias(record)
     tracks = await add_tracking_to_list(record, shipment_response)
-    tracking_link = shipment_response.tracking_link()
-    track_direction_field = await get_track_dir_field(aliases, shipment)
-    update_package = {aliases.TRACKING_NUMBERS: tracks, track_direction_field: tracking_link}
+    update_package = {aliases.TRACKING_NUMBERS: tracks}
     return update_package
 
 
@@ -114,12 +112,13 @@ async def make_hire_update_dict(
     update_base = await make_base_update_dict(record, shipment, shipment_response)
     shipdir = shipment.direction
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-        update_base.update({aliases.ARRANGED_IN: 'True', HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}'})
+        extra = {aliases.ARRANGED_IN: 'True', HireAliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}'}
     elif shipdir == ShipDirection.OUTBOUND:
-        update_base.update({aliases.ARRANGED_OUT: 'True'})
+        extra = {aliases.ARRANGED_OUT: 'True'}
     else:
         raise ValueError(f'Invalid shipment direction: {shipdir}')
-    return update_base
+    extra.update(update_base)
+    return extra
 
 
 class AmherstMap(NamedTuple):
