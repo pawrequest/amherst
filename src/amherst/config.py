@@ -75,4 +75,4 @@ TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
 TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
-RESTART = Alert(message="Refresh Page To Restart", type=AlertType.NOTIFICATION)
+RESTART = Alert(message='Refresh Page To Restart', type=AlertType.NOTIFICATION)
