@@ -4,7 +4,7 @@ from os import PathLike
 
 from loguru import logger
 from pycommence.pycmc_types import RowInfo
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, field_validator
 from shipaw.models.pf_models import AddressBase, AddressSender
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment import Shipment, ShipmentAwayDropoff, ShipmentAwayCollection
@@ -42,6 +42,12 @@ class AmherstShipableBase(BaseModel, ABC):
     _delivery_contact: Contact | None = None
     _delivery_address: AddressBase | None = None
     # todo addressBase could be AddressRecipient for outbound, and AddressSender for inbound, to allow longer strings
+
+    @field_validator('send_date', mode='after')
+    def validate_send_date(cls, v: AM_DATE) -> date:
+        if v is None or v < date.today():
+            return date.today()
+        return v
 
     @property
     def delivery_contact(self) -> Contact:

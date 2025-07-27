@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 from functools import wraps
 from typing import Self
@@ -7,6 +8,7 @@ from collections.abc import Sequence
 
 from fastapi import Depends, Form, Query
 from loguru import logger
+from pycommence import MoreAvailable
 from pycommence.resolvers import resolve_row_id
 from pydantic import BaseModel, Field, model_validator
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
@@ -38,13 +40,12 @@ class SearchRequest(BaseModel):
     customer_id: str | None = None
     customer_name: str | None = None
     customer_names: list[str] | None = Field(default_factory=list)
-    filtered: bool = False
     condition: ConditionType = ConditionType.CONTAIN
     max_rtn: int | None = None
     search_dict: dict = Field(default_factory=dict)
     pagination: Pagination | None = Pagination()
-    cmc_filter: FilterVariant | None = 'loose'
-    py_filter: FilterVariant | None = None
+    cmc_filter_i: int = 0
+    py_filter_i: int = 0
 
     @model_validator(mode='after')
     def cursornames(self):
@@ -61,8 +62,8 @@ class SearchRequest(BaseModel):
             f'{' | row_id=:' + self.row_id if self.row_id else ''}'
             f'{' | customer_name="' + self.customer_name + '"' if self.customer_name else ''}'
             f'{' | customer_id="' + self.customer_id + '"' if self.customer_id else ''}'
-            f'{' | cmc_filter=' + self.cmc_filter if self.cmc_filter else ''}'
-            f'{' | py-filter=' + self.py_filter if self.py_filter else ''}'
+            f'{' | cmc_filter_i=' + str(self.cmc_filter_i) if self.cmc_filter_i else ''}'
+            f'{' | py_filter_i=' + str(self.py_filter_i) if self.py_filter_i else ''}'
             f'{' | ' + str(self.pagination) if self.pagination else ''}'
         )
 
@@ -89,8 +90,8 @@ class SearchRequest(BaseModel):
         for attr in [
             'condition',
             'max_rtn',
-            'cmc_filter',
-            'py_filter',
+            'cmc_filter_i',
+            'py_filter_i',
             'pk_value',
             'row_id',
             'customer_id',
@@ -137,26 +138,27 @@ class SearchRequest(BaseModel):
         row_id: str = Query(None),
         customer_name: str = Query(None),
         customer_id: str = Query(None),
-        py_filter: FilterVariant = Query(None),
-        cmc_filter: FilterVariant = Query('loose'),
+        py_filter_i: int = Query(0),
+        cmc_filter_i: int = Query(0),
     ):
         return cls(
             csrname=csrname,
             csrnames=csrnames,
             pagination=pagination,
             pk_value=pk_value,
-            cmc_filter=cmc_filter,
             condition=condition,
             max_rtn=max_rtn,
             row_id=row_id,
             customer_name=customer_name,
             customer_id=customer_id,
-            py_filter=py_filter,
+            cmc_filter_i=cmc_filter_i,
+            py_filter_i=py_filter_i,
         )
 
     async def filter_array(self):
         mapper: AmherstMap = await mapper_from_query_csrname(self.csrname)
-        fil_array = getattr(mapper.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
+        fil_array = mapper.cmc_filters[self.cmc_filter_i].model_copy() if self.cmc_filter_i else FilterArray()
+        # fil_array = getattr(mapper.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
         if self.pk_value:
             fil_array.add_filter(FieldFilter(column=mapper.aliases.NAME, condition=self.condition, value=self.pk_value))
 
@@ -207,3 +209,8 @@ class SearchResponseMulti(SearchResponse):
             f'{', ' + str(self.more.n_more) + ' more available' if self.more else ''} '
         )
 
+
+@dataclasses.dataclass
+class MoreAvailableFront(MoreAvailable):
+    json_link: str = None
+    html_link: str = None

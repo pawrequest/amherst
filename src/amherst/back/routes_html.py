@@ -1,4 +1,5 @@
 import os
+from datetime import date
 
 from fastapi import APIRouter, Depends, Query
 from loguru import logger
@@ -49,31 +50,31 @@ async def orders(
     q: SearchRequest = Depends(SearchRequest.from_query),
 ):
     template_name: str = 'order_list.html'
-    reqs = []
-    for cat in q.csrnames:
+    requests = []
+    for csrname in q.csrnames:
         logger.warning('pagination maybe sketchy for multiple categories?')
-        if q.customer_name and q.customer_names:
-            raise ValueError('Cannot have both customer_name and customer_names')
-        for customer in q.customer_names or [q.customer_name]:
-            reqs.append(
+        if q.customer_name:
+            q.customer_names.append(q.customer_name)
+        for customer in q.customer_names:
+            requests.append(
                 SearchRequest(
-                    csrname=cat,
+                    csrname=csrname,
                     condition=q.condition,
-                    py_filter=q.py_filter,
-                    cmc_filter=q.cmc_filter,
+                    py_filter_i=q.py_filter_i,
+                    cmc_filter_i=q.cmc_filter_i,
                     pagination=q.pagination,
                     customer_name=customer,
                     customer_id=q.customer_id,
                 )
             )
     records: list[AMHERST_ORDER_MODELS] = []
-    for req in reqs:
+    for req in requests:
         with pycommence_context(req.csrname) as pycmc:
             res, more = await pycommence_gather(pycmc, req)
             records.extend(res)
 
     records.sort(key=lambda x: x.send_date, reverse=True)
-    response = SearchResponseMulti(records=records, search_request=reqs)
+    response = SearchResponseMulti(records=records, search_request=requests)
     logger.debug(str(response))
     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
 

@@ -4,19 +4,19 @@
     {#    >#}
     <div class="record record__customer">
         <h3 class="record-head"
-{#             hx-get="/orders?&csrnames=Sale&customer_name={{ record.customer_name | urlencode }}&cmc_filter=loose"#}
-             hx-get="/orders?&csrnames=Hire&csrnames=Sale&customer_name={{ record.customer_name | urlencode }}&cmc_filter=loose"
-             hx-target="#{{ record.customer_name | sanitise_id }}_records"
-             hx-swap="outerHTML"
+                {#             hx-get="/orders?&csrnames=Sale&customer_name={{ record.customer_name | urlencode }}&cmc_filter=loose"#}
+            hx-get="/orders?&csrnames=Hire&csrnames=Sale&customer_name={{ record.customer_name | urlencode }}&condition=equal"
+            hx-target="#{{ record.customer_name | sanitise_id }}_records"
+            hx-swap="innerHTML"
             hx-trigger="intersect once"
         >
             {{ record.name }}
         </h3>
-{#    {% include 'order_detail.html' %}#}
+        {#    {% include 'order_detail.html' %}#}
     </div>
     <div id="{{ record.customer_name | sanitise_id }}_records" class="records"></div>
 {% endfor %}
 
-{#{% if response.more %}#}
-{#    {% include 'infinite.html' with context %}#}
-{#{% endif %}#}
+{% if response.more %}
+    {% include 'infinite.html' with context %}
+{% endif %}

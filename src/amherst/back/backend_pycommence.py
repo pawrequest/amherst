@@ -1,15 +1,23 @@
+"""
+Module for backend integration with PyCommence data sources.
+
+Provides async functions for querying, fetching, and searching records
+using PyCommence, with support for pagination and filtering.
+"""
+
 from __future__ import annotations
 
 from typing import AsyncGenerator
 
 from fastapi import Depends, Query
 from loguru import logger
+from pycommence.cursor import RESULTS_GENERATOR
 from pycommence.exceptions import PyCommenceNotFoundError
-from pycommence.pycmc_types import RowInfo
+from pycommence.pycmc_types import RowInfo, RowData
 from starlette.exceptions import HTTPException
 from pycommence import MoreAvailable, PyCommence, pycommence_context, pycommences_context
 
-from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
+from amherst.back.backend_search_paginate import SearchRequest, SearchResponse, MoreAvailableFront
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.commence_adaptors import CursorName
 from amherst.models.maps import CategoryName, mapper_from_query_csrname
@@ -33,28 +41,42 @@ async def pycommence_gather(
     pycmc: PyCommence,
     q: SearchRequest,
 ) -> tuple[list[AMHERST_TABLE_MODELS], MoreAvailable | None]:
+    """
+    Gather records from PyCommence based on the provided search request.
+    Add MoreAvailable if q has pagination and there are more records to fetch.
+    """
+
     mapper = await mapper_from_query_csrname(csrname=q.csrname)
-    input_type = mapper.record_model
+    logger.warning('GATHERING')
+    more = None
+    records = []
+    for row in await generate_pycommence_rowdata(pycmc, q):
+        if isinstance(row, MoreAvailable):
+            more = MoreAvailableFront(n_more=row.n_more, json_link=q.next_q_str_json, html_link=q.next_q_str)
+            break
+        records.append(convert_pycommence_rowdata(mapper.record_model, row))
+    return records, more
+
+
+def convert_pycommence_rowdata[T: type[AMHERST_TABLE_MODELS]](input_type: T, result: RowData) -> T:
+    mod = input_type(row_info=result.row_info, **result.data)
+    return mod.model_validate(mod)
+
+
+async def generate_pycommence_rowdata(
+    pycmc: PyCommence,
+    q: SearchRequest,
+) -> RESULTS_GENERATOR:
+    logger.debug(f'Generating rows for {q.csrname}')
+    mapper = await mapper_from_query_csrname(csrname=q.csrname)
     fil_array = await q.filter_array()
-    py_filter = getattr(mapper.py_filters, q.py_filter) if q.py_filter else None
-    rowgen = pycmc.read_rows(
+    row_filter_fn = mapper.py_filters[q.py_filter_i] if q.py_filter_i else None
+    return pycmc.read_rows(
         csrname=q.csrname,
         pagination=q.pagination,
-        row_filter=py_filter,
+        row_filter=row_filter_fn,
         filter_array=fil_array,
     )
-    records = []
-    more = None
-    for row in rowgen:
-        if isinstance(row, MoreAvailable):
-            more = row
-            more.json_link = q.next_q_str_json
-            more.html_link = q.next_q_str
-            break
-        rec = input_type(row_info=row.row_info, **row.data)
-        records.append(rec)
-        # records.append(rec.model_validate(rec))
-    return records, more
 
 
 async def pycommence_fetch(
@@ -74,6 +96,7 @@ async def pycommence_fetch(
         mapper = await mapper_from_query_csrname(csrname=q.csrname)
         res = mapper.record_model(row_info=row.row_info, **row.data)
         return res
+    return None
 
 
 async def pycommence_fetch_f_info(
@@ -113,5 +136,4 @@ async def pycommence_get_one(
     if not res:
         logger.warning('No Results')
     return res
-
 

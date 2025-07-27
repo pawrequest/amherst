@@ -5,10 +5,10 @@
          hx-target="#content_main"
          hx-swap="innerHTML"
     >
-        {{ record.row_info.category }}
-        {% if record.send_date %}
-            : {{ record.send_date | ordinal_dt }}
-        {% endif %}
+        {{ record.name }}
+{#        {% if record.send_date %}#}
+{#            : {{ record.send_date | ordinal_dt }}#}
+{#        {% endif %}#}
     </div>
 {% endfor %}
 
