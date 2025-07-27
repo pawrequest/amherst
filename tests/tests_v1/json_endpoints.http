@@ -1,0 +1,57 @@
+
+POST http://127.0.0.1:8000/api/cand
+Content-Type: application/json
+
+{
+  "postcode": "NW6 4TE",
+  "address": {
+    "AddressLine1": "70 kingsgate road",
+    "Town": "kilburn",
+    "Postcode": "NW6 4TE"
+  }
+}
+
+
+#### new search
+#GET http://127.0.0.1:8000/api/new/Hire
+#
+#
+#### All Hire
+#GET http://127.0.0.1:8000/api/Hire?filtered=false&limit=50
+#
+#### Hire By ID
+#GET 127.0.0.1:8000/api/Hire/1E:2EFA:258B50:4A3
+#
+#### Hire Paginated
+#GET http://127.0.0.1:8000/api/Hire?filtered=false&limit=5&offset=5
+#
+#
+#### Hire Filtered
+#GET http://127.0.0.1:8000/api/Hire
+#
+#
+#### Hire Search
+#GET http://127.0.0.1:8000/api/Hire/search/school
+#
+#### Sale Search
+#GET http://127.0.0.1:8000/api/Sale/search/school
+#
+#### Customer Search
+#GET http://127.0.0.1:8000/api/Customer/search/school
+#
+#
+#### Customer Filtered Search Paginated
+#GET http://127.0.0.1:8000/api/Customer/search/school?limit=5&offset=2
+#
+#### Customers Filtered
+#GET http://127.0.0.1:8000/api/Customer
+#
+####
+#POST http://127.0.0.1:8000/api/new?limit=50&offset=2
+##POST http://127.0.0.1:8000/api/search
+#Content-Type: application/json
+#
+#{
+#  "csrname": "Hire",
+#  "pk_value": "school"
+#}
