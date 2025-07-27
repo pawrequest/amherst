@@ -51,7 +51,9 @@ async def pycommence_gather(
             more.json_link = q.next_q_str_json
             more.html_link = q.next_q_str
             break
-        records.append(input_type.model_validate(row))
+        rec = input_type(row_info=row.row_info, **row.data)
+        records.append(rec)
+        # records.append(rec.model_validate(rec))
     return records, more
 
 
@@ -68,17 +70,17 @@ async def pycommence_fetch(
         except PyCommenceNotFoundError as e:
             ...
     if row_id:
-        row = pycmc.read_row2(csrname=q.csrname, row_id=row_id).data
-        row['row_id'] = row_id
+        row = pycmc.read_row(csrname=q.csrname, row_id=row_id)
         mapper = await mapper_from_query_csrname(csrname=q.csrname)
-        return mapper.record_model.model_validate(row)
+        res = mapper.record_model(row_info=row.row_info, **row.data)
+        return res
 
 
 async def pycommence_fetch_f_info(
     row_info: RowInfo,
 ) -> AMHERST_TABLE_MODELS | None:
     with pycommence_context(csrname=row_info.category) as pycmc:
-        row = pycmc.read_row2(csrname=row_info.category, row_id=row_info.id).data
+        row = pycmc.read_row(csrname=row_info.category, row_id=row_info.id).data
     mapper = await mapper_from_query_csrname(csrname=CategoryName(row_info.category))
     return mapper.record_model.model_validate(row)
 

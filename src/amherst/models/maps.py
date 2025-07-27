@@ -6,18 +6,19 @@ from typing import Any, Awaitable, NamedTuple
 
 from fastapi import Query
 from shipaw.models.pf_msg import ShipmentResponse
+from shipaw.models.pf_shipment import Shipment
 from shipaw.ship_types import ShipDirection
+from pycommence.filters import FilterArray
+from pycommence.pycmc_types import Connection, RowFilter
 
 from amherst.models.amherst_models import (
-    AMHERST_SHIPMENT_TYPES,
     AMHERST_TABLE_MODELS,
     AmherstCustomer,
     AmherstHire,
     AmherstSale,
-    AmherstShipmentOut,
-    AmherstShipmentResponse,
     AmherstShipableBase,
     AmherstTrial,
+    SHIPMENT_TYPES
 )
 from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
@@ -34,8 +35,6 @@ from amherst.models.filters import (
     hire_row_filter_loose,
     sale_row_filter_loose,
 )
-from pycommence.filters import FilterArray
-from pycommence.pycmc_types import Connection, RowFilter
 
 
 class FilterMapPy(NamedTuple):
@@ -60,12 +59,12 @@ class TemplateMap(NamedTuple):
 
 
 CmcUpdateFunc = Callable[
-    [AMHERST_TABLE_MODELS, AMHERST_SHIPMENT_TYPES, ShipmentResponse], Awaitable[dict[str, str]]
+    [AMHERST_TABLE_MODELS, SHIPMENT_TYPES, ShipmentResponse], Awaitable[dict[str, str]]
 ]
 
 
 async def get_alias(record) -> type(StrEnum):
-    mapper = await mapper_from_query_csrname(record.category)
+    mapper = await mapper_from_query_csrname(record.row_info.category)
     aliases = mapper.aliases
     return aliases
 
@@ -96,7 +95,7 @@ async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp) -> str:
 
 
 async def make_update_dict(
-    record: AMHERST_TABLE_MODELS, shipment: AMHERST_SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
+    record: AMHERST_TABLE_MODELS, shipment: SHIPMENT_TYPES, shipment_response: ShipmentResponse
 ) -> dict[str, Any]:
     """Adds tracking numbers and link."""
     aliases = await get_alias(record)
@@ -109,7 +108,7 @@ async def make_update_dict(
 
 
 async def make_hire_update_extra(
-    shipment: AmherstShipmentOut, shipment_response: AmherstShipmentResponse
+    shipment: Shipment, shipment_response: ShipmentResponse
 ):
     aliases = HireAliases
     shipdir = shipment.direction
@@ -222,7 +221,7 @@ async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> Amher
 
 
 # async def make_base_update_dict(
-#     record: AMHERST_TABLE_MODELS, shipment: AMHERST_SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
+#     record: AMHERST_TABLE_MODELS, shipment: SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
 # ) -> dict[str, Any]:
 #     """Adds tracking numbers and link."""
 #     aliases = await get_alias(record)

@@ -3,14 +3,15 @@ from datetime import date
 from os import PathLike
 
 from loguru import logger
+from pycommence.pycmc_types import RowInfo
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from shipaw.models.pf_models import AddressBase, AddressSender
 from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment, ShipmentAwayDropoff
+from shipaw.models.pf_shipment import Shipment, ShipmentAwayDropoff, ShipmentAwayCollection
 from shipaw.models.pf_top import CollectionInfo, Contact, ContactSender
 from shipaw.ship_types import ShipmentType, limit_daterange_no_weekends
 
-from amherst.models.commence_adaptors import (AM_DATE, CategoryName, HireAliases, HireStatus, SaleStatus)
+from amherst.models.commence_adaptors import AM_DATE, CategoryName, HireAliases, HireStatus, SaleStatus
 
 
 class AmherstShipableBase(BaseModel, ABC):
@@ -18,15 +19,13 @@ class AmherstShipableBase(BaseModel, ABC):
         populate_by_name=True,
         use_enum_values=True,
     )
-    category: CategoryName
+    row_info: RowInfo
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
-    track_out: str = Field('', alias='Track Outbound')
-    track_in: str = Field('', alias='Track Inbound')
+
     tracking_numbers: str = Field('', alias='Tracking Numbers')
 
     # mandatory fields
-    row_id: str
     customer_name: str
     delivery_contact_name: str
     delivery_contact_business: str
@@ -64,27 +63,6 @@ class AmherstShipableBase(BaseModel, ABC):
             )
         return self._delivery_address
 
-    #
-    # @model_validator(mode='after')
-    # def get_contact(self):
-    #     if self.delivery_contact is None:
-    #         self.delivery_contact = Contact(
-    #             contact_name=self.delivery_contact_name,
-    #             business_name=self.delivery_contact_business,
-    #             mobile_phone=self.delivery_contact_phone,
-    #             email_address=self.delivery_contact_email,
-    #         )
-    #     return self
-    #
-    # @model_validator(mode='after')
-    # def get_address(self):
-    #     if not self.delivery_address:
-    #         self.delivery_address = AddressBase(
-    #             **split_addr_str(self.delivery_address_str),
-    #             postcode=self.delivery_address_pc,
-    #         )
-    #     return self
-
     def shipment_dict(self):
         return {
             'recipient_address': self.delivery_address.model_dump(),
@@ -97,15 +75,9 @@ class AmherstShipableBase(BaseModel, ABC):
     def shipment(self):
         return Shipment.model_validate(self.shipment_dict())
 
-    # def am_shipment(self):
-    #     return AmherstShipmentOut.model_validate(
-    #         {**self.shipment_dict(), 'category': self.category, 'row_id': self.row_id}
-    #     )
-
 
 class AmherstCustomer(AmherstShipableBase):
     # mandatory overrides
-    category: CategoryName = 'Customer'
     delivery_contact_name: str = Field(..., alias='Deliv Contact')
     delivery_contact_business: str = Field(..., alias='Deliv Name')
     delivery_contact_phone: str = Field(..., alias='Deliv Telephone')
@@ -140,17 +112,14 @@ class AmherstOrderBase(AmherstShipableBase, ABC):
     arranged_out: str = Field('', alias='DB label printed')
     invoice: PathLike = Field('', alias='Invoice')
 
-    # order fields mandatory
-
     # order fields optional
-    delivery_method: str | None = None
     date_sent: AM_DATE | None = None
     booking_date: AM_DATE | None = None
 
 
 class AmherstSale(AmherstOrderBase):
     # mandatory overrides master
-    category:CategoryName = 'Sale'
+    # category:CategoryName = 'Sale'
 
     # optional overrides master
     send_date: date = date.today()
@@ -175,7 +144,7 @@ class AmherstSale(AmherstOrderBase):
 
 
 class AmherstTrial(AmherstOrderBase):
-    category:CategoryName = CategoryName.Trial
+    # category:CategoryName = CategoryName.Trial
     customer_name: str = Field(..., alias='Involves Customer')
     delivery_contact_name: str = Field(..., alias='Trial Contact')
     delivery_contact_business: str = Field(..., alias='Trial Name')
@@ -189,15 +158,11 @@ class AmherstTrial(AmherstOrderBase):
 
 
 class AmherstHire(AmherstOrderBase):
-    # mandatory overrides master
-    category: CategoryName = 'Hire'
-
     # optional overrides master
     boxes: int = Field(1, alias='Boxes')
     delivery_contact_phone: str = Field(..., alias='Delivery Tel')
     send_date: AM_DATE = Field(date.today(), alias='Send Out Date')
 
-    # mandatory overrides order
     delivery_method: str = Field(..., alias='Send Method')
 
     # optional overrides order
@@ -209,60 +174,13 @@ class AmherstHire(AmherstOrderBase):
     missing_kit_str: str = Field('', alias='Missing Kit')
     due_back_date: AM_DATE = Field(..., alias=HireAliases.DUE_BACK_DATE)
 
-
-class AmherstShipmentAddIn(BaseModel, ABC):
-    category: CategoryName
-    row_id: str
-
-    def shipment(self):
-        shipdict = self.model_dump(exclude={'category', 'row_id'})
-        return Shipment.model_validate(shipdict)
-
-
-class AmherstShipmentOut(AmherstShipmentAddIn, Shipment):
-    shipment_type: ShipmentType = ShipmentType.DELIVERY
-
-
-class AmherstShipmentAwayDropoff(AmherstShipmentAddIn, ShipmentAwayDropoff):
-    sender_address: AddressSender
-    sender_contact: ContactSender
-
-
-class AmherstShipmentAwayCollection(AmherstShipmentAwayDropoff):
-    collection_info: CollectionInfo
-    shipment_type: ShipmentType = ShipmentType.COLLECTION
-    sender_address: AddressSender | None = None
-    sender_contact: ContactSender | None = None
-
-    @model_validator(mode='after')
-    def get_sender_contact(self):
-        if self.sender_contact is None:
-            logger.info('Copying collection contact to sender')
-            self.sender_contact = ContactSender(
-                contact_name=self.collection_info.collection_contact.contact_name,
-                business_name=self.collection_info.collection_contact.business_name,
-                mobile_phone=self.collection_info.collection_contact.mobile_phone,
-                email_address=self.collection_info.collection_contact.email_address,
-            )
-        if self.sender_address is None:
-            self.sender_address = AddressSender(**self.collection_info.collection_address.model_dump())
-        return self
-
-
-class AmherstShipmentResponse(ShipmentResponse):
-    row_id: str
-    category: str
+    track_out: str = Field('', alias='Track Outbound')
+    track_in: str = Field('', alias='Track Inbound')
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
 AMHERST_TABLE_MODELS = AMHERST_ORDER_MODELS | AmherstCustomer
-AMHERST_SHIPMENT_TYPES = AmherstShipmentOut | AmherstShipmentAwayDropoff | AmherstShipmentAwayCollection
-
-
-#
-# def dt_ordinal(dt: datetime | date) -> str:
-#     return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
-#     # return dt.strftime('%a {th} %b %Y').replace('{th}', date_int_w_ordinal(dt.day))
+SHIPMENT_TYPES = Shipment | ShipmentAwayDropoff | ShipmentAwayCollection
 
 
 def shipment_refs_dict_from_str(ref_str: str, max_len: int = 24) -> dict[str, str]:

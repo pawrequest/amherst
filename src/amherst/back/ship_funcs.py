@@ -54,12 +54,12 @@ async def maybe_get_label(el_client, shipment_proposed, shipment_response):
 
 async def try_update_cmc(record, shipment_proposed, shipment_response):
     try:
-        mapper: AmherstMap = await mapper_from_query_csrname(record.category)
+        mapper: AmherstMap = await mapper_from_query_csrname(record.row_info.category)
         if mapper.cmc_update_fn:
             update_dict = await mapper.cmc_update_fn(record, shipment_proposed, shipment_response)
             logger.info(f'Updating CMC: {update_dict}')
-            with pycommence_context(csrname=record.category) as pycmc1:
-                pycmc1.update_row(update_dict, row_id=record.row_id)
+            with pycommence_context(csrname=record.row_info.category) as pycmc1:
+                pycmc1.update_row(update_dict, row_id=record.row_info.id)
 
         else:
             logger.warning('NO CMC UPDATE FUNCTION')

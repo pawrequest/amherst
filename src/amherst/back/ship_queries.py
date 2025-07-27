@@ -120,6 +120,6 @@ async def shipment_str_to_shipment(shipment_str: str = Form(...)) -> Shipment:
 
 async def record_str_to_record(record_str: str = Form(...)) -> AmherstShipableBase:
     record_dict = json.loads(record_str)
-    mapper = await mapper_from_query_csrname(record_dict['category'])
+    mapper = await mapper_from_query_csrname(record_dict['row_info'][0])
     record = mapper.record_model.model_validate(record_dict)
     return record

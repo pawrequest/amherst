@@ -27,7 +27,6 @@ async def ship_form(
     record: AMHERST_TABLE_MODELS = Depends(pycommence_get_one),
 ):
     pf_settings = pf_sett()
-    logger.debug(f'Ship Form shape: {record.row_id=}')
     template = 'ship/form_shape.html'
     alerts: Alerts = request.app.alerts
 

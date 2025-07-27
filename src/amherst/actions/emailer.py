@@ -11,7 +11,7 @@ from shipaw.ship_types import ShipDirection
 from win32com.client import Dispatch
 
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import AMHERST_SHIPMENT_TYPES
+from amherst.models.amherst_models import SHIPMENT_TYPES
 
 
 @dataclass
@@ -77,7 +77,7 @@ async def subject(*, invoice_num: str | None = None, missing: bool = False, labe
 
 async def make_email(
     *,
-    shipment: AMHERST_SHIPMENT_TYPES,
+    shipment: SHIPMENT_TYPES,
     addresses: str,
     invoice: Path | None = None,
     label: Path | None = None,

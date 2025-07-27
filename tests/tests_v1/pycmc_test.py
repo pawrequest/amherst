@@ -37,7 +37,7 @@ async def test_record(pycmc):
     recordtype = mapper.record_model
     record_dict = next(filtered)
     record: AmherstShipableBase = recordtype.model_validate(record_dict)
-    assert record.row_id
+    assert record.row_info.id
     print(record)
     print(type(record))
     amship = record.am_shipment()
