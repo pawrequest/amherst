@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException
 from amherst.back.backend_search_paginate import SearchRequest, SearchResponse
 from pycommence.filters import ConditionType
 from pycommence.pycmc_types import CursorType, MoreAvailable
-from pycommence.pycommence_v2 import PyCommence
+from pycommence.pycommence import PyCommence
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
 # from amherst.models.amherst_models import AMHERST_TABLE_MODELS
