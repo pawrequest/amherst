@@ -128,7 +128,7 @@
 
 
 <script>
-    shipment = {{ record.shipment() | jsonable | tojson }};
+    shipment = {{ record.shipment_dict() | jsonable | tojson }};
     record = {{ record | jsonable | tojson}};
     console.log('record', record);
     console.log('shipment', shipment);
