@@ -5,19 +5,14 @@ import pytest
 import pytest_asyncio
 from loguru import logger
 
-from amherst.back.backend_pycommence import pycommence_context
-from amherst.back.backend_search_paginate import Pagination
-# from amherst.models.amherst_models import AmherstTableBase
-# from amherst.models.maps2 import AmherstMap, maps2
-from pycommence.pycommence import PyCommence
+from pycommence import PyCommence, pycommence_context
 
+from amherst.back.backend_search_paginate import Pagination
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
 
 
-@pytest_asyncio.fixture(
-    params=['Hire', 'Sale', 'Customer']
-)
+@pytest_asyncio.fixture(params=['Hire', 'Sale', 'Customer'])
 def pycmc(request) -> PyCommence:
     table = request.param
     # mapper = maps2(table)

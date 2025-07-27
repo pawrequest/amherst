@@ -4,7 +4,7 @@ from loguru import logger
 from starlette.requests import Request
 
 from amherst.back.backend_search_paginate import SearchResponse
-from amherst.back.backend_pycommence import pycommence_response
+from amherst.back.backend_pycommence import pycommence_search
 from amherst.config import TEMPLATES
 
 router = APIRouter()
@@ -38,7 +38,7 @@ async def testing(
 
 @router.get('/')
 async def get_new(
-    search_response: SearchResponse = Depends(pycommence_response),
+    search_response: SearchResponse = Depends(pycommence_search),
 ) -> SearchResponse:
     return search_response
 

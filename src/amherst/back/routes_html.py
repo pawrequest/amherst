@@ -1,13 +1,12 @@
 import os
-from pathlib import Path
 
-import pawdf
 from fastapi import APIRouter, Depends, Query
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
+from pycommence import PyCommence, pycommence_context
 
-from amherst.back.backend_pycommence import gather_records_gen, pycmc_f_query, pycommence_context, pycommence_response
+from amherst.back.backend_pycommence import pycommence_gather, pycmc_f_query, pycommence_search
 from amherst.back.backend_search_paginate import (
     SearchRequest,
     SearchResponse,
@@ -16,7 +15,6 @@ from amherst.back.backend_search_paginate import (
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_ORDER_MODELS
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
-from pycommence.pycommence import PyCommence
 
 router = APIRouter()
 
@@ -25,23 +23,12 @@ router = APIRouter()
 async def open_file(request: Request, filepath: str = Query(...)):
     os.startfile(filepath)
     return HTMLResponse(content=f'<span>Re</span>')
-#
-# @router.get('/open-file', response_class=HTMLResponse)
-# async def open_file(request: Request, filepath: str = Query(...)):
-#     os.startfile(filepath)
-#     return HTMLResponse(content=f'<p>Opened {filepath}</p>')
 
 
 @router.post('/print-file', response_class=HTMLResponse)
 async def print_file(request: Request, filepath: str = Query(...)):
     os.startfile(filepath, 'print')
     return HTMLResponse(content=f'<span>Re</span>')
-
-
-@router.post('/print-file-on-a4', response_class=HTMLResponse)
-async def print_file_on_a4(request: Request, filepath: str = Query(...)):
-    pawdf.array_pdf.convert_many(Path(filepath), print_files=True)
-    return HTMLResponse(content=f'<p>Printed</p>')
 
 
 @router.get('/search')
@@ -51,7 +38,7 @@ async def search(
     search_request: SearchRequest = Depends(SearchRequest.from_query),
     mapper: AmherstMap = Depends(mapper_from_query_csrname),
 ):
-    search_response: SearchResponse = await pycommence_response(search_request, pycmc)
+    search_response: SearchResponse = await pycommence_search(search_request, pycmc)
     logger.debug(str(search_response))
     return TEMPLATES.TemplateResponse(mapper.templates.listing, {'request': request, 'response': search_response})
 
@@ -82,7 +69,7 @@ async def orders(
     records: list[AMHERST_ORDER_MODELS] = []
     for req in reqs:
         with pycommence_context(req.csrname) as pycmc:
-            res, more = await gather_records_gen(pycmc, req)
+            res, more = await pycommence_gather(pycmc, req)
             records.extend(res)
 
     records.sort(key=lambda x: x.send_date, reverse=True)

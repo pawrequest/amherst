@@ -13,7 +13,7 @@ from starlette.staticfiles import StaticFiles
 from amherst.config import AM_SETTINGS, RESTART, TEMPLATES
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
-from amherst.back.routes_ship import router as ship_router2
+from amherst.back.ship_routes import router as ship_router2
 from shipaw import pf_config
 
 

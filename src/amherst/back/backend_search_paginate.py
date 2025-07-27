@@ -9,49 +9,25 @@ from fastapi import Depends, Form, Query
 from loguru import logger
 from pycommence.resolvers import resolve_row_id
 from pydantic import BaseModel, Field, model_validator
-from starlette.requests import Request
-
-from amherst.models.commence_adaptors import CustomerAliases, CursorName
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
+
+from amherst.models.commence_adaptors import CursorName, CustomerAliases
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-
-# from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.filters import FilterVariant
-
-# from amherst.models.maps2 import CategoryName, maps2
 from amherst.models.maps import CategoryName, mapper_from_query_csrname
 
 PAGE_SIZE = 50
 
 
-def log_action(func):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        logger.warning(f'Calling {func.__name__} with args: {args} and kwargs: {kwargs}')
-        return await func(*args, **kwargs) if callable(func) else func
-
-    return wrapper
-
-
-def log_action_sync(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        logger.warning(f'Calling {func.__name__} with args: {args} and kwargs: {kwargs}')
-        return func(*args, **kwargs) if callable(func) else func
-
-    return wrapper
+async def get_condition(condition: str = Query('')) -> ConditionType:
+    return getattr(ConditionType, condition.upper(), ConditionType.CONTAIN)
 
 
 class Pagination(_Pagination):
     @classmethod
-    def from_query(cls, limit: int = Query(0), offset: int = Query(0)) -> Self:
+    def from_query(cls, limit: int = Query(PAGE_SIZE), offset: int = Query(0)) -> Self:
         return cls(limit=limit, offset=offset)
-
-
-async def get_condition(condition: str = Query('')) -> ConditionType:
-    # return ConditionType(condition.upper()) if condition else ConditionType.CONTAIN
-    return getattr(ConditionType, condition.upper(), ConditionType.CONTAIN)
 
 
 class SearchRequest(BaseModel):
@@ -135,22 +111,19 @@ class SearchRequest(BaseModel):
     def prev_request(self):
         return self.model_copy(update={'pagination': self.pagination.prev_page()})
 
-    def mapper(self):
-        return mapper_from_query_csrname(self.csrname)
-
-    @classmethod
-    @resolve_row_id
-    def from_id_or_pk(
-        cls,
-        csrname: CursorName = Query(...),
-        pk: str = Query(''),
-        row_id: str = Query(None),
-    ):
-        return cls(
-            csrname=csrname,
-            pk_value=pk,
-            row_id=row_id,
-        )
+    # @classmethod
+    # @resolve_row_id
+    # def from_id_or_pk(
+    #     cls,
+    #     csrname: CursorName = Query(...),
+    #     pk: str = Query(''),
+    #     row_id: str = Query(None),
+    # ):
+    #     return cls(
+    #         csrname=csrname,
+    #         pk_value=pk,
+    #         row_id=row_id,
+    #     )
 
     @classmethod
     def from_query(
@@ -204,6 +177,12 @@ class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
     search_request: SearchRequest
     more: MoreAvailable | None = None
 
+    # @model_validator(mode='after')
+    # def set_more(self):
+    #     if self.more:
+    #         self.more.html_link = ''
+    #     return self
+
     def __str__(self):
         return (
             f'Search Response: {self.length}x {self.search_request.csrname if self.search_request.csrname else ', '.join(self.search_request.csrnames)} records'
@@ -228,17 +207,3 @@ class SearchResponseMulti(SearchResponse):
             f'{', ' + str(self.more.n_more) + ' more available' if self.more else ''} '
         )
 
-
-class SearchConversation(BaseModel):
-    req: SearchRequest
-    resp: SearchResponse
-
-
-async def record_from_json_str_form(
-    record_str: str = Form(...),
-) -> AMHERST_TABLE_MODELS:
-    record_dict = json.loads(record_str)
-    category = record_dict['category']
-    modeltype = (await mapper_from_query_csrname(category)).record_model
-    res = modeltype.model_validate(record_dict)
-    return res
