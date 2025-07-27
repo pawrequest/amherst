@@ -58,9 +58,8 @@ def sanitise_id(value):
     return re.sub(r'\W|^(?=\d)', '_', value).lower()
 
 
-def make_jsonable(pyd_model: BaseModel) -> dict:
-    thedict = pyd_model.model_dump()
-    return jsonable_encoder(thedict)
+def make_jsonable(thing) -> dict:
+    return jsonable_encoder(thing)
 
 
 def date_int_w_ordinal(n):
