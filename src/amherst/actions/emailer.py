@@ -90,7 +90,7 @@ async def send_invoice_email(invoice: Path, address: str):
         to_address=address,
         subject='Amherst Radios Invoice Attached',
         body=body,
-        attachment_paths=[invoice],
+        attachment_paths=[invoice.with_suffix('.pdf')],
     )
     OutlookHandler.create_open_email(email, html=True)
 
