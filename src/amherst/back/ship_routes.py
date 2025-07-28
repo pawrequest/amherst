@@ -31,7 +31,7 @@ async def ship_form(
     alerts: Alerts = request.app.alerts
 
     if any(['prdev' in str(_).lower() for _ in Path(__file__).parents]):
-        msg = 'BETA MODE - This is a development version of Amherst Shipper'
+        msg = '"prdev" in cwd tree - BETA MODE - This is a development version of Amherst Shipper'
         logger.warning(msg)
         alerts += Alert(message=msg, type=AlertType.WARNING)
 
