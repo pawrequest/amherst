@@ -12,11 +12,15 @@ authors = [
 readme = "README.md"
 requires-python = ">= 3.13"
 dependencies = [
+    # siblings:
+    'pycommence', # commence python api
+#    'pycommence @ git+https://github.com/pawrequest/pycommence', # commence python api
+    "shipaw",
+
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.2', # desktop-ify fastapi app
     'pawdf @ git+https://github.com/pawrequest/pawdf', # pdf resize and print
     'suppawt @ git+https://github.com/pawrequest/suppawt', # emailer
     'pawlogger @ git+https://github.com/pawrequest/pawlogger', # logger config
-    'pycommence @ git+https://github.com/pawrequest/pycommence', # commence python api
     'python-multipart',
     'matplotlib', # stockcheck charts
     'pydantic-settings',
@@ -27,7 +31,6 @@ dependencies = [
     'pandas', # excel docs
     'loguru', # logging
     'pyperclip', # clipboard management
-    "shipaw",
 ]
 
 [project.scripts]
@@ -64,8 +67,9 @@ flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
 [tool.uv.sources]
-#shipaw = { path = "C:/prdev/repos/amdev/shipaw", editable = true }
-shipaw = { git = "git+https://github.com/pawrequest/shipaw/" }
+shipaw = { path = "../shipaw", editable = true }
+pycommence = { path = "../pycommence", editable = true }
+#shipaw = { git = "git+https://github.com/pawrequest/shipaw/" }
 
 [dependency-groups]
 dev = [
