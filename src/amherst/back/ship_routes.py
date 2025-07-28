@@ -12,7 +12,7 @@ from shipaw.models.pf_msg import Alert, Alerts
 from shipaw.ship_types import AlertType, VALID_POSTCODE
 
 from amherst.actions.emailer import send_label_email
-from amherst.back.ship_funcs import (get_el_client, maybe_get_label, try_book_shipment, try_update_cmc)
+from amherst.back.ship_funcs import get_el_client, maybe_get_label, try_book_shipment, try_update_cmc
 from amherst.back.ship_queries import record_str_to_record, shipment_f_form, shipment_str_to_shipment
 from amherst.back.backend_pycommence import pycommence_get_one
 from amherst.config import TEMPLATES
@@ -29,6 +29,11 @@ async def ship_form(
     pf_settings = pf_sett()
     template = 'ship/form_shape.html'
     alerts: Alerts = request.app.alerts
+
+    if any(['prdev' in str(_).lower() for _ in Path(__file__).parents]):
+        msg = 'BETA MODE - This is a development version of Amherst Shipper'
+        logger.warning(msg)
+        alerts += Alert(message=msg, type=AlertType.WARNING)
 
     if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
         msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
