@@ -1,0 +1,28 @@
+{% extends "email_snips/email_base.html" %}
+
+{# context = opt[label:path], shipment:SHIPMENT_TYPES,  #}
+{% block content %}
+    <div>
+        {% if label %}
+            <p>Please find a pre-paid Parcelforce label attached – it needs to be printed and attached to the box.</p>
+            <p>Please ensure any old postage labels are removed or thoroughly obscured as otherwise the parcel may be
+                delivered back to you instead of coming home!</p>
+        {% endif %}
+        {% if shipment and shipment.direction == 'out' %}
+            <p>Collection is booked from our office on {{ shipment.shipping_date | ordinal_dt }} and should be delivered
+                the following day to:<br>
+                {{ shipment.recipient_contact.business_name }}<br>{{ shipment.recipient_address.address_line1 }}</p>
+        {% elif shipment.direction == 'in' %}
+            <p>Collection is booked from
+                {{ shipment.collection_info.collection_contact.business_name }} {{ shipment.collection_info.collection_address.address_line1 }}
+                on {{ shipment.shipping_date | ordinal_dt }}.</p>
+            <p>We are unable to give precise timings, however you should receive notifications by SMS and email where
+                provided.</p>
+
+            <p>If for any reason the courier is missed you can drop the labelled box at any UK post office.</p>
+        {% elif shipment.direction == 'dropoff' %}
+            <p>Please drop the labelled box at any UK post office.</p>
+        {% endif %}
+    </div>
+{% endblock content %}
+

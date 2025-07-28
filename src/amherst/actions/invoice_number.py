@@ -1,7 +1,6 @@
 import os
 import re
-import sys
-import pyperclip
+
 
 REAL_INV_FOLDER = r'R:\ACCOUNTS\invoices'
 
@@ -46,13 +45,3 @@ def has_20_after(index: int, nums: {int}):
             return False
     return True
 
-
-def main():
-    res = next_inv_num()
-    pyperclip.copy(res)
-    print(f'next available invoice number is {res} and is copied to clipboard')
-    sys.exit(0)
-
-
-if __name__ == '__main__':
-    main()

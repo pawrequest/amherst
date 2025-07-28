@@ -1,0 +1,7 @@
+{% extends "email_snips/email_base.html" %}
+
+{% block content %}
+    {% if invoice %}
+        <p>Please find invoice number {{ invoice.stem }} attached.</p>
+    {% endif %}
+{% endblock %}

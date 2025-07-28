@@ -9,8 +9,6 @@ import pydantic as _p
 from fastapi.encoders import jsonable_encoder
 from pawlogger import get_loguru
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from shipaw.models.pf_msg import Alert
-from shipaw.ship_types import AlertType
 from starlette.templating import Jinja2Templates
 
 from amherst.set_env import get_envs_dir
@@ -70,4 +68,3 @@ TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id
 TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
-RESTART = Alert(message='Refresh Page To Restart', type=AlertType.NOTIFICATION)

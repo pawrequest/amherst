@@ -4,14 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pythoncom
-from fastapi import Form
 from loguru import logger
-from shipaw.models.pf_shipment import Shipment
-from shipaw.ship_types import ShipDirection
 from win32com.client import Dispatch
 
 from amherst.config import TEMPLATES
-from amherst.models.amherst_models import SHIPMENT_TYPES
 
 
 @dataclass
@@ -75,45 +71,44 @@ async def subject(*, invoice_num: str | None = None, missing: bool = False, labe
     )
 
 
-async def make_email(
-    *,
-    shipment: SHIPMENT_TYPES,
-    addresses: str,
-    invoice: Path | None = None,
-    label: Path | None = None,
-    missing: list | None = None,
-):
-    email_body = TEMPLATES.get_template('email_body.html').render(
-        {
-            'shipment': shipment,
-            'invoice': invoice,
-            'label': label,
-            'missing': missing,
-        }
+async def send_label_email(shipment):
+    label = None if shipment.direction == 'out' else shipment.label_file
+    body = TEMPLATES.get_template('email_snips/label_email.html').render(label=label, shipment=shipment)
+    email = Email(
+        to_address=shipment.remote_contact.email_address,
+        subject=f'Amherst Radios Shipping{' - Shipping Label Attached' if label else ''}',
+        body=body,
+        attachment_paths=[label] if label else [],
     )
-    subject_str = await subject(
-        invoice_num=invoice.stem if invoice else None, missing=bool(missing), label=bool(label)
-    )
-    email_obj = Email(
-        to_address=addresses,
-        subject=subject_str,
-        body=email_body,
-        attachment_paths=[x for x in [label, invoice] if x],
-    )
-    return email_obj
 
-
-label_subject = f'Amherst Radios - Shipping Label Attached'
-
-
-async def make_label_email(*, shipment: Shipment):
-    label = shipment.label_file
-    addresses = shipment.remote_contact.email_address
-    em = await make_email(shipment=shipment, addresses=addresses, label=label)
-    return em
-
-
-async def send_label_email(shipment: Shipment):
-    email: Email = await make_label_email(shipment=shipment)
     OutlookHandler.create_open_email(email, html=True)
 
+
+async def send_invoice_email(invoice: Path, address: str):
+    body = TEMPLATES.get_template('email_snips/invoice_email.html').render(invoice=invoice)
+    email = Email(
+        to_address=address,
+        subject='Amherst Radios Invoice Attached',
+        body=body,
+        attachment_paths=[invoice],
+    )
+    OutlookHandler.create_open_email(email, html=True)
+
+
+# async def build_all_emails(
+#     *,
+#     shipment: SHIPMENT_TYPES,
+#     invoice: Path | None = None,
+#     label: Path | None = None,
+#     missing: list | None = None,
+# ):
+#     sections = [TEMPLATES.get_template('email_snips/hi_snip.html').render()]
+#     if invoice:
+#         sections.append(TEMPLATES.get_template('email_snips/invoice_snip.html').render(invoice=invoice))
+#     if missing:
+#         sections.append(TEMPLATES.get_template('email_snips/missing_snip.html').render(missing=missing))
+#     if label:
+#         sections.append(TEMPLATES.get_template('email_snips/label_snip.html').render(label=label, shipment=shipment))
+#     sections.append(TEMPLATES.get_template('email_snips/bye_snip.html').render())
+#     email_body = '\n'.join(sections)
+#     return email_body

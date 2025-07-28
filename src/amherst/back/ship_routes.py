@@ -123,7 +123,6 @@ async def email_label(
     label: Path = Form(...),
 ):
     shipment._label_file = label
-    logger.warning(shipment)
     await send_label_email(shipment)
     return '<span>Re</span>'
 

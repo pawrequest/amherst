@@ -34,10 +34,11 @@ dependencies = [
 ]
 
 [project.scripts]
-payment-status = "amherst.actions.payment_status:payment_status_cli"
-shipper = "amherst.cli:main_cli"
-invoice-number = "amherst.actions.invoice_number:main"
-print-file = "amherst.actions.file_printer:main"
+shipper = "amherst.cli:shipper_cli"
+print-file = "amherst.cli:file_printer_cli"
+payment-status = "amherst.cli:payment_status_cli"
+email-file = "amherst.cli:send_invoice_email_cli"
+invoice-number = "amherst.cli:next_invoice_cli"
 
 #[project.optional-dependencies]
 #dev = [

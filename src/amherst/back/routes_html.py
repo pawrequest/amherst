@@ -1,14 +1,12 @@
 import os
-from datetime import date
 
-from fastapi import APIRouter, Depends, Query, Body
+from fastapi import APIRouter, Depends, Query
 from loguru import logger
-from pycommence.pycmc_types import RowInfo
+from pycommence import PyCommence, pycommence_context
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
-from pycommence import PyCommence, pycommence_context
 
-from amherst.back.backend_pycommence import pycommence_gather, pycmc_f_query, pycommence_search
+from amherst.back.backend_pycommence import pycmc_f_query, pycommence_gather, pycommence_search
 from amherst.back.backend_search_paginate import (
     SearchRequest,
     SearchResponse,
@@ -22,13 +20,13 @@ router = APIRouter()
 
 
 @router.get('/open-file', response_class=HTMLResponse)
-async def open_file(request: Request, filepath: str = Query(...)):
+async def open_file(filepath: str = Query(...)):
     os.startfile(filepath)
     return HTMLResponse(content=f'<span>Re</span>')
 
 
 @router.post('/print-file', response_class=HTMLResponse)
-async def print_file(request: Request, filepath: str = Query(...)):
+async def print_file(filepath: str = Query(...)):
     os.startfile(filepath, 'print')
     return HTMLResponse(content=f'<span>Re</span>')
 

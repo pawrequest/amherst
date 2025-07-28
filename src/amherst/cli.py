@@ -20,79 +20,66 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-from enum import StrEnum
+import os
+import sys
+from pathlib import Path
 
-from jinja2.utils import url_quote
-from loguru import logger
-from thefuzz import fuzz
+import pyperclip
 
-from amherst.set_env import set_amherstpr_env
+from amherst.actions import print_file
+from amherst.actions.emailer import send_invoice_email
+from amherst.actions.invoice_number import next_inv_num
+from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
 from amherst.models.commence_adaptors import CategoryName
 
 
-def parse_arguments():
+def shipper_cli():
+    from amherst.set_env import set_amherstpr_env
+    from amherst.ui_runner import shipper
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
     arg_parser.add_argument('record_name', type=str)
     arg_parser.add_argument('--sandbox', action='store_true', help='Run in sandbox mode')
-    args = arg_parser.parse_args()
-    set_amherstpr_env(sandbox=args.sandbox)
-    if 'trial' in args.category.name.lower():
-        args.category = CategoryName.Trial
-    args.category = CategoryName(args.category.title())
-    return args
+    args1 = arg_parser.parse_args()
+    set_amherstpr_env(sandbox=args1.sandbox)
+    if 'trial' in args1.category.name.lower():
+        args1.category = CategoryName.Trial
+    args1.category = CategoryName(args1.category.title())
+    args = args1
+    asyncio.run(shipper(args.category, args.record_name))
 
 
-ARGS = parse_arguments()
-
-from amherst.ui_runner import run_desktop_ui  # after setting env
-
-SCORER = fuzz.partial_ratio
-
-
-class Mode(StrEnum):
-    SHIP_BY_SRCH = 'ship_by_srch'
-    SHIP_CONTENT = 'ship_content'
-    NONE = 'none'
+def file_printer_cli():
+    parser = argparse.ArgumentParser(description='Print a file using the default printer.')
+    parser.add_argument('file_path', type=str, help='Path to the file to print')
+    args = parser.parse_args()
+    file_path = args.file_path
+    if not os.path.exists(file_path):
+        print(f'File not found: {file_path}')
+        sys.exit(1)
+    print_file(file_path)
 
 
-MODE = Mode.SHIP_BY_SRCH
-# MODE = Mode.SHIP_CONTENT
-# MODE = Mode.NONE
+def send_invoice_email_cli():
+    parser = argparse.ArgumentParser(description='Send an invoice email with attachment.')
+    parser.add_argument('invoice', type=Path, help='Path to the invoice PDF')
+    parser.add_argument('address', type=str, help='Recipient email address')
+    args = parser.parse_args()
+    asyncio.run(send_invoice_email(args.invoice, args.address))
 
 
-async def get_url_suffix2(category, pk, mode=MODE):
-    match mode:
-        case Mode.SHIP_BY_SRCH:
-            return f'ship/ship_form?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
-        # case Mode.SHIP_CONTENT:
-        #     return (
-        #         f'ship/form_content2?csrname={url_quote(category)}&pk_value={url_quote(pk)}&condition=equal&max_rtn=1'
-        #     )
-        case Mode.NONE:
-            return ''
-    return None
+def payment_status_cli():
+    parser = argparse.ArgumentParser(description='Check invoice payment status')
+    parser.add_argument('invoice_number', type=str, help='Invoice number to check')
+    parser.add_argument('accounts_spreadsheet', type=Path, help='Path to accounts spreadsheet', nargs='?')
+    args = parser.parse_args()
+    inv_num = invoice_num_from_path(args.invoice_number)
+    accs_file = args.accounts_spreadsheet or Path(r'R:\ACCOUNTS\ye2025\ac2425.xls')
+    print(get_payment_status(inv_num, accs_file))
 
 
-async def main(category: CategoryName, record_name: str, mode: Mode = MODE):
-    url_suffix = await get_url_suffix2(category, record_name)
-    await run_desktop_ui(url_suffix)
-
-
-# async def parse_response(res):
-#     if res.length == 1 or res.search_request.pk_value == 'Test':
-#         return res.records[0]
-#     elif res.length == 0:
-#         raise ValueError(f'No {res.search_request.csrname} record found for {res.search_request.pk_value}')
-#     else:
-#         raise NotImplementedError(
-#             f'Multiple {res.search_request.csrname} records found for {res.search_request.pk_value}'
-#         )
-
-
-def main_cli():
-    asyncio.run(main(ARGS.category, ARGS.record_name))
-
-
-if __name__ == '__main__':
-    main_cli()
+def next_invoice_cli():
+    res = next_inv_num()
+    pyperclip.copy(res)
+    print(f'next available invoice number is {res} and is copied to clipboard')
+    sys.exit(0)
