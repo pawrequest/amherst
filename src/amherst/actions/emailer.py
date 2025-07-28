@@ -85,9 +85,11 @@ async def send_label_email(shipment):
 
 
 async def send_invoice_email(invoice: Path, address: str):
+    addrs = set(a.strip() for a in address.split(',') if a.strip())
+    addr_str = ', '.join(addrs)
     body = TEMPLATES.get_template('email_snips/invoice_email.html').render(invoice=invoice)
     email = Email(
-        to_address=address,
+        to_address=addr_str,
         subject='Amherst Radios Invoice Attached',
         body=body,
         attachment_paths=[invoice.with_suffix('.pdf')],
