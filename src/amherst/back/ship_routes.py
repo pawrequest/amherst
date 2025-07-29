@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from combadge.core.errors import BackendError
 from fastapi import APIRouter, Body, Depends, Form
 from loguru import logger
 from shipaw.models.pf_shipment import Shipment
@@ -7,7 +8,7 @@ from shipaw.pf_config import pf_sett
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
 from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressBase, AddressChoice
+from shipaw.models.pf_models import AddressBase, AddressChoice, AddressRecipient
 from shipaw.models.pf_msg import Alert, Alerts
 from shipaw.ship_types import AlertType, VALID_POSTCODE
 
@@ -100,6 +101,7 @@ async def order_confirm(
 
 @router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
 async def get_addr_choices(
+    request: Request,
     postcode: VALID_POSTCODE = Body(...),
     address: AddressBase = Body(None),
     el_client: ELClient = Depends(get_el_client),
@@ -112,8 +114,19 @@ async def get_addr_choices(
         el_client: ELClient - Parcelforce ExpressLink client
     """
     logger.debug(f'Fetching candidates for {postcode=}, {address=}')
-    res = el_client.get_choices(postcode=postcode, address=address)
-    return res
+    try:
+        res = el_client.get_choices(postcode=postcode, address=address)
+        return res
+    except BackendError as e:
+        alert = Alert(
+            message=f'Error fetching candidates: {e}',
+            type=AlertType.ERROR,
+        )
+        request.app.alerts += alert
+        logger.warning(f'Error fetching candidates: {e}')
+        addr = AddressRecipient(address_line1='BAD API RESPONSE', address_line2=str(e), town='Error', postcode='Error')
+        chc = AddressChoice(address=addr, score=0)
+        return [chc]
 
 
 @router.post('/email_label', response_class=HTMLResponse)
