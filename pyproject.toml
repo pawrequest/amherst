@@ -72,7 +72,7 @@ format.quote-style = "single"
 #shipaw = { path = "../shipaw", editable = true }
 #pycommence = { path = "../pycommence", editable = true }
 shipaw = { git = "git+https://github.com/pawrequest/shipaw/" }
-pycommence = { git = "git+https://github.com/pawrequest/pycommence/" }
+pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 
 [dependency-groups]
 dev = [
