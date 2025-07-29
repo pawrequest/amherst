@@ -34,19 +34,28 @@ from amherst.models.commence_adaptors import CategoryName
 
 
 def shipper_cli():
-    from amherst.set_env import set_amherstpr_env
-    from amherst.ui_runner import shipper
+    args = parse_ship_args()
+    import_and_set_env(args)  # BEFORE IMPORTING SHIPPER
+    from amherst.ui_runner import shipper  # AFTER SETTING ENVIRONMENT
+
+    asyncio.run(shipper(args.category, args.record_name))
+
+
+def parse_ship_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
     arg_parser.add_argument('record_name', type=str)
     arg_parser.add_argument('--sandbox', action='store_true', help='Run in sandbox mode')
-    args1 = arg_parser.parse_args()
-    set_amherstpr_env(sandbox=args1.sandbox)
-    if 'trial' in args1.category.name.lower():
-        args1.category = CategoryName.Trial
-    args1.category = CategoryName(args1.category.title())
-    args = args1
-    asyncio.run(shipper(args.category, args.record_name))
+    args = arg_parser.parse_args()
+    cat = CategoryName.Trial if 'trial' in args.category else CategoryName(args.category.title())
+    args.category = cat
+    return args
+
+
+def import_and_set_env(args):
+    from amherst.set_env import set_amherstpr_env
+
+    set_amherstpr_env(sandbox=args.sandbox)
 
 
 def file_printer_cli():
