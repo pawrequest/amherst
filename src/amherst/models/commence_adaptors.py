@@ -245,3 +245,8 @@ def get_alias(alias_cls: StrEnum, field_name: str) -> str:
     if hasattr(alias_cls, field_name):
         return getattr(alias_cls, field_name).value
     return field_name
+
+
+class RadioType(StrEnum):
+    HYTERA = 'Hytera Digital'
+    KIRISUN = 'Kirisun UHF'
