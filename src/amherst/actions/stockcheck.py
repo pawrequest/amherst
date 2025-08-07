@@ -5,6 +5,7 @@ import time
 from collections.abc import Generator
 from datetime import date, timedelta
 from enum import StrEnum
+from pprint import pprint
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -14,22 +15,20 @@ from pycommence.pycmc_types import CmcDateFormat, Pagination, RowData
 from pycommence.pycommence import PyCommence
 
 from amherst.models.commence_adaptors import HireAliases, HireStatus, RadioType
-from amherst.models.filters import HIRE_ARRAY_LOOSE
 
 logger = get_loguru(profile='local')
 
-#
-# def prep_dataframe(records):
-#     df = pd.DataFrame(records)
-#     df[HireAliases.SEND_DATE] = pd.to_datetime(df[HireAliases.SEND_DATE], format=CmcDateFormat, errors='coerce').dt.date
-#     df[HireAliases.DUE_BACK_DATE] = pd.to_datetime(
-#         df[HireAliases.DUE_BACK_DATE], format=CmcDateFormat, errors='coerce'
-#     ).dt.date
-#     df[HireAliases.UHF] = df[HireAliases.UHF].astype(int)
-#     return df
+
+def filarray_basic():
+    return FilterArray.from_filters(
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.PACKED),
+    )
 
 
-def daterang_gen(start_date, end_date) -> Generator[date, None, None]:
+def daterange_generator(start_date, end_date) -> Generator[date, None, None]:
     for delta in range((end_date - start_date).days + 1):
         thisdate = start_date + timedelta(days=delta)
         yield thisdate
@@ -47,14 +46,15 @@ class StockChecker:
     ):
         if radiotype is None and column_to_count == HireAliases.UHF:
             raise ValueError(
-                'You must provide a radiotype when checking radio stock. '
-                'Use the RadioType enum to specify the type.'
+                'You must provide a radiotype when checking radio stock. ' 'Use the RadioType enum to specify the type.'
             )
+        self.start_date = start_date
+        self.end_date = end_date
         self.radiotype = radiotype
         self.column_to_count = column_to_count
         self.stock = stock
-        self.date_range_gen = daterang_gen(start_date, end_date)
         self.pycommence = pycmc or PyCommence.with_csr('Hire')
+
         self.records = self.get_cmc_data()
         self.data = self.prepare_dataframe()
 
@@ -81,20 +81,21 @@ class StockChecker:
         return records
 
     def get_filter_array(self):
-        filter_array = FilterArray.from_filters(
-            FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-            FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-            FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-            FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.PACKED),
-            # FieldFilter(column=HireAliases.RADIO_TYPE, value=self.radiotype),
+        filter_array = filarray_basic()
+        filter_array.add_filter(
+            FieldFilter(
+                column=HireAliases.SEND_DATE,
+                condition=ConditionType.AFTER,
+                value=self.start_date.strftime(CmcDateFormat),
+            )
         )
         if self.radiotype:
             filter_array.add_filter(FieldFilter(column=HireAliases.RADIO_TYPE, value=self.radiotype))
-
         return filter_array
 
     def run(self):
-        dates = list(self.date_range_gen)
+        dates = list(daterange_generator(self.start_date, self.end_date))
+        # dates = list(self.date_range_gen)
         send_data = [self.to_send(datecheck) for datecheck in dates]
         return_data = [self.to_return(datecheck) for datecheck in dates]
 
@@ -109,10 +110,6 @@ class StockChecker:
 
         self.plot_data(data_df)
 
-    # def to_send1(self, datecheck: date):
-    #     filtered_data = self.data[self.data[HireAliases.SEND_DATE] == datecheck]
-    #     return filtered_data[HireAliases.UHF].sum()
-
     def to_send(self, datecheck: date):
         filtered_data = self.data[self.data[HireAliases.SEND_DATE] == datecheck]
         return filtered_data[self.column_to_count].sum()
@@ -120,10 +117,6 @@ class StockChecker:
     def to_return(self, datecheck: date):
         filtered_data = self.data[self.data[HireAliases.DUE_BACK_DATE] == datecheck]
         return filtered_data[self.column_to_count].sum()
-
-    # def to_return1(self, datecheck: date):
-    #     filtered_data = self.data[self.data[HireAliases.DUE_BACK_DATE] == datecheck]
-    #     return filtered_data[HireAliases.UHF].sum()
 
     @functools.lru_cache
     def how_many_out(self, datecheck):
@@ -133,16 +126,6 @@ class StockChecker:
         ]
         rads_out = filtered_data[self.column_to_count].sum()
         return rads_out
-
-    #
-    # @functools.lru_cache
-    # def how_many_out(self, datecheck):
-    #     filtered_data = self.data[
-    #         (self.data[HireAliases.SEND_DATE].dt.date < datecheck)
-    #         & (self.data[HireAliases.DUE_BACK_DATE].dt.date > datecheck)
-    #     ]
-    #     rads_out = filtered_data[HireAliases.UHF].sum()
-    #     return rads_out
 
     def how_many_in(self, datecheck: date, stock: int = None):
         stock = stock or self.stock
@@ -160,8 +143,7 @@ class StockChecker:
         ax2 = ax1.twinx()
 
         ax1.plot(dates, stock, label='Stock Level', color='purple', marker='o')
-        ax2.bar(dates, send, width=2, color='blue', label='Send', alpha=0.5)
-        ax2.bar(dates, returns, width=2, color='orange', label='Return', alpha=0.5, bottom=send)
+        ax1.axhline(0, color='red', linestyle='--', linewidth=2, label='Zero Stock')  # Add zero stock line
 
         ax1.set_xlabel('Date')
         ax1.set_ylabel('Stock Level')
@@ -169,6 +151,9 @@ class StockChecker:
 
         ax1.set_xticks(dates)
         ax1.set_xticklabels([datey.strftime('%a %d %b') for datey in dates], rotation=90, ha='right')
+
+        ax2.bar(dates, send, width=2, color='blue', label='Send', alpha=0.5)
+        ax2.bar(dates, returns, width=2, color='orange', label='Return', alpha=0.5, bottom=send)
 
         plt.legend(loc='upper left')
         plt.grid(True)
@@ -178,15 +163,16 @@ class StockChecker:
 if __name__ == '__main__':
     starttime = time.perf_counter()
     sc = StockChecker(
-        radiotype=RadioType.KIRISUN,
-        stock=20,
-        start_date=date(2025, 8, 7),
-        end_date=date(2025, 9, 21),
-        column_to_count=HireAliases.UHF_6WAY,
+        radiotype=RadioType.HYTERA,
+        column_to_count=HireAliases.UHF,
+        stock=500,
+        start_date=date(2025, 1, 1),
+        end_date=date(2025, 12, 31),
     )
     sc.run()
     endtime = time.perf_counter()
     print(f'THERE WERE {len(sc.data)} RECORDS')
     print(f'Elapsed time: {endtime - starttime}')
-
+    pprint(sc.data.head(10))
+    pprint(sc.data.tail(10))
 
