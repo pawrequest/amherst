@@ -8,6 +8,8 @@ from collections.abc import Generator
 
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, Sort, SortOrder
 from pycommence.pycmc_types import Connection, get_cmc_date
+
+from amherst.config import logger
 from amherst.models.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
 
 CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
@@ -18,6 +20,8 @@ def customer_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> 
     for row in rowgen:
         if contacted := row.get(CustomerAliases.DATE_LAST_CONTACTED):
             datey = get_cmc_date(contacted)
+            if not datey:
+                logger.warning(f'Invalid date for {CustomerAliases.DATE_LAST_CONTACTED}: {contacted}')
             if datey < CUTOFF_DATE:
                 continue
             yield row
