@@ -4,26 +4,8 @@ from pprint import pprint
 from amherst.set_env import set_amherstpr_env
 
 set_amherstpr_env(sandbox=False)
-
-from amherst.models.commence_adaptors import HireStatus, CustomerAliases, HireAliases
-from pycommence.filters import ConditionType, FieldFilter, FilterArray
-from pycommence.pycommence import PyCommence
-
-# from datetime import date, timedelta
-#
-# import matplotlib.pyplot as plt
-#
-# from amherst.commence import HireFields, HireStatus
-# from pycommence import FilterArray, PyCommence
-# from pycommence.pycmc_types import CmcFilter, ConditionType, RadioType
-# from shipaw.expresslink_client importELClient
-# from shipaw.pf_config import PFSettings
-#
-#
-from shipaw.expresslink_client import ELClient
-from shipaw.pf_config import PFSettings
-
-from amherst.set_env import set_amherstpr_env
+from shipaw.expresslink_client import ELClient  # noqa: E402
+from shipaw.pf_config import PFSettings # noqa: E402
 
 
 def expresslink_live() -> ELClient:
@@ -38,34 +20,22 @@ def get_a_label(dl_path, shipment_number):
     return
 
 
-def good_hires_fils():
-    return (
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-    )
+# def cust_array():
+#     return FilterArray(
+#         filters={
+#             1: FieldFilter(column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2022'),
+#         }
+#     )
 
 
-def good_hires_array():
-    return FilterArray(filters={i: fil for i, fil in enumerate(good_hires_fils(), 1)})
-
-
-def cust_array():
-    return FilterArray(
-        filters={
-            1: FieldFilter(column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='2022'),
-        }
-    )
-
-
-def pyc_test():
-    pyc2 = PyCommence.with_csr('Hire')
-    pyc2.filter_cursor(good_hires_array(), 'Hire')
-    assert pyc2.csrs['Hire'].row_count > 0
-    pyc2.set_csr('Customer')
-    pyc2.filter_cursor(cust_array(), 'Customer')
-    assert pyc2.csrs['Customer'].row_count > 0
-
+# def pyc_test():
+#     pyc2 = PyCommence.with_csr('Hire')
+#     pyc2.filter_cursor(good_hires_array(), 'Hire')
+#     assert pyc2.csrs['Hire'].row_count > 0
+#     pyc2.set_csr('Customer')
+#     pyc2.filter_cursor(cust_array(), 'Customer')
+#     assert pyc2.csrs['Customer'].row_count > 0
+#
 
 # pyc_test()
 
