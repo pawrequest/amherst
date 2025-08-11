@@ -1,19 +1,5 @@
 """
-Wrap FastAPI app in FlaskWebGUI for desktop application.
-Use `Paw Request fork <https://github.com/pawrequest/flaskwebgui>`_ for URL_SUFFIX to dynamically set loading page to the retrieved record
-
-Environment variables:
-    AM_ENV: Path to environment file defining:
-        - log file location
-    SHIP_ENV: Path to environment file defining:
-        - parcelforce account numbers
-        - parcelforce contract numbers
-        - parcelforce username and password
-        - parcelforce wsdl
-        - parcelforce endpoint
-        - parcelforce binding
-        - parcelforce live status
-
+v2 - sub parsers etc.
 """
 
 from __future__ import annotations
@@ -114,7 +100,7 @@ def main():
 
     if args.command == 'shipper':
         shipper_cli(args)
-    elif args.command == "print_file":
+    elif args.command == 'print_file':
         file_printer_cli(args)
 
 if __name__ == "__main__":
