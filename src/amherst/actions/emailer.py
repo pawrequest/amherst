@@ -1,4 +1,8 @@
 from __future__ import annotations
+import smtplib
+from email.message import EmailMessage
+from email.utils import make_msgid
+from pathlib import Path
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -114,3 +118,42 @@ async def send_invoice_email(invoice: Path, address: str):
 #     sections.append(TEMPLATES.get_template('email_snips/bye_snip.html').render())
 #     email_body = '\n'.join(sections)
 #     return email_body
+
+SERVER = 'amherst-smtp.vpop3mail.com'
+
+
+class SMTPHandler:
+    def __init__(self, smtp_server: str, smtp_port: int, username: str, password: str, use_tls: bool = True):
+        self.smtp_server = smtp_server
+        self.smtp_port = smtp_port
+        self.username = username
+        self.password = password
+        self.use_tls = use_tls
+
+    def create_open_email(self, email: Email, html: bool = False):
+        msg = EmailMessage()
+        msg['Subject'] = email.subject
+        msg['From'] = self.username
+        msg['To'] = email.to_address
+
+        if html:
+            msg.add_alternative(email.body, subtype='html')
+        else:
+            msg.set_content(email.body)
+
+        for att_path in email.attachment_paths:
+            with open(att_path, 'rb') as f:
+                data = f.read()
+                maintype, subtype = 'application', 'octet-stream'
+                msg.add_attachment(data, maintype=maintype, subtype=subtype, filename=Path(att_path).name)
+
+        try:
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                if self.use_tls:
+                    server.starttls()
+                server.login(self.username, self.password)
+                server.send_message(msg)
+        except Exception as e:
+            logger.exception(f'Failed to send email via SMTP: {e}')
+            raise
+
