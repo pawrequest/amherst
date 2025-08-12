@@ -2,43 +2,6 @@ Option Explicit
 ' define variables length and atpos for use in calculations
 DIM length, atpos
 
-Sub AddMissingKitEmailContact()
-    dim logName, hireName, missing
-    missing = Form.Field("Missing Kit").Value
-    hireName = Form.Field("Name").Value
-    logName = "Missing Kit Email Sent Re: " & hireName
-    Call AddContactLog(logName, missing)
-End Sub
-
-Sub AddContactLog(title, notes)
-    dim cursor, cCustomer, custName, addSet, result
-    dim nameColIndex, dateColIndex, timeColIndex, notesColIndex, custColIndex
-    Set cCustomer = Form.Connection("To", "Customer")
-    custName = cCustomer.FieldValue("Name")
-
-    set cursor = Form.Application.Database.GetCursor(0, "Log", 0)
-    set addSet = cursor.GetAddRowSet(1, 0)
-    nameColIndex = addSet.GetColumnIndex("Name", 0)
-    dateColIndex = addSet.GetColumnIndex("Date", 0)
-    notesColIndex = addSet.GetColumnIndex("Notes", 0)
-    timeColIndex = addSet.GetColumnIndex("Time", 0)
-    custColIndex = addSet.GetColumnIndex("Relates To Customer", 0)
-
-    addSet.ModifyRow 0, nameColIndex, title, 0
-    addSet.ModifyRow 0, dateColIndex, "today", 0
-    addSet.ModifyRow 0, timeColIndex, "now", 0
-    addSet.ModifyRow 0, custColIndex, custName, 0
-    addSet.ModifyRow 0, notesColIndex, notes, 0
-
-    result = addSet.commit(0)
-End Sub
-
-Sub Form_OnLoad
-' Imports()
-'     TestDB()
-End Sub
-
-
 Sub Form_OnSave
 
 ' stuff to do when the hire screen is saved
@@ -1097,10 +1060,8 @@ Sub UnpackHire()
     End if
 
     if MsgBox("Use missing kit field?" & vbNewLine & missing, 4) <> 6 Then
-        missing = InputBox("What was missing? (replace form data)", "What's Missing?")
-        if missing <> "" Then
-            Form.Field("Missing Kit").Value = missing
-        End if
+        missing = InputBox("What was missing? (replace form 'Missing Kit' Field)", "What's Missing?")
+        Form.Field("Missing Kit").Value = missing
     End if
 
     if missing <> "" Then
@@ -1213,7 +1174,7 @@ Sub EmailMissingKit()
     if MsgBox ("Confirm Email:" & vbNewLine & vbNewLine & objMailItem & vbNewLine & objMailItem.Body, 4) = 6 Then
         objMailItem.Send
         AddMissingKitEmailContact()
-        MsgBox("EMAILED")
+        MsgBox("EMAILED and added contact log")
     End if
 
     ' close objects'
@@ -1221,6 +1182,37 @@ Sub EmailMissingKit()
     Set objMailItem = Nothing
     Set cCust = Nothing
 
+End Sub
+
+Sub AddMissingKitEmailContact()
+    dim logName, hireName, missing
+    missing = Form.Field("Missing Kit").Value
+    hireName = Form.Field("Name").Value
+    logName = "Missing Kit Email Sent Re: " & hireName
+    Call AddContactLog(logName, missing)
+End Sub
+
+Sub AddContactLog(title, notes)
+    dim cursor, cCustomer, custName, addSet, result
+    dim nameColIndex, dateColIndex, timeColIndex, notesColIndex, custColIndex
+    Set cCustomer = Form.Connection("To", "Customer")
+    custName = cCustomer.FieldValue("Name")
+
+    set cursor = Form.Application.Database.GetCursor(0, "Log", 0)
+    set addSet = cursor.GetAddRowSet(1, 0)
+    nameColIndex = addSet.GetColumnIndex("Name", 0)
+    dateColIndex = addSet.GetColumnIndex("Date", 0)
+    notesColIndex = addSet.GetColumnIndex("Notes", 0)
+    timeColIndex = addSet.GetColumnIndex("Time", 0)
+    custColIndex = addSet.GetColumnIndex("Relates To Customer", 0)
+
+    addSet.ModifyRow 0, nameColIndex, title, 0
+    addSet.ModifyRow 0, dateColIndex, "today", 0
+    addSet.ModifyRow 0, timeColIndex, "now", 0
+    addSet.ModifyRow 0, custColIndex, custName, 0
+    addSet.ModifyRow 0, notesColIndex, notes, 0
+
+    result = addSet.commit(0)
 End Sub
 
 
