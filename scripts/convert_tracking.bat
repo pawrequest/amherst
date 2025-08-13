@@ -2,9 +2,9 @@
 pushd %AMHERSTPR%
 uv run convert_tracking %1
 if %errorlevel% neq 0 (
-    echo An error occurred during conversion.
+    echo An error occurred.
     pause
 ) else (
-    echo Conversion completed successfully.
+    echo Success.
 )
 popd

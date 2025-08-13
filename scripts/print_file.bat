@@ -1,4 +1,10 @@
 @echo off
 pushd %AMHERSTPR%
 uv run print-file %1
-pause
+if %errorlevel% neq 0 (
+    echo An error occurred.
+    pause
+) else (
+    echo Success.
+)
+popd
