@@ -18,6 +18,7 @@ def convert_parcelforce_tracking_to_royal_mail(old_track_url: str):
 
     webbrowser.open(new_track_url, new=2)
 
+
 if __name__ == '__main__':
     url = 'https://www.parcelforce.com/track-trace?trackNumber=UK3467769'
     convert_parcelforce_tracking_to_royal_mail(url)
