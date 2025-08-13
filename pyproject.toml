@@ -14,9 +14,8 @@ requires-python = ">= 3.13"
 dependencies = [
     # siblings:
     'pycommence', # commence python api
-#    'pycommence @ git+https://github.com/pawrequest/pycommence', # commence python api
+    #    'pycommence @ git+https://github.com/pawrequest/pycommence', # commence python api
     "shipaw",
-
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.2', # desktop-ify fastapi app
     'pawdf @ git+https://github.com/pawrequest/pawdf', # pdf resize and print
     'suppawt @ git+https://github.com/pawrequest/suppawt', # emailer
@@ -40,6 +39,7 @@ print-file = "amherst.cli:file_printer_cli"
 payment-status = "amherst.cli:payment_status_cli"
 email-file = "amherst.cli:send_invoice_email_cli"
 invoice-number = "amherst.cli:next_invoice_cli"
+convert_tracking = "amherst.cli:convert_tracking_link"
 
 #[project.optional-dependencies]
 #dev = [

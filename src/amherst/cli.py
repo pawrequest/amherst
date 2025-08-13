@@ -29,6 +29,7 @@ import pyperclip
 from amherst.actions import print_file
 from amherst.actions.emailer import send_invoice_email
 from amherst.actions.invoice_number import next_inv_num
+from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_royal_mail
 from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
 from amherst.models.commence_adaptors import CategoryName
 
@@ -92,3 +93,10 @@ def next_invoice_cli():
     pyperclip.copy(res)
     print(f'next available invoice number is {res} and is copied to clipboard')
     sys.exit(0)
+
+
+def convert_tracking_link():
+    parser = argparse.ArgumentParser(description='Convert old Parcelforce tracking URL to Royal Mail tracking URL.')
+    parser.add_argument('old_track_url', type=str, help='The old Parcelforce tracking URL to convert.')
+    args = parser.parse_args()
+    convert_parcelforce_tracking_to_royal_mail(args.old_track_url)
