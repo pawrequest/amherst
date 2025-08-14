@@ -25,6 +25,7 @@ def filarray_basic():
         FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
         FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
         FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.PACKED),
+        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.QUOTE_GIVEN),
     )
 
 
@@ -104,7 +105,8 @@ class StockChecker:
         for datecheck, send, ret in zip(dates, send_data, return_data):
             current_stock = current_stock - send + ret
             stock_levels.append(current_stock)
-            logger.info(f'{datecheck}: Sent out={send}, Returned={ret}, Stock left={current_stock}')
+            if send or ret:
+                logger.info(f'{datecheck}: Sent out={send}, Returned={ret}, Stock left={current_stock}')
 
         data_df = pd.DataFrame({'Date': dates, 'Send': send_data, 'Return': return_data, 'Stock': stock_levels})
 
@@ -139,6 +141,8 @@ class StockChecker:
         stock = data_df['Stock']
 
         plt.figure()
+        plt.figure(figsize=(16, 6))
+
         ax1 = plt.gca()
         ax2 = ax1.twinx()
 
@@ -150,13 +154,14 @@ class StockChecker:
         ax2.set_ylabel('Send/Return Quantity')
 
         ax1.set_xticks(dates)
-        ax1.set_xticklabels([datey.strftime('%a %d %b') for datey in dates], rotation=90, ha='right')
+        ax1.set_xticklabels([datey.strftime('%d %b') for datey in dates], rotation=90, ha='left')
 
         ax2.bar(dates, send, width=2, color='blue', label='Send', alpha=0.5)
         ax2.bar(dates, returns, width=2, color='orange', label='Return', alpha=0.5, bottom=send)
 
         plt.legend(loc='upper left')
         plt.grid(True)
+        plt.tight_layout()
         plt.show()
 
 
@@ -164,10 +169,10 @@ if __name__ == '__main__':
     starttime = time.perf_counter()
     sc = StockChecker(
         radiotype=RadioType.HYTERA,
-        column_to_count=HireAliases.UHF,
-        stock=500,
-        start_date=date(2025, 1, 1),
-        end_date=date(2025, 12, 31),
+        column_to_count=HireAliases.PARROT,
+        stock=0,
+        start_date=date.today(),
+        end_date=date.today() + timedelta(days=60),
     )
     sc.run()
     endtime = time.perf_counter()
