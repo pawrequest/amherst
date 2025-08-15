@@ -179,6 +179,7 @@ class AmherstHire(AmherstOrderBase):
     # hire fields
     missing_kit_str: str = Field('', alias='Missing Kit')
     due_back_date: AM_DATE = Field(..., alias=HireAliases.DUE_BACK_DATE)
+    return_notes: str = Field('', alias=HireAliases.RETURN_NOTES)
 
     track_out: str = Field('', alias='Track Outbound')
     track_in: str = Field('', alias='Track Inbound')
