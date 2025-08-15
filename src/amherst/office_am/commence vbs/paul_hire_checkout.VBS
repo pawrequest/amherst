@@ -1176,6 +1176,10 @@ Sub EmailMissingKit()
         AddMissingKitEmailContact()
         MsgBox("EMAILED and added contact log")
     End if
+    Dim today
+    today = Right("0" & Day(Now), 2) & "/" & Right("0" & Month(Now), 2)
+    Form.Field("Return Notes").Value = today & ": Missing Kit Email Sent" & vbNewLine & _
+        Form.Field("Return Notes").Value
 
     ' close objects'
     Set olApp = Nothing
