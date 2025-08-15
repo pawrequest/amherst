@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from datetime import date
 from enum import StrEnum
 from typing import Any, Awaitable, NamedTuple
 
@@ -102,21 +103,23 @@ async def make_update_dict(
     tracks = await add_tracking_to_list(record, shipment_response)
     update_package = {aliases.TRACKING_NUMBERS: tracks}
     if isinstance(record, AmherstHire):
-        extra = await make_hire_update_extra(shipment, shipment_response)
+        extra = await make_hire_update_extra(shipment, shipment_response, record)
         update_package.update(extra)
     return update_package
 
 
 async def make_hire_update_extra(
-    shipment: Shipment, shipment_response: ShipmentResponse
+    shipment: Shipment, shipment_response: ShipmentResponse, record:AmherstHire
 ):
     aliases = HireAliases
     shipdir = shipment.direction
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
+        ret_notes = f'{date.today().strftime('%d/%m')}: pickup arranged for {shipment.shipping_date.strftime('%d/%m')}\r\n{record.return_notes}'
         return {
             aliases.TRACK_IN: shipment_response.tracking_link(),
             aliases.ARRANGED_IN: 'True',
             aliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+            aliases.RETURN_NOTES: ret_notes
         }
     elif shipdir == ShipDirection.OUTBOUND:
         return {
