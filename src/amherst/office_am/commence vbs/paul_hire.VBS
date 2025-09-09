@@ -1003,9 +1003,9 @@ Sub PackHire()
         Exit Sub
     End if
     ' offer to email client about upcoming shipment'
-    if MsgBox("Send pre-shipping email?", 4) = 6 Then
-        EmailSendOut()
-    End if
+'    if MsgBox("Send pre-shipping email?", 4) = 6 Then
+'        EmailSendOut()
+'    End if
 
     ' offer to save and close'
     if MsgBox("Set Hire packed now by " & packedBy & "?", 4) = 6 Then
