@@ -38,9 +38,11 @@ def shipper_cli():
     args = parse_ship_args()
     import_and_set_env(args)  # BEFORE IMPORTING SHIPPER
     from amherst.ui_runner import shipper  # AFTER SETTING ENVIRONMENT
-
-    asyncio.run(shipper(args.category, args.record_name))
-    sys.exit(0)
+    try:
+        asyncio.run(shipper(args.category, args.record_name))
+        sys.exit(0)
+    except Exception as e:
+        sys.exit(22)
 
 
 def parse_ship_args():

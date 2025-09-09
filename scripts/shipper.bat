@@ -7,4 +7,5 @@ if %errorlevel% neq 0 (
     echo Error: shipper exited with code %errorlevel%
     pause
 )
+pause
 popd
