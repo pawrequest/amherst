@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 
 from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote
@@ -38,8 +39,9 @@ async def run_desktop_ui(url_suffix=''):
         close_application()
 
 
-if __name__ == '__main__':
-    asyncio.run(run_desktop_ui())
+#
+# if __name__ == '__main__':
+#     asyncio.run(run_desktop_ui())
 
 
 async def shipper(category: CategoryName, record_name: str):
