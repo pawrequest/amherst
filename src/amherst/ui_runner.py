@@ -1,3 +1,5 @@
+"""Wrap FastAPI app in FlaskWebGUI for desktop application."""
+
 from __future__ import annotations
 
 import asyncio
