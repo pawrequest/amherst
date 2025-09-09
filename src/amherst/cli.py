@@ -40,6 +40,7 @@ def shipper_cli():
     from amherst.ui_runner import shipper  # AFTER SETTING ENVIRONMENT
 
     asyncio.run(shipper(args.category, args.record_name))
+    sys.exit(0)
 
 
 def parse_ship_args():
