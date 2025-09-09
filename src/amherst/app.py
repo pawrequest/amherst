@@ -51,7 +51,7 @@ async def request_exception_handler(request: Request, exc: RequestValidationErro
         msg2 += f'{err.get('type')} in {err.get('loc')}: {err.get('ctx').get('reason')}. Input = {err.get('input')} '
 
     logger.error(msg2)
-    alerts = Alerts(alert=[Alert(code=1, message=msg2, type=AlertType.ERROR), RESTART])
+    alerts = Alerts(alert=[Alert(code=1, message=msg2, type=AlertType.ERROR)])
     return TEMPLATES.TemplateResponse('alerts.html', {'request': request, 'alerts': alerts})
 
     # return JSONResponse(status_code=422, content={'detail': exc.errors()})
