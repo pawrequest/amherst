@@ -51,7 +51,7 @@ def sanitise_id(value):
 
 
 def make_jsonable(thing) -> dict:
-    res= jsonable_encoder(thing)
+    res = jsonable_encoder(thing)
     return res
 
 
