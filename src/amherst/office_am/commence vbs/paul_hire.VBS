@@ -1008,12 +1008,11 @@ Sub PackHire()
     End if
 
     ' offer to save and close'
-    if MsgBox("Hire packed now by " & packedBy & " - save and close form?", 4) = 6 Then
+    if MsgBox("Set Hire packed now by " & packedBy & "?", 4) = 6 Then
         Form.Field("Packed Date").Value = "today"
         Form.Field("Packed Time").Value = "now"
         Form.Field("Status").Value = "Booked in and packed"
         Form.Field("Packed By").Value = packedBy
-        Form.Save
     End if
 End Sub
 
