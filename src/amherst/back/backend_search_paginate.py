@@ -1,3 +1,4 @@
+""" Backend search request and response models with pagination support. """
 from __future__ import annotations
 
 import dataclasses
