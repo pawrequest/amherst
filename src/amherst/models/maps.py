@@ -269,7 +269,8 @@ class AmherstMaps:
 
 
 async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> AmherstMap:
-    return getattr(AmherstMaps, csrname.lower())
+    cat = 'trial' if 'trial' in csrname.lower() else csrname.lower()
+    return getattr(AmherstMaps, cat)
 
 
 # async def make_base_update_dict(

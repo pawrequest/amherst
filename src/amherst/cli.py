@@ -49,8 +49,6 @@ def parse_ship_args():
     arg_parser.add_argument('record_name', type=str)
     arg_parser.add_argument('--sandbox', action='store_true', help='Run in sandbox mode')
     args = arg_parser.parse_args()
-    cat = CategoryName.Trial if 'trial' in args.category else CategoryName(args.category.title())
-    args.category = cat
     return args
 
 
