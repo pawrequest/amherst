@@ -68,6 +68,7 @@ async def order_review(
 
 
 async def maybe_alert_phone_number(shipment_proposed):
+    """Alert if phone number is not 11 digits or does not start with 01, 02 or 07. (parcelforce requirement)"""
     alerts = Alerts.empty()
     if len(
         shipment_proposed.recipient_contact.mobile_phone
