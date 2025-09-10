@@ -71,7 +71,7 @@ format.quote-style = "single"
 [tool.uv.sources]
 #shipaw = { path = "../shipaw", editable = true }
 #pycommence = { path = "../pycommence", editable = true }
-shipaw = { git = "git+https://github.com/pawrequest/shipaw/", tag = "v0.1.16" }
+shipaw = { git = "git+https://github.com/pawrequest/shipaw/", tag = "v0.1.17" }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 
 [dependency-groups]
