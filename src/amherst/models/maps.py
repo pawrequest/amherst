@@ -19,7 +19,7 @@ from amherst.models.amherst_models import (
     AmherstSale,
     AmherstShipableBase,
     AmherstTrial,
-    SHIPMENT_TYPES
+    SHIPMENT_TYPES,
 )
 from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
@@ -59,9 +59,7 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
-CmcUpdateFunc = Callable[
-    [AMHERST_TABLE_MODELS, SHIPMENT_TYPES, ShipmentResponse], Awaitable[dict[str, str]]
-]
+CmcUpdateFunc = Callable[[AMHERST_TABLE_MODELS, SHIPMENT_TYPES, ShipmentResponse], Awaitable[dict[str, str]]]
 
 
 async def get_alias(record) -> type(StrEnum):
@@ -95,39 +93,90 @@ async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp) -> str:
     return add_to_com_sep_str_field(tracks, resp.shipment_num)
 
 
-async def make_update_dict(
+# async def make_update_dict(
+#     record: AMHERST_TABLE_MODELS, shipment: SHIPMENT_TYPES, shipment_response: ShipmentResponse
+# ) -> dict[str, Any]:
+#     """Adds tracking numbers and link."""
+#     aliases = await get_alias(record)
+#     tracks = await add_tracking_to_list(record, shipment_response)
+#     update_package = {aliases.TRACKING_NUMBERS: tracks}
+#     if isinstance(record, AmherstHire):
+#         extra = await make_hire_update_extra(shipment, shipment_response, record)
+#         update_package.update(extra)
+#     return update_package
+
+
+async def make_update_dict2(
     record: AMHERST_TABLE_MODELS, shipment: SHIPMENT_TYPES, shipment_response: ShipmentResponse
 ) -> dict[str, Any]:
     """Adds tracking numbers and link."""
-    aliases = await get_alias(record)
-    tracks = await add_tracking_to_list(record, shipment_response)
-    update_package = {aliases.TRACKING_NUMBERS: tracks}
+    update_package = await tracking_link_update(record, shipment, shipment_response)
     if isinstance(record, AmherstHire):
-        extra = await make_hire_update_extra(shipment, shipment_response, record)
+        extra = await make_hire_update_extra2(record, shipment)
         update_package.update(extra)
     return update_package
 
 
-async def make_hire_update_extra(
-    shipment: Shipment, shipment_response: ShipmentResponse, record:AmherstHire
-):
-    aliases = HireAliases
+async def tracking_link_update(record: AmherstHire, shipment: Shipment, shipment_response: ShipmentResponse):
+    aliases = await get_alias(record)
     shipdir = shipment.direction
+    tracks = await add_tracking_to_list(record, shipment_response)
+    update_package = {aliases.TRACKING_NUMBERS: tracks}
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-        ret_notes = f'{date.today().strftime('%d/%m')}: pickup arranged for {shipment.shipping_date.strftime('%d/%m')}\r\n{record.return_notes}'
-        return {
-            aliases.TRACK_IN: shipment_response.tracking_link_rm(),
-            aliases.ARRANGED_IN: 'True',
-            aliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
-            aliases.RETURN_NOTES: ret_notes
-        }
+        links = {aliases.TRACK_IN: shipment_response.tracking_link_rm()}
     elif shipdir == ShipDirection.OUTBOUND:
-        return {
-            aliases.ARRANGED_OUT: 'True',
-            aliases.TRACK_OUT: shipment_response.tracking_link_rm(),
-        }
+        links = {aliases.TRACK_OUT: shipment_response.tracking_link_rm()}
     else:
         raise ValueError(f'Invalid shipment direction: {shipdir}')
+    update_package.update(links)
+    return update_package
+
+
+# async def make_hire_update_extra(shipment: Shipment, shipment_response: ShipmentResponse, record: AmherstHire):
+#     aliases = HireAliases
+#     shipdir = shipment.direction
+#     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
+#         ret_notes = f'{date.today().strftime('%d/%m')}: pickup arranged for {shipment.shipping_date.strftime('%d/%m')}\r\n{record.return_notes}'
+#         return {
+#             aliases.TRACK_IN: shipment_response.tracking_link_rm(),
+#             aliases.ARRANGED_IN: 'True',
+#             aliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+#             aliases.RETURN_NOTES: ret_notes,
+#         }
+#     elif shipdir == ShipDirection.OUTBOUND:
+#         return {
+#             aliases.ARRANGED_OUT: 'True',
+#             aliases.TRACK_OUT: shipment_response.tracking_link_rm(),
+#         }
+#     else:
+#         raise ValueError(f'Invalid shipment direction: {shipdir}')
+
+
+async def make_hire_update_extra2(record: AmherstHire, shipment: Shipment):
+    shipdir = shipment.direction
+    if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
+        return await make_hire_update_in(record, shipment)
+    elif shipdir == ShipDirection.OUTBOUND:
+        return await make_hire_update_out()
+    else:
+        raise ValueError(f'Invalid shipment direction: {shipdir}')
+
+
+async def make_hire_update_in(record: AmherstHire, shipment: Shipment):
+    aliases = HireAliases
+    ret_notes = f'{date.today().strftime('%d/%m')}: pickup arranged for {shipment.shipping_date.strftime('%d/%m')}\r\n{record.return_notes}'
+    return {
+        aliases.ARRANGED_IN: 'True',
+        aliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
+        aliases.RETURN_NOTES: ret_notes,
+    }
+
+
+async def make_hire_update_out():
+    aliases = HireAliases
+    return {
+        aliases.ARRANGED_OUT: 'True',
+    }
 
 
 class AmherstMap(NamedTuple):
@@ -135,7 +184,7 @@ class AmherstMap(NamedTuple):
     record_model: type(AmherstShipableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
-    cmc_update_fn: CmcUpdateFunc | None = make_update_dict
+    cmc_update_fn: CmcUpdateFunc | None = make_update_dict2
     connections: ConnectionMap | None = None
     py_filters: FilterMapPy | None = None
     cmc_filters: FilterMapCmc | None = None
@@ -206,7 +255,7 @@ class AmherstMaps:
         ),
         # cmc_update_fn=make_base_update_dict,
     )
-
+    # todo fix trial vs radiotrial?
     trial: AmherstMap = AmherstMap(
         category=CategoryName.Trial,
         record_model=AmherstTrial,
