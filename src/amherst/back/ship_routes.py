@@ -59,11 +59,24 @@ async def order_review(
     shipment_proposed: Shipment = Depends(shipment_f_form),
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
 ) -> HTMLResponse:
+    alerts = await maybe_alert_phone_number(shipment_proposed)
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
     return TEMPLATES.TemplateResponse(
-        template, {'request': request, 'shipment_proposed': shipment_proposed, 'record': record}
+        template, {'request': request, 'shipment_proposed': shipment_proposed, 'record': record, 'alerts': alerts}
     )
+
+
+async def maybe_alert_phone_number(shipment_proposed):
+    alerts = Alerts.empty()
+    if len(
+        shipment_proposed.recipient_contact.mobile_phone
+    ) != 11 or not shipment_proposed.recipient_contact.mobile_phone[1] in ['1', '2', '7']:
+        alerts += Alert(
+            type=AlertType.WARNING,
+            message='The Mobile phone number must be 11 digits and begin with 01, 02 or 07, no SMS will be sent',
+        )
+    return alerts
 
 
 @router.post('/post_confirm', response_class=HTMLResponse)
