@@ -255,7 +255,6 @@ class AmherstMaps:
         ),
         # cmc_update_fn=make_base_update_dict,
     )
-    # todo fix trial vs radiotrial?
     trial: AmherstMap = AmherstMap(
         category=CategoryName.Trial,
         record_model=AmherstTrial,
