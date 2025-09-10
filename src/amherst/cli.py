@@ -22,6 +22,7 @@ import argparse
 import asyncio
 import os
 import sys
+import webbrowser
 from pathlib import Path
 
 import pyperclip
@@ -98,4 +99,6 @@ def convert_tracking_link():
     parser = argparse.ArgumentParser(description='Convert old Parcelforce tracking URL to Royal Mail tracking URL.')
     parser.add_argument('old_track_url', type=str, help='The old Parcelforce tracking URL to convert.')
     args = parser.parse_args()
-    convert_parcelforce_tracking_to_royal_mail(args.old_track_url)
+    url = convert_parcelforce_tracking_to_royal_mail(args.old_track_url)
+    webbrowser.open(url, new=2)
+
