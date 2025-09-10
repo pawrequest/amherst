@@ -116,7 +116,7 @@ async def make_hire_update_extra(
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
         ret_notes = f'{date.today().strftime('%d/%m')}: pickup arranged for {shipment.shipping_date.strftime('%d/%m')}\r\n{record.return_notes}'
         return {
-            aliases.TRACK_IN: shipment_response.tracking_link(),
+            aliases.TRACK_IN: shipment_response.tracking_link_rm(),
             aliases.ARRANGED_IN: 'True',
             aliases.PICKUP_DATE: f'{shipment.shipping_date:%Y-%m-%d}',
             aliases.RETURN_NOTES: ret_notes
@@ -124,7 +124,7 @@ async def make_hire_update_extra(
     elif shipdir == ShipDirection.OUTBOUND:
         return {
             aliases.ARRANGED_OUT: 'True',
-            aliases.TRACK_OUT: shipment_response.tracking_link(),
+            aliases.TRACK_OUT: shipment_response.tracking_link_rm(),
         }
     else:
         raise ValueError(f'Invalid shipment direction: {shipdir}')
