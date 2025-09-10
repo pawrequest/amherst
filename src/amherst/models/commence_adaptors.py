@@ -24,6 +24,7 @@ class CategoryName(StrEnum):
     Sale = 'Sale'
     Customer = 'Customer'
     Trial = 'Radio Trial'
+    # Repairs = 'Repairs'
 
 
 class ViewCursorName(StrEnum):
@@ -236,6 +237,7 @@ class TrialAliases(StrEnum):
     ARRANGED_IN = 'Pickup Arranged'
     TRACK_OUT = 'Track Outbound'
     TRACK_IN = 'Track Inbound'
+    TRACKING_NUMBERS = 'Tracking Numbers'
 
     STATUS = 'Status'
 

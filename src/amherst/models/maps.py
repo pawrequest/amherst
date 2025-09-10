@@ -265,6 +265,17 @@ class AmherstMaps:
         ),
         # cmc_update_fn=make_base_update_dict,
     )
+    #
+    # repairs: AmherstMap = AmherstMap(
+    #     category=CategoryName.Repairs,
+    #     record_model=AmherstTrial,
+    #     aliases=TrialAliases,
+    #     templates=TemplateMap(
+    #         listing='customer_list.html',
+    #         detail='customer_detail.html',
+    #     ),
+    #     # cmc_update_fn=make_base_update_dict,
+    # )
 
 
 async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> AmherstMap:
