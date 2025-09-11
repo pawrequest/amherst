@@ -72,9 +72,9 @@ class CustomerAliases(StrEnum):
     CUSTOMER_NAME = 'Name'
 
     DELIVERY_CONTACT_NAME = 'Deliv Contact'
-    DELIVERY_CONTACT_EMAIL = 'Deliv Email'
     DELIVERY_CONTACT_BUSINESS = 'Deliv Name'
     DELIVERY_CONTACT_PHONE = 'Deliv Telephone'
+    DELIVERY_CONTACT_EMAIL = 'Deliv Email'
 
     DELIVERY_ADDRESS_STR = 'Deliv Address'
     DELIVERY_ADDRESS_PC = 'Deliv Postcode'

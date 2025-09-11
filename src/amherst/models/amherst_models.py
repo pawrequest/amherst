@@ -1,6 +1,8 @@
 from abc import ABC
 from datetime import date
+from enum import StrEnum
 from os import PathLike
+from typing import ClassVar
 
 from loguru import logger
 from pycommence.pycmc_types import RowInfo
@@ -11,7 +13,52 @@ from shipaw.models.pf_shipment import Shipment, ShipmentAwayDropoff, ShipmentAwa
 from shipaw.models.pf_top import CollectionInfo, Contact, ContactSender
 from shipaw.ship_types import ShipmentType, limit_daterange_no_weekends
 
-from amherst.models.commence_adaptors import AM_DATE, CategoryName, HireAliases, HireStatus, SaleStatus
+from amherst.models.commence_adaptors import (
+    AM_DATE,
+    CategoryName,
+    CustomerAliases,
+    HireAliases,
+    HireStatus,
+    SaleAliases,
+    SaleStatus,
+    TrialAliases,
+)
+
+
+def alias_generator_generic(field_name: str, cls) -> str:
+    return cls.aliases[field_name.upper()].value
+
+
+def customer_alias_generator(field_name: str) -> str:
+    try:
+        return CustomerAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Customer alias found for field name: {field_name}')
+        return field_name
+
+
+def sale_alias_generator(field_name: str) -> str:
+    try:
+        return SaleAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Sale alias found for field name: {field_name}')
+        return field_name
+
+
+def hire_alias_generator(field_name: str) -> str:
+    try:
+        return HireAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Hire alias found for field name: {field_name}')
+        return field_name
+
+
+def trial_alias_generator(field_name: str) -> str:
+    try:
+        return TrialAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Trial alias found for field name: {field_name}')
+        return field_name
 
 
 class AmherstShipableBase(BaseModel, ABC):
@@ -22,8 +69,9 @@ class AmherstShipableBase(BaseModel, ABC):
     row_info: RowInfo
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
-
     tracking_numbers: str = Field('', alias='Tracking Numbers')
+    track_out: str | None = None
+    track_in: str | None = None
 
     # mandatory fields
     customer_name: str
@@ -83,40 +131,24 @@ class AmherstShipableBase(BaseModel, ABC):
 
 
 class AmherstCustomer(AmherstShipableBase):
-    # mandatory overrides
-    delivery_contact_name: str = Field(..., alias='Deliv Contact')
-    delivery_contact_business: str = Field(..., alias='Deliv Name')
-    delivery_contact_phone: str = Field(..., alias='Deliv Telephone')
-    delivery_contact_email: str = Field(..., alias='Deliv Email')
-    delivery_address_str: str = Field(..., alias='Deliv Address')
-    delivery_address_pc: str = Field(..., alias='Deliv Postcode')
-
-    # optional overrides
-    customer_name: str = Field(..., alias='Name')
-    send_date: AM_DATE = date.today()
+    model_config = ConfigDict(
+        alias_generator=customer_alias_generator,
+        # alias_generator=lambda field_name: CustomerAliases[field_name.upper()].value,
+    )
 
     # customer fields
-    invoice_email: str = Field('', alias='Invoice Email')
-    accounts_email: str = Field('', alias='Accounts Email')
+    invoice_email: str
+    accounts_email: str
     hires: str = ''
     sales: str = ''
 
 
 class AmherstOrderBase(AmherstShipableBase, ABC):
-    # mandatory overrides
-    customer_name: str = Field(..., alias='To Customer')
-    delivery_contact_name: str = Field(..., alias='Delivery Contact')
-    delivery_contact_business: str = Field(..., alias='Delivery Name')
-    delivery_contact_phone: str = Field(..., alias='Delivery Telephone')
-    delivery_contact_email: str = Field(..., alias='Delivery Email')
-    delivery_address_str: str = Field(..., alias='Delivery Address')
-    delivery_address_pc: str = Field(..., alias='Delivery Postcode')
-
     # order fields common
-    status: str = Field(..., alias='Status')
-    arranged_in: str = Field('', alias='Pickup Arranged')
-    arranged_out: str = Field('', alias='DB label printed')
-    invoice: PathLike = Field('', alias='Invoice')
+    status: str
+    arranged_in: str | None = None
+    arranged_out: str | None = None
+    invoice: PathLike | None = None
 
     # order fields optional
     date_sent: AM_DATE | None = None
@@ -124,43 +156,33 @@ class AmherstOrderBase(AmherstShipableBase, ABC):
 
 
 class AmherstSale(AmherstOrderBase):
-    # mandatory overrides master
-    # category:CategoryName = 'Sale'
-
-    # optional overrides master
-    send_date: date = date.today()
-    #        # return self.booking_date or date.today()
-
+    model_config = ConfigDict(
+        alias_generator=sale_alias_generator,
+    )
     # mandatory overrides order
-    delivery_method: str = Field('', alias='Delivery Method')
+    delivery_method: str | None = None
 
     # optional overrides order
-    status: SaleStatus = Field(..., alias='Status')
-    booking_date: AM_DATE = Field(date.today(), alias='Date Ordered')
-    date_sent: AM_DATE = Field(None, alias='Date Sent')
+    status: SaleStatus
+    booking_date: AM_DATE = date.today()
+    date_sent: AM_DATE | None = None
 
     # sale fields
-    lost_equipment: str = Field('', alias='Lost Equipment')
-    invoice_terms: str = Field('', alias='Invoice Terms')
-    purchase_order: str = Field('', alias='Purchase Order')
-    items_ordered: str = Field('', alias='Items Ordered')
-    serial_numbers: str = Field('', alias='Serial Numbers')
-    delivery_notes: str = Field('', alias='Delivery Notes')
-    notes: str = Field('', alias='Notes')
+    lost_equipment: str | None = None
+    invoice_terms: str | None = None
+    purchase_order: str | None = None
+    items_ordered: str | None = None
+    serial_numbers: str | None = None
+    delivery_notes: str | None = None
+    notes: str | None = None
 
 
 class AmherstTrial(AmherstOrderBase):
-    # category:CategoryName = CategoryName.Trial
-    customer_name: str = Field(..., alias='Involves Customer')
-    delivery_contact_name: str = Field(..., alias='Trial Contact')
-    delivery_contact_business: str = Field(..., alias='Trial Name')
-    delivery_contact_phone: str = Field(..., alias='Trial Telephone')
-    delivery_contact_email: str = Field(..., alias='Trial Email')
-    delivery_address_str: str = Field(..., alias='Trial Address')
-    delivery_address_pc: str = Field(..., alias='Trial Postcode')
-    tracking_numbers: str = Field('', alias='Tracking Numbers')
+    # aliases: ClassVar[StrEnum] = TrialAliases
+    model_config = ConfigDict(
+        alias_generator=trial_alias_generator,
+    )
 
-    invoice: str = Field('', alias='Our Invoice')
 
 #
 # class AmherstRepairs(AmherstOrderBase):
@@ -179,24 +201,27 @@ class AmherstTrial(AmherstOrderBase):
 
 class AmherstHire(AmherstOrderBase):
     # optional overrides master
-    boxes: int = Field(1, alias='Boxes')
-    delivery_contact_phone: str = Field(..., alias='Delivery Tel')
-    send_date: AM_DATE = Field(date.today(), alias='Send Out Date')
+    # aliases: ClassVar[StrEnum] = HireAliases
+    model_config = ConfigDict(
+        alias_generator=hire_alias_generator,
+    )
 
-    delivery_method: str = Field(..., alias='Send Method')
+    boxes: int = 1
+    delivery_contact_phone: str
+    send_date: AM_DATE = date.today()
+
+    delivery_method: str
 
     # optional overrides order
-    status: HireStatus = Field(..., alias='Status')
-    date_sent: AM_DATE = Field(None, alias='Actual Send Date')
-    booking_date: AM_DATE = Field(date.today(), alias='Booked Date')
+    status: HireStatus
+    date_sent: AM_DATE | None = None
+    booking_date: AM_DATE | None = None
 
     # hire fields
-    missing_kit_str: str = Field('', alias='Missing Kit')
-    due_back_date: AM_DATE = Field(..., alias=HireAliases.DUE_BACK_DATE)
-    return_notes: str = Field('', alias=HireAliases.RETURN_NOTES)
+    missing_kit_str: str | None = None
+    due_back_date: AM_DATE
+    return_notes: str | None = None
 
-    track_out: str = Field('', alias='Track Outbound')
-    track_in: str = Field('', alias='Track Inbound')
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
