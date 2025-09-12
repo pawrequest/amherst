@@ -24,6 +24,16 @@ from amherst.models.commence_adaptors import (
     TrialAliases,
 )
 
+NONCOMPLIANT_APOSTROPHES = ['’', '‘', '′', 'ʼ', '´']
+
+def replace_curly_apostrophe(value: str) -> str:
+    return value.replace('’', "'") if isinstance(value, str) else value
+
+def replace_noncompliant_apostrophes(value: str) -> str:
+    if isinstance(value, str):
+        for char in NONCOMPLIANT_APOSTROPHES:
+            value = value.replace(char, "'")
+    return value
 
 def alias_generator_generic(field_name: str, cls) -> str:
     return cls.aliases[field_name.upper()].value
@@ -66,6 +76,11 @@ class AmherstShipableBase(BaseModel, ABC):
         populate_by_name=True,
         use_enum_values=True,
     )
+
+    @field_validator('*', mode='before')
+    def preprocess_strings(cls, value):
+        return replace_noncompliant_apostrophes(value)
+
     row_info: RowInfo
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
@@ -221,7 +236,6 @@ class AmherstHire(AmherstOrderBase):
     missing_kit_str: str | None = None
     due_back_date: AM_DATE
     return_notes: str | None = None
-
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
