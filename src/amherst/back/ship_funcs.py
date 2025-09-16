@@ -6,21 +6,14 @@ import time
 from loguru import logger
 from pawdf.array_pdf.array_p import on_a4
 from pycommence import pycommence_context
-
-from shipaw.expresslink_client import ELClient
-from shipaw.models import pf_msg
-from shipaw.models.pf_msg import Alert, ShipmentResponse, Alerts
-from shipaw.models.pf_shipment import Shipment
-from shipaw.ship_types import (
-    AlertType,
-    ShipDirection,
-)
+from shipaw.agnostic.agnost import Shipment
+from shipaw.parcelforce.msg import Alerts, ShipmentResponse
 
 from amherst.models.maps import mapper_from_query_csrname, AmherstMap
 
 
-def book_shipment(el_client, shipment: Shipment) -> pf_msg.ShipmentResponse:
-    resp: pf_msg.ShipmentResponse = el_client.request_shipment(shipment)
+def book_shipment(el_client, shipment: Shipment) -> ShipmentResponse:
+    resp: ShipmentResponse = el_client.request_shipment(shipment)
     logger.debug(f'Booking response: {resp.status=}, {resp.success=}')
     return resp
 
@@ -39,7 +32,7 @@ async def try_book_shipment(el_client, shipment_proposed) -> tuple[ShipmentRespo
     return shipment_response, alerts
 
 
-async def maybe_get_label(el_client, shipment_proposed, shipment_response):
+async def maybe_get_label(el_client, shipment_proposed: Shipment, shipment_response):
     if (
         shipment_proposed.direction in [ShipDirection.DROPOFF, ShipDirection.OUTBOUND]
         or shipment_proposed.print_own_label
@@ -69,17 +62,6 @@ async def try_update_cmc(record, shipment_proposed, shipment_response):
         logger.exception(e)
         shipment_response.alerts += Alert(message=msg, type=AlertType.ERROR)
 
-
-def wait_label(shipment_num, dl_path: str, el_client: ELClient) -> pathlib.Path:
-    label_path = el_client.get_label(ship_num=shipment_num, dl_path=dl_path).resolve()
-    for i in range(20):
-        if label_path:
-            return label_path
-        else:
-            print('waiting for file to be created')
-            time.sleep(1)
-    else:
-        raise ValueError(f'file not created after 20 seconds {label_path=}')
 
 
 def get_el_client() -> ELClient:
