@@ -144,6 +144,49 @@ class AmherstShipableBase(BaseModel, ABC):
     def shipment(self):
         return Shipment.model_validate(self.shipment_dict())
 
+    def make_apc_dict(self):
+        return {
+            'Orders': {
+                'Order': {
+                    'CollectionDate': self.send_date.isoformat(),
+                    'ReadyAt': '09:00',
+                    'ClosedAt': '17:00',
+                    'ProductCode': 'ND16',
+                    'Reference': self.customer_name,
+                    'Delivery': {
+                        'PostalCode': self.delivery_address.postcode,
+                        'CountryCode': 'GB',
+                        'CompanyName': self.delivery_contact_business,
+                        'AddressLine1': self.delivery_address.address_line1,
+                        'AddressLine2': self.delivery_address.address_line2,
+                        'City': self.delivery_address.town,
+                        'Contact': {
+                            'PersonName': self.delivery_contact_name,
+                            'PhoneNumber': '07666666666',
+                            'Email': 'sdkjgksdjgfbn@ksdhjfgbkdsbgf.com',
+                        },
+                    },
+                    'GoodsInfo': {
+                        'GoodsValue': 1000,
+                        'GoodsDescription': 'Radios',
+                    },
+                    'ShipmentDetails': {
+                        'NumberOfPieces': 1,
+                        'Items': {
+                            'Item': {
+                                'Type': 'ALL',
+                                'Weight': 10,
+                                'Length': 60,
+                                'Width': 30,
+                                'Height': 30,
+                                'Reference': 'Test Reference',
+                            },
+                        },
+                    },
+                }
+            }
+        }
+
 
 class AmherstCustomer(AmherstShipableBase):
     model_config = ConfigDict(
