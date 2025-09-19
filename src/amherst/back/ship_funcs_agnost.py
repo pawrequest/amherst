@@ -6,23 +6,28 @@ import time
 from loguru import logger
 from pawdf.array_pdf.array_p import on_a4
 from pycommence import pycommence_context
-from shipaw.parcelforce.msg import Alerts, ShipmentResponse
-from shipaw.parcelforce.shipment import Shipment
+from shipaw.agnostic.providers import ShippingProvider
+from shipaw.agnostic.responses import Alerts, ShipmentBookingResponseAgnost
+
+# from shipaw.parcelforce.msg import Alerts, ShipmentResponse
 
 from amherst.models.maps import mapper_from_query_csrname, AmherstMap
+from shipaw.agnostic.shipment import Shipment as ShipmentAgnost
 
 
-def book_shipment(el_client, shipment: Shipment) -> ShipmentResponse:
-    resp: ShipmentResponse = el_client.request_shipment(shipment)
+def book_shipment(shipment: ShipmentAgnost, provider: ShippingProvider) -> ShipmentBookingResponseAgnost:
+    resp = provider.send_request(shipment)
     logger.debug(f'Booking response: {resp.status=}, {resp.success=}')
     return resp
 
 
-async def try_book_shipment(el_client, shipment_proposed) -> tuple[ShipmentResponse | None, Alerts]:
+async def try_book_shipment(
+    shipment_proposed, provider: ShippingProvider
+) -> tuple[ShipmentBookingResponseAgnost | None, Alerts]:
     alerts = Alerts.empty()
-    shipment_response: ShipmentResponse | None = None
+    shipment_response: ShipmentBookingResponseAgnost | None = None
     try:
-        shipment_response: ShipmentResponse = book_shipment(el_client, shipment_proposed)
+        shipment_response = provider.send_request(shipment_proposed)
         logger.info(f'Booked Shipment Response: {shipment_response}')
         alerts += shipment_response.alerts
 
@@ -32,7 +37,7 @@ async def try_book_shipment(el_client, shipment_proposed) -> tuple[ShipmentRespo
     return shipment_response, alerts
 
 
-async def maybe_get_label(el_client, shipment_proposed: Shipment, shipment_response):
+async def maybe_get_label(el_client, shipment_proposed: ShipmentAgnost, shipment_response):
     if (
         shipment_proposed.direction in [ShipDirection.DROPOFF, ShipDirection.OUTBOUND]
         or shipment_proposed.print_own_label
@@ -61,7 +66,6 @@ async def try_update_cmc(record, shipment_proposed, shipment_response):
         msg = f'Error updating Commence: {e}'
         logger.exception(e)
         shipment_response.alerts += Alert(message=msg, type=AlertType.ERROR)
-
 
 
 def get_el_client() -> ELClient:
