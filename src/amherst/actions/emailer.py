@@ -76,10 +76,10 @@ async def subject(*, invoice_num: str | None = None, missing: bool = False, labe
 
 
 async def send_label_email(shipment):
-    label = None if shipment.direction == 'out' else shipment.label_file
+    label = None if shipment.direction == 'out' else shipment.label_path
     body = TEMPLATES.get_template('email_snips/label_email.html').render(label=label, shipment=shipment)
     email = Email(
-        to_address=shipment.remote_contact.email_address,
+        to_address=shipment.full_contact.full_contact.email_address,
         subject=f'Amherst Radios Shipping{' - Shipping Label Attached' if label else ''}',
         body=body,
         attachment_paths=[label] if label else [],

@@ -3,21 +3,28 @@ from pathlib import Path
 from combadge.core.errors import BackendError
 from fastapi import APIRouter, Body, Depends, Form
 from loguru import logger
-from shipaw.models.pf_shipment import Shipment
-from shipaw.pf_config import pf_sett
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
-from shipaw.expresslink_client import ELClient
-from shipaw.models.pf_models import AddressBase, AddressChoice, AddressRecipient
-from shipaw.models.pf_msg import Alert, Alerts
-from shipaw.ship_types import AlertType, VALID_POSTCODE
 
 from amherst.actions.emailer import send_label_email
-from amherst.back.ship_funcs import get_el_client, maybe_get_label, try_book_shipment, try_update_cmc
-from amherst.back.ship_queries import record_str_to_record, shipment_f_form, shipment_str_to_shipment
 from amherst.back.backend_pycommence import pycommence_get_one
+from amherst.back.ship_funcs import get_el_client, try_book_shipment, try_update_cmc
+from amherst.back.ship_queries import (
+    record_str_to_record,
+    shipment_f_form,
+    shipment_req_str_to_shipment,
+    shipment_str_to_shipment,
+)
 from amherst.config import TEMPLATES
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from shipaw.agnostic.address import Address, AddressChoiceAgnost
+from shipaw.agnostic.base import ShipawBaseModel
+from shipaw.agnostic.requests import ProviderName, ShipmentRequestAgnost
+from shipaw.agnostic.responses import Alert, AlertType, Alerts
+from shipaw.agnostic.shipment import Shipment
+from shipaw.parcelforce.client import ParcelforceClient
+from shipaw.parcelforce.config import pf_settings
+from shipaw.parcelforce.provider import ParcelforceProvider
 
 router = APIRouter()
 
@@ -27,7 +34,7 @@ async def ship_form(
     request: Request,
     record: AMHERST_TABLE_MODELS = Depends(pycommence_get_one),
 ) -> HTMLResponse:
-    pf_settings = pf_sett()
+    # pf_settings = pf_sett()
     template = 'ship/form_shape.html'
     alerts: Alerts = request.app.alerts
 
@@ -41,8 +48,8 @@ async def ship_form(
         logger.warning(msg)
         alerts += Alert(message=msg, type=AlertType.WARNING)
 
-    if pf_settings.ship_live:
-        msg = 'Welcome To Amherst Shipper - Real Shipments will be booked'
+    # if pf_settings.ship_live:
+    #     msg = 'Welcome To Amherst Shipper - Real Shipments will be booked'
     else:
         msg = 'Debug Mode - No Shipments will be booked'
     logger.warning(msg)
@@ -56,23 +63,27 @@ async def ship_form(
 @router.post('/order_review', response_class=HTMLResponse)
 async def order_review(
     request: Request,
-    shipment_proposed: Shipment = Depends(shipment_f_form),
+    shipment: Shipment = Depends(shipment_f_form),
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
+    provider_name: ProviderName = Form(...),
 ) -> HTMLResponse:
-    alerts = await maybe_alert_phone_number(shipment_proposed)
+    alerts = await maybe_alert_phone_number(shipment)
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
+    ship_req = ShipmentRequestAgnost(shipment=shipment, provider_name=provider_name)
     return TEMPLATES.TemplateResponse(
-        template, {'request': request, 'shipment_proposed': shipment_proposed, 'record': record, 'alerts': alerts}
+        template, {'request': request, 'shipment_request': ship_req, 'record': record, 'alerts': alerts}
     )
 
 
-async def maybe_alert_phone_number(shipment_proposed):
+async def maybe_alert_phone_number(shipment: Shipment):
     """Alert if phone number is not 11 digits or does not start with 01, 02 or 07. (parcelforce requirement)"""
     alerts = Alerts.empty()
-    if len(
-        shipment_proposed.recipient_contact.mobile_phone
-    ) != 11 or not shipment_proposed.recipient_contact.mobile_phone[1] in ['1', '2', '7']:
+    if len(shipment.recipient.contact.mobile_phone) != 11 or not shipment.recipient.contact.mobile_phone[1] in [
+        '1',
+        '2',
+        '7',
+    ]:
         alerts += Alert(
             type=AlertType.WARNING,
             message='The Mobile phone number must be 11 digits and begin with 01, 02 or 07, no SMS will be sent',
@@ -83,63 +94,79 @@ async def maybe_alert_phone_number(shipment_proposed):
 @router.post('/post_confirm', response_class=HTMLResponse)
 async def order_confirm(
     request: Request,
-    shipment_proposed: Shipment = Depends(shipment_str_to_shipment),
-    el_client: ELClient = Depends(get_el_client),
+    shipment_req: ShipmentRequestAgnost = Depends(shipment_req_str_to_shipment),
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
 ) -> HTMLResponse:
     logger.info('Booking Shipment')
-    shipment_response, alerts = await try_book_shipment(el_client, shipment_proposed)
+    shipment_response = await try_book_shipment(shipment_req)
     if not shipment_response or not shipment_response.success:
         logger.error(f'Booking failed')
         return TEMPLATES.TemplateResponse(
             'alerts.html',
-            {'request': request, 'alerts': alerts, 'shipment_proposed': shipment_proposed, 'record': record},
+            {
+                'request': request,
+                'alerts': shipment_response.alerts,
+                'shipment': shipment_req.shipment,
+                'record': record,
+            },
         )
 
     # get label
-    await maybe_get_label(el_client, shipment_proposed, shipment_response)
+    await shipment_response.write_label_file()
 
     # update commence
-    await try_update_cmc(record, shipment_proposed, shipment_response)
+    await try_update_cmc(record, shipment_req.shipment, shipment_response)
 
     return TEMPLATES.TemplateResponse(
         'ship/order_confirmed.html',
         {
             'request': request,
-            'shipment_confirmed': shipment_proposed,
+            'shipment': shipment_req.shipment,
             'response': shipment_response,
-            'alerts': alerts,
+            'alerts': shipment_response.alerts,
         },
     )
 
 
-@router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
+class AddressRequest(ShipawBaseModel):
+    postcode: str
+    address: Address | None = None
+
+
+@router.post('/cand', response_model=list[AddressChoiceAgnost], response_class=JSONResponse)
 async def get_addr_choices(
     request: Request,
-    postcode: VALID_POSTCODE = Body(...),
-    address: AddressBase = Body(None),
-    el_client: ELClient = Depends(get_el_client),
-) -> list[AddressChoice]:
+    body: AddressRequest = Body(...),
+    el_client: ParcelforceClient = Depends(get_el_client),
+) -> list[AddressChoiceAgnost]:
     """Fetch candidate address choices for a postcode, optionally scored by closeness to provided address.
 
     Args:
-        postcode: VALID_POSTCODE - postcode to search for
-        address: AddressBase - address to compare to candidates
+        request: Request - FastAPI request object
+        body: AddressRequest - request body containing postcode and optional address
         el_client: ELClient - Parcelforce ExpressLink client
     """
+    # address = ParcelforceProvider.provider_address(address)
+    postcode = body.postcode
+    address = body.address
     logger.debug(f'Fetching candidates for {postcode=}, {address=}')
+    address = ParcelforceProvider.provider_address_only(address, mode='pydantic') if address else None
+
     try:
         res = el_client.get_choices(postcode=postcode, address=address)
-        return res
+        res_agnost = [
+            AddressChoiceAgnost(address=ParcelforceProvider.generic_address_only(_.address), score=_.score) for _ in res
+        ]
+        return res_agnost
     except BackendError as e:
         alert = Alert(
             message=f'Error fetching candidates: {e}',
             type=AlertType.ERROR,
         )
-        request.app.alerts += alert
+        request.app.alerts += alert  # todo is this received frontend?
         logger.warning(f'Error fetching candidates: {e}')
-        addr = AddressRecipient(address_line1='BAD API RESPONSE', address_line2=str(e), town='Error', postcode='Error')
-        chc = AddressChoice(address=addr, score=0)
+        addr = Address(address_lines=['ERROR:', str(e)], town='Error', postcode='Error')
+        chc = AddressChoiceAgnost(address=addr, score=0)
         return [chc]
 
 
@@ -154,3 +181,4 @@ async def email_label(
     return '<span>Re</span>'
 
 
+res = "Shipping Label TO Test Default Del Building _ ON 2025-09-24.pdf"

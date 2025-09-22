@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 from datetime import date, datetime
 from pathlib import Path
@@ -11,7 +12,14 @@ from pawlogger import get_loguru
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
 
-from amherst.set_env import get_envs_dir
+
+def load_env():
+    amherst_env = os.getenv('AMHERST_ENV')
+    amherst_env = Path(amherst_env) if amherst_env else None
+    if not amherst_env or not amherst_env.exists():
+        raise ValueError(f'AMHERST_ENV ({amherst_env}) incorrectly set')
+    print(f'Loading SHIPAW environment from {amherst_env}')
+    return amherst_env
 
 
 class Settings(BaseSettings):
@@ -35,12 +43,12 @@ class Settings(BaseSettings):
             v.touch(exist_ok=True)
         return v
 
-    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=get_envs_dir() / 'am.env', extra='ignore')
+    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=load_env(), extra='ignore')
 
 
-AM_SETTINGS = Settings()
+amherst_settings = Settings()
 
-logger = get_loguru(log_file=AM_SETTINGS.log_file, profile='local', level=AM_SETTINGS.log_level)
+logger = get_loguru(log_file=amherst_settings.log_file, profile='local', level=amherst_settings.log_level)
 
 
 def sanitise_id(value):
@@ -63,7 +71,7 @@ def ordinal_dt(dt: datetime | date) -> str:
     return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
 
 
-TEMPLATES = Jinja2Templates(directory=str(AM_SETTINGS.src_dir / 'front' / 'templates'))
+TEMPLATES = Jinja2Templates(directory=str(amherst_settings.src_dir / 'front' / 'templates'))
 TEMPLATES.env.filters['jsonable'] = make_jsonable
 TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
 TEMPLATES.env.filters['sanitise_id'] = sanitise_id

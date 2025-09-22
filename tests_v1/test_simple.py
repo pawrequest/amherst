@@ -12,7 +12,7 @@ from amherst.models.converters import to_shipment
 from pycommence.pycommence import PyCommence
 from shipaw.models.pf_shipment_configured  import ShipmentConfigured
 from shipaw.ship_types import ShipDirection
-from .client import test_client  # noqa
+from client import test_client  # noqa
 from ..models.am_record_smpl import dict_to_amtable
 
 
@@ -49,7 +49,7 @@ def test_shipment(request, amrec):
     assert not ship.recipient_contact.notifications
     if ship.collection_info:
         assert not ship.collection_info.collection_contact.notifications
-    print('NOTIFICATIONS:', ship.notifications_str)
+    # print('NOTIFICATIONS:', ship.notifications_str)
     return ship
 
 

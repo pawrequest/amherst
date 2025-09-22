@@ -5,6 +5,7 @@ from enum import Enum, StrEnum
 from typing import Annotated
 
 import pydantic as _p
+from loguru import logger
 from pycommence.pycmc_types import (
     get_cmc_date,
 )
@@ -252,3 +253,80 @@ def get_alias(alias_cls: StrEnum, field_name: str) -> str:
 class RadioType(StrEnum):
     HYTERA = 'Hytera Digital'
     KIRISUN = 'Kirisun UHF'
+
+
+def replace_curly_apostrophe(value: str) -> str:
+    return value.replace('’', "'") if isinstance(value, str) else value
+
+
+def replace_noncompliant_apostrophes(value: str) -> str:
+    if isinstance(value, str):
+        for char in NONCOMPLIANT_APOSTROPHES:
+            value = value.replace(char, "'")
+    return value
+
+
+def alias_generator_generic(field_name: str, cls) -> str:
+    return cls.aliases[field_name.upper()].value
+
+
+def customer_alias_generator(field_name: str) -> str:
+    try:
+        return CustomerAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Customer alias found for field name: {field_name}')
+        return field_name
+
+
+def sale_alias_generator(field_name: str) -> str:
+    try:
+        return SaleAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Sale alias found for field name: {field_name}')
+        return field_name
+
+
+def hire_alias_generator(field_name: str) -> str:
+    try:
+        return HireAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Hire alias found for field name: {field_name}')
+        return field_name
+
+
+def trial_alias_generator(field_name: str) -> str:
+    try:
+        return TrialAliases[field_name.upper()].value
+    except KeyError:
+        logger.warning(f'No Trial alias found for field name: {field_name}')
+        return field_name
+
+
+NONCOMPLIANT_APOSTROPHES = ['’', '‘', '′', 'ʼ', '´']
+
+
+def split_shipment_refs_dict_from_str(ref_str: str, max_len: int = 24) -> dict[str, str]:
+    reference_numbers = {}
+
+    for i in range(1, 6):
+        start_index = (i - 1) * max_len
+        end_index = i * max_len
+        if start_index < len(ref_str):
+            reference_numbers[f'reference_number{i}'] = ref_str[start_index:end_index]
+        else:
+            break
+    return reference_numbers
+
+
+def split_addr_str2(address: str) -> tuple[list[str], str]:
+    addr_lines = address.splitlines()
+    town = addr_lines.pop() if len(addr_lines) > 1 else ''
+
+    if len(addr_lines) < 3:
+        addr_lines.extend([''] * (3 - len(addr_lines)))
+    elif len(addr_lines) > 3:
+        addr_lines[2] = ','.join(addr_lines[2:])
+        addr_lines = addr_lines[:3]
+
+    used_lines = [_ for _ in addr_lines if _]
+    return used_lines, town

@@ -16,7 +16,6 @@ Environment variables:
 
 """
 
-from __future__ import annotations
 
 import argparse
 import asyncio
@@ -26,18 +25,22 @@ import webbrowser
 from pathlib import Path
 
 import pyperclip
+from loguru import logger
 
 from amherst.actions import print_file
-from amherst.actions.emailer import send_invoice_email
+# from amherst.actions.emailer import send_invoice_email
 from amherst.actions.invoice_number import next_inv_num
 from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_royal_mail
 from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
 from amherst.models.commence_adaptors import CategoryName
+from amherst.set_env import set_amherstpr_env
 
 
 def shipper_cli():
     args = parse_ship_args()
-    import_and_set_env(args)  # BEFORE IMPORTING SHIPPER
+    set_amherstpr_env(sandbox=args.sandbox)
+
+    # import_and_set_env(args.sandbox)  # BEFORE IMPORTING SHIPPER
     from amherst.ui_runner import shipper  # AFTER SETTING ENVIRONMENT
 
     asyncio.run(shipper(args.category, args.record_name))
@@ -52,10 +55,11 @@ def parse_ship_args():
     return args
 
 
-def import_and_set_env(args):
+def import_and_set_env(sandbox: bool = True):
+    logger.debug(f'Importing and setting environment, sandbox={sandbox}')
     from amherst.set_env import set_amherstpr_env
 
-    set_amherstpr_env(sandbox=args.sandbox)
+    set_amherstpr_env(sandbox=sandbox)
 
 
 def file_printer_cli():
@@ -68,13 +72,13 @@ def file_printer_cli():
         sys.exit(1)
     print_file(file_path)
 
-
-def send_invoice_email_cli():
-    parser = argparse.ArgumentParser(description='Send an invoice email with attachment.')
-    parser.add_argument('invoice', type=Path, help='Path to the invoice PDF')
-    parser.add_argument('address', type=str, help='Recipient email address')
-    args = parser.parse_args()
-    asyncio.run(send_invoice_email(args.invoice, args.address))
+#
+# def send_invoice_email_cli():
+#     parser = argparse.ArgumentParser(description='Send an invoice email with attachment.')
+#     parser.add_argument('invoice', type=Path, help='Path to the invoice PDF')
+#     parser.add_argument('address', type=str, help='Recipient email address')
+#     args = parser.parse_args()
+#     asyncio.run(send_invoice_email(args.invoice, args.address))
 
 
 def payment_status_cli():

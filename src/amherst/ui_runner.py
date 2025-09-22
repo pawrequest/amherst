@@ -41,13 +41,14 @@ async def run_desktop_ui(url_suffix=''):
         close_application()
 
 
-#
-# if __name__ == '__main__':
-#     asyncio.run(run_desktop_ui())
-
-
 async def shipper(category: CategoryName, record_name: str):
-    url_suffix = (
-        f'ship/ship_form?csrname={url_quote(category)}&pk_value={url_quote(record_name)}&condition=equal&max_rtn=1'
-    )
+    url_suffix = await get_shipper_url(category, record_name)
     await run_desktop_ui(url_suffix)
+
+
+async def get_shipper_url(category: CategoryName, record_name: str) -> str:
+    return f'ship/ship_form?csrname={url_quote(category)}&pk_value={url_quote(record_name)}&condition=equal&max_rtn=1'
+
+
+REVIEW_URL = r'/ship/order_review'
+CONFIRM_URL = r'/ship/post_confirm'

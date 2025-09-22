@@ -18,20 +18,24 @@
             <input type="date" id="ship_date" name="shipping_date" required>
 
             <label for="boxes">Boxes:</label>
-            <select id="boxes" name="total_number_of_parcels">
+            <select id="boxes" name="boxes">
                 {% for i in range(1,13) %}
                     <option value="{{ i }}">{{ i }}</option>
                 {% endfor %}
             </select>
 
+            <label for="provider_name">Provider:</label>
+            <select name="provider_name" id="provider_name">
+                <option value="PARCELFORCE" selected>Parcelforce</option>
+                <option value="APC">APC</option>
+            </select>
+
             <label for="service">Service:</label>
-            <select id="service" name="service_code">
-                <option value="SND" selected>Express 24</option>
-                <option value="09">Express Pre-9am</option>
-                <option value="S10">Express Pre-10am</option>
-                <option value="S12">Express Pre-Noon</option>
-                <option value="SUP">Express 48</option>
-                <option value="SPM">Express PM</option>
+            <select id="service" name="service">
+                <option value="NEXT_DAY" selected>Next Day</option>
+                <option value="NEXT_DAY_12">Next Day by Noon</option>
+                <option value="NEXT_DAY_9">Next Day by 9AM</option>
+                <option value="SATURDAY">Saturday</option>
             </select>
 
             <label for="direction">Direction:</label>
@@ -72,13 +76,14 @@
         </section>
 
         <section class="inputs inputs__address">
-            <!--suppress HtmlFormInputWithoutLabel -->
             <div id="score-span" data-score=""></div>
             <h1>
                 <label for="address_line1">Address:</label>
             </h1>
             <input type="text" id="address_line1" name="address_line1" required>
+            <!--suppress HtmlFormInputWithoutLabel -->
             <input type="text" id="address_line2" name="address_line2" aria-labelledby="address_line1">
+            <!--suppress HtmlFormInputWithoutLabel -->
             <input type="text" id="address_line3" name="address_line3" aria-labelledby="address_line1">
             <label for="town">Town:</label>
             <input type="text" id="town" name="town" required>
@@ -94,19 +99,8 @@
         </section>
 
         <section class="inputs inputs__notes">
-            <label for="reference_number1">Reference Numbers:</label>
-            <input type="text" id="reference_number1" name="reference_number1" maxlength="24">
-            <input type="text" id="reference_number2" name="reference_number2" maxlength="24"
-                   aria-labelledby="reference_number1">
-            <input type="text" id="reference_number3" name="reference_number3" maxlength="24"
-                   aria-labelledby="reference_number1">
-
-            <label for="special_instructions1">Special Instructions:</label>
-            <input type="text" id="special_instructions1" name="special_instructions1" maxlength="25">
-            <input type="text" id="special_instructions2" name="special_instructions2" maxlength="24"
-                   aria-labelledby="special_instructions1">
-            <input type="text" id="special_instructions3" name="special_instructions3" maxlength="24"
-                   aria-labelledby="special_instructions1">
+            <label for="reference">Reference:</label>
+            <input type="text" id="reference" name="reference" maxlength="120">
         </section>
 
         <section class="inputs inputs__submit">
@@ -117,7 +111,8 @@
 
 
 <script>
-    shipment = {{ record.shipment_dict() | jsonable | tojson }};
+    shipment = {{ record.shipment(mode='python-alias') | jsonable | tojson }};
+    {#shipment = {{ record.shipment(mode='json-alias') | jsonable | tojson }};#}
     record = {{ record | jsonable | tojson}};
     console.log('record', record);
     console.log('shipment', shipment);

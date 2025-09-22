@@ -6,7 +6,7 @@ from starlette.testclient import TestClient
 from shipaw.models.booking_states import BookingState
 from shipaw.models.pf_msg import ShipmentResponse
 from shipaw.models.pf_shipment_configured  import ShipmentAwayCollectionConfigured, ShipmentAwayDropoffConfigured, to_dropoff, to_collection_configured
-from .client import test_client  # noqa: F401
+from client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
 

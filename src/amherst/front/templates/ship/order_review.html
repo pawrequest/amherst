@@ -1,11 +1,13 @@
 <!-- templates/order_review.html -->
-{#context = {shipment_proposed}#}
+{#context = {shipment_request}#}
 {% block head %}
     <script src="{{ url_for('static', path='ship.js') }}"></script>
     <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
 {% endblock %}
 
-{%  if alerts %}
+{% set shipment = shipment_request.shipment %}
+
+{% if alerts %}
     {% include "alerts.html" with context %}
 {% endif %}
 
@@ -16,14 +18,14 @@
 
 <div id=requested_shipment class="wrapper wrapper__requested">
     <section class="requested requested__head">
-        <h3 class="requested-title"> {{ shipment_proposed.direction.name }} Shipment:</h3>
+        <h3 class="requested-title"> {{ shipment.direction.name }} Shipment:</h3>
         <form hx-post="/ship/post_confirm"
               hx-target=#content_main
               hx-swap="innerHTML"
         >
-            <input type="hidden" name="shipment_str" value="{{ shipment_proposed.model_dump_json() }}">
+            <input type="hidden" name="shipment_req_str" value="{{ shipment_request.model_dump_json() }}">
             <input type="hidden" name="record_str" value="{{ record.model_dump_json() }}">
-{#            <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">#}
+            {#            <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">#}
             <button id="btn_ship" class="submit-confirm-btn" onclick=hide_main_form()>
                 Confirm Booking
             </button>
@@ -32,7 +34,7 @@
 
 
     <section class="requested requested__contact">
-        {% set contact = shipment_proposed.remote_contact %}
+        {% set contact = shipment.remote_full_contact.contact %}
         <h4>Remote Contact</h4>
         <p>{{ contact.contact_name }}</p>
         <p><strong>Business:</strong> {{ contact.business_name }}</p>
@@ -41,15 +43,11 @@
     </section>
 
     <section class="requested requested__address">
-        {% set address = shipment_proposed.remote_address %}
+        {% set address = shipment.remote_full_contact.address %}
         <h4>Remote Address</h4>
-        <p>{{ address.address_line1 }}</p>
-        {% if address.address_line2 %}
-            <p>{{ address.address_line2 }}</p>
-        {% endif %}
-        {% if address.address_line3 %}
-            <p>{{ address.address_line3 }}</p>
-        {% endif %}
+        {% for line in address.address_lines %}
+            <p>{{ line }}</p>
+        {% endfor %}
         <p>{{ address.town }}</p>
         <p>{{ address.postcode }}</p>
 
@@ -57,67 +55,10 @@
 
 
     <section class="requested requested__details">
-        <p><strong>Boxes:</strong> {{ shipment_proposed.total_number_of_parcels }}</p>
-        <p><strong>Date:</strong> {{ shipment_proposed.shipping_date }}</p>
-        <p><strong>Service:</strong> {{ shipment_proposed.service_code }}</p>
-        <p><strong>Type:</strong> {{ shipment_proposed.shipment_type }}</p>
-        {% if shipment_proposed.print_own_label == False %}
-            <p><strong>Driver Brings Labels</strong></p>
-        {% endif %}
-        {% if shipment_proposed.enhancement %}
-            <p><strong>Enhancement:</strong> {{ shipment_proposed.enhancement }}</p>
-        {% endif %}
-        {% if shipment_proposed.hazardous_goods %}
-            <p><strong>Hazardous Goods:</strong> {{ shipment_proposed.hazardous_goods }}</p>
-        {% endif %}
-        {% if shipment_proposed.consignment_handling %}
-            <p><strong>Consignment Handling:</strong> {{ shipment_proposed.consignment_handling }}</p>
-        {% endif %}
-        {% if shipment_proposed.drop_off_ind %}
-            <p><strong>Drop Off Indicator:</strong> {{ shipment_proposed.drop_off_ind }}</p>
-        {% endif %}
-        {% if shipment_proposed.exchange_instructions1 %}
-            <p><strong>Exchange Instructions 1:</strong> {{ shipment_proposed.exchange_instructions1 }}</p>
-        {% endif %}
-        {% if shipment_proposed.exchange_instructions2 %}
-            <p><strong>Exchange Instructions 2:</strong> {{ shipment_proposed.exchange_instructions2 }}</p>
-        {% endif %}
-        {% if shipment_proposed.exchange_instructions3 %}
-            <p><strong>Exchange Instructions 3:</strong> {{ shipment_proposed.exchange_instructions3 }}</p>
-        {% endif %}
-        {% if shipment_proposed.request_id %}
-            <p><strong>Request ID:</strong> {{ shipment_proposed.request_id }}</p>
-        {% endif %}
-        {% if shipment_proposed.returns %}
-            <p><strong>Returns:</strong> {{ shipment_proposed.returns }}</p>
-        {% endif %}
-        {% if shipment_proposed.reference_number1 %}
-            <p><strong>Reference 1:</strong> {{ shipment_proposed.reference_number1 }}</p>
-        {% endif %}
-        {% if shipment_proposed.reference_number2 %}
-            <p><strong>Reference 2:</strong> {{ shipment_proposed.reference_number2 }}</p>
-        {% endif %}
-        {% if shipment_proposed.reference_number3 %}
-            <p><strong>Reference 3:</strong> {{ shipment_proposed.reference_number3 }}</p>
-        {% endif %}
-        {% if shipment_proposed.reference_number4 %}
-            <p><strong>Reference 4:</strong> {{ shipment_proposed.reference_number4 }}</p>
-        {% endif %}
-        {% if shipment_proposed.reference_number5 %}
-            <p><strong>Reference 5:</strong> {{ shipment_proposed.reference_number5 }}</p>
-        {% endif %}
-        {% if shipment_proposed.special_instructions1 %}
-            <p><strong>Instructions 1:</strong> {{ shipment_proposed.special_instructions1 }}</p>
-        {% endif %}
-        {% if shipment_proposed.special_instructions2 %}
-            <p><strong>Instructions 2:</strong> {{ shipment_proposed.special_instructions2 }}</p>
-        {% endif %}
-        {% if shipment_proposed.special_instructions3 %}
-            <p><strong>Instructions 3:</strong> {{ shipment_proposed.special_instructions3 }}</p>
-        {% endif %}
-        {% if shipment_proposed.special_instructions4 %}
-            <p><strong>Instructions 4:</strong> {{ shipment_proposed.special_instructions4 }}</p>
-        {% endif %}
+        <p><strong>Boxes:</strong> {{ shipment.boxes }}</p>
+        <p><strong>Date:</strong> {{ shipment.shipping_date }}</p>
+        <p><strong>Service:</strong> {{ shipment.service }}</p>
+        <p><strong>Reference:</strong> {{ shipment.reference }}</p>
     </section>
 </div>
 
@@ -144,12 +85,12 @@
 
     }
 
-        {#const spinner = document.querySelector('.loading-spinner');#}
-        {#if (spinner) spinner.style.display = 'flex';#}
+    {#const spinner = document.querySelector('.loading-spinner');#}
+    {#if (spinner) spinner.style.display = 'flex';#}
 
-        {#const contentMain = document.querySelector('#content_main');#}
-        {#if (contentMain) {#}
-        {#    contentMain.innerHTML = '<div id="booking-notice" class="booking-notice">Booking shipment...</div>';#}
+    {#const contentMain = document.querySelector('#content_main');#}
+    {#if (contentMain) {#}
+    {#    contentMain.innerHTML = '<div id="booking-notice" class="booking-notice">Booking shipment...</div>';#}
 
 
 

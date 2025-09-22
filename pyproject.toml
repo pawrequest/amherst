@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "amherst"
 description = "Add your description here"
-version = "0.3.16"
+version = "0.4.1"
 authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
@@ -15,7 +15,7 @@ dependencies = [
     # siblings:
     'pycommence', # commence python api
     #    'pycommence @ git+https://github.com/pawrequest/pycommence', # commence python api
-    "shipaw",
+    "shipaw >= 0.2.1",
     'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.2', # desktop-ify fastapi app
     'pawdf @ git+https://github.com/pawrequest/pawdf', # pdf resize and print
     'suppawt @ git+https://github.com/pawrequest/suppawt', # emailer
@@ -30,7 +30,8 @@ dependencies = [
     'pandas', # excel docs
     'loguru', # logging
     'pyperclip', # clipboard management
-    'xlrd'
+    'xlrd',
+    "pytest-asyncio>=1.2.0",
 ]
 
 [project.scripts]
@@ -40,24 +41,6 @@ payment-status = "amherst.cli:payment_status_cli"
 email-file = "amherst.cli:send_invoice_email_cli"
 invoice-number = "amherst.cli:next_invoice_cli"
 convert_tracking = "amherst.cli:convert_tracking_link"
-
-#[project.optional-dependencies]
-#dev = [
-#    "pytest",
-#    "pytest_asyncio",
-#    'beautifulsoup4',
-#    'coverage',
-#]
-
-#docs = [
-#    "sphinx",
-#    "sphinx-autodoc-typehints",
-#    "sphinx-autodoc2",
-#    "sphinx-rtd-theme",
-#    "sphinx-readme",
-#    "myst-parser",
-#    "sphinx_rtd_dark_mode",
-#]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -74,8 +57,14 @@ shipaw = { path = "../shipaw", editable = true }
 #shipaw = { git = "git+https://github.com/pawrequest/shipaw/", tag = "v0.1.17" }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
-    "pytest>=8.4.1",
+    'pytest',
+    'autodoc_pydantic',
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx-rtd-theme",
+    "myst-parser",
+    "sphinx-readme",
+    "sphinx_rtd_dark_mode",
 ]
-

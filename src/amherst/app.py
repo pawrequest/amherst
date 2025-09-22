@@ -3,18 +3,17 @@ import contextlib
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
-from shipaw.models.pf_msg import Alert, Alerts
-from shipaw.ship_types import AlertType
+from shipaw.agnostic.responses import Alert, Alerts, AlertType
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 
 
-from amherst.config import AM_SETTINGS, TEMPLATES
+from amherst.config import amherst_settings, TEMPLATES
 from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
 from amherst.back.ship_routes import router as ship_router2
-from shipaw import pf_config
+from shipaw.parcelforce import config
 
 
 @contextlib.asynccontextmanager
@@ -34,11 +33,11 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory=str(AM_SETTINGS.src_dir / 'front' / 'static')), name='static')
+app.mount('/static', StaticFiles(directory=str(amherst_settings.src_dir / 'front' / 'static')), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router2, prefix='/ship')
 app.include_router(html_router)
-app.ship_live = pf_config.pf_sett().ship_live
+# app.ship_live = pf_config.pf_sett().ship_live
 app.alerts = Alerts.empty()
 
 

@@ -25,7 +25,7 @@ def get_expresslink():
 if __name__ == '__main__':
     elc = get_expresslink()
     ship_num = ''
-    label = elc.get_label()
+    # label = elc.get_label()
     print('complete')
     ...
 

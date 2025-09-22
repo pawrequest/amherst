@@ -5,56 +5,38 @@
  *
  */
 
-/**
- * @typedef {Object} address_choice_snake
- * @property {Object} address_snake
- * @property {number} score
- *
- */
-
 
 /**
  * @typedef {Object} Contact
  * @property {string} ContactName
  * @property {string} EmailAddress
  * @property {string} MobilePhone
+ * @property {string} BusinessName
  */
 
-/**
- * @typedef {Object} contact_snake
- * @property {string} contact_name
- * @property {string} email_address
- * @property {string} mobile_phone
- */
 
 /**
  * @typedef {Object} Address
- * @property {string} AddressLine1
- * @property {string} [AddressLine2]
- * @property {string} [AddressLine3]
+ * @property {string[]} AddressLines
  * @property {string} Town
  * @property {string} Postcode
+ * @property {string} [Country = 'GB']
  */
 
 /**
- * @typedef {Object} address_snake
- * @property {string} address_line1
- * @property {string} [address_line2]
- * @property {string} [address_line3]
- * @property {string} town
- * @property {string} postcode
+ * @typedef {Object} FullContact
+ * @property {Contact} Contact
+ * @property {Address} Address
  */
 
 /**
  * @typedef {Object} Shipment
- * @property {Address} RecipientAddress
- * @property {Contact} RecipientContact
- * @property {number} TotalNumberOfParcels
+ * @property {FullContact} Recipient
+ * @property {FullContact | null} [Sender=null]
+ * @property {number} Boxes
  * @property {string} ShippingDate
- * @property {string} BusinessName
- * @property {string} ReferenceNumber1
- * @property {string} ReferenceNumber2
- * @property {string} ReferenceNumber3
+ *
+ * @property {string} Reference
  * @property {string} SpecialInstructions1
  * @property {string} SpecialInstructions2
  * @property {string} SpecialInstructions3
@@ -62,47 +44,25 @@
 
 
 /**
- * @typedef {Object} shipment_snake
- * @property {Address} recipient_address
- * @property {Contact} recipient_contact
- * @property {number} total_number_of_parcels
- * @property {string} shipping_date
- * @property {string} business_name
- * @property {string} reference_number1
- * @property {string} reference_number2
- * @property {string} reference_number3
- * @property {string} special_instructions1
- * @property {string} special_instructions2
- * @property {string} special_instructions3
- */
-
-
-/**
  * Populates form fields with shipment data.
- // * @param {ShipmentSnake} shipment - The shipment data in snake_case.
+ // * @param {Shipment} shipment - The shipment data in snake_case.
  */
-function populateShipmentSnake(shipment) {
+function populateShipment(shipment) {
     console.log('Populating form from shipment');
 
-    document.getElementById('ship_date').value = shipment.shipping_date;
-    document.getElementById('boxes').value = shipment.total_number_of_parcels || 1;
-    document.getElementById('business_name').value = shipment.recipient_contact.business_name || "";
-    document.getElementById('contact_name').value = shipment.recipient_contact.contact_name || "";
-    document.getElementById('email').value = shipment.recipient_contact.email_address || "";
-    document.getElementById('mobile_phone').value = shipment.recipient_contact.mobile_phone || "";
-    document.getElementById('reference_number1').value = shipment.reference_number1 || "";
-    document.getElementById('reference_number2').value = shipment.reference_number2 || "";
-    document.getElementById('reference_number3').value = shipment.reference_number3 || "";
-    document.getElementById('special_instructions1').value = shipment.special_instructions1 || "";
-    document.getElementById('special_instructions2').value = shipment.special_instructions2 || "";
-    document.getElementById('special_instructions3').value = shipment.special_instructions3 || "";
-    document.getElementById('address_line1').value = shipment.recipient_address.address_line1 || "";
-    document.getElementById('address_line2').value = shipment.recipient_address.address_line2 || "";
-    document.getElementById('address_line3').value = shipment.recipient_address.address_line3 || "";
-    document.getElementById('town').value = shipment.recipient_address.town || "";
-    document.getElementById('postcode').value = shipment.recipient_address.postcode || "";
+    document.getElementById('ship_date').value = shipment.ShippingDate;
+    document.getElementById('boxes').value = shipment.Boxes || 1;
+    document.getElementById('reference').value = shipment.Reference || "";
+    document.getElementById('business_name').value = shipment.Recipient.Contact.BusinessName || "";
+    document.getElementById('contact_name').value = shipment.Recipient.Contact.ContactName || "";
+    document.getElementById('email').value = shipment.Recipient.Contact.EmailAddress || "";
+    document.getElementById('mobile_phone').value = shipment.Recipient.Contact.MobilePhone || "";
+    document.getElementById('address_line1').value = shipment.Recipient.Address.AddressLines[0] || "";
+    document.getElementById('address_line2').value = shipment.Recipient.Address.AddressLines[1] || "";
+    document.getElementById('address_line3').value = shipment.Recipient.Address.AddressLines[2] || "";
+    document.getElementById('town').value = shipment.Recipient.Address.Town || "";
+    document.getElementById('postcode').value = shipment.Recipient.Address.Postcode || "";
 }
-
 
 
 function toggleOwnLabel() {
@@ -119,26 +79,35 @@ function toggleOwnLabel() {
 
 function updateAddressFromSelect() {
     const selectedOption = document.getElementById('address-select').value;
-    updateAddressFieldsFromOption(selectedOption);
+    updateAddressFieldsFromJson(selectedOption);
 }
 
-function updateAddressFieldsFromOption(option) {
-    const addressData = JSON.parse(option);
-    updateAddressFields(addressData);
+function updateAddressFieldsFromJson(address_json) {
+    const address = JSON.parse(address_json);
+    updateAddressFields(address);
 }
 
-function updateAddressFields(addressData) {
+/**
+ * Update address fields with given address data.
+ * @param {Address} Address
+ */
+function updateAddressFields(Address) {
     console.log('Updating manual fields');
-    document.getElementById('address_line1').value = addressData.AddressLine1 || '';
-    document.getElementById('address_line2').value = addressData.AddressLine2 || '';
-    document.getElementById('address_line3').value = addressData.AddressLine3 || '';
-    document.getElementById('town').value = addressData.Town || '';
-    document.getElementById('postcode').value = addressData.Postcode || '';
+    document.getElementById('address_line1').value = Address.AddressLines[0] || '';
+    document.getElementById('address_line2').value = Address.AddressLines?.[1] || '';
+    document.getElementById('address_line3').value = Address.AddressLines?.[2] || '';
+    document.getElementById('town').value = Address.Town || '';
+    document.getElementById('postcode').value = Address.Postcode || '';
 }
 
 
+/**
+ * Initialize the ship form with shipment data.
+ * @param {Shipment} shipment - The shipment data.
+ */
 async function initShipForm(shipment) {
-    populateShipmentSnake(shipment);
+    console.log('Initializing ship form with shipment:', shipment);
+    populateShipment(shipment);
     await loadAddrChoices();
     toggleOwnLabel();
 }
@@ -147,17 +116,36 @@ async function initShipForm(shipment) {
 async function loadAddrChoices() {
     // get address from form fields
     const address = addressFromInputs();
+    console.log('Loading AddressChoices for address:', address);
     // fetch AddressChices from server
     const addrChoicesJson = await fetchAddrChoices(address.Postcode, address);
     // populate address-select options and 'click to insert' div
     await handleAddrChoices(addrChoicesJson);
 }
 
-async function fetchAddrChoices(postcode, address) {
-    console.log('Fetching AddressChoices at postcode:', postcode, 'matching address:', address);
+/**
+ * @typedef {Object} AddrChoice
+ * @property {Address} Address
+ * @property {Number} Score
+ */
+
+
+/**
+ * Get AddressChoices from server.
+ * @param {String} Postcode
+ * @param {Address} Address - The address to search.
+ * @returns {Promise<AddrChoice[]>}
+ */
+async function fetchAddrChoices(Postcode, Address) {
+    console.log('Fetching AddressChoices at postcode:', Postcode, 'matching address:', Address);
+    console.log('Posting to /ship/cand', {Postcode, Address});
+    const requestBody = {
+        postcode: Postcode,
+        address: Address
+    };
     try {
         const response = await fetch('/ship/cand', {
-            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({postcode, address})
+            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(requestBody)
         });
         return await response.json();
     } catch (error) {
@@ -165,6 +153,10 @@ async function fetchAddrChoices(postcode, address) {
     }
 }
 
+/**
+ * Handles AddressChoices from server.
+ * @param {AddrChoice[]} addrChoices
+ */
 function handleAddrChoices(addrChoices) {
     let highestScoreOption = null;
     let highestScore = -Infinity;
@@ -187,6 +179,11 @@ function handleAddrChoices(addrChoices) {
     }
 }
 
+/**
+ * Create an option element for an AddressChoice.
+ * @param {AddrChoice} addressChoice
+ * @returns {HTMLOptionElement}
+ */
 function addrChoiceOption(addressChoice) {
     const option = document.createElement('option');
     option.value = JSON.stringify(addressChoice.Address);
@@ -195,12 +192,24 @@ function addrChoiceOption(addressChoice) {
     return option;
 }
 
-function addressLinesOutput(address, seperator) {
-    return getAddressLines(address).join(seperator);
+
+/**
+ * Get AddressChoices from server.
+ * @param {Address} Address
+ * @param {String} Seperator
+ * @returns {String}
+ */
+function addressLinesOutput(Address, Seperator) {
+    return getAddressLines(Address).join(Seperator);
 }
 
-function getAddressLines(address) {
-    return [address.AddressLine1, address.AddressLine2, address.AddressLine3]
+/**
+ * Get non-empty address lines from Address object.
+ * @param {Address} Address
+ * @returns {string[]}
+ */
+function getAddressLines(Address) {
+    return [...Address.AddressLines]
         .filter(line => line);
 }
 
@@ -225,9 +234,7 @@ function setScoreSpan(option) {
 
 function addressFromInputs() {
     return {
-        AddressLine1: document.getElementById('address_line1').value,
-        AddressLine2: document.getElementById('address_line2').value,
-        AddressLine3: document.getElementById('address_line3').value,
+        AddressLines: [document.getElementById('address_line1').value, document.getElementById('address_line2').value, document.getElementById('address_line3').value].filter(line => line),
         Town: document.getElementById('town').value,
         Postcode: document.getElementById('postcode').value
     };

@@ -12,7 +12,7 @@ from amherst.models.db_models import BookingStateDB
 from shipaw.models.pf_shared import ServiceCode
 from shipaw.models.pf_shipment_configured  import to_collection_configured, to_dropoff
 from shipaw.ship_types import ShipDirection
-from .client import test_client  # noqa: F401
+from client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
 from amherst.routes_test import PostForm

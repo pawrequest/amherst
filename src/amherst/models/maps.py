@@ -3,12 +3,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import date
 from enum import StrEnum
-from typing import Any, Awaitable, NamedTuple
+from typing import Any, NamedTuple
+from collections.abc import Awaitable
 
 from fastapi import Query
-from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment import Shipment
-from shipaw.ship_types import ShipDirection
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
 
@@ -19,7 +17,6 @@ from amherst.models.amherst_models import (
     AmherstSale,
     AmherstShipableBase,
     AmherstTrial,
-    SHIPMENT_TYPES,
 )
 from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
@@ -36,6 +33,10 @@ from amherst.models.filters import (
     hire_row_filter_loose,
     sale_row_filter_loose,
 )
+from shipaw.agnostic.responses import ShipmentBookingResponseAgnost
+# from shipaw.parcelforce.shipment import Shipment as ShipmentPF
+from shipaw.agnostic.ship_types import ShipDirection
+from shipaw.agnostic.shipment import Shipment
 
 
 class FilterMapPy(NamedTuple):
@@ -59,7 +60,11 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
-CmcUpdateFunc = Callable[[AMHERST_TABLE_MODELS, SHIPMENT_TYPES, ShipmentResponse], Awaitable[dict[str, str]]]
+# CmcUpdateFunc = Callable[[AMHERST_TABLE_MODELS, ShipmentPF, ShipmentResponsePF], Awaitable[dict[str, str]]]
+CmcUpdateFuncAgnost = Callable[
+    [AMHERST_TABLE_MODELS, Shipment, ShipmentBookingResponseAgnost], Awaitable[dict[str, str]]
+]
+# CmcUpdateFunc1 = Callable[[AMHERST_TABLE_MODELS, SHIPMENT_TYPES, ShipmentResponse], Awaitable[dict[str, str]]]
 
 
 async def get_alias(record) -> type(StrEnum):
@@ -68,13 +73,13 @@ async def get_alias(record) -> type(StrEnum):
     return aliases
 
 
-async def get_track_dir_field(aliases, shipment) -> str:
-    if shipment.direction == ShipDirection.OUTBOUND:
-        return aliases.TRACK_OUT
-    elif shipment.direction in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-        return aliases.TRACK_IN
-    else:
-        raise ValueError('Invalid shipment direction')
+# async def get_track_dir_field(aliases, shipment) -> str:
+#     if shipment.direction == ShipDirection.OUTBOUND:
+#         return aliases.TRACK_OUT
+#     elif shipment.direction in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
+#         return aliases.TRACK_IN
+#     else:
+#         raise ValueError('Invalid shipment direction')
 
 
 def split_com_sep_str_field(record, fieldname: str) -> list[str]:
@@ -88,7 +93,7 @@ def add_to_com_sep_str_field(data: list, value) -> str:
     return ','.join(data)
 
 
-async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp) -> str:
+async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp: ShipmentBookingResponseAgnost) -> str:
     tracks = split_com_sep_str_field(record, 'tracking_numbers')
     return add_to_com_sep_str_field(tracks, resp.shipment_num)
 
@@ -106,8 +111,8 @@ async def add_tracking_to_list(record: AMHERST_TABLE_MODELS, resp) -> str:
 #     return update_package
 
 
-async def make_update_dict2(
-    record: AMHERST_TABLE_MODELS, shipment: SHIPMENT_TYPES, shipment_response: ShipmentResponse
+async def make_update_dict_agnost(
+    record: AMHERST_TABLE_MODELS, shipment: Shipment, shipment_response: ShipmentBookingResponseAgnost
 ) -> dict[str, Any]:
     """Adds tracking numbers and link."""
     update_package = await tracking_link_update(record, shipment, shipment_response)
@@ -117,15 +122,17 @@ async def make_update_dict2(
     return update_package
 
 
-async def tracking_link_update(record: AmherstHire, shipment: Shipment, shipment_response: ShipmentResponse):
+async def tracking_link_update(
+    record: AmherstHire, shipment: Shipment, shipment_response: ShipmentBookingResponseAgnost
+):
     aliases = await get_alias(record)
     shipdir = shipment.direction
     tracks = await add_tracking_to_list(record, shipment_response)
     update_package = {aliases.TRACKING_NUMBERS: tracks}
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-        links = {aliases.TRACK_IN: shipment_response.tracking_link_rm()}
+        links = {aliases.TRACK_IN: shipment_response.tracking_link}
     elif shipdir == ShipDirection.OUTBOUND:
-        links = {aliases.TRACK_OUT: shipment_response.tracking_link_rm()}
+        links = {aliases.TRACK_OUT: shipment_response.tracking_link}
     else:
         raise ValueError(f'Invalid shipment direction: {shipdir}')
     update_package.update(links)
@@ -184,7 +191,7 @@ class AmherstMap(NamedTuple):
     record_model: type(AmherstShipableBase)
     aliases: type(StrEnum)
     templates: TemplateMap
-    cmc_update_fn: CmcUpdateFunc | None = make_update_dict2
+    cmc_update_fn: CmcUpdateFuncAgnost | None = make_update_dict_agnost
     connections: ConnectionMap | None = None
     py_filters: FilterMapPy | None = None
     cmc_filters: FilterMapCmc | None = None
