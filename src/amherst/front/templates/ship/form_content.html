@@ -111,7 +111,8 @@
 
 
 <script>
-    shipment = {{ record.shipment(mode='python-alias') | jsonable | tojson }};
+    shipment = {{ record.shipment() | jsonable | tojson }};
+    {#shipment = {{ record.shipment(mode='python-alias') | jsonable | tojson }};#}
     {#shipment = {{ record.shipment(mode='json-alias') | jsonable | tojson }};#}
     record = {{ record | jsonable | tojson}};
     console.log('record', record);

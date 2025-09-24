@@ -1,6 +1,3 @@
-import webbrowser
-import argparse
-
 RM_URL = 'https://www.royalmail.com/track-your-item#/tracking-results/'
 
 

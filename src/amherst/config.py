@@ -3,52 +3,16 @@ from __future__ import annotations
 import os
 import re
 from datetime import date, datetime
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote
 
 import pydantic as _p
 from fastapi.encoders import jsonable_encoder
 from pawlogger import get_loguru
+from pydantic import computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
-
-
-def load_env():
-    amherst_env = os.getenv('AMHERST_ENV')
-    amherst_env = Path(amherst_env) if amherst_env else None
-    if not amherst_env or not amherst_env.exists():
-        raise ValueError(f'AMHERST_ENV ({amherst_env}) incorrectly set')
-    print(f'Loading SHIPAW environment from {amherst_env}')
-    return amherst_env
-
-
-class Settings(BaseSettings):
-    log_file: Path
-    src_dir: Path = Path(__file__).resolve().parent
-    templates: Path | None = None
-    log_level: str = 'DEBUG'
-    sandbox: bool = False
-
-    @_p.field_validator('templates', mode='after')
-    def set_templates(cls, v, values):
-        if not v:
-            return Jinja2Templates(directory=str(values.data['src_dir'] / 'front' / 'templates'))
-        return v
-
-    @_p.field_validator('log_file', mode='after')
-    def path_exists(cls, v, values):
-        if not v.parent.exists():
-            v.parent.mkdir(parents=True, exist_ok=True)
-        if not v.exists():
-            v.touch(exist_ok=True)
-        return v
-
-    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=load_env(), extra='ignore')
-
-
-amherst_settings = Settings()
-
-logger = get_loguru(log_file=amherst_settings.log_file, profile='local', level=amherst_settings.log_level)
 
 
 def sanitise_id(value):
@@ -71,8 +35,58 @@ def ordinal_dt(dt: datetime | date) -> str:
     return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
 
 
-TEMPLATES = Jinja2Templates(directory=str(amherst_settings.src_dir / 'front' / 'templates'))
-TEMPLATES.env.filters['jsonable'] = make_jsonable
-TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
-TEMPLATES.env.filters['sanitise_id'] = sanitise_id
-TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
+def load_amherst_settings_env():
+    amherst_env = Path(os.getenv('AMHERST_ENV'))
+    if not amherst_env or not amherst_env.exists():
+        raise ValueError(f'AMHERST_ENV ({amherst_env}) incorrectly set')
+    print(f'Loading Amherst Settings from {amherst_env}')
+    return amherst_env
+
+
+class Settings(BaseSettings):
+    log_dir: Path
+    static_dir: Path
+    template_dir: Path
+    templates: Jinja2Templates | None = None
+    log_level: str = 'DEBUG'
+
+    @computed_field
+    @property
+    def log_file(self) -> Path:
+        return self.log_dir / 'amherst.log'
+
+    @computed_field
+    @property
+    def ndjson_file(self) -> Path:
+        return self.log_dir / 'amherst.ndjson'
+
+    @model_validator(mode='after')
+    def set_templates(self):
+        if self.templates is None:
+            self.templates = Jinja2Templates(directory=self.template_dir)
+            self.templates.env.filters['jsonable'] = make_jsonable
+            self.templates.env.filters['urlencode'] = lambda value: quote(str(value))
+            self.templates.env.filters['sanitise_id'] = sanitise_id
+            self.templates.env.filters['ordinal_dt'] = ordinal_dt
+
+        return self
+
+    @_p.model_validator(mode='after')
+    def create_log_files(self):
+        self.log_dir.mkdir(parents=True, exist_ok=True)
+        for v in (self.log_file, self.ndjson_file):
+            if not v.exists():
+                v.touch()
+        return self
+
+    model_config = SettingsConfigDict(env_file=load_amherst_settings_env())
+
+
+@lru_cache
+def amherst_settings() -> Settings:
+    return Settings()
+
+
+logger = get_loguru(log_file=amherst_settings().log_file, profile='local', level=amherst_settings().log_level)
+
+

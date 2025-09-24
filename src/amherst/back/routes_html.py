@@ -12,7 +12,7 @@ from amherst.back.backend_search_paginate import (
     SearchResponse,
     SearchResponseMulti,
 )
-from amherst.config import TEMPLATES
+from amherst.config import amherst_settings
 from amherst.models.amherst_models import AMHERST_ORDER_MODELS
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
 
@@ -40,7 +40,7 @@ async def search(
 ):
     search_response: SearchResponse = await pycommence_search(search_request, pycmc)
     logger.debug(str(search_response))
-    return TEMPLATES.TemplateResponse(mapper.templates.listing, {'request': request, 'response': search_response})
+    return amherst_settings().templates.TemplateResponse(mapper.templates.listing, {'request': request, 'response': search_response})
 
 
 @router.get('/orders')
@@ -74,7 +74,7 @@ async def orders(
     records.sort(key=lambda x: x.send_date, reverse=True)
     response = SearchResponseMulti(records=records, search_request=requests)
     logger.debug(str(response))
-    return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
+    return amherst_settings().templates.TemplateResponse(template_name, {'request': request, 'response': response})
 
 
 # @router.get('/fetch')
@@ -84,7 +84,7 @@ async def orders(
 #     template_name: str = Depends(listing_template_name_q),
 # ):
 #     logger.info(str(record))
-#     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'record': record})
+#     return amherst_settings().templates.TemplateResponse(template_name, {'request': request, 'record': record})
 
 
 # @router.get('/search-f')
@@ -97,7 +97,7 @@ async def orders(
 # ):
 #     search_response: SearchResponse = await pycommence_response(search_request, pycmc)
 #     logger.info(f'Search Returned {search_response.length} {search_response.search_request.csrname} records')
-#     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': search_response})
+#     return amherst_settings().templates.TemplateResponse(template_name, {'request': request, 'response': search_response})
 
 
 # @router.get('/customer')
@@ -160,4 +160,4 @@ async def orders(
 #     records.sort(key=lambda x: x.send_date, reverse=True)
 #     response = SearchResponseMulti(records=records, search_request=[hire_request, sale_request])
 #     logger.debug(str(response))
-#     return TEMPLATES.TemplateResponse(template_name, {'request': request, 'response': response})
+#     return amherst_settings().templates.TemplateResponse(template_name, {'request': request, 'response': response})

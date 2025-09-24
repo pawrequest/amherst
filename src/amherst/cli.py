@@ -1,21 +1,7 @@
 """
 Wrap FastAPI app in FlaskWebGUI for desktop application.
 Use `Paw Request fork <https://github.com/pawrequest/flaskwebgui>`_ for URL_SUFFIX to dynamically set loading page to the retrieved record
-
-Environment variables:
-    AM_ENV: Path to environment file defining:
-        - log file location
-    SHIP_ENV: Path to environment file defining:
-        - parcelforce account numbers
-        - parcelforce contract numbers
-        - parcelforce username and password
-        - parcelforce wsdl
-        - parcelforce endpoint
-        - parcelforce binding
-        - parcelforce live status
-
 """
-
 
 import argparse
 import asyncio
@@ -25,22 +11,18 @@ import webbrowser
 from pathlib import Path
 
 import pyperclip
-from loguru import logger
 
 from amherst.actions import print_file
-# from amherst.actions.emailer import send_invoice_email
-from amherst.actions.invoice_number import next_inv_num
 from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_royal_mail
+from amherst.actions.invoice_number import next_inv_num
 from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
 from amherst.models.commence_adaptors import CategoryName
-from amherst.set_env import set_amherstpr_env
+from amherst.set_env import set_env_files
 
 
 def shipper_cli():
     args = parse_ship_args()
-    set_amherstpr_env(sandbox=args.sandbox)
-
-    # import_and_set_env(args.sandbox)  # BEFORE IMPORTING SHIPPER
+    set_env_files(envs_dir=args.env_dir)
     from amherst.ui_runner import shipper  # AFTER SETTING ENVIRONMENT
 
     asyncio.run(shipper(args.category, args.record_name))
@@ -50,16 +32,9 @@ def parse_ship_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
     arg_parser.add_argument('record_name', type=str)
-    arg_parser.add_argument('--sandbox', action='store_true', help='Run in sandbox mode')
+    arg_parser.add_argument('env_dir', type=Path)
     args = arg_parser.parse_args()
     return args
-
-
-def import_and_set_env(sandbox: bool = True):
-    logger.debug(f'Importing and setting environment, sandbox={sandbox}')
-    from amherst.set_env import set_amherstpr_env
-
-    set_amherstpr_env(sandbox=sandbox)
 
 
 def file_printer_cli():
@@ -72,8 +47,10 @@ def file_printer_cli():
         sys.exit(1)
     print_file(file_path)
 
+
 #
 # def send_invoice_email_cli():
+#     from amherst.actions.emailer import send_invoice_email
 #     parser = argparse.ArgumentParser(description='Send an invoice email with attachment.')
 #     parser.add_argument('invoice', type=Path, help='Path to the invoice PDF')
 #     parser.add_argument('address', type=str, help='Recipient email address')

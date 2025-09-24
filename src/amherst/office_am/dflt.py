@@ -1,4 +1,3 @@
-from enum import Enum
 from pathlib import Path
 
 from suppawt.office_ps.email_handler import Email

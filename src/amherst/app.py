@@ -3,17 +3,15 @@ import contextlib
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
-from shipaw.agnostic.responses import Alert, Alerts, AlertType
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 
-
-from amherst.config import amherst_settings, TEMPLATES
-from amherst.back.routes_json import router as json_router
 from amherst.back.routes_html import router as html_router
+from amherst.back.routes_json import router as json_router
 from amherst.back.ship_routes import router as ship_router2
-from shipaw.parcelforce import config
+from amherst.config import amherst_settings
+from shipaw.agnostic.responses import Alert, AlertType, Alerts
 
 
 @contextlib.asynccontextmanager
@@ -33,7 +31,7 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory=str(amherst_settings.src_dir / 'front' / 'static')), name='static')
+app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router2, prefix='/ship')
 app.include_router(html_router)
@@ -51,7 +49,7 @@ async def request_exception_handler(request: Request, exc: RequestValidationErro
 
     logger.error(msg2)
     alerts = Alerts(alert=[Alert(code=1, message=msg2, type=AlertType.ERROR)])
-    return TEMPLATES.TemplateResponse('alerts.html', {'request': request, 'alerts': alerts})
+    return amherst_settings().templates.TemplateResponse('alerts.html', {'request': request, 'alerts': alerts})
 
     # return JSONResponse(status_code=422, content={'detail': exc.errors()})
 
@@ -70,4 +68,4 @@ async def favicon_ico():
 async def base(
     request: Request,
 ):
-    return TEMPLATES.TemplateResponse('base.html', {'request': request})
+    return amherst_settings().templates.TemplateResponse('base.html', {'request': request})

@@ -37,7 +37,6 @@
         {% set contact = shipment.remote_full_contact.contact %}
         <h4>Remote Contact</h4>
         <p>{{ contact.contact_name }}</p>
-        <p><strong>Business:</strong> {{ contact.business_name }}</p>
         <p><strong>Email:</strong> {{ contact.email_address }}</p>
         <p><strong>Phone:</strong> {{ contact.mobile_phone }}</p>
     </section>
@@ -45,6 +44,7 @@
     <section class="requested requested__address">
         {% set address = shipment.remote_full_contact.address %}
         <h4>Remote Address</h4>
+        <p><strong>Business:</strong> {{ address.business_name }}</p>
         {% for line in address.address_lines %}
             <p>{{ line }}</p>
         {% endfor %}

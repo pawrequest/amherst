@@ -7,6 +7,7 @@ from conftest import TEST_DATE
 from route.conftest import test_client
 from shipaw.agnostic.providers import ShippingProvider
 from shipaw.agnostic.requests import ShipmentRequestAgnost
+from shipaw.agnostic.ship_types import pydantic_export
 from shipaw.apc.provider import APCProvider
 from shipaw.apc.shared import apc_date
 from shipaw.parcelforce.provider import ParcelforceProvider
@@ -31,7 +32,8 @@ def order_review_sample(amherst_hire, test_client, request):
     provider: type[ShippingProvider] = request.param
     # Prepare form data to emulate user input
     record_str = amherst_hire.model_dump_json()
-    ship = amherst_hire.shipment(mode='pydantic')
+    ship = amherst_hire.shipment()
+    ship = pydantic_export(ship, mode='pydantic')
 
     form_data = {
         **ship.recipient.address.model_dump(),

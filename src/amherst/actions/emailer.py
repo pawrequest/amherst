@@ -1,17 +1,15 @@
 from __future__ import annotations
-import smtplib
-from email.message import EmailMessage
-from email.utils import make_msgid
-from pathlib import Path
 
+import smtplib
 from dataclasses import dataclass
+from email.message import EmailMessage
 from pathlib import Path
 
 import pythoncom
 from loguru import logger
 from win32com.client import Dispatch
 
-from amherst.config import TEMPLATES
+from amherst.config import amherst_settings
 
 
 @dataclass
@@ -77,7 +75,9 @@ async def subject(*, invoice_num: str | None = None, missing: bool = False, labe
 
 async def send_label_email(shipment):
     label = None if shipment.direction == 'out' else shipment.label_path
-    body = TEMPLATES.get_template('email_snips/label_email.html').render(label=label, shipment=shipment)
+    body = (
+        amherst_settings().templates.get_template('email_snips/label_email.html').render(label=label, shipment=shipment)
+    )
     email = Email(
         to_address=shipment.full_contact.full_contact.email_address,
         subject=f'Amherst Radios Shipping{' - Shipping Label Attached' if label else ''}',
@@ -91,7 +91,7 @@ async def send_label_email(shipment):
 async def send_invoice_email(invoice: Path, address: str):
     addrs = set(a.strip() for a in address.split(',') if a.strip())
     addr_str = ', '.join(addrs)
-    body = TEMPLATES.get_template('email_snips/invoice_email.html').render(invoice=invoice)
+    body = amherst_settings().templates.get_template('email_snips/invoice_email.html').render(invoice=invoice)
     email = Email(
         to_address=addr_str,
         subject='Amherst Radios Invoice Attached',
@@ -108,14 +108,14 @@ async def send_invoice_email(invoice: Path, address: str):
 #     label: Path | None = None,
 #     missing: list | None = None,
 # ):
-#     sections = [TEMPLATES.get_template('email_snips/hi_snip.html').render()]
+#     sections = [amherst_settings().templates.get_template('email_snips/hi_snip.html').render()]
 #     if invoice:
-#         sections.append(TEMPLATES.get_template('email_snips/invoice_snip.html').render(invoice=invoice))
+#         sections.append(amherst_settings().templates.get_template('email_snips/invoice_snip.html').render(invoice=invoice))
 #     if missing:
-#         sections.append(TEMPLATES.get_template('email_snips/missing_snip.html').render(missing=missing))
+#         sections.append(amherst_settings().templates.get_template('email_snips/missing_snip.html').render(missing=missing))
 #     if label:
-#         sections.append(TEMPLATES.get_template('email_snips/label_snip.html').render(label=label, shipment=shipment))
-#     sections.append(TEMPLATES.get_template('email_snips/bye_snip.html').render())
+#         sections.append(amherst_settings().templates.get_template('email_snips/label_snip.html').render(label=label, shipment=shipment))
+#     sections.append(amherst_settings().templates.get_template('email_snips/bye_snip.html').render())
 #     email_body = '\n'.join(sections)
 #     return email_body
 

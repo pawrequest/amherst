@@ -1,10 +1,8 @@
-from typing import Protocol, Self
 import datetime
 from dataclasses import dataclass, field
 from decimal import Decimal
 
 from amherst.actions.invoice_number import next_inv_num
-from shipaw.models.pf_models import AddressBase
 
 
 @dataclass
@@ -69,5 +67,3 @@ class Invoice:
     del_add: AddressStrings
     invoice_date: datetime.date = field(default_factory=datetime.date.today)
     inv_num: str = field(default_factory=next_inv_num)
-
-

@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 
 from amherst.actions.invoice_number import next_inv_num
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale
+
 
 @dataclass
 class InventoryItem:

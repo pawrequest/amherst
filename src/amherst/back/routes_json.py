@@ -4,9 +4,9 @@ from loguru import logger
 from pycommence import PyCommence
 from starlette.requests import Request
 
-from amherst.back.backend_search_paginate import SearchResponse
 from amherst.back.backend_pycommence import pycmc_f_query, pycommence_search
-from amherst.config import TEMPLATES
+from amherst.back.backend_search_paginate import SearchResponse
+from amherst.config import amherst_settings
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 
 router = APIRouter()
@@ -43,7 +43,7 @@ async def health():
 async def testing(
     request: Request,
 ):
-    return TEMPLATES.TemplateResponse('testing.html', {'request': request})
+    return amherst_settings().templates.TemplateResponse('testing.html', {'request': request})
 
 
 # @router.post('/')

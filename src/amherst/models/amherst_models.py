@@ -13,7 +13,8 @@ from amherst.models.commence_adaptors import (
     hire_alias_generator,
     replace_noncompliant_apostrophes,
     sale_alias_generator,
-    split_addr_str2, trial_alias_generator,
+    split_addr_str2,
+    trial_alias_generator,
 )
 from shipaw.agnostic.address import Address as AddressAgnost, Contact, FullContact
 from shipaw.agnostic.ship_types import ConvertMode, ShipDirection, pydantic_export
@@ -62,24 +63,27 @@ class AmherstShipableBase(BaseModel, ABC):
         return FullContact(
             contact=Contact(
                 contact_name=self.delivery_contact_name,
-                business_name=self.delivery_contact_business,
                 mobile_phone=self.delivery_contact_phone,
                 email_address=self.delivery_contact_email,
             ),
-            address=AddressAgnost(address_lines=addrlines, town=town, postcode=self.delivery_address_pc),
+            address=AddressAgnost(
+                address_lines=addrlines,
+                town=town,
+                postcode=self.delivery_address_pc,
+                business_name=self.delivery_contact_business,
+            ),
         )
 
     def shipment(
-        self, mode: ConvertMode = 'python', direction: ShipDirection = ShipDirection.OUTBOUND
-    ) -> Shipment | dict:
-        res = Shipment(
+        self, direction: ShipDirection = ShipDirection.OUTBOUND
+    ) -> Shipment:
+        return Shipment(
             recipient=self.full_contact,
             boxes=self.boxes,
             shipping_date=self.send_date,
             direction=direction,
             reference=self.customer_name,
         )
-        return pydantic_export(res, mode=mode)
 
 
 class AmherstOrderBase(AmherstShipableBase, ABC):

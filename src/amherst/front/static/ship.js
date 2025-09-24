@@ -11,12 +11,12 @@
  * @property {string} ContactName
  * @property {string} EmailAddress
  * @property {string} MobilePhone
- * @property {string} BusinessName
  */
 
 
 /**
  * @typedef {Object} Address
+ * @property {string} BusinessName
  * @property {string[]} AddressLines
  * @property {string} Town
  * @property {string} Postcode
@@ -53,7 +53,7 @@ function populateShipment(shipment) {
     document.getElementById('ship_date').value = shipment.ShippingDate;
     document.getElementById('boxes').value = shipment.Boxes || 1;
     document.getElementById('reference').value = shipment.Reference || "";
-    document.getElementById('business_name').value = shipment.Recipient.Contact.BusinessName || "";
+    document.getElementById('business_name').value = shipment.Recipient.Address.BusinessName || "";
     document.getElementById('contact_name').value = shipment.Recipient.Contact.ContactName || "";
     document.getElementById('email').value = shipment.Recipient.Contact.EmailAddress || "";
     document.getElementById('mobile_phone').value = shipment.Recipient.Contact.MobilePhone || "";
@@ -236,7 +236,8 @@ function addressFromInputs() {
     return {
         AddressLines: [document.getElementById('address_line1').value, document.getElementById('address_line2').value, document.getElementById('address_line3').value].filter(line => line),
         Town: document.getElementById('town').value,
-        Postcode: document.getElementById('postcode').value
+        Postcode: document.getElementById('postcode').value,
+        BusinessName: document.getElementById('business_name').value || "",
     };
 }
 

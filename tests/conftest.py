@@ -1,10 +1,8 @@
 import os
+from pathlib import Path
+from amherst.set_env import set_env_files
 
-os.environ['AMHERSTPR'] = r'C:\prdev\envs\sandbox'
-
-from amherst.set_env import set_amherstpr_env
-
-set_amherstpr_env(sandbox=True)
+set_env_files(Path(r'C:\prdev\envs\sandbox'))
 
 from datetime import date, timedelta
 
