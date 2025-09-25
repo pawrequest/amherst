@@ -4,7 +4,7 @@ from combadge.core.errors import BackendError
 from fastapi import APIRouter, Body, Depends, Form
 from loguru import logger
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse
 
 from amherst.actions.emailer import send_label_email
 from amherst.back.backend_pycommence import pycommence_get_one
@@ -149,6 +149,19 @@ async def order_confirm2(
 class AddressRequest(ShipawBaseModel):
     postcode: str
     address: Address | None = None
+
+
+# @router.get('/home_mobile_phone', response_class=PlainTextResponse)
+# async def home_mobile_phone():
+#     return shipaw_settings().mobile_phone
+
+
+@router.get('/home_mobile_phone', response_class=HTMLResponse)
+async def home_mobile_phone():
+    mobile_phone = shipaw_settings().mobile_phone
+    return f"""
+    <input type="tel" id="mobile_phone" name="mobile_phone" value="{mobile_phone}" required>
+    """
 
 
 @router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)

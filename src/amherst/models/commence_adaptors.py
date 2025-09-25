@@ -5,19 +5,9 @@ from enum import StrEnum
 from typing import Annotated
 
 import pydantic as _p
-from loguru import logger
 from pycommence.pycmc_types import (
     get_cmc_date,
 )
-
-LOCATION = 'HM'
-
-
-# class CategoryNameE(Enum):
-#     Hire = 'Hire'
-#     Sale = 'Sale'
-#     Customer = 'Customer'
-#     Trial = 'Radio Trial'
 
 
 class CategoryName(StrEnum):
@@ -274,7 +264,7 @@ def customer_alias_generator(field_name: str) -> str:
     try:
         return CustomerAliases[field_name.upper()].value
     except KeyError:
-        logger.warning(f'No Customer alias found for field name: {field_name}')
+        # logger.warning(f'No Customer alias found for field name: {field_name}')
         return field_name
 
 
@@ -282,7 +272,7 @@ def sale_alias_generator(field_name: str) -> str:
     try:
         return SaleAliases[field_name.upper()].value
     except KeyError:
-        logger.warning(f'No Sale alias found for field name: {field_name}')
+        # logger.warning(f'No Sale alias found for field name: {field_name}')
         return field_name
 
 
@@ -290,7 +280,7 @@ def hire_alias_generator(field_name: str) -> str:
     try:
         return HireAliases[field_name.upper()].value
     except KeyError:
-        logger.warning(f'No Hire alias found for field name: {field_name}')
+        # logger.warning(f'No Hire alias found for field name: {field_name}')
         return field_name
 
 
@@ -298,7 +288,7 @@ def trial_alias_generator(field_name: str) -> str:
     try:
         return TrialAliases[field_name.upper()].value
     except KeyError:
-        logger.warning(f'No Trial alias found for field name: {field_name}')
+        # logger.warning(f'No Trial alias found for field name: {field_name}')
         return field_name
 
 

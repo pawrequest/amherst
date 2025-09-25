@@ -9,7 +9,7 @@ from shipaw.agnostic.providers import ShippingProvider
 from shipaw.agnostic.requests import ShipmentRequestAgnost
 from shipaw.agnostic.ship_types import pydantic_export
 from shipaw.apc.provider import APCProvider
-from shipaw.apc.shared import apc_date
+from shipaw.apc.config import apc_date
 from shipaw.parcelforce.provider import ParcelforceProvider
 
 PK_SEARCH = 'amps'
