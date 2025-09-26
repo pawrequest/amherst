@@ -22,3 +22,4 @@ def set_env_files(envs_dir: Path):
     set_one_env_file(envs_dir, f'parcelforce.env', 'PARCELFORCE_ENV')
     set_one_env_file(envs_dir, f'shipaw.env', 'SHIPAW_ENV')
     set_one_env_file(envs_dir, f'apc.env', 'APC_ENV')
+    set_one_env_file(envs_dir, f'royal_mail.env', 'ROYAL_MAIL_ENV')
