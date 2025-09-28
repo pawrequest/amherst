@@ -1,20 +1,17 @@
 import pytest
+from pawdantic.paw_types import pydantic_export
 
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
 from amherst.models.commence_adaptors import CategoryName
 from amherst.ui_runner import CONFIRM_URL, REVIEW_URL, get_shipper_url
-from conftest import TEST_DATE
-from route.conftest import test_client
-from shipaw.agnostic.providers import ShippingProvider
-from shipaw.agnostic.requests import ShipmentRequestAgnost
-from shipaw.agnostic.ship_types import pydantic_export
-from shipaw.apc.provider import APCProvider
-from shipaw.apc.config import apc_date
-from shipaw.parcelforce.provider import ParcelforceProvider
+from shipaw.models.provider import PROVIDER_REGISTER
 
 PK_SEARCH = 'amps'
 CSRNAME = 'Hire'
 
+@pytest.fixture(scope='session', params=[_() for _ in PROVIDER_REGISTER.values()], ids=[_ for _ in PROVIDER_REGISTER.keys()])
+def provider(request):
+    yield request.param
 
 @pytest.mark.asyncio
 async def test_ship_form(test_client):
@@ -27,12 +24,10 @@ async def test_ship_form(test_client):
     assert response.context['record'].name == record
 
 
-@pytest.fixture(scope='session', params=[ParcelforceProvider, APCProvider], ids=['ParcelforceProvider', 'APCProvider'])
-def order_review_sample(amherst_hire, test_client, request):
-    provider: type[ShippingProvider] = request.param
-    # Prepare form data to emulate user input
-    record_str = amherst_hire.model_dump_json()
-    ship = amherst_hire.shipment()
+@pytest.fixture(scope='session')
+def order_review_sample(provider, amherst_customer, test_client, request):
+    record_str = amherst_customer.model_dump_json()
+    ship = amherst_customer.shipment()
     ship = pydantic_export(ship, mode='pydantic')
 
     form_data = {

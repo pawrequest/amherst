@@ -7,11 +7,11 @@
 #
 # from fastapi import Query
 #
-# from shipaw.agnostic.responses import ShipmentBookingResponseAgnost
-# from shipaw.agnostic.shipment import Shipment
-# from shipaw.parcelforce.msg import ShipmentResponse as ShipmentResponsePF
-# from shipaw.parcelforce.shipment import Shipment as ShipmentPF
-# from shipaw.agnostic.ship_types import ShipDirection
+# from shipaw.models.responses import ShipmentBookingResponseAgnost
+# from shipaw.models.shipment import Shipment
+# from parcelforce_expresslink.msg import ShipmentResponse as ShipmentResponsePF
+# from parcelforce_expresslink.shipment import Shipment as ShipmentPF
+# from shipaw.models.ship_types import ShipDirection
 # from pycommence.filters import FilterArray
 # from pycommence.pycmc_types import Connection, RowFilter
 #

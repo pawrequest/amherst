@@ -4,7 +4,16 @@ from combadge.core.errors import BackendError
 from fastapi import APIRouter, Body, Depends, Form
 from loguru import logger
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from starlette.responses import HTMLResponse, JSONResponse
+from shipaw.models.address import Address, AddressChoice as AddressChoiceAgnost, Contact
+from shipaw.models.base import ShipawBaseModel
+from shipaw.config import shipaw_settings
+from shipaw.fapi.requests import ShipmentRequest as ShipmentRequest
+from shipaw.fapi.alerts import Alert, AlertType, Alerts
+from shipaw.models.shipment import Shipment
+from parcelforce_expresslink.address import (AddressChoice as AddressChoicePF, AddressRecipient, Contact as ContactPF)
+from parcelforce_expresslink.client import ParcelforceClient
+from shipaw.providers.parcelforce_provider import full_contact_from_provider_contact_address
 
 from amherst.actions.emailer import send_label_email
 from amherst.back.backend_pycommence import pycommence_get_one
@@ -17,14 +26,6 @@ from amherst.back.ship_queries import (
 )
 from amherst.config import amherst_settings
 from amherst.models.amherst_models import AMHERST_TABLE_MODELS
-from shipaw.agnostic.address import Address, AddressChoice, Contact
-from shipaw.agnostic.base import ShipawBaseModel
-from shipaw.config import shipaw_settings
-from shipaw.agnostic.requests import ProviderName, ShipmentRequestAgnost
-from shipaw.agnostic.responses import Alert, AlertType, Alerts
-from shipaw.agnostic.shipment import Shipment
-from shipaw.parcelforce.address import AddressBase
-from shipaw.parcelforce.client import ParcelforceClient
 
 router = APIRouter()
 
@@ -64,12 +65,12 @@ async def order_review2(
     request: Request,
     shipment: Shipment = Depends(shipment_f_form),
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
-    provider_name: ProviderName = Form(...),
+    provider_name: str = Form(...),
 ) -> HTMLResponse:
     alerts = await maybe_alert_phone_number(shipment.remote_full_contact.contact)
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
-    ship_req = ShipmentRequestAgnost(shipment=shipment, provider_name=provider_name)
+    ship_req = ShipmentRequest(shipment=shipment, provider_name=provider_name)
     return amherst_settings().templates.TemplateResponse(
         template, {'request': request, 'shipment_request': ship_req, 'record': record, 'alerts': alerts}
     )
@@ -110,7 +111,7 @@ async def maybe_alert_phone_number(contact: Contact):
 @router.post('/post_confirm', response_class=HTMLResponse)
 async def order_confirm2(
     request: Request,
-    shipment_req: ShipmentRequestAgnost = Depends(shipment_req_str_to_shipment2),
+    shipment_req: ShipmentRequest = Depends(shipment_req_str_to_shipment2),
     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
 ) -> HTMLResponse:
     logger.info('Booking Shipment')
@@ -149,6 +150,7 @@ async def order_confirm2(
 class AddressRequest(ShipawBaseModel):
     postcode: str
     address: Address | None = None
+    contact: Contact | None = None
 
 
 # @router.get('/home_mobile_phone', response_class=PlainTextResponse)
@@ -164,31 +166,38 @@ async def home_mobile_phone():
     """
 
 
-@router.post('/cand', response_model=list[AddressChoice], response_class=JSONResponse)
+@router.post('/cand', response_model=list[AddressChoiceAgnost], response_class=JSONResponse)
 async def get_addr_choices(
     request: Request,
     body: AddressRequest = Body(...),
     el_client: ParcelforceClient = Depends(get_el_client),
-) -> list[AddressChoice]:
+) -> list[AddressChoiceAgnost]:
     """Fetch candidate address choices for a postcode, optionally scored by closeness to provided address.
 
     Args:
         request: Request - FastAPI request object
-        body: AddressRequest - request body containing postcode and optional address
+        body: Address - request body containing postcode and optional address
         el_client: ELClient - Parcelforce ExpressLink client
     """
-    # address = ParcelforceProvider.provider_address(address)
+    # address = ParcelforceShippingProvider.provider_address(address)
     postcode = body.postcode
-    address = body.address
-    logger.debug(f'Fetching candidates for {postcode=}, {address=}')
-    # address = ParcelforceProvider.provider_address_only(address, mode='pydantic') if address else None
-    address = AddressBase.from_generic(address)
+    address_agnost = body.address
+    pf_address = (
+        AddressRecipient(
+            address_line1=address_agnost.address_lines[0],
+            address_line2=address_agnost.address_lines[1] if len(address_agnost.address_lines) > 1 else '',
+            address_line3=address_agnost.address_lines[2] if len(address_agnost.address_lines) > 2 else '',
+            town=address_agnost.town,
+            postcode=address_agnost.postcode,
+            country=address_agnost.country,
+        )
+        if address_agnost
+        else None
+    )
 
     try:
-        res = el_client.get_choices(postcode=postcode, address=address)
-        res_agnost = [
-            AddressChoice(address=AddressBase.to_generic(_.address, business_name=''), score=_.score) for _ in res
-        ]
+        res = el_client.get_choices(postcode=postcode, address=pf_address)
+        res_agnost = [await convert_choice(_) for _ in res]
         return res_agnost
     except BackendError as e:
         alert = Alert(
@@ -198,8 +207,16 @@ async def get_addr_choices(
         request.app.alerts += alert  # todo is this received frontend?
         logger.warning(f'Error fetching candidates: {e}')
         addr = Address(address_lines=['ERROR:', str(e)], town='Error', postcode='Error', business_name='Error')
-        chc = AddressChoice(address=addr, score=0)
+        chc = AddressChoiceAgnost(address=addr, score=0)
         return [chc]
+
+
+async def convert_choice(choice: AddressChoicePF) -> AddressChoiceAgnost:
+    fc = full_contact_from_provider_contact_address(contact=ContactPF.empty(), address=choice.address)
+    return AddressChoiceAgnost(
+        address=fc.address,
+        score=choice.score,
+    )
 
 
 @router.post('/email_label', response_class=HTMLResponse)

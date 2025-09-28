@@ -33,10 +33,10 @@ from amherst.models.filters import (
     hire_row_filter_loose,
     sale_row_filter_loose,
 )
-from shipaw.agnostic.responses import ShipmentBookingResponseAgnost
-# from shipaw.parcelforce.shipment import Shipment as ShipmentPF
-from shipaw.agnostic.ship_types import ShipDirection
-from shipaw.agnostic.shipment import Shipment
+from shipaw.models.responses import ShipmentBookingResponseAgnost
+# from parcelforce_expresslink.shipment import Shipment as ShipmentPF
+from shipaw.models.ship_types import ShipDirection
+from shipaw.models.shipment import Shipment
 
 
 class FilterMapPy(NamedTuple):

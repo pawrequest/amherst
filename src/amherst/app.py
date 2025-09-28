@@ -11,7 +11,7 @@ from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
 from amherst.back.ship_routes import router as ship_router2
 from amherst.config import amherst_settings
-from shipaw.agnostic.responses import Alert, AlertType, Alerts
+from shipaw.models.responses import Alert, AlertType, Alerts
 
 
 @contextlib.asynccontextmanager

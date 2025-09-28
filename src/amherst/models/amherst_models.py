@@ -16,9 +16,9 @@ from amherst.models.commence_adaptors import (
     split_addr_str2,
     trial_alias_generator,
 )
-from shipaw.agnostic.address import Address as AddressAgnost, Contact, FullContact
-from shipaw.agnostic.ship_types import ConvertMode, ShipDirection, pydantic_export
-from shipaw.agnostic.shipment import Shipment
+from shipaw.models.address import Address as AddressAgnost, Contact, FullContact
+from shipaw.models.ship_types import ShipDirection
+from shipaw.models.shipment import Shipment
 
 
 class AmherstShipableBase(BaseModel, ABC):

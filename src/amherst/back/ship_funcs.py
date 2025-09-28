@@ -5,13 +5,13 @@ import json
 from httpx import HTTPStatusError
 from loguru import logger
 from pycommence import pycommence_context
+from shipaw.fapi.requests import ShipmentRequest
+from shipaw.fapi.alerts import Alert, AlertType
+from shipaw.fapi.responses import ShipmentBookingResponse
+from shipaw.models.shipment import Shipment as ShipmentAgnost
+from parcelforce_expresslink.client import ParcelforceClient
 
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
-from shipaw.agnostic.requests import ShipmentRequestAgnost, ShipmentRequestAgnost
-from shipaw.agnostic.responses import Alert, AlertType, ShipmentBookingResponseAgnost, ShipmentBookingResponseAgnost
-from shipaw.agnostic.shipment import Shipment as ShipmentAgnost
-from shipaw.parcelforce.client import ParcelforceClient
-from shipaw.parcelforce.shared import NotificationType
 
 
 def extract_http_error_message(exception: HTTPStatusError) -> str:
@@ -39,8 +39,8 @@ async def http_status_alerts(exception: HTTPStatusError) -> list[Alert]:
     ]
 
 
-async def try_book_shipment(shipment_request: ShipmentRequestAgnost) -> ShipmentBookingResponseAgnost:
-    shipment_response = ShipmentBookingResponseAgnost(shipment=shipment_request.shipment)
+async def try_book_shipment(shipment_request: ShipmentRequest) -> ShipmentBookingResponse:
+    shipment_response = ShipmentBookingResponse(shipment=shipment_request.shipment)
     try:
         shipment_response = shipment_request.provider.book_shipment(shipment_request.shipment)
         logger.info(f'Booked Shipment Response: {shipment_response.shipment_num}')
@@ -56,7 +56,7 @@ async def try_book_shipment(shipment_request: ShipmentRequestAgnost) -> Shipment
     return shipment_response
 
 
-async def try_update_cmc(record, shipment: ShipmentAgnost, shipment_response: ShipmentBookingResponseAgnost):
+async def try_update_cmc(record, shipment: ShipmentAgnost, shipment_response: ShipmentBookingResponse):
     try:
         mapper: AmherstMap = await mapper_from_query_csrname(record.row_info.category)
         if mapper.cmc_update_fn:
