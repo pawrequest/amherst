@@ -17,7 +17,7 @@ from amherst.back.ship_queries import (
 from amherst.config import amherst_settings
 from amherst.models.amherst_models import AmherstHire, AmherstShipableBase
 from amherst.models.shipment import AmherstShipment, AmherstShipmentrequest
-
+from shipaw.models.provider import PROVIDER_REGISTER
 
 from parcelforce_expresslink.address import (
     AddressChoice as AddressChoicePF,
@@ -28,12 +28,13 @@ from parcelforce_expresslink.client import ParcelforceClient
 from shipaw.fapi.responses import ShipawTemplateResponse
 from shipaw.config import shipaw_settings
 from shipaw.fapi.alerts import Alert, AlertType, Alerts, maybe_alert_phone_number
-from shipaw.fapi.requests import AddressRequest
+from shipaw.fapi.requests import AddressRequest, ShipmentRequest
 from shipaw.models.address import Address, AddressChoice
 from shipaw.models.shipment import Shipment
 from shipaw.providers.parcelforce_provider import full_contact_from_provider_contact_address
 
 from shipaw.fapi.json_routes import ship_form as shipaw_ship_form
+
 router = APIRouter()
 
 
@@ -64,12 +65,14 @@ async def ship_form(
     alerts += Alert(message=msg, type=AlertType.NOTIFICATION)
 
     shipment = record.shipment()
+    shipment.context['redirect'] = 'testit'
 
-    # resp = await shipaw_ship_form(request=request, shipment=shipment)
-    # if isinstance(resp, ShipawTemplateResponse):
-    #     logger.warning(f'Rendering SHIPAW template {resp.template_path} with context keys: {list(resp.context.keys())}')
-    #     return shipaw_settings().templates.TemplateResponse(request, resp.template_path, resp.context)
+    resp = await shipaw_ship_form(request=request, shipment=shipment)
+    if isinstance(resp, ShipawTemplateResponse):
+        logger.warning(f'Rendering SHIPAW template {resp.template_path} with context keys: {list(resp.context.keys())}')
+        return shipaw_settings().templates.TemplateResponse(request, resp.template_path, resp.context)
 
+    # ship_req = ShipmentRequest(shipment=shipment, provider_name=list(PROVIDER_REGISTER.keys())[0], context={'redirect': 'testit'})
     ctx = {'request': request, 'record': record, 'shipment': shipment}
     return amherst_settings().templates.TemplateResponse(template, ctx)
 
@@ -84,7 +87,7 @@ async def order_review(
     alerts = await maybe_alert_phone_number(shipment.remote_full_contact.contact.mobile_phone)
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
-    ship_req = AmherstShipmentrequest(shipment=shipment, provider_name=provider_name)
+    ship_req = AmherstShipmentrequest(shipment=shipment, provider_name=provider_name, context={'redirect': 'testit'})
     return amherst_settings().templates.TemplateResponse(
         template, {'request': request, 'shipment_request': ship_req, 'alerts': alerts}
     )
@@ -137,6 +140,14 @@ async def order_confirm(
 #     postcode: str
 #     address: Address | None = None
 #     contact: Contact | None = None
+
+
+@router.post('/testit', response_class=HTMLResponse)
+async def testit(
+    request: Request,
+    shipment_request: ShipmentRequest,
+):
+    return HTMLResponse(f'Testit OK {shipment_request.id}')
 
 
 @router.get('/home_mobile_phone_am', response_class=HTMLResponse)

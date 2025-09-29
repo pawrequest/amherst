@@ -36,7 +36,7 @@ async def lifespan(app_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
 app.include_router(json_router, prefix='/api')
-app.include_router(ship_router2, prefix='/ship')
+app.include_router(ship_router2, prefix='/shipaw')
 app.include_router(shipaw_json_router, prefix='/shipaw/api')
 app.include_router(shipaw_html_router, prefix='/shipaw')
 app.include_router(html_router)

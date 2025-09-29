@@ -47,8 +47,8 @@ async def shipper(category: CategoryName, record_name: str):
 
 
 async def get_shipper_url(category: CategoryName, record_name: str) -> str:
-    return f'ship/ship_form_am?csrname={url_quote(category)}&pk_value={url_quote(record_name)}&condition=equal&max_rtn=1'
+    return f'shipaw/ship_form_am?csrname={url_quote(category)}&pk_value={url_quote(record_name)}&condition=equal&max_rtn=1'
 
 
-REVIEW_URL = r'/ship/order_review_am'
-CONFIRM_URL = r'/ship/post_confirm_am'
+REVIEW_URL = r'/shipaw/order_review_am'
+CONFIRM_URL = r'/shipaw/post_confirm_am'
