@@ -1,5 +1,5 @@
 <!-- templates/form_content.html -->
-{#context = {record, shipment }#}
+{#context = {shipment }#}
 {% block head %}
     <script src="{{ url_for('static', path='ship.js') }}"></script>
     <link href="{{ url_for('static', path='ship.css') }}" rel="stylesheet">
@@ -11,7 +11,8 @@
       hx-swap="innerHTML"
 >
     <div class="wrapper wrapper__booking">
-        <input type="hidden" name="record_str" value="{{ record.model_dump_json() }}">
+{#        <input type="hidden" name="record_str" value="">#}
+        <input type="hidden" name="context_str" value="">
         <section class="inputs inputs__ship">
             <h1>Shipment</h1>
             <label for="ship_date">Date:</label>
@@ -119,11 +120,7 @@
 
 
 <script>
-    shipment = {{ record.shipment() | jsonable | tojson }};
-    {#shipment = {{ record.shipment(mode='python-alias') | jsonable | tojson }};#}
-    {#shipment = {{ record.shipment(mode='json-alias') | jsonable | tojson }};#}
-    record = {{ record | jsonable | tojson}};
-    console.log('record', record);
+    shipment = {{ shipment.model_dump(mode='json', by_alias=True) | tojson }};
     console.log('shipment', shipment);
     initShipForm(shipment);
 </script>

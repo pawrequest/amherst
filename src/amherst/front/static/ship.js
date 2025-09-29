@@ -40,6 +40,7 @@
  * @property {string} SpecialInstructions1
  * @property {string} SpecialInstructions2
  * @property {string} SpecialInstructions3
+ * @property {Object} Context
  */
 
 
@@ -101,6 +102,13 @@ function updateAddressFields(Address) {
 }
 
 
+async function setContextString(contextStr) {
+    const contextStrInput = document.querySelector('input[name="context_str"]');
+    contextStrInput.value = contextStr;
+    console.log('contextStrInput.value', contextStrInput.value);
+
+}
+
 /**
  * Initialize the ship form with shipment data.
  * @param {Shipment} shipment - The shipment data.
@@ -108,6 +116,8 @@ function updateAddressFields(Address) {
 async function initShipForm(shipment) {
     console.log('Initializing ship form with shipment:', shipment);
     populateShipment(shipment);
+    contextStr = JSON.stringify(shipment.Context);
+    await setContextString(contextStr);
     await loadAddrChoices();
     toggleOwnLabel();
 }

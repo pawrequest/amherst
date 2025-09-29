@@ -10,7 +10,7 @@ from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter,
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from pydantic import BaseModel, Field, model_validator
 
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CursorName, CustomerAliases
 from amherst.models.maps import AmherstMap, CategoryName, mapper_from_query_csrname
 
@@ -163,7 +163,7 @@ class SearchRequest(BaseModel):
         return fil_array
 
 
-class SearchResponse[T: AMHERST_TABLE_MODELS](BaseModel):
+class SearchResponse[T: AmherstShipableBase](BaseModel):
     records: list[T]
     length: int = 0
     search_request: SearchRequest

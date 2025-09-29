@@ -5,16 +5,15 @@ from fastapi import APIRouter, Body, Depends, Form
 from loguru import logger
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, JSONResponse
-from shipaw.models.address import Address, AddressChoice as AddressChoiceAgnost, Contact
-from shipaw.models.base import ShipawBaseModel
+
+from shipaw.models.address import Address, AddressChoice as AddressChoiceAgnost
 from shipaw.config import shipaw_settings
-from shipaw.fapi.requests import ShipmentRequest as ShipmentRequest
-from shipaw.fapi.alerts import Alert, AlertType, Alerts
+from shipaw.fapi.requests import AddressRequest
+from shipaw.fapi.alerts import Alert, AlertType, Alerts, maybe_alert_phone_number
 from shipaw.models.shipment import Shipment
-from parcelforce_expresslink.address import (AddressChoice as AddressChoicePF, AddressRecipient, Contact as ContactPF)
+from parcelforce_expresslink.address import AddressChoice as AddressChoicePF, AddressRecipient, Contact as ContactPF
 from parcelforce_expresslink.client import ParcelforceClient
 from shipaw.providers.parcelforce_provider import full_contact_from_provider_contact_address
-
 from amherst.actions.emailer import send_label_email
 from amherst.back.backend_pycommence import pycommence_get_one
 from amherst.back.ship_funcs import get_el_client, try_book_shipment, try_update_cmc
@@ -25,7 +24,8 @@ from amherst.back.ship_queries import (
     shipment_str_to_shipment,
 )
 from amherst.config import amherst_settings
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.amherst_models import AmherstShipableBase, AmherstHire
+from amherst.models.shipment import AmherstShipment, AmherstShipmentrequest
 
 router = APIRouter()
 
@@ -33,7 +33,7 @@ router = APIRouter()
 @router.get('/ship_form', response_class=HTMLResponse)
 async def ship_form(
     request: Request,
-    record: AMHERST_TABLE_MODELS = Depends(pycommence_get_one),
+    record: AmherstShipableBase = Depends(pycommence_get_one),
 ) -> HTMLResponse:
     # pf_settings = pf_sett()
     template = 'ship/form_shape.html'
@@ -44,7 +44,7 @@ async def ship_form(
         logger.warning(msg)
         alerts += Alert(message=msg, type=AlertType.WARNING)
 
-    if hasattr(record, 'delivery_method') and 'parcelforce' not in record.delivery_method.lower():
+    if isinstance(record, AmherstHire) and 'parcelforce' not in record.delivery_method.lower():
         msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
         logger.warning(msg)
         alerts += Alert(message=msg, type=AlertType.WARNING)
@@ -56,67 +56,41 @@ async def ship_form(
     logger.warning(msg)
     alerts += Alert(message=msg, type=AlertType.NOTIFICATION)
 
-    ctx = {'request': request, 'record': record}
+    shipment = record.shipment()
+
+    ctx = {'request': request, 'record': record, 'shipment': shipment}
     return amherst_settings().templates.TemplateResponse(template, ctx)
 
 
 @router.post('/order_review', response_class=HTMLResponse)
-async def order_review2(
+async def order_review(
     request: Request,
-    shipment: Shipment = Depends(shipment_f_form),
-    record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
+    shipment: AmherstShipment = Depends(shipment_f_form),
+    # record: AmherstShipableBase = Depends(record_str_to_record),
     provider_name: str = Form(...),
 ) -> HTMLResponse:
-    alerts = await maybe_alert_phone_number(shipment.remote_full_contact.contact)
+    alerts = await maybe_alert_phone_number(shipment.remote_full_contact.contact.mobile_phone)
     logger.info('Shipment Form Posted')
     template = 'ship/order_review.html'
-    ship_req = ShipmentRequest(shipment=shipment, provider_name=provider_name)
+    ship_req = AmherstShipmentrequest(shipment=shipment, provider_name=provider_name)
     return amherst_settings().templates.TemplateResponse(
-        template, {'request': request, 'shipment_request': ship_req, 'record': record, 'alerts': alerts}
+        template, {'request': request, 'shipment_request': ship_req, 'alerts': alerts}
     )
 
 
-#
-# @router.post('/order_review1', response_class=HTMLResponse)
-# async def order_review(
-#     request: Request,
-#     shipment: Shipment = Depends(shipment_f_form),
-#     record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
-#     provider_name: ProviderName = Form(...),
-# ) -> HTMLResponse:
-#     alerts = await maybe_alert_phone_number(shipment)
-#     logger.info('Shipment Form Posted')
-#     template = 'ship/order_review.html'
-#     ship_req = ShipmentRequestAgnost(shipment=shipment, provider_name=provider_name)
-#     return amherst_settings().templates.TemplateResponse(
-#         template, {'request': request, 'shipment_request': ship_req, 'record': record, 'alerts': alerts}
-#     )
-
-
-async def maybe_alert_phone_number(contact: Contact):
-    """Alert if phone number is not 11 digits or does not start with 01, 02 or 07. (parcelforce requirement)"""
-    alerts = Alerts.empty()
-    if len(contact.mobile_phone) != 11 or not contact.mobile_phone[1] in [
-        '1',
-        '2',
-        '7',
-    ]:
-        alerts += Alert(
-            type=AlertType.WARNING,
-            message='The Mobile phone number must be 11 digits and begin with 01, 02 or 07, no SMS will be sent',
-        )
-    return alerts
-
-
 @router.post('/post_confirm', response_class=HTMLResponse)
-async def order_confirm2(
+async def order_confirm(
     request: Request,
-    shipment_req: ShipmentRequest = Depends(shipment_req_str_to_shipment2),
-    record: AMHERST_TABLE_MODELS = Depends(record_str_to_record),
+    shipment_req: AmherstShipmentrequest = Depends(shipment_req_str_to_shipment2),
+    # record: AmherstShipableBase = Depends(record_str_to_record),
 ) -> HTMLResponse:
     logger.info('Booking Shipment')
+
+    # shipment_req.context['cmc_record'] = record
+
     shipment_response = await try_book_shipment(shipment_req)
     shipment_req.provider.handle_response(shipment_req, shipment_response)
+    record = shipment_req.shipment.record
 
     if not shipment_response or not shipment_response.success:
         logger.error(f'Booking failed')
@@ -126,7 +100,6 @@ async def order_confirm2(
                 'request': request,
                 'alerts': shipment_response.alerts,
                 'shipment': shipment_req.shipment,
-                'record': record,
             },
         )
 
@@ -147,15 +120,11 @@ async def order_confirm2(
     )
 
 
-class AddressRequest(ShipawBaseModel):
-    postcode: str
-    address: Address | None = None
-    contact: Contact | None = None
-
-
-# @router.get('/home_mobile_phone', response_class=PlainTextResponse)
-# async def home_mobile_phone():
-#     return shipaw_settings().mobile_phone
+#
+# class AddressRequest(ShipawBaseModel):
+#     postcode: str
+#     address: Address | None = None
+#     contact: Contact | None = None
 
 
 @router.get('/home_mobile_phone', response_class=HTMLResponse)

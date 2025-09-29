@@ -1,12 +1,14 @@
 from abc import ABC
 from datetime import date
 from os import PathLike
+from typing import ClassVar
 
 from pycommence.pycmc_types import RowInfo
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from amherst.models.commence_adaptors import (
     AM_DATE,
+    CategoryName,
     HireStatus,
     SaleStatus,
     customer_alias_generator,
@@ -16,16 +18,24 @@ from amherst.models.commence_adaptors import (
     split_addr_str2,
     trial_alias_generator,
 )
+from amherst.models.meta import register_table
+from amherst.models.shipment import AmherstShipment
 from shipaw.models.address import Address as AddressAgnost, Contact, FullContact
 from shipaw.models.ship_types import ShipDirection
-from shipaw.models.shipment import Shipment
 
 
 class AmherstShipableBase(BaseModel, ABC):
+    category: ClassVar[CategoryName]
     model_config = ConfigDict(
         populate_by_name=True,
         use_enum_values=True,
     )
+
+    def alias_lookup(self, field_name: str) -> str:
+        try:
+            return self.model_fields[field_name].alias
+        except Exception:
+            return field_name
 
     @field_validator('*', mode='before')
     def preprocess_strings(cls, value):
@@ -51,6 +61,7 @@ class AmherstShipableBase(BaseModel, ABC):
     send_date: AM_DATE = date.today()
     boxes: int = 1
 
+
     @field_validator('send_date', mode='after')
     def validate_send_date(cls, v: AM_DATE) -> date:
         if v is None or v < date.today():
@@ -74,16 +85,24 @@ class AmherstShipableBase(BaseModel, ABC):
             ),
         )
 
-    def shipment(
-        self, direction: ShipDirection = ShipDirection.OUTBOUND
-    ) -> Shipment:
-        return Shipment(
+    def shipment(self, direction: ShipDirection = ShipDirection.OUTBOUND) -> 'AmherstShipment':
+        return AmherstShipment(
             recipient=self.full_contact,
             boxes=self.boxes,
             shipping_date=self.send_date,
             direction=direction,
             reference=self.customer_name,
+            context={'record': self},
         )
+
+    # def shipment1(self, direction: ShipDirection = ShipDirection.OUTBOUND) -> Shipment:
+    #     return Shipment(
+    #         recipient=self.full_contact,
+    #         boxes=self.boxes,
+    #         shipping_date=self.send_date,
+    #         direction=direction,
+    #         reference=self.customer_name,
+    #     )
 
 
 class AmherstOrderBase(AmherstShipableBase, ABC):
@@ -98,11 +117,13 @@ class AmherstOrderBase(AmherstShipableBase, ABC):
     booking_date: AM_DATE | None = None
 
 
+@register_table
 class AmherstCustomer(AmherstShipableBase):
     model_config = ConfigDict(
         alias_generator=customer_alias_generator,
         # alias_generator=lambda field_name: CustomerAliases[field_name.upper()].value,
     )
+    category: ClassVar[CategoryName] = 'Customer'
 
     # customer fields
     invoice_email: str
@@ -111,18 +132,20 @@ class AmherstCustomer(AmherstShipableBase):
     sales: str = ''
 
 
+@register_table
 class AmherstHire(AmherstOrderBase):
     # optional overrides master
     # aliases: ClassVar[StrEnum] = HireAliases
     model_config = ConfigDict(
         alias_generator=hire_alias_generator,
     )
+    category: ClassVar[CategoryName] = 'Hire'
 
     boxes: int = 1
     delivery_contact_phone: str
     send_date: AM_DATE = date.today()
 
-    delivery_method: str
+    delivery_method: str | None = None
 
     # optional overrides order
     status: HireStatus
@@ -135,11 +158,13 @@ class AmherstHire(AmherstOrderBase):
     return_notes: str | None = None
 
 
+@register_table
 class AmherstSale(AmherstOrderBase):
     model_config = ConfigDict(
         alias_generator=sale_alias_generator,
     )
-    # mandatory overrides order
+    category: ClassVar[CategoryName] = 'Sale'
+
     delivery_method: str | None = None
 
     # optional overrides order
@@ -157,11 +182,13 @@ class AmherstSale(AmherstOrderBase):
     notes: str | None = None
 
 
+@register_table
 class AmherstTrial(AmherstOrderBase):
     # aliases: ClassVar[StrEnum] = TrialAliases
     model_config = ConfigDict(
         alias_generator=trial_alias_generator,
     )
+    category: ClassVar[CategoryName] = 'Trial'
 
 
 #
@@ -180,7 +207,5 @@ class AmherstTrial(AmherstOrderBase):
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
-AMHERST_TABLE_MODELS = AMHERST_ORDER_MODELS | AmherstCustomer
-# SHIPMENT_TYPES = Shipment | ShipmentAwayDropoff | ShipmentAwayCollection
 
 

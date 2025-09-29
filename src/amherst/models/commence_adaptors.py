@@ -6,7 +6,7 @@ from typing import Annotated
 
 import pydantic as _p
 from pycommence.pycmc_types import (
-    get_cmc_date,
+    get_cmc_date, RowInfo,
 )
 
 
@@ -320,3 +320,7 @@ def split_addr_str2(address: str) -> tuple[list[str], str]:
 
     used_lines = [_ for _ in addr_lines if _]
     return used_lines, town
+
+
+class AmherstRowInfo(RowInfo):
+    category: CategoryName

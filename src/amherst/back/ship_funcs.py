@@ -5,6 +5,10 @@ import json
 from httpx import HTTPStatusError
 from loguru import logger
 from pycommence import pycommence_context
+
+from amherst.models.amherst_models import AmherstShipableBase
+from amherst.models.shipment import AmherstShipment
+from amherst.models.cmc_update import make_update_dict
 from shipaw.fapi.requests import ShipmentRequest
 from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.responses import ShipmentBookingResponse
@@ -34,9 +38,7 @@ def extract_http_error_message_json(exception: HTTPStatusError) -> dict:
 
 async def http_status_alerts(exception: HTTPStatusError) -> list[Alert]:
     error_dict = extract_http_error_message_json(exception)
-    return [
-        Alert(message=f'{error_dict.get('Code')}:  {error_dict.get('Description')}', type=AlertType.ERROR)
-    ]
+    return [Alert(message=f'{error_dict.get('Code')}:  {error_dict.get('Description')}', type=AlertType.ERROR)]
 
 
 async def try_book_shipment(shipment_request: ShipmentRequest) -> ShipmentBookingResponse:
@@ -56,17 +58,14 @@ async def try_book_shipment(shipment_request: ShipmentRequest) -> ShipmentBookin
     return shipment_response
 
 
-async def try_update_cmc(record, shipment: ShipmentAgnost, shipment_response: ShipmentBookingResponse):
+async def try_update_cmc(
+    record: AmherstShipableBase, shipment: AmherstShipment, shipment_response: ShipmentBookingResponse
+):
     try:
-        mapper: AmherstMap = await mapper_from_query_csrname(record.row_info.category)
-        if mapper.cmc_update_fn:
-            update_dict = await mapper.cmc_update_fn(record, shipment, shipment_response)
-            logger.info(f'Updating CMC: {update_dict}')
-            with pycommence_context(csrname=record.row_info.category) as pycmc1:
-                pycmc1.update_row(update_dict, row_id=record.row_info.id)
-
-        else:
-            logger.warning('NO CMC UPDATE FUNCTION')
+        update_dict = await make_update_dict(record, shipment, shipment_response)
+        logger.info(f'Updating CMC: {update_dict}')
+        with pycommence_context(csrname=shipment.row_info.category) as pycmc1:
+            pycmc1.update_row(update_dict, row_id=shipment.row_info.id)
 
     except ValueError as e:
         msg = f'Error updating Commence: {e}'

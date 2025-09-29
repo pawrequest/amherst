@@ -34,7 +34,8 @@
               hx-swap="innerHTML"
         >
             <input type="hidden" name="shipment_req_str" value="{{ shipment_request.model_dump_json() }}">
-            <input type="hidden" name="record_str" value="{{ record.model_dump_json() }}">
+            <input type="hidden" name="context_str" value="{{ shipment.context | tojson }}">
+{#            <input type="hidden" name="record_str" value="{{ record.model_dump_json() }}">#}
             {#            <button id="btn_ship" class="submit-confirm-btn" onclick="this.style.display='none'">#}
             <button id="btn_ship" class="submit-confirm-btn" onclick=hide_main_form()>
                 Confirm Booking

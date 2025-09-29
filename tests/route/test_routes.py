@@ -1,7 +1,7 @@
 import pytest
 from pawdantic.paw_types import pydantic_export
 
-from amherst.models.amherst_models import AMHERST_TABLE_MODELS
+from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CategoryName
 from amherst.ui_runner import CONFIRM_URL, REVIEW_URL, get_shipper_url
 from shipaw.models.provider import PROVIDER_REGISTER
@@ -54,7 +54,7 @@ def test_order_review(order_review_sample):
         order_review_sample.status_code == 200
     ), f'Expected status code 200, but got {order_review_sample.status_code}'
     assert order_review_sample.template.name == 'ship/order_review.html'
-    assert isinstance(order_review_sample.context['record'], AMHERST_TABLE_MODELS)
+    assert isinstance(order_review_sample.context['record'], AmherstShipableBase)
 
 
 def test_order_confirm(test_client, order_review_sample):

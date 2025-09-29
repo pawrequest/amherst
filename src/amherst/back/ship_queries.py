@@ -5,15 +5,19 @@ from datetime import date
 
 from fastapi import Depends, Form
 from loguru import logger
+from pawdantic.paw_types import VALID_POSTCODE
 from pydantic import EmailStr
 
 from amherst.models.amherst_models import AmherstShipableBase
-from amherst.models.maps import mapper_from_query_csrname
+from amherst.models.shipment import AmherstShipment, AmherstShipmentrequest
+from amherst.models.meta import TABLE_REGISTER, get_table_model
 from shipaw.models.address import Address, Contact, FullContact
 from shipaw.config import shipaw_settings
 from shipaw.fapi.requests import ShipmentRequest as ShipmentRequest
-from shipaw.models.ship_types import ShipDirection, VALID_POSTCODE
-from shipaw.models.shipment import Shipment
+from shipaw.models.ship_types import ShipDirection
+
+
+# from shipaw.models.shipment import Shipment
 
 
 async def full_contact_from_form(
@@ -46,6 +50,13 @@ async def full_contact_from_form(
     )
 
 
+async def context_from_form(
+    context_str: str = Form(...),
+) -> dict:
+    context = json.loads(context_str)
+    return context
+
+
 async def shipment_f_form(
     full_contact: FullContact = Depends(full_contact_from_form),
     shipping_date: date = Form(...),
@@ -53,7 +64,8 @@ async def shipment_f_form(
     service: str = Form(...),
     direction: ShipDirection = Form(...),
     reference: str = Form('DIDNT PLUG IN REFERENCES!!!'),
-) -> Shipment:
+    context: dict = Depends(context_from_form),
+) -> AmherstShipment:
     logger.info('Creating Amherst Shipment Request from form')
 
     if direction == ShipDirection.OUTBOUND:
@@ -65,7 +77,7 @@ async def shipment_f_form(
     else:
         raise ValueError(f'Unknown direction: {direction}')
 
-    shipment = Shipment(
+    shipment = AmherstShipment(
         recipient=recipient,
         sender=sender,
         boxes=boxes,
@@ -73,13 +85,14 @@ async def shipment_f_form(
         direction=direction,
         reference=reference,
         service=service,
+        context=context,
     )
     return shipment
 
 
-async def shipment_str_to_shipment(shipment_str: str = Form(...)) -> Shipment:
+async def shipment_str_to_shipment(shipment_str: str = Form(...)) -> AmherstShipment:
     ship_json = json.loads(shipment_str)
-    shipy = Shipment.model_validate(ship_json)
+    shipy = AmherstShipment.model_validate(ship_json)
     return shipy
 
 
@@ -89,15 +102,17 @@ async def shipment_req_str_to_shipment(shipment_req_str: str = Form(...)) -> Shi
     return shipy
 
 
-async def shipment_req_str_to_shipment2(shipment_req_str: str = Form(...)) -> ShipmentRequest:
+async def shipment_req_str_to_shipment2(shipment_req_str: str = Form(...)) -> AmherstShipmentrequest:
     ship_json = json.loads(shipment_req_str)
-    shipy = ShipmentRequest.model_validate(ship_json)
+    shipy = AmherstShipmentrequest.model_validate(ship_json)
     return shipy
 
 
 async def record_str_to_record(record_str: str = Form(...)) -> AmherstShipableBase:
     record_dict = json.loads(record_str)
-    mapper = await mapper_from_query_csrname(record_dict['row_info'][0])
-    record = mapper.record_model.model_validate(record_dict)
-    return record
+    # record_type = TABLE_REGISTER.get(record_dict['category'])
+    record_type = get_table_model(record_dict['row_info'][0])
+    record2 = record_type.model_validate(record_dict)
+    return record2
+
 
