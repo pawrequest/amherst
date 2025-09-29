@@ -6,10 +6,11 @@
 {% endblock %}
 <!--suppress HtmlFormInputWithoutLabel -->
 <form id="main-form"
-      hx-post="/ship/order_review/"
+      hx-post="order_review_am/"
       hx-target=#content_top
       hx-swap="innerHTML"
 >
+    <div> RHIS IS THE AMHERST VERSION</div>
     <div class="wrapper wrapper__booking">
 {#        <input type="hidden" name="record_str" value="">#}
         <input type="hidden" name="context_str" value="">

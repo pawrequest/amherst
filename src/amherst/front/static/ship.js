@@ -116,7 +116,8 @@ async function setContextString(contextStr) {
 async function initShipForm(shipment) {
     console.log('Initializing ship form with shipment:', shipment);
     populateShipment(shipment);
-    contextStr = JSON.stringify(shipment.Context);
+
+    const contextStr = JSON.stringify(shipment.Context);
     await setContextString(contextStr);
     await loadAddrChoices();
     toggleOwnLabel();

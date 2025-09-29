@@ -13,6 +13,9 @@ from amherst.back.ship_routes import router as ship_router2
 from amherst.config import amherst_settings
 from shipaw.fapi.alerts import Alert, AlertType, Alerts
 
+from shipaw.fapi.html_routes import router as shipaw_html_router
+from shipaw.fapi.json_routes import router as shipaw_json_router
+
 
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
@@ -34,6 +37,8 @@ app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router2, prefix='/ship')
+app.include_router(shipaw_json_router, prefix='/shipaw/api')
+app.include_router(shipaw_html_router, prefix='/shipaw')
 app.include_router(html_router)
 # app.ship_live = pf_config.pf_sett().ship_live
 app.alerts = Alerts.empty()

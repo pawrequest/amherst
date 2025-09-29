@@ -65,10 +65,10 @@ async def ship_form(
 
     shipment = record.shipment()
 
-    # resp = await shipaw_ship_form(request=request, shipment=shipment)
-    # if isinstance(resp, ShipawTemplateResponse):
-    #     logger.warning(f'Rendering SHIPAW template {resp.template_path} with context keys: {list(resp.context.keys())}')
-    #     return shipaw_settings().templates.TemplateResponse(request, resp.template_path, resp.context)
+    resp = await shipaw_ship_form(request=request, shipment=shipment)
+    if isinstance(resp, ShipawTemplateResponse):
+        logger.warning(f'Rendering SHIPAW template {resp.template_path} with context keys: {list(resp.context.keys())}')
+        return shipaw_settings().templates.TemplateResponse(request, resp.template_path, resp.context)
 
     ctx = {'request': request, 'record': record, 'shipment': shipment}
     return amherst_settings().templates.TemplateResponse(template, ctx)

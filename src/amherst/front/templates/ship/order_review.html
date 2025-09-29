@@ -25,11 +25,11 @@
 {#<div class="loading-spinner" id="loading-spinner">#}
 {#    <span class="loader"></span>#}
 {#</div>#}
-
+<div> AMHERST VEWRSION </div>
 <div id=requested_shipment class="wrapper wrapper__requested">
     <section class="requested requested__head">
         <h3 class="requested-title">{{ shipdir }} {{ shipment_request.provider_name }} Shipment:</h3>
-        <form hx-post="/ship/post_confirm"
+        <form hx-post="/ship/post_confirm_am"
               hx-target=#content_main
               hx-swap="innerHTML"
         >
