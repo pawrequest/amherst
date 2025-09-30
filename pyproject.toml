@@ -9,26 +9,26 @@ readme = "README.md"
 requires-python = ">= 3.13"
 
 dependencies = [
-    # siblings:
     'pycommence', # commence python api
-    "shipaw >= 0.3.0", # shipping api
-    'flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui@v1.2.2', # desktop-ify fastapi app
-    'pawdf @ git+https://github.com/pawrequest/pawdf', # pdf resize and print
-    'suppawt @ git+https://github.com/pawrequest/suppawt', # emailer
-    'pawlogger @ git+https://github.com/pawrequest/pawlogger', # logger config
-    'python-multipart',
-    'matplotlib', # stockcheck charts
-    'pydantic-settings',
-    'pydantic[email]',
-    'fastapi', # frontend
-    'docxtpl', # doc templating
-    'jinja2', # web templating
-    'pandas', # excel docs
-    'loguru', # logging
-    'pyperclip', # clipboard management
-    'xlrd',
+    "shipaw", # shipping api
+    'flaskwebgui >= 1.2.2', # desktop-ify fastapi app
+    'pawdf', # pdf resize and print
+    'suppawt', # emailer
+    'pawlogger', # logger config
+#
     "pytest-asyncio>=1.2.0",
     "hatchling>=1.27.0",
+    "python-multipart>=0.0.20",
+    "matplotlib>=3.10.6",
+    "pydantic-settings>=2.11.0",
+    "pydantic[email]>=2.11.9",
+    "fastapi>=0.117.1",
+    "docxtpl>=0.20.1",
+    "jinja2>=3.1.6",
+    "pandas>=2.3.3",
+    "loguru>=0.7.3",
+    "pyperclip>=1.11.0",
+    "xlrd>=2.0.2",
 ]
 
 
@@ -60,8 +60,13 @@ flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
 [tool.uv.sources]
+# GIT
 shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
+flaskwebgui = { git = "git+https://github.com/pawrequest/flaskwebgui/"}
+pawdf = { git = "git+https://github.com/pawrequest/pawdf/"}
+suppawt = { git = "git+https://github.com/pawrequest/suppawt/"}
+pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/"}
 
 [build-system]
 requires = ["uv_build>=0.8.22,<0.9.0"]
