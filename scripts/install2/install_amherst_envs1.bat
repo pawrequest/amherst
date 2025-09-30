@@ -4,8 +4,8 @@ echo Configuring Envirnoment
 set AM_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\am_live.env"
 set SHIPPING_ENV_FILE_REMOTE="R:\paul_r\.internal\envs\pf_live.env"
 
-set AM_ENV_FILE_LOCAL=%AMHERSTPR%\am.env
-set SHIPPING_ENV_FILE_LOCAL=%AMHERSTPR%\pf.env
+set AM_ENV_FILE_LOCAL=%AMHERSTSHIPPER%\am.env
+set SHIPPING_ENV_FILE_LOCAL=%AMHERSTSHIPPER%\pf.env
 
 echo copying AM_ENV to local directory
 copy %AM_ENV_FILE_REMOTE% %AM_ENV_FILE_LOCAL%
