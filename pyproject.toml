@@ -10,12 +10,12 @@ requires-python = ">= 3.13"
 
 dependencies = [
     'pycommence', # commence python api
-    "shipaw", # shipping api
+    "shipaw >= 0.3.1", # shipping api
     'flaskwebgui >= 1.2.2', # desktop-ify fastapi app
     'pawdf', # pdf resize and print
     'suppawt', # emailer
     'pawlogger', # logger config
-#
+    #
     "pytest-asyncio>=1.2.0",
     "hatchling>=1.27.0",
     "python-multipart>=0.0.20",
@@ -63,10 +63,10 @@ format.quote-style = "single"
 # GIT
 shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
-flaskwebgui = { git = "git+https://github.com/pawrequest/flaskwebgui/"}
-pawdf = { git = "git+https://github.com/pawrequest/pawdf/"}
-suppawt = { git = "git+https://github.com/pawrequest/suppawt/"}
-pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/"}
+flaskwebgui = { git = "git+https://github.com/pawrequest/flaskwebgui/" }
+pawdf = { git = "git+https://github.com/pawrequest/pawdf/" }
+suppawt = { git = "git+https://github.com/pawrequest/suppawt/" }
+pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/" }
 
 [build-system]
 requires = ["uv_build>=0.8.22,<0.9.0"]
