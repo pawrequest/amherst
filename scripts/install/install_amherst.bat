@@ -12,5 +12,3 @@ call %thisDir%/install_amherst_envs.bat
 
 pushd %AMHERSTSHIPPER%
 uv sync --no-dev
-
-pause
