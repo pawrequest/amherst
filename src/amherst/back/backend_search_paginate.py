@@ -148,7 +148,7 @@ class SearchRequest(BaseModel):
     async def filter_array(self):
         mapper: AmherstMap = await mapper_from_query_csrname(self.csrname)
         fil_array = mapper.cmc_filters[self.cmc_filter_i].model_copy() if self.cmc_filter_i else FilterArray()
-        # fil_array = getattr(mapper.cmc_filters, self.cmc_filter).__deepcopy__() if self.cmc_filter else FilterArray()
+
         if self.pk_value:
             fil_array.add_filter(FieldFilter(column=mapper.aliases.NAME, condition=self.condition, value=self.pk_value))
 

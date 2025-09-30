@@ -5,7 +5,8 @@ from datetime import date
 from typing import Any
 
 from amherst.models.amherst_models import (
-    AmherstHire, AmherstShipableBase,
+    AmherstHire,
+    AmherstShipableBase,
 )
 from amherst.models.shipment import AmherstShipment
 from shipaw.fapi.responses import ShipmentBookingResponse
@@ -32,55 +33,44 @@ async def add_tracking_to_list(record: AmherstShipableBase, resp: ShipmentBookin
     return add_to_com_sep_str_field(tracks, resp.shipment_num)
 
 
-async def make_update_dict(
-    record: AmherstShipableBase, shipment: Shipment, shipment_response: ShipmentBookingResponse
-) -> dict[str, Any]:
+async def make_update_dict(shipment: AmherstShipment, shipment_response: ShipmentBookingResponse) -> dict[str, Any]:
     """Adds tracking numbers and link."""
-    update_package = await tracking_link_update_simple(record, shipment, shipment_response)
+    record = shipment.record
+    update_package = await cmc_update_dict(shipment, shipment_response)
     if isinstance(record, AmherstHire):
-        extra = await make_hire_update_extra2(record, shipment)
+        extra = await cmc_update_dict_hire()
         update_package.update(extra)
     return update_package
 
 
-# async def make_update_dict_no_rec(
-#     shipment: AmherstShipment, shipment_response: ShipmentBookingResponse
-# ) -> dict[str, Any]:
-#     """Adds tracking numbers and link."""
-#     update_package = await tracking_link_update_simple(record, shipment, shipment_response)
-#     if shipment.row_info.category.lower() == 'hire':
-#         extra = await make_hire_update_extra2(record, shipment)
-#         update_package.update(extra)
-#     return update_package
-
-
-async def tracking_link_update_simple(
-    record: AmherstHire, shipment: Shipment, shipment_response: ShipmentBookingResponse
-):
+async def cmc_update_dict(shipment: AmherstShipment, shipment_response: ShipmentBookingResponse):
+    record = shipment.record
     shipdir = shipment.direction
     tracks = await add_tracking_to_list(record, shipment_response)
     update_package = {record.alias_lookup('tracking_numbers'): tracks}
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-        links = {record.alias_lookup('track_in'): shipment_response.tracking_link}
+        update_package.update({record.alias_lookup('track_in'): shipment_response.tracking_link})
     elif shipdir == ShipDirection.OUTBOUND:
-        links = {record.alias_lookup('track_out'): shipment_response.tracking_link}
+        update_package.update({record.alias_lookup('track_out'): shipment_response.tracking_link})
     else:
         raise ValueError(f'Invalid shipment direction: {shipdir}')
-    update_package.update(links)
     return update_package
 
 
-async def make_hire_update_extra2(record: AmherstHire, shipment: Shipment):
+async def cmc_update_dict_hire(shipment: AmherstShipment):
+    record = shipment.record
+    if isinstance(record, AmherstHire):
+        raise ValueError('Record is not an AmherstHire')
     shipdir = shipment.direction
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
-        return await make_hire_update_in(record, shipment)
+        return await cmc_update_dict_hire_in(record, shipment)
     elif shipdir == ShipDirection.OUTBOUND:
-        return await make_hire_update_out(record)
+        return await cmc_update_dict_hire_out(record)
     else:
         raise ValueError(f'Invalid shipment direction: {shipdir}')
 
 
-async def make_hire_update_in(record: AmherstHire, shipment: Shipment):
+async def cmc_update_dict_hire_in(record: AmherstHire, shipment: AmherstShipment):
     ret_notes = f'{date.today().strftime('%d/%m')}: pickup arranged for {shipment.shipping_date.strftime('%d/%m')}\r\n{record.return_notes}'
     return {
         record.alias_lookup('arranged_in'): 'True',
@@ -89,7 +79,7 @@ async def make_hire_update_in(record: AmherstHire, shipment: Shipment):
     }
 
 
-async def make_hire_update_out(record: AmherstHire):
+async def cmc_update_dict_hire_out(record: AmherstHire):
     return {
         record.alias_lookup('arranged_out'): 'True',
     }

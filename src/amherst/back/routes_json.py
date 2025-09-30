@@ -8,6 +8,8 @@ from amherst.back.backend_pycommence import pycmc_f_query, pycommence_search
 from amherst.back.backend_search_paginate import SearchResponse
 from amherst.config import amherst_settings
 from amherst.models.amherst_models import AmherstShipableBase
+from amherst.models.commence_adaptors import CursorName
+from amherst.models.meta import get_table_model
 
 router = APIRouter()
 
@@ -16,7 +18,7 @@ router = APIRouter()
 async def fetch(
     request: Request,
     pycmc: PyCommence = Depends(pycmc_f_query),
-    csrname: str = Query(..., description='Cursor name to fetch record from'),
+    csrname: CursorName = Query(..., description='Cursor name to fetch record from'),
     row_id: str = Query(None, description='Row ID of the record to fetch'),
     pk_value: str = Query(None, description='Primary key value of the record to fetch'),
 ) -> AmherstShipableBase:
@@ -26,7 +28,8 @@ async def fetch(
     if not row_id:
         row_id = pycmc.csr(csrname).pk_to_id(pk_value)
     record = pycmc.read_row(csrname=csrname, row_id=row_id)
-    return record
+    model_type = get_table_model(csrname)
+    return model_type.model_validate(record)
 
 
 @router.get('/close_app/', response_model=None, response_model_exclude_none=True)

@@ -13,18 +13,6 @@ function filterRecords() {
     });
 }
 
-// /**
-//  * @typedef {Object} SearchRequest
-//  * @property {string} csrName
-//  *
-//  */
-//
-//
-// async function searchCommence(searchRequest) {
-//     const csrName = searchRequest.csrName;
-//
-// }
-
 async function loadOrders() {
     let recordsContainer = document.querySelector('.record-container');
     let customer = document.getElementById('searchInput').value;

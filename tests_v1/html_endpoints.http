@@ -1,5 +1,5 @@
 ### Candidates
-GET http://127.0.0.1:8000/ship/candidates?postcode=NR4%207LW
+GET http://127.0.0.1:8000/shipaw/candidates?postcode=NR4%207LW
 
 ### All Hire
 GET http://127.0.0.1:8000/search?csrname=Hire
