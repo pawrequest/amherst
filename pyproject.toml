@@ -31,6 +31,7 @@ dependencies = [
     'pyperclip', # clipboard management
     'xlrd',
     "pytest-asyncio>=1.2.0",
+    "hatchling>=1.27.0",
 ]
 
 [project.scripts]
