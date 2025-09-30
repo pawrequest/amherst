@@ -60,13 +60,14 @@ dev = [
 shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 
-[build-system]
-requires = ["uv_build>=0.8.22,<0.9.0"]
+#[build-system]
+#requires = ["uv_build>=0.8.22,<0.9.0"]
 
-build-backend = "uv_build"
+#build-backend = "uv_build"
 
-[tool.uv.build-backend]
-data = { data = "ui" }
+#[tool.uv.build-backend]
+#data = { headers = "ui" }
+#source-includes = ["src/amherst/ui/**"]
 
 #
 #[tool.hatch.metadata]
