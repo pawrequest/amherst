@@ -1,23 +1,20 @@
 import contextlib
 
 from fastapi import FastAPI, responses
-from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
-from loguru import logger
 from starlette.requests import Request
-from starlette.responses import HTMLResponse, JSONResponse
+from starlette.responses import HTMLResponse
 from starlette.staticfiles import StaticFiles
 
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
-from amherst.back.ship_routes import router as ship_router2
+from amherst.back.ship_routes import router as ship_router
 from amherst.config import amherst_settings
 from shipaw.config import shipaw_settings
-from shipaw.fapi.alerts import Alert, AlertType, Alerts
+from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
-
-from shipaw.fapi.html_routes import router as shipaw_html_router
-from shipaw.fapi.json_routes import router as shipaw_json_router
+from shipaw.fapi.routes_html import router as shipaw_html_router
+from shipaw.fapi.routes_api import router as shipaw_json_router
 
 
 @contextlib.asynccontextmanager
@@ -38,9 +35,9 @@ async def lifespan(app_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.mount('/static', StaticFiles(directory=str(shipaw_settings().static_dir)), name='static')
-app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
+# app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
 app.include_router(json_router, prefix='/api')
-app.include_router(ship_router2, prefix='/shipaw')
+app.include_router(ship_router, prefix='/shipaw')
 app.include_router(shipaw_json_router, prefix='/api/shipaw')
 app.include_router(shipaw_html_router, prefix='/shipaw')
 app.include_router(html_router)
