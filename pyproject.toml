@@ -44,10 +44,6 @@ extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
-[tool.uv.sources]
-shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
-pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
-
 [project.optional-dependencies]
 dev = [
     'pytest',
@@ -59,6 +55,10 @@ dev = [
     "sphinx-readme",
     "sphinx_rtd_dark_mode",
 ]
+
+[tool.uv.sources]
+shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
+pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 
 [build-system]
 requires = ["uv_build>=0.8.22,<0.9.0"]
