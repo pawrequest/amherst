@@ -52,7 +52,7 @@ flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
 [tool.uv.sources]
-shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
+shipaw = { path = "../shipaw", editable = true }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 
 [project.optional-dependencies]
