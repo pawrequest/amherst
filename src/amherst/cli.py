@@ -12,6 +12,7 @@ from pathlib import Path
 
 import dotenv
 import pyperclip
+from loguru import logger
 
 from amherst.actions import print_file
 from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_royal_mail
@@ -22,6 +23,8 @@ from amherst.models.commence_adaptors import CategoryName
 
 def shipper_cli():
     args = parse_ship_args()
+    logger.info(f'starting shipper for {args.category} {args.record_name} with env {args.env_index}')
+    os.environ['ENV_INDEX'] = str(args.env_index)
     dotenv.load_dotenv(args.env_index)
     from amherst.ui_runner import pycommence_shipper  # AFTER SETTING ENVIRONMENT
 

@@ -4,6 +4,7 @@ import os
 import re
 from datetime import date, datetime
 from functools import lru_cache
+from importlib.resources import files
 from pathlib import Path
 from urllib.parse import quote
 
@@ -45,10 +46,19 @@ def load_amherst_settings_env():
 
 class Settings(BaseSettings):
     log_dir: Path
-    static_dir: Path
-    template_dir: Path
+    ui_dir: Path = files('amherst').joinpath('ui')
+    # static_dir: Path
+    # template_dir: Path
     templates: Jinja2Templates | None = None
     log_level: str = 'DEBUG'
+
+    @property
+    def template_dir(self) -> Path:
+        return self.ui_dir / 'templates'
+
+    @property
+    def static_dir(self) -> Path:
+        return self.ui_dir / 'static'
 
     @computed_field
     @property
