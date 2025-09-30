@@ -7,6 +7,7 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">= 3.13"
+
 dependencies = [
     # siblings:
     'pycommence', # commence python api
@@ -30,6 +31,20 @@ dependencies = [
     "hatchling>=1.27.0",
 ]
 
+
+[project.optional-dependencies]
+dev = [
+    'pytest',
+    'autodoc_pydantic',
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "sphinx-rtd-theme",
+    "myst-parser",
+    "sphinx-readme",
+    "sphinx_rtd_dark_mode",
+]
+
+
 [project.scripts]
 shipper = "amherst.cli:shipper_cli"
 print-file = "amherst.cli:file_printer_cli"
@@ -43,6 +58,10 @@ line-length = 120
 extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
+
+[tool.uv.sources]
+shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
+pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 
 [project.optional-dependencies]
 dev = [
@@ -63,16 +82,5 @@ pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.
 #[build-system]
 #requires = ["uv_build>=0.8.22,<0.9.0"]
 
-#build-backend = "uv_build"
-
-#[tool.uv.build-backend]
-#data = { headers = "ui" }
-#source-includes = ["src/amherst/ui/**"]
-
-#
-#[tool.hatch.metadata]
-#allow-direct-references = true
-#
-#[build-system]
-#requires = ["hatchling"]
-#build-backend = "hatchling.build"
+[tool.uv.build-backend]
+source-include = ["src/amherst/ui/**"]
