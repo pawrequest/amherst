@@ -1,7 +1,3 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "amherst"
 description = "Add your description here"
@@ -42,9 +38,6 @@ email-file = "amherst.cli:send_invoice_email_cli"
 invoice-number = "amherst.cli:next_invoice_cli"
 convert_tracking = "amherst.cli:convert_tracking_link"
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
 [tool.ruff]
 line-length = 120
 extend-select = ["Q", "RUF100", "UP"]
@@ -67,6 +60,18 @@ dev = [
     "sphinx_rtd_dark_mode",
 ]
 
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+
+build-backend = "uv_build"
 
 [tool.uv.build-backend]
 source-include = ["src/amherst/ui/**"]
+
+#
+#[tool.hatch.metadata]
+#allow-direct-references = true
+#
+#[build-system]
+#requires = ["hatchling"]
+#build-backend = "hatchling.build"
