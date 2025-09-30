@@ -1,4 +1,8 @@
 @echo off
+if "%AMHERSTSHIPPER%"=="" (
+    echo Error: AMHERSTSHIPPER environment variable is not set.
+    exit /b 1
+)
 
 echo Installing / Updating Amherst Repository to %AMHERSTSHIPPER%
 set REPO_URL=https://github.com/pawrequest/amherst/
