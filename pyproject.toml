@@ -31,18 +31,28 @@ dependencies = [
     "xlrd>=2.0.2",
 ]
 
-
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    'pytest',
-    'autodoc_pydantic',
-    "sphinx",
-    "sphinx-autodoc-typehints",
-    "sphinx-rtd-theme",
-    "myst-parser",
-    "sphinx-readme",
-    "sphinx_rtd_dark_mode",
+    "autodoc-pydantic>=2.2.0",
+    "myst-parser>=4.0.1",
+    "sphinx>=8.2.3",
+    "sphinx-autodoc-typehints>=3.2.0",
+    "sphinx-readme>=1.2.1",
+    "sphinx-rtd-dark-mode>=1.3.0",
+    "sphinx-rtd-theme>=3.0.2",
 ]
+
+#[project.optional-dependencies]
+#dev = [
+##    'pytest',
+#    'autodoc_pydantic',
+#    "sphinx",
+#    "sphinx-autodoc-typehints",
+#    "sphinx-rtd-theme",
+#    "myst-parser",
+#    "sphinx-readme",
+#    "sphinx_rtd_dark_mode",
+#]
 
 
 [project.scripts]
@@ -63,15 +73,18 @@ format.quote-style = "single"
 # GIT
 shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
-flaskwebgui = { git = "git+https://github.com/pawrequest/flaskwebgui/"}
-pawdf = { git = "git+https://github.com/pawrequest/pawdf/"}
-suppawt = { git = "git+https://github.com/pawrequest/suppawt/"}
-pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/"}
+flaskwebgui = { git = "git+https://github.com/pawrequest/flaskwebgui/" }
+pawdf = { git = "git+https://github.com/pawrequest/pawdf/" }
+suppawt = { git = "git+https://github.com/pawrequest/suppawt/" }
+pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/" }
 
 [build-system]
 requires = ["uv_build>=0.8.22,<0.9.0"]
 build-backend = "uv_build"
 
+
 [tool.uv.build-backend]
 source-include = ["src/amherst/ui/**"]
+
+
 
