@@ -9,7 +9,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 import pydantic as _p
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 from fastapi.encoders import jsonable_encoder
 from pawlogger import get_loguru
 from pydantic import computed_field, model_validator
@@ -44,26 +44,30 @@ def load_env_index(envs_index: Path) -> None:
             raise ValueError(f'Environment variable {env} not set in {envs_index}')
         if not Path(os.getenv(env)).exists():
             raise ValueError(f'Environment variable {env} points to non-existent file {os.getenv(env)}')
+        env_values = dotenv_values(Path(os.getenv('AMHERST_ENV')))
+        log_file = env_values.get('LOG_FILE')
+        log_level = env_values.get('LOG_LEVEL')
+        get_loguru(log_file=log_file, profile='local', level=log_level)
 
 
 #
 def load_env() -> Path:
     ei = Path(os.environ.get('ENV_INDEX'))
-    logger.info(f'Loading env index from {ei}')
     if not ei or not ei.exists():
         raise ValueError('ENV_INDEX not set or does not exist')
     load_env_index(ei)
+    print(f'Loading env index from {ei}')
     amherst_env = Path(os.getenv('AMHERST_ENV'))
     print(f'Loading Amherst Settings from {amherst_env}')
     return amherst_env
 
 
-def load_amherst_settings_env():
-    amherst_env = Path(os.getenv('AMHERST_ENV'))
-    if not amherst_env or not amherst_env.exists():
-        raise ValueError(f'AMHERST_ENV ({amherst_env}) incorrectly set')
-    print(f'Loading Amherst Settings from {amherst_env}')
-    return amherst_env
+# def load_amherst_settings_env():
+#     amherst_env = Path(os.getenv('AMHERST_ENV'))
+#     if not amherst_env or not amherst_env.exists():
+#         raise ValueError(f'AMHERST_ENV ({amherst_env}) incorrectly set')
+#     print(f'Loading Amherst Settings from {amherst_env}')
+#     return amherst_env
 
 
 class Settings(BaseSettings):
@@ -116,9 +120,11 @@ class Settings(BaseSettings):
 
 @lru_cache
 def amherst_settings() -> Settings:
-    return Settings()
+    res = Settings()
 
 
-logger = get_loguru(log_file=amherst_settings().log_file, profile='local', level=amherst_settings().log_level)
+# logger = get_loguru(log_file=amherst_settings().log_file, profile='local', level=amherst_settings().log_level)
+# def get_log():
+#     log_file = os.environ['AMHERST_ENV']['LOG_FILE']
 
 
