@@ -42,6 +42,18 @@ dev = [
     "sphinx-rtd-theme>=3.0.2",
 ]
 
+#[project.optional-dependencies]
+#dev = [
+##    'pytest',
+#    'autodoc_pydantic',
+#    "sphinx",
+#    "sphinx-autodoc-typehints",
+#    "sphinx-rtd-theme",
+#    "myst-parser",
+#    "sphinx-readme",
+#    "sphinx_rtd_dark_mode",
+#]
+
 
 [project.scripts]
 shipper = "amherst.cli:shipper_cli"
@@ -58,8 +70,9 @@ flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
 [tool.uv.sources]
+# LOCAL
+shipaw = { path = "../shipaw", editable = true }
 # GIT
-shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
 pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
 flaskwebgui = { git = "git+https://github.com/pawrequest/flaskwebgui/" }
 pawdf = { git = "git+https://github.com/pawrequest/pawdf/" }
@@ -70,9 +83,6 @@ pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/" }
 requires = ["uv_build>=0.8.22,<0.9.0"]
 build-backend = "uv_build"
 
-
 [tool.uv.build-backend]
 source-include = ["src/amherst/ui/**"]
-
-
 
