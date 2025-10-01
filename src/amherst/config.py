@@ -9,6 +9,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 import pydantic as _p
+from dotenv import load_dotenv
 from fastapi.encoders import jsonable_encoder
 from pawlogger import get_loguru
 from pydantic import computed_field, model_validator
@@ -34,6 +35,27 @@ def date_int_w_ordinal(n: int):
 def ordinal_dt(dt: datetime | date) -> str:
     """Convert a datetime or date to a string with an ordinal day, e.g. 'Mon 1st Jan 2020'."""
     return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
+
+
+def load_env_index(envs_index: Path) -> None:
+    load_dotenv(envs_index)
+    for env in ('APC_ENV', 'PARCELFORCE_ENV', 'SHIPAW_ENV', 'AMHERST_ENV'):
+        if not os.getenv(env):
+            raise ValueError(f'Environment variable {env} not set in {envs_index}')
+        if not Path(os.getenv(env)).exists():
+            raise ValueError(f'Environment variable {env} points to non-existent file {os.getenv(env)}')
+
+
+#
+def load_env() -> Path:
+    ei = Path(os.environ.get('ENV_INDEX'))
+    logger.info(f'Loading env index from {ei}')
+    if not ei or not ei.exists():
+        raise ValueError('ENV_INDEX not set or does not exist')
+    load_env_index(ei)
+    amherst_env = Path(os.getenv('AMHERST_ENV'))
+    print(f'Loading Amherst Settings from {amherst_env}')
+    return amherst_env
 
 
 def load_amherst_settings_env():
@@ -89,7 +111,7 @@ class Settings(BaseSettings):
                 v.touch()
         return self
 
-    model_config = SettingsConfigDict(env_file=load_amherst_settings_env())
+    model_config = SettingsConfigDict(env_file=load_env())
 
 
 @lru_cache
