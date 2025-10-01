@@ -44,12 +44,16 @@ def load_env_index(envs_index: Path) -> None:
             raise ValueError(f'Environment variable {env} not set in {envs_index}')
         if not Path(os.getenv(env)).exists():
             raise ValueError(f'Environment variable {env} points to non-existent file {os.getenv(env)}')
-        env_values = dotenv_values(Path(os.getenv('AMHERST_ENV')))
-        log_file = Path(env_values.get('LOG_FILE'))
-        log_level = env_values.get('LOG_LEVEL') or 'DEBUG'
-        if not log_file or not log_file.parent.exists():
-            raise ValueError(f'LOG_FILE not set in {os.getenv("AMHERST_ENV")}')
-        get_loguru(log_file=log_file, profile='local', level=log_level)
+        getlog()
+
+
+def getlog():
+    env_values = dotenv_values(Path(os.getenv('AMHERST_ENV')))
+    log_file = Path(env_values.get('LOG_DIR')) / 'amherst.log'
+    log_level = env_values.get('LOG_LEVEL') or 'DEBUG'
+    if not log_file or not log_file.parent.exists():
+        raise ValueError(f'LOG_FILE not set in {os.getenv("AMHERST_ENV")}')
+    get_loguru(log_file=log_file, profile='local', level=log_level)
 
 
 #

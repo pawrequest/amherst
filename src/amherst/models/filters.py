@@ -6,10 +6,10 @@ from enum import StrEnum
 from typing import Literal
 from collections.abc import Generator
 
+from loguru import logger
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, Sort, SortOrder
 from pycommence.pycmc_types import Connection, get_cmc_date
 
-from amherst.config import logger
 from amherst.models.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
 
 CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
