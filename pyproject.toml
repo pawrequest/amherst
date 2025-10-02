@@ -10,7 +10,7 @@ requires-python = ">= 3.13"
 
 dependencies = [
     'pycommence', # commence python api
-    "shipaw >= 0.3.3", # shipping api
+    "shipaw >= 0.3.4", # shipping api
     'flaskwebgui >= 1.2.2', # desktop-ify fastapi app
     'pawdf', # pdf resize and print
     'suppawt', # emailer
