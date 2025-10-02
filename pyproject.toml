@@ -1,11 +1,16 @@
+[build-system]
+requires = ["uv_build>=0.8.22,<0.9.0"]
+build-backend = "uv_build"
+
+
 [project]
 name = "amherst"
-description = "Add your description here"
 version = "0.4.2"
+description = "Add your description here"
+readme = "README.md"
 authors = [
     { name = "Paw", email = "amherst+pawrequest@users.noreply.github.com" }
 ]
-readme = "README.md"
 requires-python = ">= 3.13"
 
 dependencies = [
@@ -66,9 +71,6 @@ pawdf = { git = "git+https://github.com/pawrequest/pawdf/" }
 suppawt = { git = "git+https://github.com/pawrequest/suppawt/" }
 pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/" }
 
-[build-system]
-requires = ["uv_build>=0.8.22,<0.9.0"]
-build-backend = "uv_build"
 
 
 [tool.uv.build-backend]
