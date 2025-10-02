@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "amherst"
-version = "0.4.2"
+version = "0.4.3"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -14,15 +14,7 @@ authors = [
 requires-python = ">= 3.13"
 
 dependencies = [
-    'pycommence', # commence python api
-    "shipaw >= 0.3.4", # shipping api
-    'flaskwebgui >= 1.2.2', # desktop-ify fastapi app
-    'pawdf', # pdf resize and print
-    'suppawt', # emailer
-    'pawlogger', # logger config
-    #
-    "pytest-asyncio>=1.2.0",
-    "hatchling>=1.27.0",
+    "flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui/", # customised with url_suffix
     "python-multipart>=0.0.20",
     "matplotlib>=3.10.6",
     "pydantic-settings>=2.11.0",
@@ -34,10 +26,14 @@ dependencies = [
     "loguru>=0.7.3",
     "pyperclip>=1.11.0",
     "xlrd>=2.0.2",
+    "shipaw>=0.3.1",
+    "pawlogger>=0.1.0",
+    "pycommence>=0.2.2",
 ]
 
 [dependency-groups]
 dev = [
+    "pytest-asyncio>=1.2.0",
     "autodoc-pydantic>=2.2.0",
     "myst-parser>=4.0.1",
     "sphinx>=8.2.3",
@@ -61,16 +57,6 @@ line-length = 120
 extend-select = ["Q", "RUF100", "UP"]
 flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
-
-[tool.uv.sources]
-# GIT
-shipaw = { git = "https://github.com/pawrequest/shipaw", branch = "v3" }
-pycommence = { git = "git+https://github.com/pawrequest/pycommence/", tag = "v0.2.2" }
-flaskwebgui = { git = "git+https://github.com/pawrequest/flaskwebgui/" }
-pawdf = { git = "git+https://github.com/pawrequest/pawdf/" }
-suppawt = { git = "git+https://github.com/pawrequest/suppawt/" }
-pawlogger = { git = "git+https://github.com/pawrequest/pawlogger/" }
-
 
 
 [tool.uv.build-backend]

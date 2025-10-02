@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from suppawt.office_ps.email_handler import Email
+from amherst.actions.email_handler import Email
 
 DEBUG = True
 USE_MICROSOFT = False
