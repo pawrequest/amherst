@@ -49,10 +49,11 @@ def load_env_index(envs_index: Path) -> None:
 
 def getlog():
     env_values = dotenv_values(Path(os.getenv('AMHERST_ENV')))
-    log_file = Path(env_values.get('LOG_DIR')) / 'amherst.log'
+    log_dir = Path(env_values.get('LOG_DIR'))
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / 'amherst.log'
+    log_file.touch(exist_ok=True)
     log_level = env_values.get('LOG_LEVEL') or 'DEBUG'
-    if not log_file or not log_file.parent.exists():
-        raise ValueError(f'LOG_FILE not set in {os.getenv("AMHERST_ENV")}')
     get_loguru(log_file=log_file, profile='local', level=log_level)
 
 
