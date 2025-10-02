@@ -15,8 +15,12 @@ requires-python = ">= 3.13"
 
 dependencies = [
     "flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui/", # customised with url_suffix
-    "python-multipart>=0.0.20",
+    "shipaw>=0.3.6",
+    "pawlogger>=0.1.0",
+    "pycommence>=0.2.2",
     "matplotlib>=3.10.6",
+    #
+    "python-multipart>=0.0.20",
     "pydantic-settings>=2.11.0",
     "pydantic[email]>=2.11.9",
     "fastapi>=0.117.1",
@@ -26,9 +30,6 @@ dependencies = [
     "loguru>=0.7.3",
     "pyperclip>=1.11.0",
     "xlrd>=2.0.2",
-    "shipaw>=0.3.1",
-    "pawlogger>=0.1.0",
-    "pycommence>=0.2.2",
 ]
 
 [dependency-groups]
@@ -61,6 +62,3 @@ format.quote-style = "single"
 
 [tool.uv.build-backend]
 source-include = ["src/amherst/ui/**"]
-
-
-
