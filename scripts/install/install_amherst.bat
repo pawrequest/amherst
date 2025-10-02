@@ -10,5 +10,7 @@ call %thisDir%/clone_or_pull_amherst_repo.bat
 call %thisDir%/install_amherst_envs.bat
 
 pushd %AMHERSTSHIPPER%
+rem uv sync --no-dev
+uv pip install . --force-reinstall
 
 pause

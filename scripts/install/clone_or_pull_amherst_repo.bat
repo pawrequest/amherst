@@ -18,4 +18,5 @@ if exist "%AMHERSTSHIPPER%" (
     git clone --branch %BRANCH_NAME% "%REPO_URL%" "%AMHERSTSHIPPER%"
     pushd %AMHERSTSHIPPER%
 )
-uv pip install . --force-reinstall
+uv sync --no-dev
+rem uv pip install . --force-reinstall
