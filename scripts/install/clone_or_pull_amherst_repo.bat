@@ -16,4 +16,5 @@ if exist "%AMHERSTSHIPPER%" (
 ) else (
     echo Repository not found, cloning repo...
     git clone --branch %BRANCH_NAME% "%REPO_URL%" "%AMHERSTSHIPPER%"
+    pushd %AMHERSTSHIPPER%
 )
