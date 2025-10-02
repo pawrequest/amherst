@@ -39,11 +39,11 @@ async def run_desktop_ui(url_suffix='', port=8000):
 
 
 async def pycommence_shipper(category: CategoryName, record_name: str):
-    url_suffix = await get_shipper_url(category, record_name)
+    url_suffix = await get_pycommence_shipper_url(category, record_name)
     await run_desktop_ui(url_suffix)
 
 
-async def get_shipper_url(category: CategoryName, record_name: str) -> str:
+async def get_pycommence_shipper_url(category: CategoryName, record_name: str) -> str:
     return (
         f'shipaw/ship_form_am?csrname={url_quote(category)}&pk_value={url_quote(record_name)}&condition=equal&max_rtn=1'
     )
