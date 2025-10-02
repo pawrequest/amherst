@@ -38,7 +38,7 @@ async def make_update_dict(shipment: AmherstShipment, shipment_response: Shipmen
     record = shipment.record
     update_package = await cmc_update_dict(shipment, shipment_response)
     if isinstance(record, AmherstHire):
-        extra = await cmc_update_dict_hire()
+        extra = await cmc_update_dict_hire(shipment)
         update_package.update(extra)
     return update_package
 
