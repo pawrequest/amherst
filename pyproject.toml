@@ -15,7 +15,7 @@ requires-python = ">= 3.13"
 
 dependencies = [
     "flaskwebgui @ git+https://github.com/pawrequest/flaskwebgui/", # customised with url_suffix
-    "shipaw>=0.3.7",
+    "shipaw>=0.3.9",
     "pawlogger>=0.1.0",
     "pycommence>=0.2.2",
     "matplotlib>=3.10.6",
