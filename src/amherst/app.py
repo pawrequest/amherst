@@ -38,7 +38,7 @@ app.mount('/static', StaticFiles(directory=str(shipaw_settings().static_dir)), n
 # app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/shipaw')
-app.include_router(shipaw_json_router, prefix='/api/shipaw')
+app.include_router(shipaw_json_router, prefix='/shipaw/api')
 app.include_router(shipaw_html_router, prefix='/shipaw')
 app.include_router(html_router)
 # app.ship_live = pf_config.pf_sett().ship_live
