@@ -5,9 +5,9 @@ setx AMHERSTSHIPPER %AMHERSTSHIPPER%
 
 echo Installing Amherst Shipper into %AMHERSTSHIPPER%
 
-call %thisDir%\v3\install_git_uv.bat
-call %thisDir%\v3\uv_install_amherst_app.bat
-call %thisDir%\v3\copy_envs.bat
+call %thisDir%\install_git_uv.bat
+call %thisDir%\uv_install_amherst_app.bat
+call %thisDir%\copy_envs.bat
 
 pushd %AMHERSTSHIPPER%
 

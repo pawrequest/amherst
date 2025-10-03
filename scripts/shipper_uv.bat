@@ -5,7 +5,7 @@ if "%AMHERSTSHIPPER%"=="" (
 )
 set thisDir=%~dp0
 echo Running shipper from %~dp0 with arguments: %1 %2 %3
-call %thisDir%\install\v3\uv_install_amherst_app.bat
+call %thisDir%\install\uv_install_amherst_app.bat
 
 pushd %AMHERSTSHIPPER%
 uv run shipper %1 %2 %3
