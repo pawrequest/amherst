@@ -1,7 +1,7 @@
 """Wrap FastAPI app in FlaskWebGUI for desktop application."""
 
 from __future__ import annotations
-
+from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote
 from loguru import logger
 
