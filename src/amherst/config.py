@@ -128,6 +128,7 @@ class Settings(BaseSettings):
 @lru_cache
 def amherst_settings() -> Settings:
     res = Settings()
+    return res
 
 
 # logger = get_loguru(log_file=amherst_settings().log_file, profile='local', level=amherst_settings().log_level)
