@@ -19,14 +19,14 @@ from amherst.models.maps import AmherstMap, mapper_from_query_csrname
 router = APIRouter()
 
 
-@router.get('/open-file', response_class=HTMLResponse)
-async def open_file(filepath: str = Query(...)):
+@router.get('/open-file/{filepath}', response_class=HTMLResponse)
+async def open_file(filepath: str):
     os.startfile(filepath)
     return HTMLResponse(content=f'<span>Re</span>')
 
 
-@router.post('/print-file', response_class=HTMLResponse)
-async def print_file(filepath: str = Query(...)):
+@router.post('/print-file/{filepath}', response_class=HTMLResponse)
+async def print_file(filepath: str):
     os.startfile(filepath, 'print')
     return HTMLResponse(content=f'<span>Re</span>')
 
@@ -40,7 +40,9 @@ async def search(
 ):
     search_response: SearchResponse = await pycommence_search(search_request, pycmc)
     logger.debug(str(search_response))
-    return amherst_settings().templates.TemplateResponse(mapper.templates.listing, {'request': request, 'response': search_response})
+    return amherst_settings().templates.TemplateResponse(
+        mapper.templates.listing, {'request': request, 'response': search_response}
+    )
 
 
 @router.get('/orders')
