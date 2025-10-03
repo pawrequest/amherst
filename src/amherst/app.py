@@ -3,7 +3,7 @@ import contextlib
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
 from starlette.requests import Request
-from starlette.responses import HTMLResponse
+from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
 from amherst.back.routes_html import router as html_router
@@ -50,7 +50,6 @@ async def request_exception_handler(request: Request, exc: RequestValidationErro
     return await request_validation_exception_handler(request, exc)
 
 
-
 @app.get('/robots.txt', response_class=responses.PlainTextResponse)
 async def robots_txt() -> str:
     return 'User-agent: *\nAllow: /'
@@ -61,8 +60,17 @@ async def favicon_ico():
     return responses.RedirectResponse(url='/static/favicon.svg')
 
 
-@app.get('/', response_class=HTMLResponse)
+@app.get('/base', response_class=HTMLResponse)
 async def base(
     request: Request,
 ):
     return amherst_settings().templates.TemplateResponse('base.html', {'request': request})
+
+
+@app.get('/', response_class=RedirectResponse)
+async def startup(
+    request: Request,
+):
+    url = request.app.starting_url if hasattr(request.app, 'starting_url') else '/base'
+    return RedirectResponse(url)
+
