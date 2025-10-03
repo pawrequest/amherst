@@ -1,8 +1,6 @@
 @echo off
 echo Installing Git and UV
 
-REM Set paths
-
 set UV_DIR=%USERPROFILE%\.local\bin
 
 REM maybe install uv

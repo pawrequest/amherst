@@ -1,4 +1,4 @@
-rem @echo off
+@echo off
 if "%AMHERSTSHIPPER%"=="" (
     echo Error: AMHERSTSHIPPER environment variable is not set.
     exit /b 1
@@ -10,16 +10,22 @@ set BRANCH_NAME=v3
 
 REM Clone or pull repo
 if not exist "%AMHERSTSHIPPER%" (
-    echo Repository not found, making dir...
+    echo %AMHERSTSHIPER% virtual environment not found, making now...
     mkdir "%AMHERSTSHIPPER%"
     pushd %AMHERSTSHIPPER%
-    uv venv
+    call uv venv
 ) else (
-    echo Repository exists, entering dir...
+    echo Environment exists, entering...
     pushd %AMHERSTSHIPPER%
 )
-@echo on
 
-.venv\Scripts\activate
-uv pip install "git+https://github.com/pawrequest/amherst.git@%BRANCH_NAME%#egg=amherst" --force-reinstall
+echo Installing / Updating Amherst from branch %BRANCH_NAME%...
+call .venv\Scripts\activate
+call uv pip install "git+https://github.com/pawrequest/amherst.git@%BRANCH_NAME%#egg=amherst"
+call deactivate
 popd
+
+if %errorlevel% neq 0 if %errorlevel% neq 15 (
+    echo Error: shipper exited with code %errorlevel%
+    pause
+)
