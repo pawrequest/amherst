@@ -4,7 +4,7 @@ if "%AMHERSTSHIPPER%"=="" (
     exit /b 1
 )
 
-echo Installing / Updating Amherst Repository to %AMHERSTSHIPPER%
+echo Installing / Updating Amherst App in %AMHERSTSHIPPER%
 set REPO_URL=https://github.com/pawrequest/amherst/
 set BRANCH_NAME=v3
 
