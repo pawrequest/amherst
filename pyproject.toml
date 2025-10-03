@@ -14,7 +14,7 @@ authors = [
 requires-python = ">= 3.13"
 
 dependencies = [
-    "shipaw>=0.3.9",
+    "shipaw>=0.3.11",
     "pawlogger>=0.1.0",
     "pycommence>=0.2.2",
     #
