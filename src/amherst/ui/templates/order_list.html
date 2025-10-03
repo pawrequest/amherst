@@ -1,7 +1,7 @@
 <!-- templates/hires_sales.html -->
 {% for record in response.records %}
     <div class="record record__orders"
-         hx-get="/ship/form_content?csrname={{ record.row_info.category | urlencode }}&row_id={{ record.row_info.id | urlencode }}"
+         hx-get="/shipaw/form_content?csrname={{ record.row_info.category | urlencode }}&row_id={{ record.row_info.id | urlencode }}"
          hx-target="#content_main"
          hx-swap="innerHTML"
     >
