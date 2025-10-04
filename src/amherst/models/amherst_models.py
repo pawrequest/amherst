@@ -34,7 +34,7 @@ class AmherstShipableBase(BaseModel, ABC):
     def alias_lookup(self, field_name: str) -> str:
         try:
             return self.model_fields[field_name].alias
-        except Exception:
+        except KeyError:
             return field_name
 
     @field_validator('*', mode='before')
