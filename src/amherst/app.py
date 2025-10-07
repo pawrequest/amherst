@@ -1,6 +1,4 @@
 import contextlib
-from amherst.config import AmherstSettings, amherst_settings
-SETTINGS = AmherstSettings.from_env('AMHERST_ENV')
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
@@ -8,14 +6,15 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
+from amherst.SETTINGS import SETTINGS
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
 from amherst.back.ship_routes import router as ship_router
-from shipaw.config import ShipawSettings
+from amherst.config import amherst_settings
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
-from shipaw.fapi.routes_html import router as shipaw_html_router
 from shipaw.fapi.routes_api import router as shipaw_json_router
+from shipaw.fapi.routes_html import router as shipaw_html_router
 
 
 @contextlib.asynccontextmanager

@@ -14,20 +14,24 @@ import dotenv
 import pyperclip
 from loguru import logger
 
+from amherst.SETTINGS import SETTINGS
 from amherst.actions import print_file
 from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_royal_mail
 from amherst.actions.invoice_number import next_inv_num
 from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
-from amherst.app import SETTINGS
 from amherst.models.commence_adaptors import CategoryName
 
 
 def shipper_cli():
     args = parse_ship_args()
     logger.info(f'starting shipper for {args.category} {args.record_name} with env {args.am_env}')
-    # os.environ['ENV_INDEX'] = str(args.env_index)
-    os.environ['AMHERST_ENV'] = str(args.am_env)
-    settings = SETTINGS
+
+    # os.environ['AMHERST_ENV'] = str(args.am_env)
+    from amherst.config import AmherstSettings
+
+    settings = AmherstSettings(_env_file=str(args.am_env))
+    SETTINGS = settings
+    os.environ['SHIPAW_ENV'] = str(settings.shipaw_env)
     # dotenv.load_dotenv(args.env_index)
     from amherst.ui_runner import pycommence_shipper  # AFTER SETTING ENVIRONMENT
 
