@@ -1,4 +1,6 @@
 import contextlib
+from amherst.config import AmherstSettings, amherst_settings
+SETTINGS = AmherstSettings.from_env('AMHERST_ENV')
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
@@ -9,7 +11,6 @@ from starlette.staticfiles import StaticFiles
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
 from amherst.back.ship_routes import router as ship_router
-from amherst.config import amherst_settings
 from shipaw.config import ShipawSettings
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
@@ -20,22 +21,16 @@ from shipaw.fapi.routes_api import router as shipaw_json_router
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
-        # set_pf_env()
-        # pythoncom.CoInitialize()
-        # with sqm.Session(am_db.ENGINE) as session:
-        #     pf_shipper = ELClient()
-        #     populate_db_from_cmc(session, pf_shipper)
+        # app.settings = AmherstSettings.from_env('AMHERST_ENV')
+        # app.mount('/static', StaticFiles(directory=str(app.settings.shipaw_settings.static_dir)), name='static')
         yield
 
     finally:
-        # pythoncom.CoUninitialize()
-
         ...
 
 
 app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory=str(ShipawSettings.from_env().static_dir)), name='static')
-# app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
+app.mount('/static', StaticFiles(directory=str(SETTINGS.shipaw_settings.static_dir)), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/shipaw')
 app.include_router(shipaw_json_router, prefix='/shipaw/api')

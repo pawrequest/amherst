@@ -16,6 +16,8 @@ from pydantic import computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
 
+from shipaw.config import ShipawSettings
+
 
 def sanitise_id(value):
     return re.sub(r'\W|^(?=\d)', '_', value).lower()
@@ -69,6 +71,18 @@ def load_env() -> Path:
     return amherst_env
 
 
+#
+def load_env_combined(env_key: str = 'AMHERST_ENV') -> Path:
+    amherst_env = os.getenv(env_key)
+    if not amherst_env:
+        raise ValueError('AMHERST_ENV not set')
+    amherst_env = Path(amherst_env)
+    if not amherst_env.exists():
+        raise ValueError(f'AMHERST_ENV ({amherst_env}) incorrectly set')
+    print(f'Loading Amherst Settings from {amherst_env}')
+    return amherst_env
+
+
 # def load_amherst_settings_env():
 #     amherst_env = Path(os.getenv('AMHERST_ENV'))
 #     if not amherst_env or not amherst_env.exists():
@@ -77,13 +91,28 @@ def load_env() -> Path:
 #     return amherst_env
 
 
-class Settings(BaseSettings):
+class AmherstSettings(BaseSettings):
     log_dir: Path
     ui_dir: Path = files('amherst').joinpath('ui')
     # static_dir: Path
     # template_dir: Path
     templates: Jinja2Templates | None = None
     log_level: str = 'DEBUG'
+    shipaw_env: Path
+
+    shipaw_settings: ShipawSettings | None = None
+
+    @classmethod
+    def from_env(cls, env_key='AMHERST_ENV') -> AmherstSettings:
+        return cls(_env_file=load_env_combined(env_key))
+
+    @model_validator(mode='after')
+    def set_shipaw_settings(self):
+        if not self.shipaw_env or not self.shipaw_env.exists():
+            raise ValueError(f'SHIPAW_ENV ({self.shipaw_env}) incorrectly set')
+        if self.shipaw_settings is None:
+            self.shipaw_settings = ShipawSettings(_env_file=self.shipaw_env)
+        return self
 
     @property
     def template_dir(self) -> Path:
@@ -122,12 +151,12 @@ class Settings(BaseSettings):
                 v.touch()
         return self
 
-    model_config = SettingsConfigDict(env_file=load_env())
+    model_config = SettingsConfigDict(env_file=load_env_combined())
 
 
 @lru_cache
-def amherst_settings() -> Settings:
-    res = Settings()
+def amherst_settings() -> AmherstSettings:
+    res = AmherstSettings(_env_file=load_env_combined())
     return res
 
 

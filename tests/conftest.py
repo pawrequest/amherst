@@ -1,9 +1,12 @@
+import os
 from pathlib import Path
 
 import dotenv
 
-envs_index = Path(r'C:\prdev\envs\sandbox.env')
-dotenv.load_dotenv(envs_index)
+os.environ['AMHERST_ENV'] = r'C:\prdev\envs\amdev\sandbox\amherst - combine.env'
+
+# envs_index = Path(r'C:\prdev\envs\sandbox.env')
+# dotenv.load_dotenv(envs_index)
 
 from datetime import date, timedelta
 
