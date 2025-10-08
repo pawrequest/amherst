@@ -1,4 +1,4 @@
-Sub aProcessLatestInvoice()
+Sub ProcessLatestInvoice()
     Dim sourceFolder As String
     Dim destFolder As String
     Dim fso As Object
@@ -9,11 +9,11 @@ Sub aProcessLatestInvoice()
     Dim newName As String
     Dim pdfName As String
 
-    sourceFolder = "C:\prdev\wordmacro\source\"
+    sourceFolder = "C:\ProgramData\Commence\Commence\8.0\letters\"
     destFolder = "C:\prdev\wordmacro\dest\"
 
-    Set fso = CreateObject("Scripting.FileSystemObject")
 
+    Set fso = CreateObject("Scripting.FileSystemObject")
     ' Check if folders exist
     If Not fso.FolderExists(sourceFolder) Then
         MsgBox "Source folder does not exist: " & sourceFolder
@@ -29,7 +29,9 @@ Sub aProcessLatestInvoice()
 
     ' Find latest .docx file
     For Each file In folder.Files
-        If Right(LCase(file.Name), 5) = ".docx" Then
+        Dim ext As String
+        ext = LCase(fso.GetExtensionName(file.Name))
+        If (ext = "docx" Or ext = "doc") And Left(file.Name, 2) <> "~$" Then
             If file.DateLastModified > latestDate Then
                 Set latestFile = file
                 latestDate = file.DateLastModified
