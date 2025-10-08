@@ -59,7 +59,7 @@ async def cmc_update_dict(shipment: AmherstShipment, shipment_response: Shipment
 
 async def cmc_update_dict_hire(shipment: AmherstShipment):
     record = shipment.record
-    if isinstance(record, AmherstHire):
+    if not isinstance(record, AmherstHire):
         raise ValueError('Record is not an AmherstHire')
     shipdir = shipment.direction
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
