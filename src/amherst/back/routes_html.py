@@ -25,7 +25,7 @@ async def open_file(filepath: str):
     return HTMLResponse(content=f'<span>Re</span>')
 
 
-@router.post('/print-file/{filepath}', response_class=HTMLResponse)
+@router.get('/print-file/{filepath}', response_class=HTMLResponse)
 async def print_file(filepath: str):
     os.startfile(filepath, 'print')
     return HTMLResponse(content=f'<span>Re</span>')
