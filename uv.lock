@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "amherst"
-version = "0.4.10"
+version = "0.4.11"
 source = { editable = "." }
 dependencies = [
     { name = "docxtpl" },
@@ -60,7 +60,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
-    { name = "shipaw", specifier = ">=0.3.20" },
+    { name = "shipaw", specifier = ">=0.3.21" },
     { name = "xlrd", specifier = ">=2.0.2" },
 ]
 
@@ -1538,7 +1538,7 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.20"
+version = "0.3.21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apc-hypaship" },
@@ -1558,9 +1558,9 @@ dependencies = [
     { name = "pytest" },
     { name = "thefuzz" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4d/d3/98bcd397a6ca9df9452c673e5b76f7d561bce1d86c5a0e201cdadd6077f2/shipaw-0.3.20.tar.gz", hash = "sha256:156bc8d14b4f5bdd7f142e842501658e9e9f7f7db5dcf065aad9c85c3da927ad", size = 30808, upload-time = "2025-10-08T17:52:47.91Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/0d/7ae823016c67762e4e10f130a650f2b059638901660526eaf3b199433b5b/shipaw-0.3.21.tar.gz", hash = "sha256:2a14eb455e365fcc1cfc503cec4b63605f8f9cea581b453dda5ce96a7776a91e", size = 30857, upload-time = "2025-10-08T18:06:42.497Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/c8/823169ab588d7d3f0b6102a77ed33bb59bf70c665404d0700c7b43c639aa/shipaw-0.3.20-py3-none-any.whl", hash = "sha256:7884111620b65ec352113c5d103dc99b472859e6b371b0c7481597e20dd46d7d", size = 48314, upload-time = "2025-10-08T17:52:46.631Z" },
+    { url = "https://files.pythonhosted.org/packages/90/6e/6c76b5d3fd2933098882f46f36faf198bd17bf5a2126efd2cbedd8b8c9b0/shipaw-0.3.21-py3-none-any.whl", hash = "sha256:1fa74536dff58c835073cd8d180b0a05a7eb21ba4f627c982df6aa566efece7d", size = 48351, upload-time = "2025-10-08T18:06:41.28Z" },
 ]
 
 [[package]]
