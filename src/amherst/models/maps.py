@@ -12,7 +12,6 @@ from amherst.models.amherst_models import (
     AmherstCustomer,
     AmherstHire,
     AmherstSale,
-    AmherstShipableBase,
     AmherstTrial, AmherstShipableBase,
 )
 from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases

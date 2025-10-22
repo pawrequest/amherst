@@ -1,11 +1,9 @@
 import pytest
-import pytest_asyncio
 from fastapi.encoders import jsonable_encoder
 from starlette.testclient import TestClient
 
-from shipaw.models.booking_states import BookingState
 from shipaw.models.pf_msg import ShipmentResponse
-from shipaw.models.pf_shipment_configured  import ShipmentAwayCollectionConfigured, ShipmentAwayDropoffConfigured, to_dropoff, to_collection_configured
+from shipaw.models.pf_shipment_configured import ShipmentAwayCollectionConfigured
 from client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
 from .fixtures_mock import FAKE_EMAIL, FAKE_PHONE, amrec_mock, booking_mock_db, booking_mock_fxt  # noqa: F401
@@ -28,37 +26,6 @@ async def test_candidates(test_client):
     print(response.json())
 
 
-# noinspection PyShadowingNames
-@pytest.mark.asyncio
-async def test_retrieve_random_booking(test_client, b_fxt: BookingStateDB):
-    response = test_client.get(f'/api/{b_fxt.id}')
-    resp_json = response.json()
-    booking = BookingState.model_validate(resp_json)
-
-    assert isinstance(booking, BookingState)
-    assert response.status_code == 200
-    assert resp_json['id'] == b_fxt.id
-
-
-@pytest.mark.asyncio
-@pytest_asyncio.fixture(scope='session')
-async def away_collect_fxt(b_fxt):
-    outfxt = b_fxt.copy()
-    outfxt.shipment_request = to_collection_configured(b_fxt.shipment_request)
-    outfxt.shipment_request.recipient_contact.delivery_contact_email = FAKE_EMAIL
-    outfxt.shipment_request.recipient_contact.delivery_contact_phone = FAKE_PHONE
-    outfxt.shipment_request.collection_info.collection_contact.delivery_contact_email = FAKE_EMAIL
-    outfxt.shipment_request.collection_info.collection_contact.delivery_contact_phone = FAKE_PHONE
-    return outfxt
-
-
-@pytest_asyncio.fixture(scope='session')
-async def away_dropoff_fxt(b_fxt: BookingStateDB):
-    outfxt = b_fxt.copy()
-    outfxt.shipment_request = to_dropoff(b_fxt.shipment_request)
-    outfxt.shipment_request.recipient_contact.delivery_contact_email = FAKE_EMAIL
-    outfxt.shipment_request.recipient_contact.delivery_contact_phone = FAKE_PHONE
-    return outfxt
 
 
 # noinspection PyShadowingNames

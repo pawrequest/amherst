@@ -1,7 +1,6 @@
 import json
 import os
 from dataclasses import dataclass, field
-from typing import Optional
 
 from pandas import Series, read_excel
 
@@ -39,9 +38,9 @@ def get_id_and_serial(id_or_serial, df):
 
 def handle_row(row):
     if row.empty:
-        raise ValueError(f"Asset not found")
+        raise ValueError('Asset not found')
     if row.shape[0] > 1:
-        raise ValueError(f"More than one asset found")
+        raise ValueError('More than one asset found')
     return row.iloc[0]
 
 
@@ -49,8 +48,8 @@ def handle_row(row):
 class Asset:
     id_number: str = field
     serial_number: str = field
-    fw_version: Optional[str] = None
-    model: Optional[str] = None
+    fw_version: str | None = None
+    model: str | None = None
 
     def __eq__(self, other):
         return self.id_number == other.id_number and self.serial_number == other.serial_number
@@ -65,7 +64,7 @@ class AssetContext:
         self.header_row = header_row or DFLT_CONST.AST_HEAD
 
         if os.path.exists(self.json_file):
-            with open(self.json_file, 'r') as json_file:
+            with open(self.json_file) as json_file:
                 data = json.load(json_file)
             self.assets = data['df_a']
         else:
@@ -121,7 +120,7 @@ class AssetManager:
             else:
                 return self.df_a.loc[self.df_a[DFLT_CONST.SERIAL] == id_or_serial, fieldname].values[0]
         except IndexError:
-            raise ValueError(f"Field {fieldname} not found for {id_or_serial}")
+            raise ValueError(f'Field {fieldname} not found for {id_or_serial}')
         except Exception as e:
             raise e
 
