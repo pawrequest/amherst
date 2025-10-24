@@ -67,6 +67,15 @@ def payment_status_cli():
     parser.add_argument('accounts_spreadsheet', type=Path, help='Path to accounts spreadsheet', nargs='?')
     args = parser.parse_args()
     inv_num = invoice_num_from_path(args.invoice_number)
+    print(f"\n Payment Status for {inv_num} is '{get_payment_status(inv_num, args.accounts_spreadsheet)}'\n")
+
+
+def payment_status_cli1():
+    parser = argparse.ArgumentParser(description='Check invoice payment status')
+    parser.add_argument('invoice_number', type=str, help='Invoice number to check')
+    parser.add_argument('accounts_spreadsheet', type=Path, help='Path to accounts spreadsheet', nargs='?')
+    args = parser.parse_args()
+    inv_num = invoice_num_from_path(args.invoice_number)
     accs_file = args.accounts_spreadsheet or Path(r'R:\ACCOUNTS\ye2025\ac2425.xls')
     print(get_payment_status(inv_num, accs_file))
 

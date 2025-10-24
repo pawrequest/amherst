@@ -1,27 +1,17 @@
 from __future__ import annotations
 
-import json
 import pprint
 
-from httpx import HTTPStatusError
 from loguru import logger
 from pycommence import pycommence_context
 
-from amherst.models.amherst_models import AmherstShipableBase
-from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
 from amherst.models.cmc_update import make_update_dict
-from shipaw.fapi.backend import http_status_alerts
-from shipaw.fapi.requests import ShipmentRequest
+from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
 from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.responses import ShipmentBookingResponse
-from shipaw.models.shipment import Shipment as ShipmentAgnost
-from parcelforce_expresslink.client import ParcelforceClient
-
-from amherst.models.maps import AmherstMap, mapper_from_query_csrname
 
 
-async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentBookingResponse
-):
+async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentBookingResponse):
     try:
         update_dict = await make_update_dict(shipment, shipment_response)
         logger.info(f'Updating CMC: {update_dict}')

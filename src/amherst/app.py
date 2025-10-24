@@ -10,7 +10,7 @@ from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
 from amherst.back.ship_routes import router as ship_router
 from amherst.config import amherst_settings
-from shipaw.config import shipaw_settings
+from shipaw.config import ShipawSettings
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
 from shipaw.fapi.routes_html import router as shipaw_html_router
@@ -34,7 +34,7 @@ async def lifespan(app_: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.mount('/static', StaticFiles(directory=str(shipaw_settings().static_dir)), name='static')
+app.mount('/static', StaticFiles(directory=str(ShipawSettings.from_env().static_dir)), name='static')
 # app.mount('/static', StaticFiles(directory=str(amherst_settings().static_dir)), name='static')
 app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/shipaw')

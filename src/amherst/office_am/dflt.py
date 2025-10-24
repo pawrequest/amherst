@@ -123,4 +123,4 @@ def format_currency(value):
         return ''
     # if isinstance(value, str):
     #     value = Decimal(value)
-    return f"£{value:>8.2f}"
+    return f'£{value:>8.2f}'

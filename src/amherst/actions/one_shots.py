@@ -4,8 +4,8 @@
 # from amherst.set_env import set_env_files
 #
 # set_env_files(sandbox=False)
-# from shipaw.expresslink_client import ELClient  # noqa: E402
-# from shipaw.pf_config import PFSettings # noqa: E402
+# from shipaw.expresslink_client import ELClient
+# from shipaw.pf_config import PFSettings
 #
 #
 # def expresslink_live() -> ELClient:

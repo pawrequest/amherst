@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from loguru import logger
 from pycommence import PyCommence, pycommence_context
 from starlette.requests import Request
@@ -22,13 +22,13 @@ router = APIRouter()
 @router.get('/open-file/{filepath}', response_class=HTMLResponse)
 async def open_file(filepath: str):
     os.startfile(filepath)
-    return HTMLResponse(content=f'<span>Re</span>')
+    return HTMLResponse(content='<span>Re</span>')
 
 
-@router.post('/print-file/{filepath}', response_class=HTMLResponse)
+@router.get('/print-file/{filepath}', response_class=HTMLResponse)
 async def print_file(filepath: str):
     os.startfile(filepath, 'print')
-    return HTMLResponse(content=f'<span>Re</span>')
+    return HTMLResponse(content='<span>Re</span>')
 
 
 @router.get('/search')

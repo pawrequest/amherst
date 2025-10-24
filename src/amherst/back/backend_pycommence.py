@@ -7,7 +7,7 @@ using PyCommence, with support for pagination and filtering.
 
 from __future__ import annotations
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from fastapi import Depends, Query
 from loguru import logger
@@ -90,7 +90,7 @@ async def pycommence_fetch(
     elif q.pk_value:
         try:
             row_id = pycmc.csr(q.csrname).pk_to_id(q.pk_value)
-        except PyCommenceNotFoundError as e:
+        except PyCommenceNotFoundError:
             ...
     if row_id:
         row = pycmc.read_row(csrname=q.csrname, row_id=row_id)

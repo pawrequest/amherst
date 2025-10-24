@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "amherst"
-version = "0.4.7"
+version = "0.4.11"
 source = { editable = "." }
 dependencies = [
     { name = "docxtpl" },
@@ -60,7 +60,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
-    { name = "shipaw", specifier = ">=0.3.11" },
+    { name = "shipaw", specifier = ">=0.3.21" },
     { name = "xlrd", specifier = ">=2.0.2" },
 ]
 
@@ -100,7 +100,7 @@ wheels = [
 
 [[package]]
 name = "apc-hypaship"
-version = "0.1.2"
+version = "0.1.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dotenv" },
@@ -108,9 +108,9 @@ dependencies = [
     { name = "loguru" },
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b7/eb/689ced3680d8521c35b40aff69cd2a61f6ce9849601fc42bb0d23fe66c58/apc_hypaship-0.1.2.tar.gz", hash = "sha256:893c269521e73722be31ed6e36f5046c723052c41a70424f2b9425e6dd75ff87", size = 5024, upload-time = "2025-10-02T18:26:31.734Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a2/d8/f28e87f5d36daf84c6304cc0d9e61a68a3293fdd32c2f57f72e21a53ccd5/apc_hypaship-0.1.8.tar.gz", hash = "sha256:24d5ed579903ac5aaf7671e4b94a4ed71a0c91af6c9dace85d2d39fe2fcdbd09", size = 6039, upload-time = "2025-10-08T17:50:13.68Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/ad/3b7ad5115e7485e7088c99b38f737caa12170e4e06f01449c5cb99ae3107/apc_hypaship-0.1.2-py3-none-any.whl", hash = "sha256:2775cc9cd92f0c87ae678e5d5a52f14c089412e73a05f95d2af4aae4a7b84251", size = 9924, upload-time = "2025-10-02T18:26:30.988Z" },
+    { url = "https://files.pythonhosted.org/packages/b1/ea/f538e1711c631a7de86fe5fca78ab90587e1e145291fb73818554eb7f70e/apc_hypaship-0.1.8-py3-none-any.whl", hash = "sha256:1d5010dddc64f3a27db84342a72b60f1b5b19683c2bb81e6b3a09d6477a48f31", size = 11523, upload-time = "2025-10-08T17:50:12.532Z" },
 ]
 
 [[package]]
@@ -950,7 +950,7 @@ wheels = [
 
 [[package]]
 name = "parcelforce-expresslink"
-version = "0.1.2"
+version = "0.1.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "combadge" },
@@ -960,9 +960,9 @@ dependencies = [
     { name = "thefuzz" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/1c/94e22bf9200075fc0c5f31333a874f7605698a15cea6a3165b7ee2b3780e/parcelforce_expresslink-0.1.2.tar.gz", hash = "sha256:2531da18a497f293a226e86ae68bc230aec464a55fbd89c7225e0387e2dc4d02", size = 17754, upload-time = "2025-10-03T12:11:02.567Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/d2/1bdbd6e85edffaab5d537e43d1eef627dd774c3a19fd2b44d0c7604dcec4/parcelforce_expresslink-0.1.7.tar.gz", hash = "sha256:791f6c4deaae1230d01ca17afa8ae08e2a177f4ef151ab03e0c932fd461fcbf4", size = 19441, upload-time = "2025-10-07T16:11:12.872Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/8b/7c8f1b1da2387ac0c8180620bbe1547f3eddb22f7b4708c6f66b9ff19e2e/parcelforce_expresslink-0.1.2-py3-none-any.whl", hash = "sha256:5926e74683eca4b37ea274615a1301678a56720e216bf3adb28d1b8023047ea2", size = 23767, upload-time = "2025-10-03T12:11:01.698Z" },
+    { url = "https://files.pythonhosted.org/packages/84/95/1d03582ddf2f65f25f52932db612a2872c06922a8186c0de56013f6e6c9f/parcelforce_expresslink-0.1.7-py3-none-any.whl", hash = "sha256:1ee0188b5144a9e56c48750f3ab8abac543e7db54cb174c1d1a5c21a1ed67b5c", size = 27170, upload-time = "2025-10-07T16:11:11.682Z" },
 ]
 
 [[package]]
@@ -1538,7 +1538,7 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.11"
+version = "0.3.21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apc-hypaship" },
@@ -1558,9 +1558,9 @@ dependencies = [
     { name = "pytest" },
     { name = "thefuzz" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/49/e1/a63aab97ccd9e283890c878d86ecc04997acd6a66cd3e8551a87962b0f25/shipaw-0.3.11.tar.gz", hash = "sha256:5bacec13e9ec57d58ee5f15352ebbccd1f884f6395e68ccb05204d934d9fdadb", size = 28397, upload-time = "2025-10-03T12:12:19.323Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/0d/7ae823016c67762e4e10f130a650f2b059638901660526eaf3b199433b5b/shipaw-0.3.21.tar.gz", hash = "sha256:2a14eb455e365fcc1cfc503cec4b63605f8f9cea581b453dda5ce96a7776a91e", size = 30857, upload-time = "2025-10-08T18:06:42.497Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/32/120416a1d2e63328fc08e1aaa6d6e39db056e95ad7debba148b22480c9cd/shipaw-0.3.11-py3-none-any.whl", hash = "sha256:e4fe8260714e7f26621aec88e1b888cda48ba5a7b926aba4edf343e7d1af93d1", size = 43639, upload-time = "2025-10-03T12:12:18.024Z" },
+    { url = "https://files.pythonhosted.org/packages/90/6e/6c76b5d3fd2933098882f46f36faf198bd17bf5a2126efd2cbedd8b8c9b0/shipaw-0.3.21-py3-none-any.whl", hash = "sha256:1fa74536dff58c835073cd8d180b0a05a7eb21ba4f627c982df6aa566efece7d", size = 48351, upload-time = "2025-10-08T18:06:41.28Z" },
 ]
 
 [[package]]
