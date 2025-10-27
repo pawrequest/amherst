@@ -64,4 +64,4 @@ format.quote-style = "single"
 source-include = ["src/amherst/ui/**"]
 
 [tool.uv.sources]
-shipaw = { git = '../shipaw', editable = true }
+shipaw = { path = '../shipaw', editable = true }

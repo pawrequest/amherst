@@ -9,11 +9,11 @@ from amherst.models.amherst_models import (
     AmherstShipableBase,
 )
 from amherst.models.shipment import AmherstShipment
-from shipaw.fapi.responses import ShipmentBookingResponse
+from shipaw.fapi.responses import ShipmentResponse
 from shipaw.models.ship_types import ShipDirection
 
 CmcUpdateFuncAgnost = Callable[
-    [AmherstShipableBase, AmherstShipment, ShipmentBookingResponse], Awaitable[dict[str, str]]
+    [AmherstShipableBase, AmherstShipment, ShipmentResponse], Awaitable[dict[str, str]]
 ]
 
 
@@ -28,12 +28,12 @@ def add_to_com_sep_str_field(data: list, value) -> str:
     return ','.join(data)
 
 
-async def add_tracking_to_list(record: AmherstShipableBase, resp: ShipmentBookingResponse) -> str:
+async def add_tracking_to_list(record: AmherstShipableBase, resp: ShipmentResponse) -> str:
     tracks = split_com_sep_str_field(record, 'tracking_numbers')
     return add_to_com_sep_str_field(tracks, resp.shipment_num)
 
 
-async def make_update_dict(shipment: AmherstShipment, shipment_response: ShipmentBookingResponse) -> dict[str, Any]:
+async def make_update_dict(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> dict[str, Any]:
     """Adds tracking numbers and link."""
     record = shipment.record
     update_package = await cmc_update_dict(shipment, shipment_response)
@@ -43,7 +43,7 @@ async def make_update_dict(shipment: AmherstShipment, shipment_response: Shipmen
     return update_package
 
 
-async def cmc_update_dict(shipment: AmherstShipment, shipment_response: ShipmentBookingResponse):
+async def cmc_update_dict(shipment: AmherstShipment, shipment_response: ShipmentResponse):
     record = shipment.record
     shipdir = shipment.direction
     tracks = await add_tracking_to_list(record, shipment_response)

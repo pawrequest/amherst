@@ -60,7 +60,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
-    { name = "shipaw", specifier = ">=0.3.24" },
+    { name = "shipaw", editable = "../shipaw" },
     { name = "xlrd", specifier = ">=2.0.2" },
 ]
 
@@ -1556,7 +1556,7 @@ wheels = [
 [[package]]
 name = "shipaw"
 version = "0.3.24"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../shipaw" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "combadge", extra = ["zeep"] },
@@ -1576,10 +1576,42 @@ dependencies = [
     { name = "pywin32" },
     { name = "royal-mail-click-and-drop" },
     { name = "thefuzz" },
+    { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/2f/7a688a815e1eb0614367b15be641376b167510ec717b0a3f3bdb9f0e93e4/shipaw-0.3.24.tar.gz", hash = "sha256:6cdb87f878cc3cdc4699e7e0bf8f698f3c2b01ba95aa1672eb5eef4bf9fd5893", size = 33685, upload-time = "2025-10-27T15:41:09.954Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/59/3d/f915e51b3558e4c63639d3d3f2887e013d1dc84c53a9826fc4c92340c992/shipaw-0.3.24-py3-none-any.whl", hash = "sha256:fd660aa0ecb9955a43b205b145ef642baaa56491b3879e600eeede70c9ed0aa8", size = 52400, upload-time = "2025-10-27T15:41:09.045Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "apc-hypaship", specifier = ">=0.1.10" },
+    { name = "combadge", extras = ["zeep"], specifier = ">=4.8.2" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "parcelforce-expresslink", specifier = ">=0.1.10" },
+    { name = "pawdf", specifier = ">=0.1.0" },
+    { name = "phonenumbers", specifier = ">=9.0.15" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
+    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pygments", specifier = ">=2.19.2" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pywin32", specifier = ">=311" },
+    { name = "royal-mail-click-and-drop", specifier = ">=0.0.9" },
+    { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "uvicorn", specifier = ">=0.37.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "autodoc-pydantic", specifier = ">=2.2.0" },
+    { name = "myst-parser", specifier = ">=4.0.1" },
+    { name = "ruff", specifier = ">=0.14.1" },
+    { name = "sphinx", specifier = ">=8.2.3" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=3.2.0" },
+    { name = "sphinx-readme", specifier = ">=1.2.1" },
+    { name = "sphinx-rtd-dark-mode", specifier = ">=1.3.0" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
 ]
 
 [[package]]
