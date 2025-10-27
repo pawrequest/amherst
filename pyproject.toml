@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "amherst"
-version = "0.4.11"
+version = "0.4.12"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -14,7 +14,7 @@ authors = [
 requires-python = ">= 3.13"
 
 dependencies = [
-    "shipaw>=0.3.23",
+    "shipaw>=0.3.24",
     "pawlogger>=0.1.0",
     "pycommence>=0.2.2",
     #
@@ -53,10 +53,6 @@ email-file = "amherst.cli:send_invoice_email_cli"
 invoice-number = "amherst.cli:next_invoice_cli"
 convert_tracking = "amherst.cli:convert_tracking_link"
 
-[tool.uv.sources]
-shipaw = { path = '../shipaw', editable=true}
-
-
 [tool.ruff]
 line-length = 120
 lint.extend-select = ["Q", "RUF100", "UP"]
@@ -67,6 +63,5 @@ format.quote-style = "single"
 [tool.uv.build-backend]
 source-include = ["src/amherst/ui/**"]
 
-[tool.uv.sources]
-
-shipaw = { path = '../shipaw', editable = true }
+#[tool.uv.sources]
+#shipaw = { git = '../shipaw', editable = true }
