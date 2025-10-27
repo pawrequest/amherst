@@ -49,17 +49,17 @@ def load_env() -> Path:
 
 class Settings(BaseSettings):
     log_dir: Path
-    ui_dir: Path = files('amherst').joinpath('ui')
-    templates: Jinja2Templates | None = None
+    # ui_dir: Path = files('amherst').joinpath('ui')
+    # templates: Jinja2Templates | None = None
     log_level: str = 'DEBUG'
 
-    @property
-    def template_dir(self) -> Path:
-        return self.ui_dir / 'templates'
-
-    @property
-    def static_dir(self) -> Path:
-        return self.ui_dir / 'static'
+    # @property
+    # def template_dir(self) -> Path:
+    #     return self.ui_dir / 'templates'
+    #
+    # @property
+    # def static_dir(self) -> Path:
+    #     return self.ui_dir / 'static'
 
     @computed_field
     @property
@@ -71,16 +71,16 @@ class Settings(BaseSettings):
     def ndjson_file(self) -> Path:
         return self.log_dir / 'amherst.ndjson'
 
-    @model_validator(mode='after')
-    def set_templates(self):
-        if self.templates is None:
-            self.templates = Jinja2Templates(directory=self.template_dir)
-            self.templates.env.filters['jsonable'] = make_jsonable
-            self.templates.env.filters['urlencode'] = lambda value: quote(str(value))
-            self.templates.env.filters['sanitise_id'] = sanitise_id
-            self.templates.env.filters['ordinal_dt'] = ordinal_dt
-
-        return self
+    # @model_validator(mode='after')
+    # def set_templates(self):
+    #     if self.templates is None:
+    #         self.templates = Jinja2Templates(directory=self.template_dir)
+    #         self.templates.env.filters['jsonable'] = make_jsonable
+    #         self.templates.env.filters['urlencode'] = lambda value: quote(str(value))
+    #         self.templates.env.filters['sanitise_id'] = sanitise_id
+    #         self.templates.env.filters['ordinal_dt'] = ordinal_dt
+    #
+    #     return self
 
     @_p.model_validator(mode='after')
     def create_log_files(self):
