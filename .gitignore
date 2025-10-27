@@ -16,4 +16,5 @@ wheels/
 
 /deploy/build/redist/
 /rsrc/
-.idea/
+.idea/**
+.idea/ruff.xml
