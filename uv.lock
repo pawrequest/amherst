@@ -60,7 +60,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
-    { name = "shipaw", specifier = ">=0.3.21" },
+    { name = "shipaw", editable = "../shipaw" },
     { name = "xlrd", specifier = ">=2.0.2" },
 ]
 
@@ -100,17 +100,34 @@ wheels = [
 
 [[package]]
 name = "apc-hypaship"
-version = "0.1.8"
-source = { registry = "https://pypi.org/simple" }
+version = "0.1.9"
+source = { editable = "../apc-hypaship" }
 dependencies = [
     { name = "dotenv" },
     { name = "httpx" },
     { name = "loguru" },
     { name = "pydantic-settings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a2/d8/f28e87f5d36daf84c6304cc0d9e61a68a3293fdd32c2f57f72e21a53ccd5/apc_hypaship-0.1.8.tar.gz", hash = "sha256:24d5ed579903ac5aaf7671e4b94a4ed71a0c91af6c9dace85d2d39fe2fcdbd09", size = 6039, upload-time = "2025-10-08T17:50:13.68Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/ea/f538e1711c631a7de86fe5fca78ab90587e1e145291fb73818554eb7f70e/apc_hypaship-0.1.8-py3-none-any.whl", hash = "sha256:1d5010dddc64f3a27db84342a72b60f1b5b19683c2bb81e6b3a09d6477a48f31", size = 11523, upload-time = "2025-10-08T17:50:12.532Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "dotenv", specifier = ">=0.9.9" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "autodoc-pydantic", specifier = ">=2.2.0" },
+    { name = "myst-parser", specifier = ">=4.0.1" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "ruff", specifier = ">=0.14.1" },
+    { name = "sphinx", specifier = ">=8.2.3" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=3.2.0" },
+    { name = "sphinx-readme", specifier = ">=1.2.1" },
+    { name = "sphinx-rtd-dark-mode", specifier = ">=1.3.0" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
 ]
 
 [[package]]
@@ -950,8 +967,8 @@ wheels = [
 
 [[package]]
 name = "parcelforce-expresslink"
-version = "0.1.7"
-source = { registry = "https://pypi.org/simple" }
+version = "0.1.9"
+source = { editable = "../parcelforce-expresslink" }
 dependencies = [
     { name = "combadge" },
     { name = "loguru" },
@@ -960,10 +977,19 @@ dependencies = [
     { name = "thefuzz" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e2/d2/1bdbd6e85edffaab5d537e43d1eef627dd774c3a19fd2b44d0c7604dcec4/parcelforce_expresslink-0.1.7.tar.gz", hash = "sha256:791f6c4deaae1230d01ca17afa8ae08e2a177f4ef151ab03e0c932fd461fcbf4", size = 19441, upload-time = "2025-10-07T16:11:12.872Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/95/1d03582ddf2f65f25f52932db612a2872c06922a8186c0de56013f6e6c9f/parcelforce_expresslink-0.1.7-py3-none-any.whl", hash = "sha256:1ee0188b5144a9e56c48750f3ab8abac543e7db54cb174c1d1a5c21a1ed67b5c", size = 27170, upload-time = "2025-10-07T16:11:11.682Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "combadge", specifier = ">=4.8.2" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2.11.9" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "zeep", specifier = ">=4.3.2" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=8.4.2" }]
 
 [[package]]
 name = "pathspec"
@@ -1506,6 +1532,40 @@ wheels = [
 ]
 
 [[package]]
+name = "royal-mail-click-and-drop"
+version = "0.0.7"
+source = { editable = "../royal-mail-click-and-drop" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+    { name = "urllib3" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "python-dateutil", specifier = ">=2.8.2" },
+    { name = "typing-extensions", specifier = ">=4.7.1" },
+    { name = "urllib3", specifier = ">=2.1.0,<3.0.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "flake8", specifier = ">=4.0.0" },
+    { name = "mypy", specifier = ">=1.5" },
+    { name = "pytest", specifier = ">=7.2.1" },
+    { name = "pytest-cov", specifier = ">=2.8.1" },
+    { name = "ruff", specifier = ">=0.14.1" },
+    { name = "tox", specifier = ">=3.9.0" },
+    { name = "types-python-dateutil", specifier = ">=2.8.19.14" },
+]
+
+[[package]]
 name = "sentry-sdk"
 version = "2.39.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1538,8 +1598,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.21"
-source = { registry = "https://pypi.org/simple" }
+version = "0.3.23"
+source = { editable = "../shipaw" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "combadge", extra = ["zeep"] },
@@ -1556,11 +1616,43 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "pygments" },
     { name = "pytest" },
+    { name = "pywin32" },
+    { name = "royal-mail-click-and-drop" },
     { name = "thefuzz" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c2/0d/7ae823016c67762e4e10f130a650f2b059638901660526eaf3b199433b5b/shipaw-0.3.21.tar.gz", hash = "sha256:2a14eb455e365fcc1cfc503cec4b63605f8f9cea581b453dda5ce96a7776a91e", size = 30857, upload-time = "2025-10-08T18:06:42.497Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/6e/6c76b5d3fd2933098882f46f36faf198bd17bf5a2126efd2cbedd8b8c9b0/shipaw-0.3.21-py3-none-any.whl", hash = "sha256:1fa74536dff58c835073cd8d180b0a05a7eb21ba4f627c982df6aa566efece7d", size = 48351, upload-time = "2025-10-08T18:06:41.28Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "apc-hypaship", editable = "../apc-hypaship" },
+    { name = "combadge", extras = ["zeep"], specifier = ">=4.8.2" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "parcelforce-expresslink", editable = "../parcelforce-expresslink" },
+    { name = "pawdf", specifier = ">=0.1.0" },
+    { name = "phonenumbers", specifier = ">=9.0.15" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
+    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pygments", specifier = ">=2.19.2" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pywin32", specifier = ">=311" },
+    { name = "royal-mail-click-and-drop", editable = "../royal-mail-click-and-drop" },
+    { name = "thefuzz", specifier = ">=0.22.1" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "autodoc-pydantic", specifier = ">=2.2.0" },
+    { name = "myst-parser", specifier = ">=4.0.1" },
+    { name = "ruff", specifier = ">=0.14.1" },
+    { name = "sphinx", specifier = ">=8.2.3" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=3.2.0" },
+    { name = "sphinx-readme", specifier = ">=1.2.1" },
+    { name = "sphinx-rtd-dark-mode", specifier = ">=1.3.0" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
 ]
 
 [[package]]

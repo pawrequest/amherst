@@ -62,3 +62,7 @@ format.quote-style = "single"
 
 [tool.uv.build-backend]
 source-include = ["src/amherst/ui/**"]
+
+[tool.uv.sources]
+
+shipaw = { path = '../shipaw', editable = true }
