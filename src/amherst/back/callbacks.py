@@ -8,10 +8,10 @@ from pycommence import pycommence_context
 from amherst.models.cmc_update import make_update_dict
 from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
 from shipaw.fapi.alerts import Alert, AlertType
-from shipaw.fapi.responses import ShipmentBookingResponse
+from shipaw.fapi.responses import ShipmentResponse
 
 
-async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentBookingResponse):
+async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentResponse):
     try:
         update_dict = await make_update_dict(shipment, shipment_response)
         logger.info(f'Updating CMC: {update_dict}')
@@ -27,7 +27,7 @@ async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentB
         shipment_response.alerts += Alert(message=msg, type=AlertType.ERROR)
 
 
-async def cmc_log_callback(request: AmherstShipmentRequest, response: ShipmentBookingResponse):
+async def cmc_log_callback(request: AmherstShipmentRequest, response: ShipmentResponse):
     request = AmherstShipmentRequest.model_validate(request, from_attributes=True)
     await try_update_cmc(shipment=request.shipment, shipment_response=response)
 

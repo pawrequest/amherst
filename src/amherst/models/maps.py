@@ -29,7 +29,7 @@ from amherst.models.filters import (
     hire_row_filter_loose,
     sale_row_filter_loose,
 )
-from shipaw.fapi.responses import ShipmentBookingResponse
+from shipaw.fapi.responses import ShipmentResponse
 from shipaw.models.shipment import Shipment
 
 
@@ -54,7 +54,7 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
-CmcUpdateFunc = Callable[[AmherstShipableBase, Shipment, ShipmentBookingResponse], Awaitable[dict[str, str]]]
+CmcUpdateFunc = Callable[[AmherstShipableBase, Shipment, ShipmentResponse], Awaitable[dict[str, str]]]
 
 
 
