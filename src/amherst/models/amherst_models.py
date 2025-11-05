@@ -26,14 +26,17 @@ from amherst.models.commence_adaptors import (
 
 NONCOMPLIANT_APOSTROPHES = ['’', '‘', '′', 'ʼ', '´']
 
+
 def replace_curly_apostrophe(value: str) -> str:
     return value.replace('’', "'") if isinstance(value, str) else value
+
 
 def replace_noncompliant_apostrophes(value: str) -> str:
     if isinstance(value, str):
         for char in NONCOMPLIANT_APOSTROPHES:
             value = value.replace(char, "'")
     return value
+
 
 def alias_generator_generic(field_name: str, cls) -> str:
     return cls.aliases[field_name.upper()].value
