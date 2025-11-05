@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "amherst"
-version = "0.4.12"
+version = "0.4.13"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -14,7 +14,7 @@ authors = [
 requires-python = ">= 3.13"
 
 dependencies = [
-    "shipaw>=0.3.24",
+    "shipaw>=0.3.25",
     "pawlogger>=0.1.0",
     "pycommence>=0.2.2",
     #
@@ -60,8 +60,8 @@ lint.flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
 
-[tool.uv.build-backend]
-source-include = ["src/amherst/ui/**"]
-
-[tool.uv.sources]
-shipaw = { path = '../shipaw', editable = true }
+#[tool.uv.build-backend]
+#source-include = ["src/amherst/ui/**"]
+#
+#[tool.uv.sources]
+#shipaw = { path = '../shipaw', editable = true }
