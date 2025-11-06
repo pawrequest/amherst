@@ -2,18 +2,13 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from importlib.resources import files
 from pathlib import Path
-from urllib.parse import quote
 
 import pydantic as _p
 from dotenv import dotenv_values, load_dotenv
 from pawlogger import get_loguru
-from pydantic import computed_field, model_validator
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from starlette.templating import Jinja2Templates
-
-from amherst.frontend_funcs import sanitise_id, make_jsonable, ordinal_dt
 
 
 def load_env_index(envs_index: Path) -> None:
@@ -29,6 +24,8 @@ def load_env_index(envs_index: Path) -> None:
 def getlog():
     env_values = dotenv_values(Path(os.getenv('AMHERST_ENV')))
     log_dir = Path(env_values.get('LOG_DIR'))
+    if not log_dir:
+        raise ValueError('LOG_DIR not set in AMHERST_ENV')
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / 'amherst.log'
     log_file.touch(exist_ok=True)
