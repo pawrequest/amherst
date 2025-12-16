@@ -18,3 +18,4 @@ wheels/
 /rsrc/
 .idea/**
 .idea/ruff.xml
+/data
