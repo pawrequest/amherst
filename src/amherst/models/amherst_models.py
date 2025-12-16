@@ -60,6 +60,8 @@ class AmherstShipableBase(BaseModel, ABC):
     # optional fields with default
     send_date: AM_DATE = date.today()
     boxes: int = 1
+    delivery_method: str | None = None
+
 
 
     @field_validator('send_date', mode='after')
@@ -145,7 +147,6 @@ class AmherstHire(AmherstOrderBase):
     delivery_contact_phone: str
     send_date: AM_DATE = date.today()
 
-    delivery_method: str | None = None
 
     # optional overrides order
     status: HireStatus

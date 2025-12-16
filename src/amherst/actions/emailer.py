@@ -79,7 +79,7 @@ async def send_label_email(shipment):
         amherst_settings().templates.get_template('email_snips/label_email.html').render(label=label, shipment=shipment)
     )
     email = Email(
-        to_address=shipment.full_contact.full_contact.email_address,
+        to_address=shipment.full_contact.contact.email_address,
         subject=f'Amherst Radios Shipping{' - Shipping Label Attached' if label else ''}',
         body=body,
         attachment_paths=[label] if label else [],

@@ -17,10 +17,10 @@
     >
         {#        <div id="sidebar">#}
         <div id="sidebar">
-            {% include 'sidebar.html' %}
+            {% include 'old/sidebar.html' %}
         </div>
     {%  if request.app.alerts.alert %}
-        {% include "app_alerts.html" with context %}
+        {% include "old/app_alerts.html" with context %}
     {% endif %}
         <div id="content_top">
             {% block content_top %}{% endblock %}

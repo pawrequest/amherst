@@ -1,9 +1,15 @@
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 from docxtpl import DocxTemplate
 
+from amherst.frontend_funcs import ordinal_dt
+from amherst.models.amherst_models import AmherstHire, AmherstOrderBase, AmherstShipableBase
 from amherst.office_am import dflt
 from amherst.office_am.dflt import DFLT_PATHS
+
+
 # from amherst.office_tools.doc_handler import DocHandler
 
 
@@ -35,6 +41,43 @@ def box_labels_aio_tmplt(hire) -> Path:
     template.render(context)
     template.save(temp_file)
     return temp_file
+
+
+@dataclass
+class BoxLabelContext:
+    date: str
+    method: str
+    customer_name: str
+    delivery_address: str
+    delivery_contact: str
+    tel: str
+    boxes: int
+
+    @classmethod
+    def from_shipable(cls, order: AmherstShipableBase) -> Self:
+        return BoxLabelContext(
+            date=ordinal_dt(order.send_date),
+            method=order.delivery_method,
+            customer_name=order.customer_name,
+            delivery_address=order.delivery_address_str,
+            delivery_contact=order.delivery_contact_name,
+            tel=order.delivery_contact_phone,
+            boxes=order.boxes,
+        )
+
+
+def box_labels_26(order: AmherstShipableBase) -> Path:
+    tmplt = DFLT_PATHS.BOX_TMPLT
+    temp_file = dflt.DFLT_PATHS.TEMP_DOC
+
+    context = BoxLabelContext.from_shipable(order).__dict__
+
+    template = DocxTemplate(tmplt)
+    template.render(context)
+    template.save(temp_file)
+    return temp_file
+
+
 
 
 #
