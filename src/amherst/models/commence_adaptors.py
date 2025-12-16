@@ -233,20 +233,16 @@ class TrialAliases(StrEnum):
     STATUS = 'Status'
 
 
-def get_alias(alias_cls: StrEnum, field_name: str) -> str:
-    field_name = field_name.upper()
-    if hasattr(alias_cls, field_name):
-        return getattr(alias_cls, field_name).value
-    return field_name
+# def get_alias(alias_cls: StrEnum, field_name: str) -> str:
+#     field_name = field_name.upper()
+#     if hasattr(alias_cls, field_name):
+#         return getattr(alias_cls, field_name).value
+#     return field_name
 
 
 class RadioType(StrEnum):
     HYTERA = 'Hytera Digital'
     KIRISUN = 'Kirisun UHF'
-
-
-def replace_curly_apostrophe(value: str) -> str:
-    return value.replace('’', "'") if isinstance(value, str) else value
 
 
 def replace_noncompliant_apostrophes(value: str) -> str:

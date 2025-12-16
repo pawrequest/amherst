@@ -57,8 +57,6 @@ class TemplateMap(NamedTuple):
 CmcUpdateFunc = Callable[[AmherstShipableBase, Shipment, ShipmentResponse], Awaitable[dict[str, str]]]
 
 
-
-
 class AmherstMap(NamedTuple):
     category: CategoryName
     record_model: type(AmherstShipableBase)
@@ -158,7 +156,6 @@ async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> Amher
     cat = 'trial' if 'trial' in csrname.lower() else csrname.lower()
     return getattr(AmherstMaps, cat)
 
-
 # async def make_base_update_dict(
 #     record: AMHERST_TABLE_MODELS, shipment: SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
 # ) -> dict[str, Any]:
@@ -183,4 +180,3 @@ async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> Amher
 #         raise ValueError(f'Invalid shipment direction: {shipdir}')
 #     extra.update(update_base)
 #     return extra
-

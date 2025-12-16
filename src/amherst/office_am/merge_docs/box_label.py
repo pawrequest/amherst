@@ -1,46 +1,21 @@
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Self
 
 from docxtpl import DocxTemplate
+from loguru import logger
+from pycommence import pycommence_context
 
+from amherst.config import Settings
 from amherst.frontend_funcs import ordinal_dt
-from amherst.models.amherst_models import AmherstHire, AmherstOrderBase, AmherstShipableBase
-from amherst.office_am import dflt
-from amherst.office_am.dflt import DFLT_PATHS
-
+from amherst.models.amherst_models import (
+    AmherstSale,
+    AmherstShipableBase,
+)
 
 # from amherst.office_tools.doc_handler import DocHandler
-
-
-def address_rows_limited(address: str):
-    add_lst = address.split('\r\n')
-    if len(add_lst) > 4:
-        add_lst = add_lst[:4]
-    add_str = '\r\n'.join(add_lst)
-    return add_str
-
-
-def box_labels_aio_tmplt(hire) -> Path:
-    tmplt = DFLT_PATHS.BOX_TMPLT
-    temp_file = dflt.DFLT_PATHS.TEMP_DOC
-
-    del_add = address_rows_limited(hire['Delivery Address'])
-    boxes = int(hire['Boxes'])
-    context = dict(
-        date=f"{hire['Send Out Date']:%A %d %B}",
-        method=hire['Send Method'],
-        customer_name=hire['To Customer'],
-        delivery_address=del_add,
-        delivery_contact=hire['Delivery Contact'],
-        tel=hire['Delivery Tel'],
-        boxes=boxes,
-    )
-
-    template = DocxTemplate(tmplt)
-    template.render(context)
-    template.save(temp_file)
-    return temp_file
+SETTINGS = Settings(_env_file=r"C:\prdev\envs\amdev\sandbox\amherst.env")
 
 
 @dataclass
@@ -57,7 +32,7 @@ class BoxLabelContext:
     def from_shipable(cls, order: AmherstShipableBase) -> Self:
         return BoxLabelContext(
             date=ordinal_dt(order.send_date),
-            method=order.delivery_method,
+            method=order.delivery_method or '',
             customer_name=order.customer_name,
             delivery_address=order.delivery_address_str,
             delivery_contact=order.delivery_contact_name,
@@ -66,19 +41,55 @@ class BoxLabelContext:
         )
 
 
+def ts_now_for_filename() -> str:
+    return datetime.now().strftime('%Y%m%dT%H%M%S')
+
+
 def box_labels_26(order: AmherstShipableBase) -> Path:
-    tmplt = DFLT_PATHS.BOX_TMPLT
-    temp_file = dflt.DFLT_PATHS.TEMP_DOC
+    tmplt = SETTINGS.template_dir / 'box.docx'
 
     context = BoxLabelContext.from_shipable(order).__dict__
-
     template = DocxTemplate(tmplt)
     template.render(context)
-    template.save(temp_file)
-    return temp_file
+    file_path = get_order_label_filename(order)
+    logger.info(f'Writing box label to {file_path.absolute()}')
+    template.save(file_path)
+    return file_path
 
 
+def get_order_label_filename(order: AmherstShipableBase) -> Path:
+    data_dir = SETTINGS.data_dir
+    filename = f'box_label{ts_now_for_filename()}_{order.customer_name}_{order.category}.docx'
+    file_path = data_dir / filename
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.touch()
+    return file_path
 
+
+def from_commence():
+    with pycommence_context('Sale') as cmc:
+        sale_ = cmc.read_row(pk='Bridgewater Primary School - 15/12/2025 ref 1120')
+        sale = AmherstSale(row_info=sale_.row_info, **sale_.data)
+        box_labels_26(sale)
+
+
+if __name__ == '__main__':
+    from_commence()
+    # with open(r'C:\prdev\amdev\amherst\data\test_customer.json') as f:
+    #     cust_data = f.read()
+    # customer = AmherstCustomer.model_validate_json(cust_data)
+    # box_labels_26(customer)
+    #
+    # with open(r'C:\prdev\amdev\amherst\data\test_sale.json') as f:
+    #     sale_data = f.read()
+    # sale = AmherstSale.model_validate_json(sale_data)
+    # box_labels_26(sale)
+    #
+    # with open(r'C:\prdev\amdev\amherst\data\test_hire.json') as f:
+    #     hire_data = f.read()
+    # hire = AmherstHire.model_validate_json(hire_data)
+    # box_labels_26(hire)
+    ...
 
 #
 #

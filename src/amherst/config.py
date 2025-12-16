@@ -15,7 +15,8 @@ from starlette.templating import Jinja2Templates
 
 def load_env_index(envs_index: Path) -> None:
     load_dotenv(envs_index)
-    for env in ('SHIPAW_ENV', 'AMHERST_ENV'):
+    for env in ('AMHERST_ENV',):
+    # for env in ('SHIPAW_ENV', 'AMHERST_ENV'):
         if not os.getenv(env):
             raise ValueError(f'Environment variable {env} not set in {envs_index}')
         if not Path(os.getenv(env)).exists():
@@ -36,7 +37,7 @@ def getlog():
 
 
 def load_env() -> Path:
-    ei = Path(os.environ.get('ENV_INDEX'))
+    ei = Path(os.environ.get('ENV_INDEX', ''))
     if not ei or not ei.exists():
         raise ValueError('ENV_INDEX not set or does not exist')
     load_env_index(ei)
@@ -51,6 +52,7 @@ class Settings(BaseSettings):
     log_level: str = 'DEBUG'
     ui_dir: Path = files('amherst').joinpath('ui')
     templates: Jinja2Templates | None = None
+    data_dir: Path = files('amherst').joinpath('data')
 
     @property
     def template_dir(self) -> Path:
@@ -89,17 +91,14 @@ class Settings(BaseSettings):
                 v.touch()
         return self
 
-    model_config = SettingsConfigDict(env_file=load_env())
+    model_config = SettingsConfigDict()
 
 
 @lru_cache
 def amherst_settings() -> Settings:
-    res = Settings()
+    res = Settings(_env_file=load_env())
     return res
-
 
 # logger = get_loguru(log_file=amherst_settings().log_file, profile='local', level=amherst_settings().log_level)
 # def get_log():
 #     log_file = os.environ['AMHERST_ENV']['LOG_FILE']
-
-

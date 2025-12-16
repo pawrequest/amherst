@@ -62,8 +62,6 @@ class AmherstShipableBase(BaseModel, ABC):
     boxes: int = 1
     delivery_method: str | None = None
 
-
-
     @field_validator('send_date', mode='after')
     def validate_send_date(cls, v: AM_DATE) -> date:
         if v is None or v < date.today():
@@ -97,15 +95,6 @@ class AmherstShipableBase(BaseModel, ABC):
             context={'record': self},
         )
 
-    # def shipment1(self, direction: ShipDirection = ShipDirection.OUTBOUND) -> Shipment:
-    #     return Shipment(
-    #         recipient=self.full_contact,
-    #         boxes=self.boxes,
-    #         shipping_date=self.send_date,
-    #         direction=direction,
-    #         reference=self.customer_name,
-    #     )
-
 
 class AmherstOrderBase(AmherstShipableBase, ABC):
     # order fields common
@@ -125,7 +114,7 @@ class AmherstCustomer(AmherstShipableBase):
         alias_generator=customer_alias_generator,
         # alias_generator=lambda field_name: CustomerAliases[field_name.upper()].value,
     )
-    category: ClassVar[CategoryName] = 'Customer'
+    category: ClassVar[CategoryName] = CategoryName.Customer
 
     # customer fields
     invoice_email: str
@@ -146,7 +135,6 @@ class AmherstHire(AmherstOrderBase):
     boxes: int = 1
     delivery_contact_phone: str
     send_date: AM_DATE = date.today()
-
 
     # optional overrides order
     status: HireStatus
@@ -208,5 +196,3 @@ class AmherstTrial(AmherstOrderBase):
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
-
-
