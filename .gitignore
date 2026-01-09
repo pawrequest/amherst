@@ -25,3 +25,4 @@ temp_label.pdf
 /deploy/build/redist/
 /rsrc/
 uv.lock
+/data
