@@ -19,7 +19,7 @@ from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_roy
 from amherst.actions.invoice_number import next_inv_num
 from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
 from amherst.models.commence_adaptors import CategoryName
-from amherst.office_am.merge_docs.box_label import commence_box_label
+from amherst.actions.box_label import commence_box_label
 
 
 def shipper_cli():
