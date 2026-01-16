@@ -1,6 +1,6 @@
 @echo off
 set thisDir=%~dp0
-set AMHERSTSHIPPER=C:\ProgramData\AmherstShipper
+set AMHERSTSHIPPER=C:\ProgramData\AmherstShipper\
 setx AMHERSTSHIPPER %AMHERSTSHIPPER%
 
 echo Installing Amherst Shipper into %AMHERSTSHIPPER%
