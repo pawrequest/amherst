@@ -59,8 +59,8 @@ CmcUpdateFunc = Callable[[AmherstShipableBase, Shipment, ShipmentResponse], Awai
 
 class AmherstMap(NamedTuple):
     category: CategoryName
-    record_model: type(AmherstShipableBase)
-    aliases: type(StrEnum)
+    record_model: type[AmherstShipableBase]
+    aliases: type[StrEnum]
     templates: TemplateMap
     # cmc_update_fn: CmcUpdateFuncAgnost | None = make_update_dict_agnost
     connections: ConnectionMap | None = None
