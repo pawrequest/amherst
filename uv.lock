@@ -60,7 +60,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
     { name = "python-multipart", specifier = ">=0.0.20" },
-    { name = "shipaw", specifier = ">=0.3.25" },
+    { name = "shipaw", editable = "../shipaw" },
     { name = "xlrd", specifier = ">=2.0.2" },
 ]
 
@@ -950,7 +950,7 @@ wheels = [
 
 [[package]]
 name = "parcelforce-expresslink"
-version = "0.1.10"
+version = "0.1.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "combadge" },
@@ -960,9 +960,9 @@ dependencies = [
     { name = "thefuzz" },
     { name = "zeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a4/da/9f3c3aac96ef44ae9d3a56b3aebbf3e00b468576c4d647761ddbafe10974/parcelforce_expresslink-0.1.10.tar.gz", hash = "sha256:bda7ab268fd6269fe70290f3d9f1747026c4d6e8566c3546c424cf49dcea0b2e", size = 17047, upload-time = "2025-10-27T15:35:12.149Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/51/45/53d402f5b6d5cdf0b41b9018740028be6821faa976f3a4942244f35c30f6/parcelforce_expresslink-0.1.12.tar.gz", hash = "sha256:f04afd0d7db897563d28f5b8511d9515d9718f25e06a4dea1673459ac9200456", size = 17047, upload-time = "2026-01-13T13:48:37.519Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dd/ba/8f93674f76ad944c877b46eb192bbca7185fb9b0154213c5250f89f1087c/parcelforce_expresslink-0.1.10-py3-none-any.whl", hash = "sha256:1b3afebbafa0ae5734dec8d9ee2b37afb28a7c068cce6b3f73ccaa4e88316175", size = 24627, upload-time = "2025-10-27T15:35:11.124Z" },
+    { url = "https://files.pythonhosted.org/packages/8e/e2/f4cdcd9d21ff6e3cb7d13f453976691e1e433e91b66d7c1463751a9dd034/parcelforce_expresslink-0.1.12-py3-none-any.whl", hash = "sha256:8dc9388e0c82d0681955c4561e0eab4254bd97ae21957b6d4ebb72d445076e2a", size = 24627, upload-time = "2026-01-13T13:48:36.292Z" },
 ]
 
 [[package]]
@@ -1507,7 +1507,7 @@ wheels = [
 
 [[package]]
 name = "royal-mail-click-and-drop"
-version = "0.0.9"
+version = "0.0.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
@@ -1517,9 +1517,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7b/2b/45164d71975282fe18b83b920ed9c7b379ca8e3f2c677e966d2ed8a70a53/royal_mail_click_and_drop-0.0.9.tar.gz", hash = "sha256:837e0f711645febd5ff3bb1bad6b1720bd770173ed28874c7cc26a311e650b3f", size = 38642, upload-time = "2025-10-27T15:32:18.959Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/10/34/64c851ffd8dd46208901628bd6c9edec424323a749caed287c77be323847/royal_mail_click_and_drop-0.0.10.tar.gz", hash = "sha256:a8505317e738e6abd2190c16a7628646711fd9ecffeeaf103bb25bb7b0d1dd95", size = 39097, upload-time = "2026-01-13T17:35:59.674Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/1c/105eb82f98f36a8b31aae30eeea7f549dff019c3bdbf01df9e0c329df4ae/royal_mail_click_and_drop-0.0.9-py3-none-any.whl", hash = "sha256:962b612765efa9a4c411bcdaeb726023cfdd8bbd9d39c6483f0a610d36c3eff1", size = 64597, upload-time = "2025-10-27T15:32:17.885Z" },
+    { url = "https://files.pythonhosted.org/packages/79/c1/522e34d36410184e3e04c7884fb0fe250bd9f2d12147b857d815799cd426/royal_mail_click_and_drop-0.0.10-py3-none-any.whl", hash = "sha256:8cda71ac64a0fbb40922bafe2b81416de5bd80f607d15273424c1d64ae9ae78b", size = 64695, upload-time = "2026-01-13T17:35:58.445Z" },
 ]
 
 [[package]]
@@ -1556,7 +1556,7 @@ wheels = [
 [[package]]
 name = "shipaw"
 version = "0.3.25"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../shipaw" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "combadge", extra = ["zeep"] },
@@ -1578,9 +1578,40 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c1/d4/ddb5128971cdd44c2b2905c48724382ada7c3f65ebc9f4d50eb92078dd6d/shipaw-0.3.25.tar.gz", hash = "sha256:5116f21413dab8f36fca1423eb37f9cd7435aaa759ac495e7744e0c7d09ed8b4", size = 33678, upload-time = "2025-10-27T16:55:06.342Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/8d/2e2fe10d6930237803ad69620b8855bbf9746c1c13864a50ba4a950caffa/shipaw-0.3.25-py3-none-any.whl", hash = "sha256:540bcb9559375b29a6e436884c1d3b968abcfc2bf63929fb93475c90d8c0ec96", size = 52328, upload-time = "2025-10-27T16:55:05.367Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "apc-hypaship", specifier = "==0.1.10" },
+    { name = "combadge", extras = ["zeep"], specifier = ">=4.8.2" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "parcelforce-expresslink", specifier = "==0.1.12" },
+    { name = "pawdf", specifier = ">=0.1.0" },
+    { name = "phonenumbers", specifier = ">=9.0.15" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
+    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pygments", specifier = ">=2.19.2" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pywin32", specifier = ">=311" },
+    { name = "royal-mail-click-and-drop", specifier = "==0.0.10" },
+    { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "uvicorn", specifier = ">=0.37.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "autodoc-pydantic", specifier = ">=2.2.0" },
+    { name = "myst-parser", specifier = ">=4.0.1" },
+    { name = "ruff", specifier = ">=0.14.1" },
+    { name = "sphinx", specifier = ">=8.2.3" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=3.2.0" },
+    { name = "sphinx-readme", specifier = ">=1.2.1" },
+    { name = "sphinx-rtd-dark-mode", specifier = ">=1.3.0" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
 ]
 
 [[package]]

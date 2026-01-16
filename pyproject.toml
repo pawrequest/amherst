@@ -52,6 +52,7 @@ payment-status = "amherst.cli:payment_status_cli"
 email-file = "amherst.cli:send_invoice_email_cli"
 invoice-number = "amherst.cli:next_invoice_cli"
 convert_tracking = "amherst.cli:convert_tracking_link"
+box-label = "amherst.cli:generate_box_label_cli"
 
 [tool.ruff]
 line-length = 120
@@ -63,5 +64,5 @@ format.quote-style = "single"
 #[tool.uv.build-backend]
 #source-include = ["src/amherst/ui/**"]
 #
-#[tool.uv.sources]
-#shipaw = { path = '../shipaw', editable = true }
+[tool.uv.sources]
+shipaw = { path = '../shipaw', editable = true }

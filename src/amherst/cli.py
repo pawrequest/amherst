@@ -19,6 +19,7 @@ from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_roy
 from amherst.actions.invoice_number import next_inv_num
 from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
 from amherst.models.commence_adaptors import CategoryName
+from amherst.office_am.merge_docs.box_label import commence_box_label
 
 
 def shipper_cli():
@@ -94,3 +95,12 @@ def convert_tracking_link():
     url = convert_parcelforce_tracking_to_royal_mail(args.old_track_url)
     webbrowser.open(url, new=2)
 
+
+def generate_box_label_cli():
+    parser = argparse.ArgumentParser(description='Generate box labels for a record.')
+    parser.add_argument('category', type=CategoryName, choices=list(CategoryName), help='Category of the record.')
+    parser.add_argument('record_name', type=str, help='Name of the record.')
+    parser.add_argument('amherst_env', type=Path, help='Path to the Amherst environment file.')
+    args = parser.parse_args()
+    logger.info(f'Generating box labels for {args.category} {args.record_name} with env {args.amherst_env}')
+    commence_box_label(category=args.category, pk=args.record_name, amherst_env=args.amherst_env)
