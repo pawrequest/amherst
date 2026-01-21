@@ -2,6 +2,28 @@ Option Explicit
 ' define variables length and atpos for use in calculations
 DIM length, atpos
 
+Sub Form_OnEnterTab(TabName)
+    if TabName = "main" Then
+        if Form.Field("Reprogrammed").Value = 1 Then
+            MsgBox "Non-standard programming", vbOKOnly + vbInformation, "Info"
+        End if
+    End if
+End Sub
+
+'Sub Form_OnLeaveTab(TabName)
+'    MsgBox "Leaving tab " & TabName
+'End Sub
+
+'Sub Form_OnLoad
+'dim reprogged
+'    ' check if the hire has been reprogged
+'    reprogged = False
+'    If Form.Field("Reprogrammed").Value = True Then
+'        reprogged = True
+'        MsgBox "Non-standard programming", vbCritical, "WARNING"
+'    End If
+'End Sub
+
 Sub Form_OnSave
 
 ' stuff to do when the hire screen is saved
@@ -1003,9 +1025,9 @@ Sub PackHire()
         Exit Sub
     End if
     ' offer to email client about upcoming shipment'
-    if MsgBox("Send pre-shipping email?", 4) = 6 Then
-        EmailSendOut()
-    End if
+'    if MsgBox("Send pre-shipping email?", 4) = 6 Then
+'        EmailSendOut()
+'    End if
 
     ' offer to save and close'
     if MsgBox("Set Hire packed now by " & packedBy & "?", 4) = 6 Then
