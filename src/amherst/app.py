@@ -15,6 +15,7 @@ from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
 from shipaw.fapi.routes_html import router as shipaw_html_router
 from shipaw.fapi.routes_api import router as shipaw_json_router
+from pycommence.fapi.routes import router as pycmc_router
 
 
 @contextlib.asynccontextmanager
@@ -40,6 +41,7 @@ app.include_router(json_router, prefix='/api')
 app.include_router(ship_router, prefix='/shipaw')
 app.include_router(shipaw_json_router, prefix='/shipaw/api')
 app.include_router(shipaw_html_router, prefix='/shipaw')
+app.include_router(pycmc_router, prefix='/pycommence')
 app.include_router(html_router)
 # app.ship_live = pf_config.pf_sett().ship_live
 app.alerts = Alerts.empty()

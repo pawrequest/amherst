@@ -10,12 +10,11 @@ from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
 from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.responses import ShipmentResponse
 
-
 async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentResponse):
     try:
         update_dict = await make_update_dict(shipment, shipment_response)
         logger.info(f'Updating CMC: {update_dict}')
-        with pycommence_context(csrname=shipment.row_info.category) as pycmc1:
+        with pycommence_context(shipment.row_info.category) as pycmc1:
             pycmc1.update_row(update_dict, row_id=shipment.row_info.id)
         logger.info(
             f'Updated Commence row id {shipment.row_info.id} in {shipment.row_info.category} with:\n{pprint.pformat(update_dict, indent=2)}'

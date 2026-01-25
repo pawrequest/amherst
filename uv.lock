@@ -55,7 +55,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pawlogger", specifier = ">=0.1.0" },
-    { name = "pycommence", specifier = ">=0.2.2" },
+    { name = "pycommence", editable = "../pycommence" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
@@ -1097,17 +1097,37 @@ wheels = [
 
 [[package]]
 name = "pycommence"
-version = "0.2.2"
-source = { registry = "https://pypi.org/simple" }
+version = "0.2.666"
+source = { editable = "../pycommence" }
 dependencies = [
     { name = "comtypes" },
     { name = "loguru" },
     { name = "pydantic" },
     { name = "pywin32" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/ef/f9435f10a806eda35ad2f32cb66292f3155da94edc28f0b4b0ffd627a8cd/pycommence-0.2.2.tar.gz", hash = "sha256:81128da0b374e3459bbd6fc87b48528276feb54fddfc77ab1b2183d9385f718b", size = 24593, upload-time = "2025-10-02T19:13:17.184Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/31/73a07f3f8542165e435607b0956bc25eee42ad2db6aaaeb3554ddd422527/pycommence-0.2.2-py3-none-any.whl", hash = "sha256:efddc67ddc420bc1d76fdf666a54f6f928e5207e267ca12aafb3ec5bc776a352", size = 29566, upload-time = "2025-10-02T19:13:15.758Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "comtypes", specifier = ">=1.4.11" },
+    { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.128.0" },
+    { name = "loguru" },
+    { name = "pydantic" },
+    { name = "pywin32" },
+    { name = "uvicorn", marker = "extra == 'fastapi'", specifier = ">=0.40.0" },
+]
+provides-extras = ["fastapi"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "autodoc-pydantic" },
+    { name = "myst-parser" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
+    { name = "sphinx" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-readme" },
+    { name = "sphinx-rtd-dark-mode" },
+    { name = "sphinx-rtd-theme" },
 ]
 
 [[package]]

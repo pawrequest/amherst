@@ -3,8 +3,12 @@ from datetime import date
 from os import PathLike
 from typing import ClassVar
 
-from pycommence.pycmc_types import RowInfo
+from pycommence.pycmc_types import CommenceDateOptional
+from pycommence.rows import RowInfo
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from shipaw.models.address import Address as AddressAgnost, Contact, FullContact
+from shipaw.models.ship_types import ShipDirection
+from pycommence.meta.meta import CommenceTable
 
 from amherst.models.commence_adaptors import (
     AM_DATE,
@@ -18,14 +22,12 @@ from amherst.models.commence_adaptors import (
     split_addr_str2,
     trial_alias_generator,
 )
-from amherst.models.meta import register_table
 from amherst.models.shipment import AmherstShipment
-from shipaw.models.address import Address as AddressAgnost, Contact, FullContact
-from shipaw.models.ship_types import ShipDirection
 
 
-class AmherstShipableBase(BaseModel, ABC):
+class AmherstShipableBase(ABC, BaseModel):
     category: ClassVar[CategoryName]
+    pk_key: ClassVar[str] = 'Name'
     model_config = ConfigDict(
         populate_by_name=True,
         use_enum_values=True,
@@ -41,7 +43,7 @@ class AmherstShipableBase(BaseModel, ABC):
     def preprocess_strings(cls, value):
         return replace_noncompliant_apostrophes(value)
 
-    row_info: RowInfo
+    # row_info: RowInfo
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
     tracking_numbers: str = Field('', alias='Tracking Numbers')
@@ -108,8 +110,8 @@ class AmherstOrderBase(AmherstShipableBase, ABC):
     booking_date: AM_DATE | None = None
 
 
-@register_table
-class AmherstCustomer(AmherstShipableBase):
+# @register_table
+class AmherstCustomer(CommenceTable, AmherstShipableBase):
     model_config = ConfigDict(
         alias_generator=customer_alias_generator,
         # alias_generator=lambda field_name: CustomerAliases[field_name.upper()].value,
@@ -123,32 +125,32 @@ class AmherstCustomer(AmherstShipableBase):
     sales: str = ''
 
 
-@register_table
-class AmherstHire(AmherstOrderBase):
+# @register_table
+class AmherstHire(CommenceTable, AmherstOrderBase):
     # optional overrides master
     # aliases: ClassVar[StrEnum] = HireAliases
     model_config = ConfigDict(
         alias_generator=hire_alias_generator,
     )
-    category: ClassVar[CategoryName] = 'Hire'
+    category: ClassVar[CategoryName] = CategoryName.Hire
 
     boxes: int = 1
     delivery_contact_phone: str
-    send_date: AM_DATE = date.today()
+    send_date: CommenceDateOptional = None
 
     # optional overrides order
     status: HireStatus
-    date_sent: AM_DATE | None = None
-    booking_date: AM_DATE | None = None
+    date_sent: CommenceDateOptional | None = None
+    booking_date: CommenceDateOptional = None
 
     # hire fields
     missing_kit_str: str | None = None
-    due_back_date: AM_DATE
+    due_back_date: CommenceDateOptional = None
     return_notes: str | None = None
 
 
-@register_table
-class AmherstSale(AmherstOrderBase):
+# @register_table
+class AmherstSale(CommenceTable, AmherstOrderBase):
     model_config = ConfigDict(
         alias_generator=sale_alias_generator,
     )
@@ -171,8 +173,8 @@ class AmherstSale(AmherstOrderBase):
     notes: str | None = None
 
 
-@register_table
-class AmherstTrial(AmherstOrderBase):
+# @register_table
+class AmherstTrial(CommenceTable, AmherstOrderBase):
     # aliases: ClassVar[StrEnum] = TrialAliases
     model_config = ConfigDict(
         alias_generator=trial_alias_generator,

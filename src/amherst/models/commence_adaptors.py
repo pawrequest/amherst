@@ -5,9 +5,8 @@ from enum import StrEnum
 from typing import Annotated
 
 import pydantic as _p
-from pycommence.pycmc_types import (
-    get_cmc_date, RowInfo,
-)
+from pycommence.pycmc_types import get_cmc_date
+from pycommence.rows import RowInfo
 
 
 class CategoryName(StrEnum):
