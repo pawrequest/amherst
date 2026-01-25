@@ -4,7 +4,7 @@ from pycommence.fapi.search_functions import pycommence_get_one
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
-from amherst.back.callbacks import cmc_log_callback
+from amherst.fapi.callbacks import cmc_log_callback
 from amherst.models.amherst_models import AmherstHire, AmherstShipableBase
 from shipaw.fapi.routes_html import shipping_form
 from shipaw.fapi.alerts import Alert, AlertType, Alerts

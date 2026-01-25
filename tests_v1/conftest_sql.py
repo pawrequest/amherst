@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import StaticPool
 from sqlmodel import SQLModel, Session, create_engine
 
-from amherst.app import app
+from amherst.fapi.app import app
 from amdev.bench.sql import get_session
 from shipaw.expresslink_client import ELClient
 from shipaw.pf_config import PFSandboxSettings, pf_sandbox_sett

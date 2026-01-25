@@ -5,7 +5,7 @@ from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote
 from loguru import logger
 
-from amherst import app
+from amherst.fapi import app
 from amherst.models.commence_adaptors import CategoryName
 
 
