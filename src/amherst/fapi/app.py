@@ -6,9 +6,9 @@ from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
-from amherst.back.routes_html import router as html_router
-from amherst.back.routes_json import router as json_router
-from amherst.back.ship_routes import router as ship_router
+from amherst.fapi.routes_html import router as html_router
+from amherst.fapi.routes_json import router as json_router
+from amherst.fapi.ship_routes import router as ship_router
 from amherst.config import amherst_settings
 from shipaw.config import ShipawSettings
 from shipaw.fapi.alerts import Alerts

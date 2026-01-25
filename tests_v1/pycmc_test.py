@@ -7,7 +7,7 @@ from loguru import logger
 
 from pycommence import PyCommence, pycommence_context
 
-from amherst.back.backend_search_paginate import Pagination
+from amherst.fapi.backend_search_paginate import Pagination
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
 
