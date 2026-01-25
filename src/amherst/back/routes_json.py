@@ -2,10 +2,11 @@ import flaskwebgui
 from fastapi import APIRouter, Depends, Query
 from loguru import logger
 from pycommence import PyCommence
+from pycommence.fapi.depends import pycmc_f_query
+from pycommence.fapi.search_functions import pycommence_search
+from pycommence.fapi.search_response import SearchResponse
 from starlette.requests import Request
 
-from amherst.back.backend_pycommence import pycmc_f_query, pycommence_search
-from amherst.back.backend_search_paginate import SearchResponse
 from amherst.config import amherst_settings
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CursorName
@@ -49,12 +50,5 @@ async def testing(
     request: Request,
 ):
     return amherst_settings().templates.TemplateResponse('testing.html', {'request': request})
-
-
-@router.get('/')
-async def pycommence_search_endpoint(
-    search_response: SearchResponse = Depends(pycommence_search),
-) -> SearchResponse:
-    return search_response
 
 

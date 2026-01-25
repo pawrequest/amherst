@@ -16,7 +16,7 @@ requires-python = ">= 3.13"
 dependencies = [
     "shipaw>=0.3.27",
     "pawlogger>=0.1.0",
-    "pycommence>=0.2.2",
+    "pycommence==0.2.666",
     #
     "matplotlib>=3.10.6",
     "python-multipart>=0.0.20",
@@ -65,4 +65,5 @@ format.quote-style = "single"
 #source-include = ["src/amherst/ui/**"]
 #
 [tool.uv.sources]
+pycommence = { path = "../pycommence", editable = true }
 #shipaw = { path = '../shipaw', editable = true }
