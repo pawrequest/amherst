@@ -7,10 +7,11 @@ from pathlib import Path
 
 import pydantic as _p
 from dotenv import dotenv_values, load_dotenv
+from loguru import logger
+from pawlogger import get_loguru
 from pydantic import computed_field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
-
 
 def load_env_index(envs_index: Path) -> None:
     load_dotenv(envs_index)
@@ -31,8 +32,10 @@ def getlog():
     log_dir.mkdir(parents=True, exist_ok=True)
     log_file = log_dir / 'amherst.log'
     log_file.touch(exist_ok=True)
-    log_level = env_values.get('LOG_LEVEL') or 'DEBUG'
-    # get_loguru(log_file=log_file, profile='local', level=log_level)
+    logger.info('Log file set to: {}', log_file)
+    log_level = env_values.get('LOG_LEVEL', 'DEBUG')
+    logger.debug('Getting Amherst loguru logger')
+    get_loguru(log_file=log_file, profile='local', level=log_level)
 
 
 def load_env() -> Path:

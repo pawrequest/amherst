@@ -3,14 +3,12 @@ from fastapi import APIRouter, Depends, Query
 from loguru import logger
 from pycommence import PyCommence
 from pycommence.fapi.depends import pycmc_f_query
-from pycommence.fapi.search_functions import pycommence_search
-from pycommence.fapi.search_response import SearchResponse
+from pycommence.meta.meta import get_table_type
 from starlette.requests import Request
 
 from amherst.config import amherst_settings
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CursorName
-from amherst.models.meta import get_table_model
 
 router = APIRouter()
 
@@ -29,7 +27,7 @@ async def fetch(
     if not row_id:
         row_id = pycmc.csr(csrname).pk_to_id(pk_value)
     record = pycmc.read_row(csrname=csrname, row_id=row_id)
-    model_type = get_table_model(csrname)
+    model_type = get_table_type(csrname)
     return model_type.model_validate(record)
 
 

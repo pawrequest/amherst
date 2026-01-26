@@ -14,10 +14,10 @@ async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentR
     try:
         update_dict = await make_update_dict(shipment, shipment_response)
         logger.info(f'Updating CMC: {update_dict}')
-        with pycommence_context(shipment.row_info.category) as pycmc1:
-            pycmc1.update_row(update_dict, row_id=shipment.row_info.id)
+        with pycommence_context(shipment.context.get('category')) as pycmc1:
+            pycmc1.update_row(update_dict, row_id=shipment.record.row_id)
         logger.info(
-            f'Updated Commence row id {shipment.row_info.id} in {shipment.row_info.category} with:\n{pprint.pformat(update_dict, indent=2)}'
+            f'Updated Commence row id {shipment.record.row_id} in {shipment.record.category} with:\n{pprint.pformat(update_dict, indent=2)}'
         )
 
     except ValueError as e:

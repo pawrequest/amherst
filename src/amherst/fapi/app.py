@@ -45,6 +45,7 @@ app.include_router(pycmc_router, prefix='/pycommence')
 app.include_router(html_router)
 # app.ship_live = pf_config.pf_sett().ship_live
 app.alerts = Alerts.empty()
+app.settings = amherst_settings()
 
 
 @app.exception_handler(RequestValidationError)

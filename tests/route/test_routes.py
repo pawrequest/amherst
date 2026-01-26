@@ -3,6 +3,7 @@ from pawdantic.paw_types import pydantic_export
 
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CategoryName
+from amherst.models.shipment_conversions import record_to_shipment
 from amherst.ui_runner import CONFIRM_URL, REVIEW_URL, get_pycommence_shipper_url
 from shipaw.models.provider import PROVIDER_REGISTER
 
@@ -27,7 +28,7 @@ async def test_ship_form(test_client):
 @pytest.fixture(scope='session')
 def order_review_sample(provider, amherst_customer, test_client, request):
     record_str = amherst_customer.model_dump_json()
-    ship = amherst_customer.shipment()
+    ship = record_to_shipment(amherst_customer)
     ship = pydantic_export(ship, mode='pydantic')
 
     form_data = {
