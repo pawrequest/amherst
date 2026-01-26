@@ -1,18 +1,24 @@
 import pytest
-from pawdantic.paw_types import pydantic_export
+from shipaw.fapi.requests import ShipmentRequest
+from shipaw.providers.registry import PROVIDER_REGISTER
 
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CategoryName
 from amherst.models.shipment_conversions import record_to_shipment
 from amherst.ui_runner import CONFIRM_URL, REVIEW_URL, get_pycommence_shipper_url
-from shipaw.models.provider import PROVIDER_REGISTER
 
 PK_SEARCH = 'amps'
 CSRNAME = 'Hire'
 
-@pytest.fixture(scope='session', params=[_() for _ in PROVIDER_REGISTER.values()], ids=[_ for _ in PROVIDER_REGISTER.keys()])
+
+@pytest.fixture(
+    scope='session',
+    params=[_ for _ in PROVIDER_REGISTER.values()],
+    ids=[_ for _ in PROVIDER_REGISTER.keys()]
+)
 def provider(request):
     yield request.param
+
 
 @pytest.mark.asyncio
 async def test_ship_form(test_client):
@@ -29,7 +35,12 @@ async def test_ship_form(test_client):
 def order_review_sample(provider, amherst_customer, test_client, request):
     record_str = amherst_customer.model_dump_json()
     ship = record_to_shipment(amherst_customer)
-    ship = pydantic_export(ship, mode='pydantic')
+    # ship = ship.model_dump()
+    shipreq = ShipmentRequest(
+        shipment=ship,
+        provider_name=provider.name,
+        service_code=provider.default_service_code,
+    )
 
     form_data = {
         **ship.recipient.address.model_dump(),
@@ -52,7 +63,7 @@ def order_review_sample(provider, amherst_customer, test_client, request):
 def test_order_review(order_review_sample):
     # Assertions
     assert (
-        order_review_sample.status_code == 200
+            order_review_sample.status_code == 200
     ), f'Expected status code 200, but got {order_review_sample.status_code}'
     assert order_review_sample.template.name == 'ship/order_review.html'
     assert isinstance(order_review_sample.context['record'], AmherstShipableBase)
@@ -69,4 +80,3 @@ def test_order_confirm(test_client, order_review_sample):
     resp = test_client.post(CONFIRM_URL, data=data)
     assert resp.context['response'].success is True
     assert resp.context['response'].label_path.exists()
-

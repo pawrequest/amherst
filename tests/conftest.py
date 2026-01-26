@@ -12,6 +12,7 @@ import pytest
 from amherst.models.amherst_models import AmherstCustomer
 
 from pycommence import pycommence_context
+
 # from pycommence.pycmc_types import RowData
 
 TEST_DATE = date.today() + timedelta(days=2)
@@ -20,15 +21,6 @@ if TEST_DATE.weekday() in (5, 6):
 
 
 @pytest.fixture(scope='session')
-def amherst_customer_data() -> AmherstCustomer:
-    with pycommence_context(csrname='Customer') as cmc:
+def amherst_customer() -> AmherstCustomer:
+    with pycommence_context('Customer') as cmc:
         return cmc.read_row(pk='Test')
-
-
-@pytest.fixture(scope='session')
-def amherst_customer(amherst_customer_data) -> AmherstCustomer:
-    return AmherstCustomer(row_info=amherst_customer_data.row_info, **amherst_customer_data.data)
-
-
-
-
