@@ -4,10 +4,8 @@ from os import PathLike
 from typing import ClassVar
 
 from pycommence.pycmc_types import CommenceDateOptional
-from pycommence.rows import RowInfo
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from shipaw.models.address import Address as AddressAgnost, Contact, FullContact
-from shipaw.models.ship_types import ShipDirection
 from pycommence.meta.meta import CommenceTable
 
 from amherst.models.commence_adaptors import (
@@ -22,7 +20,6 @@ from amherst.models.commence_adaptors import (
     split_addr_str2,
     trial_alias_generator,
 )
-from amherst.models.shipment import AmherstShipment
 
 
 class AmherstShipableBase(ABC, BaseModel):
@@ -87,15 +84,17 @@ class AmherstShipableBase(ABC, BaseModel):
             ),
         )
 
-    def shipment(self, direction: ShipDirection = ShipDirection.OUTBOUND) -> 'AmherstShipment':
-        return AmherstShipment(
-            recipient=self.full_contact,
-            boxes=self.boxes,
-            shipping_date=self.send_date,
-            direction=direction,
-            reference=self.customer_name,
-            context={'record': self},
-        )
+    # def shipment(self, direction: ShipDirection = ShipDirection.OUTBOUND) -> 'AmherstShipment':
+    #     context = self.model_dump(mode='json')
+    #     context.update({'category': self.category, 'pk_key': self.pk_key})
+    #     return AmherstShipment(
+    #         recipient=self.full_contact,
+    #         boxes=self.boxes,
+    #         shipping_date=self.send_date,
+    #         direction=direction,
+    #         reference=self.customer_name,
+    #         context=context,
+    #     )
 
 
 class AmherstOrderBase(AmherstShipableBase, ABC):

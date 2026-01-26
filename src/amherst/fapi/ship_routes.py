@@ -9,6 +9,8 @@ from amherst.models.amherst_models import AmherstHire, AmherstShipableBase
 from shipaw.fapi.routes_html import shipping_form
 from shipaw.fapi.alerts import Alert, AlertType, Alerts
 
+from amherst.models.shipment_conversions import record_to_shipment
+
 router = APIRouter()
 
 
@@ -23,7 +25,8 @@ async def get_shipping_form(
         logger.warning(msg)
         alerts += Alert(message=msg, type=AlertType.WARNING)
 
-    shipment = record.shipment()
+    # shipment = record.shipment()
+    shipment = record_to_shipment(record)
     request.app.callback = cmc_log_callback
 
     return await shipping_form(request=request, shipment=shipment)
