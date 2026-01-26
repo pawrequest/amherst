@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Authorization Form</title>
+    <link href="{{ url_for('static', path='rma.css') }}" rel="stylesheet">
+</head>
+<body>
+<h1>Return Merchandise Authorization</h1>
+<form id="rmaForm" action="https://api.example.com/rma/submit" method="POST">
+    <label for="customer_name" class="required">Customer Name</label>
+    <input type="text" id="customer_name" name="customer_name" required>
+
+    <div class="items-section">
+        <label>Items Being Returned</label>
+        <div id="itemsContainer"></div>
+        <button type="button" class="btn btn-secondary" onclick="addItem()">+ Add Item</button>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Return Request</button>
+</form>
+
+<script>
+    let itemCount = 0;
+
+    function addItem() {
+        itemCount++;
+        const container = document.getElementById('itemsContainer');
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'item-entry';
+        itemDiv.id = `item-${itemCount}`;
+        itemDiv.innerHTML = `
+                <h4>
+                    <span>Item #${itemCount}</span>
+                    <button type="button" class="btn btn-danger" onclick="removeItem(${itemCount})">Remove</button>
+                </h4>
+                <label for="category-${itemCount}" class="required">Category</label>
+                <select id="category-${itemCount}" name="items[${itemCount - 1}][category]" required>
+                    <option value="">Select category...</option>
+                    <option value="radio">Radio</option>
+                    <option value="battery">Battery</option>
+                    <option value="antenna">Antenna</option>
+                    <option value="charger">Charger</option>
+                </select>
+                <label for="serial-${itemCount}">Serial Number</label>
+                <input type="text" id="serial-${itemCount}" name="items[${itemCount - 1}][serial_number]" placeholder="If available">
+                <label for="marks-${itemCount}">Identifying Marks</label>
+                <input type="text" id="marks-${itemCount}" name="items[${itemCount - 1}][identifying_marks]" placeholder="Any labels, stickers, or markings">
+                <label for="reason-${itemCount}">Reason for Return</label>
+                <textarea id="reason-${itemCount}" name="items[${itemCount - 1}][reason]" rows="2" placeholder="Describe the issue or reason for return"></textarea>
+            `;
+        container.appendChild(itemDiv);
+    }
+
+    function removeItem(id) {
+        const item = document.getElementById(`item-${id}`);
+        if (item) item.remove();
+    }
+
+    document.getElementById('rmaForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const data = {
+            customer_name: formData.get('customer_name'),
+            items_returned: []
+        };
+
+        // Collect items
+        document.querySelectorAll('.item-entry').forEach((item) => {
+            const category = item.querySelector('select').value;
+            const serial = item.querySelectorAll('input')[0].value;
+            const marks = item.querySelectorAll('input')[1].value;
+            const reason = item.querySelector('textarea').value;
+
+            if (category) {
+                data.items_returned.push({
+                    category: category,
+                    serial_number: serial || null,
+                    identifying_marks: marks || null,
+                    reason: reason || null
+                });
+            }
+        });
+
+        if (data.items_returned.length === 0) {
+            alert('Please add at least one item to return.');
+            return;
+        }
+
+        console.log('Submitting RMA:', data);
+
+        fetch('/rma_submit', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(result => alert('RMA submitted successfully!'))
+            .catch(error => alert('Submission placeholder - replace with your backend URL'));
+    });
+
+    addItem();
+</script>
+</body>
+</html>
