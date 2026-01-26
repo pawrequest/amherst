@@ -55,7 +55,7 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pawlogger", specifier = ">=0.1.0" },
-    { name = "pycommence", editable = "../pycommence" },
+    { name = "pycommence", git = "http://www.github.com/pawrequest/pycommence?branch=fapi" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pyperclip", specifier = ">=1.11.0" },
@@ -1098,36 +1098,12 @@ wheels = [
 [[package]]
 name = "pycommence"
 version = "0.2.666"
-source = { editable = "../pycommence" }
+source = { git = "http://www.github.com/pawrequest/pycommence?branch=fapi#5b47375db8f8e27435ea41a43621741fe4374447" }
 dependencies = [
     { name = "comtypes" },
     { name = "loguru" },
     { name = "pydantic" },
     { name = "pywin32" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "comtypes", specifier = ">=1.4.11" },
-    { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.128.0" },
-    { name = "loguru" },
-    { name = "pydantic" },
-    { name = "pywin32" },
-    { name = "uvicorn", marker = "extra == 'fastapi'", specifier = ">=0.40.0" },
-]
-provides-extras = ["fastapi"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "autodoc-pydantic" },
-    { name = "myst-parser" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytest-asyncio", specifier = ">=1.1.0" },
-    { name = "sphinx" },
-    { name = "sphinx-autodoc-typehints" },
-    { name = "sphinx-readme" },
-    { name = "sphinx-rtd-dark-mode" },
-    { name = "sphinx-rtd-theme" },
 ]
 
 [[package]]

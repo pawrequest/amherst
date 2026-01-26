@@ -65,5 +65,6 @@ format.quote-style = "single"
 #source-include = ["src/amherst/ui/**"]
 #
 [tool.uv.sources]
-pycommence = { path = "../pycommence", editable = true }
+pycommence = { git = "http://www.github.com/pawrequest/pycommence", branch = "fapi" }
+#pycommence = { path = "../pycommence", editable = true }
 #shipaw = { path = '../shipaw', editable = true }
