@@ -113,7 +113,7 @@ CUSTOMER_ARRAY_LOOSE = FilterArray(
     filters={
         1: FieldFilter(column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='one year ago'),
     },
-    logics=['And'],
+    # logics=[],
 )
 #
 # @functools.lru_cache
