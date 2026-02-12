@@ -23,7 +23,8 @@ class Email:
         if self.attachment_paths is None:
             self.attachment_paths = []
 
-    def send(self, sender: OutlookHandler) -> None:
+    def send(self, sender: OutlookHandler = None) -> None:
+        sender = sender or OutlookHandler()
         sender.create_open_email(self)
 
 
@@ -156,4 +157,3 @@ class SMTPHandler:
         except Exception as e:
             logger.exception(f'Failed to send email via SMTP: {e}')
             raise
-
