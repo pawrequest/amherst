@@ -15,7 +15,7 @@
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="RUN_TOOL" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/amherst/shipper_cli.py" />
-    <option name="PARAMETERS" value="Sale &quot;Office Holdings Ltd - 17/12/2025 ref 1125&quot; &quot;C:\prdev\envs\amdev\sandbox.env&quot;" />
+    <option name="PARAMETERS" value="Customer Test &quot;C:\prdev\envs\amdev\sandbox.env&quot;" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

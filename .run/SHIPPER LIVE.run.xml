@@ -15,7 +15,7 @@
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="RUN_TOOL" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/amherst/shipper_cli.py" />
-    <option name="PARAMETERS" value="Sale &quot;Farrer Theatre - 26/02/2026 ref 1177&quot; &quot;C:\prdev\envs\amdev\live.env&quot;" />
+    <option name="PARAMETERS" value="Customer &quot;Test&quot; &quot;C:\prdev\envs\amdev\live.env&quot;" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
