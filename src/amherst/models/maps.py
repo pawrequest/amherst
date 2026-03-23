@@ -7,13 +7,10 @@ from typing import NamedTuple
 from fastapi import Query
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
+from shipaw.fapi.responses import ShipmentResponse
+from shipaw.models.shipment import Shipment
 
-from amherst.models.amherst_models import (
-    AmherstCustomer,
-    AmherstHire,
-    AmherstSale,
-    AmherstTrial, AmherstShipableBase,
-)
+from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstShipableBase, AmherstTrial
 from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
@@ -26,11 +23,8 @@ from amherst.models.filters import (
     SALE_ARRAY_TIGHT,
     SALE_CONNECTION,
     customer_row_filter_loose,
-    hire_row_filter_loose,
-    sale_row_filter_loose,
+    generator_passthru,
 )
-from shipaw.fapi.responses import ShipmentResponse
-from shipaw.models.shipment import Shipment
 
 
 class FilterMapPy(NamedTuple):
@@ -81,8 +75,8 @@ class AmherstMaps:
             customer=CUSOMER_CONNECTION,
         ),
         py_filters=FilterMapPy(
-            loose=hire_row_filter_loose,
-            tight=hire_row_filter_loose,
+            loose=generator_passthru,
+            tight=generator_passthru,
         ),
         cmc_filters=FilterMapCmc(
             loose=HIRE_ARRAY_LOOSE,
@@ -101,8 +95,8 @@ class AmherstMaps:
             customer=CUSOMER_CONNECTION,
         ),
         py_filters=FilterMapPy(
-            loose=sale_row_filter_loose,
-            tight=sale_row_filter_loose,
+            loose=generator_passthru,
+            tight=generator_passthru,
         ),
         cmc_filters=FilterMapCmc(
             loose=SALE_ARRAY_LOOSE,
@@ -156,12 +150,13 @@ async def mapper_from_query_csrname(csrname: CategoryName = Query(...)) -> Amher
     cat = 'trial' if 'trial' in csrname.lower() else csrname.lower()
     return getattr(AmherstMaps, cat)
 
+
 # async def make_base_update_dict(
 #     record: AMHERST_TABLE_MODELS, shipment: SHIPMENT_TYPES, shipment_response: AmherstShipmentResponse
 # ) -> dict[str, Any]:
 #     """Adds tracking numbers and link."""
 #     aliases = await get_alias(record)
-#     tracks = await add_tracking_to_list(record, shipment_response)
+#     tracks = await add_tracking_numbers_to_list(record, shipment_response)
 #     update_package = {aliases.TRACKING_NUMBERS: tracks}
 #     return update_package
 

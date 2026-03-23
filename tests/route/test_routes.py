@@ -9,9 +9,13 @@ from shipaw.models.provider import PROVIDER_REGISTER
 PK_SEARCH = 'amps'
 CSRNAME = 'Hire'
 
-@pytest.fixture(scope='session', params=[_() for _ in PROVIDER_REGISTER.values()], ids=[_ for _ in PROVIDER_REGISTER.keys()])
+
+@pytest.fixture(
+    scope='session', params=[_() for _ in PROVIDER_REGISTER.values()], ids=[_ for _ in PROVIDER_REGISTER.keys()]
+)
 def provider(request):
     yield request.param
+
 
 @pytest.mark.asyncio
 async def test_ship_form(test_client):
@@ -50,9 +54,9 @@ def order_review_sample(provider, amherst_customer, test_client, request):
 
 def test_order_review(order_review_sample):
     # Assertions
-    assert (
-        order_review_sample.status_code == 200
-    ), f'Expected status code 200, but got {order_review_sample.status_code}'
+    assert order_review_sample.status_code == 200, (
+        f'Expected status code 200, but got {order_review_sample.status_code}'
+    )
     assert order_review_sample.template.name == 'ship/order_review.html'
     assert isinstance(order_review_sample.context['record'], AmherstShipableBase)
 
@@ -68,4 +72,3 @@ def test_order_confirm(test_client, order_review_sample):
     resp = test_client.post(CONFIRM_URL, data=data)
     assert resp.context['response'].success is True
     assert resp.context['response'].label_path.exists()
-

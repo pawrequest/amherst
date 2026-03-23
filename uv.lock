@@ -58,7 +58,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "matplotlib", specifier = ">=3.10.6" },
     { name = "pandas", specifier = ">=2.3.3" },
-    { name = "pawlogger", specifier = ">=0.1.0" },
+    { name = "pawlogger", editable = "../../pawlogger" },
     { name = "pycommence", specifier = ">=0.2.2" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
@@ -1019,15 +1019,14 @@ wheels = [
 
 [[package]]
 name = "pawlogger"
-version = "0.1.0"
-source = { registry = "https://pypi.org/simple" }
+version = "0.1.4"
+source = { editable = "../../pawlogger" }
 dependencies = [
     { name = "loguru" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/82/fa/2b9ce0cfe4cefe8d4d5f5cbe3eb845d39f84080c31b28ceef7e3801ebd55/pawlogger-0.1.0.tar.gz", hash = "sha256:3d74b7e298381b8c182788f011d568f4802e10f97f38b604205b774b44057f4b", size = 10140, upload-time = "2025-10-02T19:08:02.813Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/4f/ab9c0c9bdc75c547d2bbb0737c33c97c017007215891b0884fe48a52e33a/pawlogger-0.1.0-py3-none-any.whl", hash = "sha256:21448d1b4c63b81b202b8d84c39e2d9eea2e5041de36361b5166ea9e353ecb11", size = 16587, upload-time = "2025-10-02T19:08:01.771Z" },
-]
+
+[package.metadata]
+requires-dist = [{ name = "loguru" }]
 
 [[package]]
 name = "phonenumbers"
@@ -1675,6 +1674,7 @@ dependencies = [
     { name = "jinja2" },
     { name = "loguru" },
     { name = "pawdf" },
+    { name = "pawlogger" },
     { name = "phonenumbers" },
     { name = "pydantic", extra = ["email"] },
     { name = "pydantic-extra-types" },
@@ -1696,6 +1696,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pawdf", specifier = ">=0.1.0" },
+    { name = "pawlogger", editable = "../../pawlogger" },
     { name = "phonenumbers", specifier = ">=9.0.15" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-extra-types", specifier = ">=2.10.5" },

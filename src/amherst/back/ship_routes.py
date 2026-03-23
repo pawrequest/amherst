@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 from loguru import logger
+from shipaw.fapi.alerts import Alert, Alerts, AlertType
+from shipaw.fapi.routes_html import shipping_form
 from starlette.requests import Request
 from starlette.responses import HTMLResponse
 
 from amherst.back.backend_pycommence import pycommence_get_one
 from amherst.back.callbacks import cmc_log_callback
 from amherst.models.amherst_models import AmherstHire, AmherstShipableBase
-from shipaw.fapi.routes_html import shipping_form
-from shipaw.fapi.alerts import Alert, AlertType, Alerts
 
 router = APIRouter()
 
@@ -26,5 +26,5 @@ async def get_shipping_form(
     shipment = record.shipment()
     request.app.callback = cmc_log_callback
 
-    return await shipping_form(request=request, shipment=shipment)
-
+    res = await shipping_form(request=request, shipment=shipment)
+    return res

@@ -26,8 +26,6 @@ async def test_candidates(test_client):
     print(response.json())
 
 
-
-
 # noinspection PyShadowingNames
 @pytest.mark.asyncio
 async def test_confirm_outbound(test_client, b_fxt):

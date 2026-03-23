@@ -1,4 +1,5 @@
-""" Backend search request and response models with pagination support. """
+"""Backend search request and response models with pagination support."""
+
 from __future__ import annotations
 
 import dataclasses
@@ -10,9 +11,10 @@ from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter,
 from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
 from pydantic import BaseModel, Field, model_validator
 
-from amherst.models.amherst_models import AmherstShipableBase
-from amherst.models.commence_adaptors import CursorName, CustomerAliases
+from amherst.models.amherst_models import AmherstShipableBase, AmherstCustomer
+from amherst.models.commence_adaptors import CursorName
 from amherst.models.maps import AmherstMap, CategoryName, mapper_from_query_csrname
+from amherst.models.meta import get_table_model
 
 PAGE_SIZE = 50
 
@@ -50,13 +52,13 @@ class SearchRequest(BaseModel):
 
     def __str__(self):
         return (
-            f'Csr: {self.csrname if self.csrname else ', '.join(self.csrnames)}'
-            f'{' | pk=:' + self.pk_value if self.pk_value else ''}'
-            f'{' | row_id=:' + self.row_id if self.row_id else ''}'
-            f'{' | customer_name="' + self.customer_name + '"' if self.customer_name else ''}'
-            f'{' | cmc_filter_i=' + str(self.cmc_filter_i) if self.cmc_filter_i else ''}'
-            f'{' | py_filter_i=' + str(self.py_filter_i) if self.py_filter_i else ''}'
-            f'{' | ' + str(self.pagination) if self.pagination else ''}'
+            f'Csr: {self.csrname if self.csrname else ", ".join(self.csrnames)}'
+            f'{" | pk=:" + self.pk_value if self.pk_value else ""}'
+            f'{" | row_id=:" + self.row_id if self.row_id else ""}'
+            f'{' | customer_name="' + self.customer_name + '"' if self.customer_name else ""}'
+            f'{" | cmc_filter_i=" + str(self.cmc_filter_i) if self.cmc_filter_i else ""}'
+            f'{" | py_filter_i=" + str(self.py_filter_i) if self.py_filter_i else ""}'
+            f'{" | " + str(self.pagination) if self.pagination else ""}'
         )
 
     @property
@@ -147,15 +149,19 @@ class SearchRequest(BaseModel):
 
     async def filter_array(self):
         mapper: AmherstMap = await mapper_from_query_csrname(self.csrname)
+        cat_model = get_table_model(self.csrname)
         fil_array = mapper.cmc_filters[self.cmc_filter_i].model_copy() if self.cmc_filter_i else FilterArray()
 
         if self.pk_value:
-            fil_array.add_filter(FieldFilter(column=mapper.aliases.NAME, condition=self.condition, value=self.pk_value))
+            fil_array.add_filter(
+                FieldFilter(column=cat_model.model_fields['name'].alias, condition=self.condition, value=self.pk_value)
+            )
 
         if self.customer_name:
             if cust_con := mapper.connections.customer:
                 customer_filter = FieldFilter(
-                    column=CustomerAliases.CUSTOMER_NAME,
+                    column=AmherstCustomer.model_fields['customer_name'].alias,
+                    # column=CustomerAliases.CUSTOMER_NAME,
                     condition=self.condition,
                     value=self.customer_name,
                 )
@@ -177,8 +183,8 @@ class SearchResponse[T: AmherstShipableBase](BaseModel):
 
     def __str__(self):
         return (
-            f'Search Response: {self.length}x {self.search_request.csrname if self.search_request.csrname else ', '.join(self.search_request.csrnames)} records'
-            f'{' (' + str(self.more.n_more) + ' more available),' if self.more else '. '} '
+            f'Search Response: {self.length}x {self.search_request.csrname if self.search_request.csrname else ", ".join(self.search_request.csrnames)} records'
+            f'{" (" + str(self.more.n_more) + " more available)," if self.more else ". "} '
             f'SearchRequest[{str(self.search_request)}]'
         )
 
@@ -195,8 +201,8 @@ class SearchResponseMulti(SearchResponse):
         rtypes = '/'.join([req.csrname for req in self.search_request])
         return (
             f'Search Response with {self.length}x {rtypes} records. '
-            f'SearchRequests[{'; '.join(str(_) for _ in self.search_request)}]'
-            f'{', ' + str(self.more.n_more) + ' more available' if self.more else ''} '
+            f'SearchRequests[{"; ".join(str(_) for _ in self.search_request)}]'
+            f'{", " + str(self.more.n_more) + " more available" if self.more else ""} '
         )
 
 

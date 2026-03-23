@@ -21,5 +21,3 @@ def get_table_model(csrname: CategoryName) -> type['AmherstShipableBase'] | None
     if not res:
         logger.warning(f'No table model found for csrname: {csrname}')
     return res
-
-

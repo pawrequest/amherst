@@ -12,7 +12,7 @@ from amherst.back.backend_search_paginate import (
     SearchResponse,
     SearchResponseMulti,
 )
-from amherst.config import amherst_settings
+from amherst.config import AMHERST_SETTINGS
 from amherst.models.amherst_models import AMHERST_ORDER_MODELS
 from amherst.models.maps import AmherstMap, mapper_from_query_csrname
 
@@ -40,7 +40,7 @@ async def search(
 ):
     search_response: SearchResponse = await pycommence_search(search_request, pycmc)
     logger.debug(str(search_response))
-    return amherst_settings().templates.TemplateResponse(
+    return request.app.amherst_settings.templates.TemplateResponse(
         mapper.templates.listing, {'request': request, 'response': search_response}
     )
 
@@ -76,5 +76,4 @@ async def orders(
     records.sort(key=lambda x: x.send_date, reverse=True)
     response = SearchResponseMulti(records=records, search_request=requests)
     logger.debug(str(response))
-    return amherst_settings().templates.TemplateResponse(template_name, {'request': request, 'response': response})
-
+    return AMHERST_SETTINGS.templates.TemplateResponse(template_name, {'request': request, 'response': response})

@@ -15,6 +15,7 @@ def sett():
 def el_client(sett):
     yield ELClient(settings=sett)
 
+
 # @pytest.mark.usefixtures('booking_mock', 'random_booking')
 # @pytest_asyncio.fixture(
 #     params=['booking_mock', 'random_booking'],

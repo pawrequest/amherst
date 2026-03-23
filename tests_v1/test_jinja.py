@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from amherst.models.db_models import BookingStateDB
 from shipaw.models.pf_shared import ServiceCode
-from shipaw.models.pf_shipment_configured  import to_collection_configured, to_dropoff
+from shipaw.models.pf_shipment_configured import to_collection_configured, to_dropoff
 from shipaw.ship_types import ShipDirection
 from client import test_client  # noqa: F401
 from .fixtures_live import random_booking_in_db  # noqa: F401
@@ -27,6 +27,7 @@ b_fxt = booking_mock_db
 
 
 # b_fxt = random_booking_in_db
+
 
 @pytest_asyncio.fixture(scope='session')
 async def away_collect_fxt(b_fxt):
@@ -90,13 +91,12 @@ async def test_input_page(test_client, b_fxt: BookingStateDB):
     assert soup.find('input', {'type': 'hidden', 'name': 'booking_id'})['value'] == str(b_fxt.id)
     assert soup.find('input', {'id': 'ship_date'})['value'] == b_fxt.shipment_request.shipping_date.isoformat()
     assert (
-            int(soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'])
-            == b_fxt.shipment_request.total_number_of_parcels
+        int(soup.find('select', {'id': 'boxes'}).find('option', {'selected': True})['value'])
+        == b_fxt.shipment_request.total_number_of_parcels
     )
     # Check direction options
     assert (
-            soup.find('select', {'id': 'direction'}).find('option', {'selected': True})[
-                'value'] == ShipDirection.Outbound
+        soup.find('select', {'id': 'direction'}).find('option', {'selected': True})['value'] == ShipDirection.Outbound
     )
     # Check service_code options
     assert soup.find('select', {'id': 'service'}).find('option', {'selected': True})['value'] == ServiceCode.EXPRESS24
@@ -133,7 +133,7 @@ async def test_input_page(test_client, b_fxt: BookingStateDB):
     assert soup.find('button', {'type': 'submit', 'class': 'submit-request'}).string == 'Submit'
 
 
-def flatten_to_str_tups(data: dict) -> Generator[tuple[str, str], None, None]:
+def flatten_to_str_tups(data: dict) -> Generator[tuple[str, str]]:
     for key, value in data.items():
         if isinstance(value, BaseModel):
             yield from flatten_to_str_tups(value.model_dump())

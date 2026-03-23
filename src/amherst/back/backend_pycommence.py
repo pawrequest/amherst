@@ -26,14 +26,14 @@ from amherst.models.amherst_models import AmherstShipableBase
 
 async def pycmc_f_query(
     csrname: CursorName = Query(...),
-) -> AsyncGenerator[PyCommence, None]:
+) -> AsyncGenerator[PyCommence]:
     with pycommence_context(csrname=csrname) as pycmc:
         yield pycmc
 
 
 async def pycmcs_f_query(
     csrnames: list[CategoryName] = Query(...),
-) -> AsyncGenerator[PyCommence, None]:
+) -> AsyncGenerator[PyCommence]:
     with pycommences_context(csrnames=csrnames) as pycmc:
         yield pycmc
 
@@ -139,4 +139,3 @@ async def pycommence_get_one(
     if not res:
         logger.warning('No Results')
     return res
-

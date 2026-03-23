@@ -30,4 +30,3 @@ async def try_update_cmc(shipment: AmherstShipment, shipment_response: ShipmentR
 async def cmc_log_callback(request: AmherstShipmentRequest, response: ShipmentResponse):
     request = AmherstShipmentRequest.model_validate(request, from_attributes=True)
     await try_update_cmc(shipment=request.shipment, shipment_response=response)
-

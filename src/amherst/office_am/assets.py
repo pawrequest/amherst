@@ -83,8 +83,13 @@ class AssetContext:
         self.save_dfs_to_json()
         # if input("Save changes? (y/n)").lower() != 'y':
         #     return
-        df_overwrite_wb(input_workbook=self.workbook_ast, sheet=self.sheet, header_row=self.header_row,
-                        out_file=self.out_file, df=self.assets)
+        df_overwrite_wb(
+            input_workbook=self.workbook_ast,
+            sheet=self.sheet,
+            header_row=self.header_row,
+            out_file=self.out_file,
+            df=self.assets,
+        )
 
     def save_dfs_to_json(self):
         data = {
@@ -95,7 +100,6 @@ class AssetContext:
 
 
 class AssetManager:
-
     def __init__(self, df_a):
         self.df_a = df_a
 

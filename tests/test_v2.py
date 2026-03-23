@@ -9,4 +9,3 @@ def test_amherst_hire(amherst_customer_data: RowData):
     res = AmherstHire(row_info=info, **hire)
     res = res.model_validate(res)
     assert res.name == 'TEST RECORD DO NOT EDIT'
-

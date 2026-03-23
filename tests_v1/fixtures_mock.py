@@ -210,21 +210,21 @@ sale_record_xmpl = {
 
 @pytest_asyncio.fixture(params=[hire_record_xmpl, sale_record_xmpl, customer_record_xmpl], scope='session')
 async def amrec_mock(request) -> AmherstRecord:
-    """ Implicitly tests the AmherstRecord importer"""
+    """Implicitly tests the AmherstRecord importer"""
     record = request.param
-    logger.info(f'testing {record['category']} record: {record["Name"]}')
+    logger.info(f'testing {record["category"]} record: {record["Name"]}')
     return await cmc_record_to_amrec(record)
 
 
 @pytest_asyncio.fixture(scope='session')
 async def booking_mock_fxt(amrec_mock: AmherstRecord, test_session_fxt) -> BookingStateDB:
-    """ Implicitly tests the BookingState Importer"""
+    """Implicitly tests the BookingState Importer"""
     return await amrec_to_booking(amrec_mock)
 
 
 @pytest_asyncio.fixture(scope='session')
 async def booking_mock_db(test_session_fxt, booking_mock_fxt):
-    """ Implictly tests the Database Session and the BookingStateDB model"""
+    """Implictly tests the Database Session and the BookingStateDB model"""
     test_session_fxt.add(booking_mock_fxt)
     test_session_fxt.commit()
     test_session_fxt.refresh(booking_mock_fxt)

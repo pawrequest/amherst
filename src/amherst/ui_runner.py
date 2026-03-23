@@ -1,6 +1,7 @@
 """Wrap FastAPI app in FlaskWebGUI for desktop application."""
 
 from __future__ import annotations
+
 from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote
 from loguru import logger
@@ -12,7 +13,7 @@ from amherst.models.commence_adaptors import CategoryName
 async def run_desktop_ui(url_suffix='', port=8000):
     app.app.starting_url = url_suffix
     try:
-        logger.info(f'Running WebFlaskUI @{url_suffix}')
+        logger.info(f'Running WebFlaskUI @url={url_suffix}')
         FlaskUI(
             fullscreen=True,
             app=app.app,

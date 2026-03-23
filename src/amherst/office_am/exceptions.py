@@ -3,6 +3,7 @@ from functools import wraps
 
 # import pandas as pd
 
+
 def get_user_input(prompt):
     return input(prompt)
 
@@ -11,15 +12,16 @@ def id_exception_handler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         func(*args, **kwargs)
+
     wrapper: func
     return wrapper
-
 
 
 class NotFoundException(Exception):
     def __init__(self, value, found_values):
         self.value = value
         self.found_values = found_values
+
 
 #
 # class SerialNotFound(NotFoundException):

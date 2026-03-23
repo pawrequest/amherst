@@ -5,7 +5,9 @@
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
+      <env name="AMHERST_ENV" value="C:\prdev\envs\amdev\live\amherst.env" />
       <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="SHIPAW_ENV" value="C:\prdev\envs\amdev\live\shipaw.env" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/amherst" />
@@ -15,7 +17,7 @@
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="RUN_TOOL" value="true" />
     <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/amherst/shipper_cli.py" />
-    <option name="PARAMETERS" value="Customer &quot;Test&quot; &quot;C:\prdev\envs\amdev\live.env&quot;" />
+    <option name="PARAMETERS" value="Hire &quot;West Buckland School - 25/03/2026 ref 21516&quot;" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

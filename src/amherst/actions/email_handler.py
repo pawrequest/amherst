@@ -21,8 +21,7 @@ class EmailHandler(ABC):
     """
 
     @abstractmethod
-    def create_open_email(self, email: Email) -> None:
-        ...
+    def create_open_email(self, email: Email) -> None: ...
 
 
 # @dataclass
@@ -40,6 +39,7 @@ class EmailHandler(ABC):
 @dataclass
 class Email:
     """Dataclass representing an email"""
+
     to_address: str
     subject: str
     body: str
@@ -57,4 +57,5 @@ class EmailError(Exception):
     """
     Exception for email handling
     """
+
     ...

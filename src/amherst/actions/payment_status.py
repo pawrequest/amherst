@@ -16,5 +16,3 @@ def get_payment_status(invoice_num: str, accounts_file: Path) -> str:
 
 def invoice_num_from_path(inv_path_str: str):
     return Path(inv_path_str).stem
-
-

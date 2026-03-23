@@ -1,27 +1,48 @@
+from __future__ import annotations
+
 from abc import ABC
 from datetime import date
 from os import PathLike
-from typing import ClassVar
+from typing import Annotated, ClassVar
 
+from loguru import logger
 from pycommence.pycmc_types import RowInfo
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, PlainSerializer, field_validator
+from shipaw.models.address import Address as AddressAgnost
+from shipaw.models.address import Contact, FullContact
+from shipaw.models.ship_types import ShipDirection
 
 from amherst.models.commence_adaptors import (
-    AM_DATE,
     CategoryName,
+    CommenceDate,
     HireStatus,
     SaleStatus,
-    customer_alias_generator,
-    hire_alias_generator,
     replace_noncompliant_apostrophes,
-    sale_alias_generator,
     split_addr_str2,
-    trial_alias_generator,
 )
 from amherst.models.meta import register_table
 from amherst.models.shipment import AmherstShipment
-from shipaw.models.address import Address as AddressAgnost, Contact, FullContact
-from shipaw.models.ship_types import ShipDirection
+
+CSV_SEPERATOR = ',\r\n\r\n'
+
+
+def split_csv(v):
+    if isinstance(v, str):
+        return [item.strip() for item in v.split(',') if item.strip()]
+    raise ValueError(f'Expected a string, got {type(v)}')
+
+
+def join_csv(v):
+    if isinstance(v, list):
+        return CSV_SEPERATOR.join(v)
+    raise ValueError(f'Expected a list, got {type(v)}')
+
+
+CommaSeparatedStrField = Annotated[
+    list[str],
+    BeforeValidator(split_csv),
+    PlainSerializer(join_csv),
+]
 
 
 class AmherstShipableBase(BaseModel, ABC):
@@ -31,22 +52,14 @@ class AmherstShipableBase(BaseModel, ABC):
         use_enum_values=True,
     )
 
-    def alias_lookup(self, field_name: str) -> str:
-        try:
-            return self.model_fields[field_name].alias
-        except KeyError:
-            return field_name
-
-    @field_validator('*', mode='before')
-    def preprocess_strings(cls, value):
-        return replace_noncompliant_apostrophes(value)
-
-    row_info: RowInfo
+    row_info: RowInfo  # commence row info
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
-    tracking_numbers: str = Field('', alias='Tracking Numbers')
-    track_out: str | None = None
-    track_in: str | None = None
+    track_out: str | None = Field(alias='Track Outbound')
+    track_in: str | None = Field(alias='Track Inbound')
+    tracking_numbers: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Numbers')
+    tracking_links_in: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links In')
+    tracking_links_out: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links Out')
 
     # mandatory fields
     customer_name: str
@@ -58,12 +71,36 @@ class AmherstShipableBase(BaseModel, ABC):
     delivery_address_pc: str
 
     # optional fields with default
-    send_date: AM_DATE = date.today()
-    boxes: int = 1
+    send_date: CommenceDate = Field(default_factory=date.today)
+    booking_date: CommenceDate | None = Field(None, alias='Booked Date')
+
+    boxes: int = Field(default=1, alias='Boxes')
+
     delivery_method: str | None = None
 
+    def alias_lookup(self, field_name: str) -> str:
+        try:
+            return self.model_fields[field_name].alias
+        except KeyError:
+            logger.warning(
+                f'Alias for {field_name} not found in model {self.__class__.__name__}. Returning field name.'
+            )
+            return field_name
+
+    @classmethod
+    def alias_lookup_c(cls, field_name: str) -> str:
+        try:
+            return cls.model_fields[field_name].alias
+        except KeyError:
+            logger.warning(f'Alias for {field_name} not found in model {cls.__name__}. Returning field name.')
+            return field_name
+
+    @field_validator('*', mode='before')
+    def preprocess_strings(cls, value):
+        return replace_noncompliant_apostrophes(value)
+
     @field_validator('send_date', mode='after')
-    def validate_send_date(cls, v: AM_DATE) -> date:
+    def validate_send_date(cls, v: CommenceDate) -> date:
         if v is None or v < date.today():
             return date.today()
         return v
@@ -85,7 +122,7 @@ class AmherstShipableBase(BaseModel, ABC):
             ),
         )
 
-    def shipment(self, direction: ShipDirection = ShipDirection.OUTBOUND) -> 'AmherstShipment':
+    def shipment(self, direction: ShipDirection = ShipDirection.OUTBOUND) -> AmherstShipment:
         return AmherstShipment(
             recipient=self.full_contact,
             boxes=self.boxes,
@@ -98,101 +135,99 @@ class AmherstShipableBase(BaseModel, ABC):
 
 class AmherstOrderBase(AmherstShipableBase, ABC):
     # order fields common
-    status: str
-    arranged_in: str | None = None
-    arranged_out: str | None = None
-    invoice: PathLike | None = None
+    status: str | None = Field(None, alias='Status')
+    invoice: PathLike | None = Field(None, alias='Invoice')
+    customer_name: str = Field(alias='To Customer')
+    order_date: CommenceDate | None = Field(None, alias='Order Date')
+    delivery_method: str = Field('', alias='Delivery Method')
 
-    # order fields optional
-    date_sent: AM_DATE | None = None
-    booking_date: AM_DATE | None = None
+    delivery_contact_business: str = Field(alias='Delivery Name')
+    delivery_contact_name: str = Field(alias='Delivery Contact')
+    delivery_contact_email: str = Field(alias='Delivery Email')
+    delivery_contact_phone: str = Field(alias='Delivery Telephone')
+
+    delivery_address_str: str = Field(alias='Delivery Address')
+    delivery_address_pc: str = Field(alias='Delivery Postcode')
 
 
 @register_table
 class AmherstCustomer(AmherstShipableBase):
-    model_config = ConfigDict(
-        alias_generator=customer_alias_generator,
-        # alias_generator=lambda field_name: CustomerAliases[field_name.upper()].value,
-    )
     category: ClassVar[CategoryName] = CategoryName.Customer
+    customer_name: str = Field(alias='Name')
+
+    delivery_contact_name: str = Field(alias='Deliv Contact')
+    delivery_contact_business: str = Field(alias='Deliv Name')
+    delivery_contact_phone: str = Field(alias='Deliv Telephone')
+    delivery_contact_email: str = Field(alias='Deliv Email')
+    delivery_address_str: str = Field(alias='Deliv Address')
+    delivery_address_pc: str = Field(alias='Deliv Postcode')
 
     # customer fields
-    invoice_email: str
-    accounts_email: str
-    hires: str = ''
-    sales: str = ''
+    invoice_email: str = Field('', alias='Invoice Email')
+    accounts_email: str = Field('', alias='Accounts Email')
+    invoice_address_str: str = Field('', alias='Invoice Address')
+    invoice_contact: str = Field('', alias='Invoice Contact')
+    invoice_name: str = Field('', alias='Invoice Name')
+    invoice_postcode: str = Field('', alias='Invoice Postcode')
+    invoice_telephone: str = Field('', alias='Invoice Telephone')
+    primary_email: str = Field('', alias='Primary Email')
+    date_last_contacted: CommenceDate | None = Field(None, alias='Date Last Contact')
+
+    hires: str = Field('', alias='Has Hired Hires')
+    sales: str = Field('', alias='Involves Sale')
 
 
 @register_table
 class AmherstHire(AmherstOrderBase):
     # optional overrides master
     # aliases: ClassVar[StrEnum] = HireAliases
-    model_config = ConfigDict(
-        alias_generator=hire_alias_generator,
-    )
-    category: ClassVar[CategoryName] = 'Hire'
+    category: ClassVar[CategoryName] = CategoryName.Hire
 
-    boxes: int = 1
-    delivery_contact_phone: str
-    send_date: AM_DATE = date.today()
+    delivery_contact_phone: str = Field(alias='Delivery Tel')
+    delivery_method: str = Field('', alias='Send Method')
 
-    # optional overrides order
-    status: HireStatus
-    date_sent: AM_DATE | None = None
-    booking_date: AM_DATE | None = None
+    send_date: CommenceDate = Field(default_factory=date.today, alias='Send Out Date')
+
+    # order overides
+    status: HireStatus = Field(alias='Status')
 
     # hire fields
-    missing_kit_str: str | None = None
-    due_back_date: AM_DATE
-    return_notes: str | None = None
+    missing_kit_str: str | None = Field(None, alias='Missing Kit')
+    due_back_date: CommenceDate = Field(None, alias='Due Back Date')
+    return_notes: str | None = Field(None, alias='Return Notes')
+    number_uhf: int = Field(0, alias='Number UHF')
+    radio_type: str | None = Field(None, alias='Radio Type')
+    number_parrot: int = Field(0, alias='Number Parrot')
+    arranged_in: bool = Field(False, alias='Pickup Arranged')
+    arranged_out: bool = Field(False, alias='DB label printed')
+    pickup_date: CommenceDate | None = Field(None, alias='Pickup Date')
 
 
 @register_table
 class AmherstSale(AmherstOrderBase):
-    model_config = ConfigDict(
-        alias_generator=sale_alias_generator,
-    )
-    category: ClassVar[CategoryName] = 'Sale'
+    category: ClassVar[CategoryName] = CategoryName.Sale
 
     delivery_method: str | None = None
 
     # optional overrides order
     status: SaleStatus
-    booking_date: AM_DATE = date.today()
-    date_sent: AM_DATE | None = None
+    booking_date: CommenceDate | None = Field(None, alias='Date Ordered')
 
     # sale fields
-    lost_equipment: str | None = None
-    invoice_terms: str | None = None
-    purchase_order: str | None = None
-    items_ordered: str | None = None
-    serial_numbers: str | None = None
-    delivery_notes: str | None = None
-    notes: str | None = None
+    lost_equipment: str | None = Field(None, alias='Lost Equipment')
+    purchase_order: str | None = Field(None, alias='Purchase Order')
 
 
 @register_table
 class AmherstTrial(AmherstOrderBase):
-    # aliases: ClassVar[StrEnum] = TrialAliases
-    model_config = ConfigDict(
-        alias_generator=trial_alias_generator,
-    )
-    category: ClassVar[CategoryName] = 'Trial'
+    category: ClassVar[CategoryName] = CategoryName.Trial
 
 
-#
-# class AmherstRepairs(AmherstOrderBase):
-#     # category:CategoryName = CategoryName.Trial
-#     customer_name: str = Field(..., alias='For Customer')
-#     delivery_contact_name: str = Field(..., alias='Trial Contact')
-#     delivery_contact_business: str = Field(..., alias='Trial Name')
-#     delivery_contact_phone: str = Field(..., alias='Trial Telephone')
-#     delivery_contact_email: str = Field(..., alias='Trial Email')
-#     delivery_address_str: str = Field(..., alias='Trial Address')
-#     delivery_address_pc: str = Field(..., alias='Trial Postcode')
-#     tracking_numbers: str = Field('', alias='Tracking Numbers')
-#
-#     invoice: str = Field('', alias='Our Invoice')
-
-
-AMHERST_ORDER_MODELS = AmherstHire | AmherstSale | AmherstTrial
+AMHERST_ORDER_MODELS = AmherstHire | AmherstSale
+SALE_BOOKED_DATE_ALIAS = AmherstSale.alias_lookup_c('booking_date')
+HIRE_SEND_DATE_ALIAS = AmherstHire.alias_lookup_c('send_date')
+HIRE_STATUS_ALIAS = AmherstHire.alias_lookup_c('status')
+HIRE_ALIAS_UHF = AmherstHire.alias_lookup_c('number_uhf')
+HIRE_ALIAS_DUE_BACK = AmherstHire.alias_lookup_c('due_back_date')
+HIRE_ALIAS_RADIO_TYPE = AmherstHire.alias_lookup_c('radio_type')
+HIRE_ALIAS_PARROT = AmherstHire.alias_lookup_c('number_parrot')

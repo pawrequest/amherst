@@ -10,24 +10,21 @@ import sys
 import webbrowser
 from pathlib import Path
 
-import dotenv
 import pyperclip
 from loguru import logger
 
 from amherst.actions import print_file
+from amherst.actions.box_label import commence_box_label
 from amherst.actions.convert_tracking import convert_parcelforce_tracking_to_royal_mail
 from amherst.actions.invoice_number import next_inv_num
 from amherst.actions.payment_status import get_payment_status, invoice_num_from_path
 from amherst.models.commence_adaptors import CategoryName
-from amherst.actions.box_label import commence_box_label
 
 
 def shipper_cli():
     args = parse_ship_args()
-    logger.info(f'starting shipper for {args.category} {args.record_name} with env {args.env_index}')
-    os.environ['ENV_INDEX'] = str(args.env_index)
-    dotenv.load_dotenv(args.env_index)
-    from amherst.ui_runner import pycommence_shipper  # AFTER SETTING ENVIRONMENT
+    logger.info(f'starting shipper for {args.category} {args.record_name}')
+    from amherst.ui_runner import pycommence_shipper
 
     asyncio.run(pycommence_shipper(args.category, args.record_name))
 
@@ -36,7 +33,6 @@ def parse_ship_args():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('category', type=CategoryName, choices=list(CategoryName))
     arg_parser.add_argument('record_name', type=str)
-    arg_parser.add_argument('env_index', type=Path)
     args = arg_parser.parse_args()
     return args
 

@@ -9,7 +9,7 @@ import pythoncom
 from loguru import logger
 from win32com.client import Dispatch
 
-from amherst.config import amherst_settings
+from amherst.config import AMHERST_SETTINGS
 
 
 @dataclass
@@ -76,12 +76,12 @@ async def subject(*, invoice_num: str | None = None, missing: bool = False, labe
 
 async def send_label_email(shipment):
     label = None if shipment.direction == 'out' else shipment.label_path
-    body = (
-        amherst_settings().templates.get_template('email_snips/label_email.html').render(label=label, shipment=shipment)
+    body = AMHERST_SETTINGS.templates.get_template('email_snips/label_email.html').render(
+        label=label, shipment=shipment
     )
     email = Email(
         to_address=shipment.full_contact.contact.email_address,
-        subject=f'Amherst Radios Shipping{' - Shipping Label Attached' if label else ''}',
+        subject=f'Amherst Radios Shipping{" - Shipping Label Attached" if label else ""}',
         body=body,
         attachment_paths=[label] if label else [],
     )
@@ -92,7 +92,7 @@ async def send_label_email(shipment):
 async def send_invoice_email(invoice: Path, address: str):
     addrs = set(a.strip() for a in address.split(',') if a.strip())
     addr_str = ', '.join(addrs)
-    body = amherst_settings().templates.get_template('email_snips/invoice_email.html').render(invoice=invoice)
+    body = AMHERST_SETTINGS.templates.get_template('email_snips/invoice_email.html').render(invoice=invoice)
     email = Email(
         to_address=addr_str,
         subject='Amherst Radios Invoice Attached',

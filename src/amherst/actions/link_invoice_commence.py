@@ -32,4 +32,3 @@ def link_hire_invoice_pk(row_pk: str, invoice_file: Path):
 
 if __name__ == '__main__':
     link_hire_invoice_pk('TEST RECORD DO NOT EDIT', Path(r'C:\prdev\wordmacro\dest\A26424.docx'))
-    

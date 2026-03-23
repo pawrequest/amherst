@@ -4,7 +4,6 @@ import functools
 import time
 from collections.abc import Generator
 from datetime import date, timedelta
-from enum import StrEnum
 from pprint import pprint
 
 import matplotlib.pyplot as plt
@@ -14,22 +13,29 @@ from pycommence.filters import ConditionType, FieldFilter, FilterArray
 from pycommence.pycmc_types import CmcDateFormat, Pagination, RowData
 from pycommence.pycommence import PyCommence
 
-from amherst.models.commence_adaptors import HireAliases, HireStatus, RadioType
+from amherst.models.amherst_models import (
+    HIRE_STATUS_ALIAS,
+    HIRE_SEND_DATE_ALIAS,
+    HIRE_ALIAS_DUE_BACK,
+    HIRE_ALIAS_RADIO_TYPE,
+    HIRE_ALIAS_PARROT,
+)
+from amherst.models.commence_adaptors import HireStatus, RadioType
 
 logger = get_loguru(profile='local')
 
 
 def filarray_basic():
     return FilterArray.from_filters(
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.PACKED),
-        FieldFilter(column=HireAliases.STATUS, condition=ConditionType.NOT_EQUAL, value=HireStatus.QUOTE_GIVEN),
+        FieldFilter(column=HIRE_STATUS_ALIAS, condition=ConditionType.NOT_EQUAL, value=HireStatus.CANCELLED),
+        FieldFilter(column=HIRE_STATUS_ALIAS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_OK),
+        FieldFilter(column=HIRE_STATUS_ALIAS, condition=ConditionType.NOT_EQUAL, value=HireStatus.RTN_PROBLEMS),
+        FieldFilter(column=HIRE_STATUS_ALIAS, condition=ConditionType.NOT_EQUAL, value=HireStatus.PACKED),
+        FieldFilter(column=HIRE_STATUS_ALIAS, condition=ConditionType.NOT_EQUAL, value=HireStatus.QUOTE_GIVEN),
     )
 
 
-def daterange_generator(start_date, end_date) -> Generator[date, None, None]:
+def daterange_generator(start_date, end_date) -> Generator[date]:
     for delta in range((end_date - start_date).days + 1):
         thisdate = start_date + timedelta(days=delta)
         yield thisdate
@@ -43,11 +49,11 @@ class StockChecker:
         start_date: date = date.today(),
         end_date: date = date.today() + timedelta(days=6),
         stock: int = 500,
-        column_to_count: StrEnum = HireAliases.UHF,
+        column_to_count: str = 'Number UHF',
     ):
-        if radiotype is None and column_to_count == HireAliases.UHF:
+        if radiotype is None and column_to_count == 'Number UHF':
             raise ValueError(
-                'You must provide a radiotype when checking radio stock. ' 'Use the RadioType enum to specify the type.'
+                'You must provide a radiotype when checking radio stock. Use the RadioType enum to specify the type.'
             )
         self.start_date = start_date
         self.end_date = end_date
@@ -61,12 +67,10 @@ class StockChecker:
 
     def prepare_dataframe(self):
         df = pd.DataFrame(self.records)
-        df[HireAliases.SEND_DATE] = pd.to_datetime(
-            df[HireAliases.SEND_DATE], format=CmcDateFormat, errors='coerce'
+        df[HIRE_SEND_DATE_ALIAS] = pd.to_datetime(
+            df[HIRE_SEND_DATE_ALIAS], format=CmcDateFormat, errors='coerce'
         ).dt.date
-        df[HireAliases.DUE_BACK_DATE] = pd.to_datetime(
-            df[HireAliases.DUE_BACK_DATE], format=CmcDateFormat, errors='coerce'
-        ).dt.date
+        df[HIRE_ALIAS_DUE_BACK] = pd.to_datetime(df[HIRE_ALIAS_DUE_BACK], format=CmcDateFormat, errors='coerce').dt.date
         # df[HireAliases.UHF] = df[HireAliases.UHF].astype(int)
         df[self.column_to_count] = df[self.column_to_count].astype(int)
         return df
@@ -85,13 +89,13 @@ class StockChecker:
         filter_array = filarray_basic()
         filter_array.add_filter(
             FieldFilter(
-                column=HireAliases.SEND_DATE,
+                column=HIRE_SEND_DATE_ALIAS,
                 condition=ConditionType.AFTER,
                 value=self.start_date.strftime(CmcDateFormat),
             )
         )
         if self.radiotype:
-            filter_array.add_filter(FieldFilter(column=HireAliases.RADIO_TYPE, value=self.radiotype))
+            filter_array.add_filter(FieldFilter(column=HIRE_ALIAS_RADIO_TYPE, value=self.radiotype))
         return filter_array
 
     def run(self):
@@ -113,18 +117,17 @@ class StockChecker:
         self.plot_data(data_df)
 
     def to_send(self, datecheck: date):
-        filtered_data = self.data[self.data[HireAliases.SEND_DATE] == datecheck]
+        filtered_data = self.data[self.data[HIRE_SEND_DATE_ALIAS] == datecheck]
         return filtered_data[self.column_to_count].sum()
 
     def to_return(self, datecheck: date):
-        filtered_data = self.data[self.data[HireAliases.DUE_BACK_DATE] == datecheck]
+        filtered_data = self.data[self.data[HIRE_ALIAS_DUE_BACK] == datecheck]
         return filtered_data[self.column_to_count].sum()
 
     @functools.lru_cache
     def how_many_out(self, datecheck):
         filtered_data = self.data[
-            (self.data[HireAliases.SEND_DATE].dt.date < datecheck)
-            & (self.data[HireAliases.DUE_BACK_DATE].dt.date > datecheck)
+            (self.data[HIRE_SEND_DATE_ALIAS].dt.date < datecheck) & (self.data[HIRE_ALIAS_DUE_BACK].dt.date > datecheck)
         ]
         rads_out = filtered_data[self.column_to_count].sum()
         return rads_out
@@ -169,7 +172,7 @@ if __name__ == '__main__':
     starttime = time.perf_counter()
     sc = StockChecker(
         radiotype=RadioType.HYTERA,
-        column_to_count=HireAliases.PARROT,
+        column_to_count=HIRE_ALIAS_PARROT,
         stock=0,
         start_date=date.today(),
         end_date=date.today() + timedelta(days=60),
@@ -180,4 +183,3 @@ if __name__ == '__main__':
     print(f'Elapsed time: {endtime - starttime}')
     pprint(sc.data.head(10))
     pprint(sc.data.tail(10))
-

@@ -8,7 +8,7 @@ from jinja2 import Environment
 from loguru import logger
 from pycommence import pycommence_context
 
-from amherst.config import Settings
+from amherst.config import AMHERST_SETTINGS
 from amherst.frontend_funcs import ordinal_dt
 from amherst.models.amherst_models import (
     AmherstShipableBase,
@@ -21,8 +21,10 @@ def timestamp() -> str:
     return datetime.now().strftime('%Y%m%dT%H%M%S')
 
 
-def generate_box_label(order: AmherstShipableBase, settings: Settings, tmplt_name: str = 'box_pd.docx') -> Path:
-    tmplt = settings.template_dir / tmplt_name
+def generate_box_label(order: AmherstShipableBase, tmplt_name: str = 'box_pd.docx') -> Path:
+    settings = AMHERST_SETTINGS
+
+    tmplt = settings.ui_dir / 'templates' / tmplt_name
     template = DocxTemplate(tmplt)
     jinja_env = Environment()
     jinja_env.globals['ordinal_dt'] = ordinal_dt
@@ -50,15 +52,14 @@ async def record_from_commence(category: CategoryName, pk: str) -> AmherstShipab
     return record
 
 
-def commence_box_label(category: CategoryName, pk: str, amherst_env: Path) -> Path:
-    settings = Settings(_env_file=amherst_env)
+def commence_box_label(category: CategoryName, pk: str) -> Path:
     record = asyncio.run(record_from_commence(category=category, pk=pk))
-    return generate_box_label(record, settings)
+    return generate_box_label(record)
 
 
 if __name__ == '__main__':
     category = CategoryName.Trial
     pk = 'Test -  ref 1660'
-    amherst_env = Path(r"C:\prdev\envs\amdev\sandbox\amherst.env")
-    output = commence_box_label(category, pk, amherst_env)
+    amherst_env = Path(r'C:\prdev\envs\amdev\sandbox\amherst.env')
+    output = commence_box_label(category, pk)
     os.startfile(output)

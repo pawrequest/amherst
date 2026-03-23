@@ -44,4 +44,3 @@ def has_20_after(index: int, nums: {int}):
         else:
             return False
     return True
-

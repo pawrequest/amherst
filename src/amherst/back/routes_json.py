@@ -6,7 +6,7 @@ from starlette.requests import Request
 
 from amherst.back.backend_pycommence import pycmc_f_query, pycommence_search
 from amherst.back.backend_search_paginate import SearchResponse
-from amherst.config import amherst_settings
+from amherst.config import AMHERST_SETTINGS
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CursorName
 from amherst.models.meta import get_table_model
@@ -48,7 +48,7 @@ async def health():
 async def testing(
     request: Request,
 ):
-    return amherst_settings().templates.TemplateResponse('testing.html', {'request': request})
+    return AMHERST_SETTINGS.templates.TemplateResponse('testing.html', {'request': request})
 
 
 @router.get('/')
@@ -56,5 +56,3 @@ async def pycommence_search_endpoint(
     search_response: SearchResponse = Depends(pycommence_search),
 ) -> SearchResponse:
     return search_response
-
-
