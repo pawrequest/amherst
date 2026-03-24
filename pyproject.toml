@@ -66,4 +66,4 @@ format.quote-style = "single"
 #
 [tool.uv.sources]
 shipaw = { path = '../shipaw', editable = true }
-pawlogger = { path = '../../pawlogger', editable = true }
+#pawlogger = { path = '../../pawlogger', editable = true }
