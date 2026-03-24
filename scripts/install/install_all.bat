@@ -6,7 +6,7 @@ setx AMHERSTSHIPPER %AMHERSTSHIPPER%
 echo Installing Amherst Shipper into %AMHERSTSHIPPER%
 
 call %thisDir%\install_git_uv.bat
-call %thisDir%\uv_install_amherst_app.bat
+call %thisDir%\uv_install_amherst_app.bat --no-cache --force-reinstall
 call %thisDir%\copy_envs.bat
 
 pushd %AMHERSTSHIPPER%
