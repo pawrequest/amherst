@@ -210,7 +210,7 @@ class AmherstSale(AmherstOrderBase):
     delivery_method: str | None = None
 
     # optional overrides order
-    status: SaleStatus
+    status: SaleStatus = Field(None, alias='Status')
     booking_date: CommenceDate | None = Field(None, alias='Date Ordered')
 
     # sale fields
