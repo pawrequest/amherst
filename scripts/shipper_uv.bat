@@ -8,6 +8,8 @@ echo Running shipper from %~dp0 with arguments: %1 %2 %3
 call %thisDir%\install\uv_install_amherst_app.bat
 
 pushd %AMHERSTSHIPPER%
+set AMHERST_ENV=%AMHERSTSHIPPER%\amherst.env
+set AMHERST_ENV=%AMHERSTSHIPPER%\shipaw.env
 uv run shipper %1 %2 %3
 popd
 

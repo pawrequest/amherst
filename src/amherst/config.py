@@ -11,7 +11,7 @@ from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
 
-DEFAULT_UI_DIR = Path(files('amherst').joinpath('ui'))
+DEFAULT_UI_DIR: Path = Path(str(files('amherst').joinpath('ui')))
 DEFAULT_AMHERST_DATA_DIR = Path.home() / 'amherst_shipper'
 AMHERST_ENV_KEY = 'AMHERST_ENV'
 
@@ -37,10 +37,6 @@ class AmherstSettings(BaseSettings):
     @property
     def template_dir(self) -> Path:
         return self.ui_dir / 'templates'
-
-    # @property
-    # def static_dir(self) -> Path:
-    #     return self.ui_dir / 'static'
 
     @computed_field
     @property
@@ -69,20 +65,23 @@ class AmherstSettings(BaseSettings):
     @cache
     def from_env(cls) -> AmherstSettings:
         env_path = load_env(AMHERST_ENV_KEY)
-        if not env_path.exists():
-            raise FileNotFoundError(f'Environment file {env_path} does not exist')
-        res = cls(_env_file=env_path)  # pycharm_pydantic false positive
-        configure_loguru(log_file=res.log_file, level=res.log_level)
+        if env_path.exists():
+            setts = cls(_env_file=env_path)  # pycharm_pydantic false positive
+            print(f'Loaded Amherst AmherstSettings from {env_path}')
+        else:
+            setts = cls()
+            print(f'No env file found for AmherstSettings at {env_path}, using defaults')
+        configure_loguru(log_file=setts.log_file, level=setts.log_level)
         print(f'Loaded Amherst AmherstSettings from {env_path}')
-        return res
+        return setts
 
 
-@cache
-def amherst_settings() -> AmherstSettings:
-    am_env_file = load_env()
-    am_sets = AmherstSettings(_env_file=am_env_file)
-    configure_loguru(log_file=am_sets.log_file, level=am_sets.log_level)
-    return am_sets
+# @cache
+# def amherst_settings() -> AmherstSettings:
+#     am_env_file = load_env()
+#     am_sets = AmherstSettings(_env_file=am_env_file)
+#     configure_loguru(log_file=am_sets.log_file, level=am_sets.log_level)
+#     return am_sets
 
 
 AMHERST_SETTINGS = AmherstSettings.from_env()

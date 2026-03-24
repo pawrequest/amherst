@@ -8,7 +8,7 @@ echo Installing / Updating Amherst App in %AMHERSTSHIPPER%
 set REPO_URL=https://github.com/pawrequest/amherst/
 set BRANCH_NAME=v3
 
-REM Clone or pull repo
+REM Make / enter the shipper directory
 if not exist "%AMHERSTSHIPPER%" (
     echo %AMHERSTSHIPER% virtual environment not found, making now...
     mkdir "%AMHERSTSHIPPER%"
@@ -19,6 +19,7 @@ if not exist "%AMHERSTSHIPPER%" (
     pushd %AMHERSTSHIPPER%
 )
 
+REM Install / Update Amherst App
 echo Installing / Updating Amherst from branch %BRANCH_NAME%...
 call .venv\Scripts\activate
 call uv pip install "git+https://github.com/pawrequest/amherst.git@%BRANCH_NAME%#egg=amherst"

@@ -1,13 +1,13 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="SHIPPER LIVE" type="PythonConfigurationType" factoryName="Python">
+  <configuration default="false" name="SHIPPER LIVE DEV" type="PythonConfigurationType" factoryName="Python">
     <module name="amherst" />
     <option name="ENV_FILES" value="" />
     <option name="INTERPRETER_OPTIONS" value="" />
     <option name="PARENT_ENVS" value="true" />
     <envs>
-      <env name="AMHERST_ENV" value="C:\prdev\envs\amdev\live\amherst.env" />
+      <env name="AMHERST_ENV" value="C:\prdev\envs\amdev\live_dev\amherst.env" />
       <env name="PYTHONUNBUFFERED" value="1" />
-      <env name="SHIPAW_ENV" value="C:\prdev\envs\amdev\live\shipaw.env" />
+      <env name="SHIPAW_ENV" value="C:\prdev\envs\amdev\live_dev\shipaw.env" />
     </envs>
     <option name="SDK_HOME" value="" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/src/amherst" />
