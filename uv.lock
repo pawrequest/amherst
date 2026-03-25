@@ -38,7 +38,7 @@ requires-dist = [
     { name = "pycommence", specifier = ">=0.2.2" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", editable = "../shipaw" },
+    { name = "shipaw", specifier = ">=0.3.38" },
 ]
 
 [package.metadata.requires-dev]
@@ -938,8 +938,8 @@ wheels = [
 
 [[package]]
 name = "royal-mail-combined"
-version = "0.0.5"
-source = { editable = "../royal-mail-combined" }
+version = "0.0.6"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "loguru" },
@@ -952,23 +952,10 @@ dependencies = [
     { name = "ruff" },
     { name = "urllib3" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawdf", specifier = ">=0.1.2" },
-    { name = "prek", specifier = ">=0.3.6" },
-    { name = "pydantic", specifier = ">=2.12.5" },
-    { name = "pydantic-settings", specifier = ">=2.13.1" },
-    { name = "python-dateutil", specifier = ">=2.9.0.post0" },
-    { name = "python-dotenv", specifier = ">=1.2.1" },
-    { name = "ruff", specifier = ">=0.15.6" },
-    { name = "urllib3", specifier = ">=2.6.3" },
+sdist = { url = "https://files.pythonhosted.org/packages/75/20/34ce6be469b1121b31dbeaebfbb9fc56e16af16e56a8409aa93eecc2bf4b/royal_mail_combined-0.0.6.tar.gz", hash = "sha256:e2692a19afa8eeeb546bd37899724b7a71c31a260566e2fe5af7b73e9496746d", size = 61369, upload-time = "2026-03-25T16:49:25.194Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d5/3d/4b405e32c785bfc80a0f9d7891b3c875a3d7d196b8fac0b43f0768f5a723/royal_mail_combined-0.0.6-py3-none-any.whl", hash = "sha256:64aeaa91ddaef13031b3b52a6f281d2392b158858d9c82eb3793e820045d1128", size = 144602, upload-time = "2026-03-25T16:49:24.011Z" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.1" }]
 
 [[package]]
 name = "ruff"
@@ -1019,8 +1006,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.36"
-source = { editable = "../shipaw" }
+version = "0.3.38"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
@@ -1041,39 +1028,9 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "apc-hypaship", specifier = ">=0.1.10" },
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
-    { name = "hatchling", specifier = ">=1.27.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawdf", specifier = ">=0.1.0" },
-    { name = "pawlogger", specifier = ">=0.1.4" },
-    { name = "phonenumbers", specifier = ">=9.0.15" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
-    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
-    { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "pygments", specifier = ">=2.19.2" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pywin32", specifier = ">=311" },
-    { name = "royal-mail-combined", editable = "../royal-mail-combined" },
-    { name = "thefuzz", specifier = ">=0.22.1" },
-    { name = "uvicorn", specifier = ">=0.37.0" },
-]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "autodoc-pydantic", specifier = ">=2.2.0" },
-    { name = "myst-parser", specifier = ">=4.0.1" },
-    { name = "ruff", specifier = ">=0.14.1" },
-    { name = "sphinx", specifier = ">=8.2.3" },
-    { name = "sphinx-autodoc-typehints", specifier = ">=3.2.0" },
-    { name = "sphinx-readme", specifier = ">=1.2.1" },
-    { name = "sphinx-rtd-dark-mode", specifier = ">=1.3.0" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
+sdist = { url = "https://files.pythonhosted.org/packages/a0/c0/9953488869f88d837a1c547f3f3e83993f0a5909e5dda7f4d3162771cfb0/shipaw-0.3.38.tar.gz", hash = "sha256:36913fe7358353fcacf9f1706ef65680675caed7fce339220bb23bed641d80bd", size = 34916, upload-time = "2026-03-25T16:50:51.085Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8c/57/3ec132867e9dea2bf75e361831dd6bc32836bd1e4f2c0f66f49a02dcf503/shipaw-0.3.38-py3-none-any.whl", hash = "sha256:48215bdd7145105e964582c685fe7dd7b06114553d8ab159ab08365b672860c1", size = 52607, upload-time = "2026-03-25T16:50:50.169Z" },
 ]
 
 [[package]]
