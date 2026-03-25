@@ -47,12 +47,6 @@ dev = [
 
 [project.scripts]
 shipper = "amherst.cli:shipper_cli"
-print-file = "amherst.cli:file_printer_cli"
-payment-status = "amherst.cli:payment_status_cli"
-email-file = "amherst.cli:send_invoice_email_cli"
-invoice-number = "amherst.cli:next_invoice_cli"
-convert_tracking = "amherst.cli:convert_tracking_link"
-box-label = "amherst.cli:generate_box_label_cli"
 
 [tool.ruff]
 line-length = 120
@@ -61,9 +55,5 @@ lint.flake8-quotes = { inline-quotes = "single", multiline-quotes = "double" }
 format.quote-style = "single"
 
 
-#[tool.uv.build-backend]
-#source-include = ["src/amherst/ui/**"]
-#
-#[tool.uv.sources]
-#shipaw = { path = '../shipaw', editable = true }
-#pawlogger = { path = '../../pawlogger', editable = true }
+[tool.uv.sources]
+shipaw = { path = '../shipaw', editable = true }

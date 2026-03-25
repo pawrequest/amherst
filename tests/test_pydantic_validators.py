@@ -1,4 +1,5 @@
 from pycommence import pycommence_context
+from pycommence.pycmc_types import RowData
 
 from amherst.models.amherst_models import AmherstCustomer, CSV_SEPERATOR, AmherstHire
 
@@ -38,3 +39,11 @@ def test_sep():
         }
 
         pyc.update_row(pk=pk, update_pkg=update_package)
+
+
+def test_amherst_hire(amherst_customer_data: RowData):
+    info = amherst_customer_data.row_info
+    hire = amherst_customer_data.data
+    res = AmherstHire(row_info=info, **hire)
+    res = res.model_validate(res)
+    assert res.name == 'TEST RECORD DO NOT EDIT'
