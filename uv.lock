@@ -38,7 +38,7 @@ requires-dist = [
     { name = "pycommence", specifier = ">=0.2.2" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", specifier = ">=0.3.35" },
+    { name = "shipaw", editable = "../shipaw" },
 ]
 
 [package.metadata.requires-dev]
@@ -938,8 +938,8 @@ wheels = [
 
 [[package]]
 name = "royal-mail-combined"
-version = "0.0.4"
-source = { registry = "https://pypi.org/simple" }
+version = "0.0.5"
+source = { editable = "../royal-mail-combined" }
 dependencies = [
     { name = "httpx" },
     { name = "loguru" },
@@ -952,10 +952,23 @@ dependencies = [
     { name = "ruff" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/59/85/d18cfc3f559d859aa9aa6e9b59a0990fde2b5e7cfca6caf50dfc1da2c263/royal_mail_combined-0.0.4.tar.gz", hash = "sha256:da8e447a35f07efd58fc15e013907b52d5f4d6280c9f9c0a91d47c41c296502d", size = 61342, upload-time = "2026-03-24T14:15:23.844Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/09/2a5bfca4da5672874a18bbefab97547c4cb4f4f305bfccee75f4dac832c6/royal_mail_combined-0.0.4-py3-none-any.whl", hash = "sha256:f94d4ac530cbe0b242df27621a5a3fb2f878f5f84fd33f6e1f18020ccb691512", size = 144540, upload-time = "2026-03-24T14:15:22.69Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pawdf", specifier = ">=0.1.2" },
+    { name = "prek", specifier = ">=0.3.6" },
+    { name = "pydantic", specifier = ">=2.12.5" },
+    { name = "pydantic-settings", specifier = ">=2.13.1" },
+    { name = "python-dateutil", specifier = ">=2.9.0.post0" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
+    { name = "ruff", specifier = ">=0.15.6" },
+    { name = "urllib3", specifier = ">=2.6.3" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.1" }]
 
 [[package]]
 name = "ruff"
@@ -1006,8 +1019,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.35"
-source = { registry = "https://pypi.org/simple" }
+version = "0.3.36"
+source = { editable = "../shipaw" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
@@ -1028,9 +1041,39 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/22/e2/01932b652c4a1bde861fc44687f10af42599a357207f5aa125c41daadf00/shipaw-0.3.35.tar.gz", hash = "sha256:1d93107a8e9add934a67e327850b79fa05a66cdf0caf840b0a206ad462e57a18", size = 34906, upload-time = "2026-03-25T13:38:42.014Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b8/02/142df2291b7510e4c94393c416070f56381c94bf1abbc9d9c6372f00fdf2/shipaw-0.3.35-py3-none-any.whl", hash = "sha256:43a92106d5787b263e4e7c478e9c50f786280d0a07fd5f0d898586171404569a", size = 52535, upload-time = "2026-03-25T13:38:41.028Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "apc-hypaship", specifier = ">=0.1.10" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pawdf", specifier = ">=0.1.0" },
+    { name = "pawlogger", specifier = ">=0.1.4" },
+    { name = "phonenumbers", specifier = ">=9.0.15" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
+    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pygments", specifier = ">=2.19.2" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pywin32", specifier = ">=311" },
+    { name = "royal-mail-combined", editable = "../royal-mail-combined" },
+    { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "uvicorn", specifier = ">=0.37.0" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "autodoc-pydantic", specifier = ">=2.2.0" },
+    { name = "myst-parser", specifier = ">=4.0.1" },
+    { name = "ruff", specifier = ">=0.14.1" },
+    { name = "sphinx", specifier = ">=8.2.3" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=3.2.0" },
+    { name = "sphinx-readme", specifier = ">=1.2.1" },
+    { name = "sphinx-rtd-dark-mode", specifier = ">=1.3.0" },
+    { name = "sphinx-rtd-theme", specifier = ">=3.0.2" },
 ]
 
 [[package]]

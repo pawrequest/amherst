@@ -15,9 +15,9 @@ router = APIRouter()
 
 @router.get('/ship_form_am', response_class=HTMLResponse)
 async def get_shipping_form(
-        request: Request,
-        search_request: SearchRequest = Depends(SearchRequest.from_query),
-        record: AmherstShipableBase = Depends(pycommence_get_one),
+    request: Request,
+    search_request: SearchRequest = Depends(SearchRequest.from_query),
+    record: AmherstShipableBase = Depends(pycommence_get_one),
 ) -> HTMLResponse:
     if not record:
         msg = f'Record not found for {search_request.csrname}: {search_request.pk_value}'
