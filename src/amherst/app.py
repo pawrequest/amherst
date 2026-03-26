@@ -20,6 +20,7 @@ from amherst.config import AMHERST_SETTINGS
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
+        # todo check socket in use, if so alert and exit
         app.amherst_settings = AMHERST_SETTINGS
         app.shipaw_settings = SHIPAW_SETTINGS
         populate_providers(SHIPAW_SETTINGS)
