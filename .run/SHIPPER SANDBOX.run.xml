@@ -16,8 +16,8 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="RUN_TOOL" value="true" />
-    <option name="SCRIPT_NAME" value="C:\prdev\amdev\amherst\src\amherst\cli.py" />
-    <option name="PARAMETERS" value="Sale &quot;TEST SALE&quot;" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/amherst/cli.py" />
+    <option name="PARAMETERS" value="Customer Test" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />
