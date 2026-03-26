@@ -72,7 +72,7 @@ class AmherstSettings(BaseSettings):
             setts = cls()
             print(f'No env file found for AmherstSettings at {env_path}, using defaults')
         configure_loguru(log_file=setts.log_file, level=setts.log_level)
-        print(f'Loaded Amherst AmherstSettings from {env_path}')
+        print(f'Logging to "{setts.log_file}" At level "{setts.log_level}"')
         return setts
 
 
