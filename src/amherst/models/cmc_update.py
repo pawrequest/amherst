@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from datetime import date
-from typing import Any
+from typing import Any, cast
 
 from shipaw.fapi.responses import ShipmentResponse
 from shipaw.models.ship_types import ShipDirection
@@ -39,10 +39,12 @@ async def _cmc_update_dict_base(shipment: AmherstShipment, shipment_response: Sh
 
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
         links_field = record.alias_lookup('tracking_links_in')
+        latest_tracking_field = record.alias_lookup('latest_tracking_in')
         old_links = record.tracking_links_in
 
     elif shipdir == ShipDirection.OUTBOUND:
         links_field = record.alias_lookup('tracking_links_out')
+        latest_tracking_field = record.alias_lookup('latest_tracking_out')
         old_links = record.tracking_links_out
 
     else:
@@ -51,6 +53,7 @@ async def _cmc_update_dict_base(shipment: AmherstShipment, shipment_response: Sh
     old_links.extend(new_tracking_links)
 
     update_package = {
+        latest_tracking_field: new_tracking_links[0] if new_tracking_links else None,
         links_field: join_csv(old_links),
         nums_field: join_csv(tracking_numbers),
     }
@@ -61,6 +64,7 @@ async def _cmc_update_dict_hire_extras(shipment: AmherstShipment) -> dict:
     record = shipment.record
     if not isinstance(record, AmherstHire):
         raise ValueError('Record is not an AmherstHire')
+    record = cast(AmherstHire, record)
     shipdir = shipment.direction
     if shipdir in [ShipDirection.INBOUND, ShipDirection.DROPOFF]:
         return await _extras_hire_in(record, shipment)

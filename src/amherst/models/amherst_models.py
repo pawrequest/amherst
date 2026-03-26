@@ -55,11 +55,13 @@ class AmherstShipableBase(BaseModel, ABC):
     row_info: RowInfo  # commence row info
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
-    track_out: str | None = Field(alias='Track Outbound')
-    track_in: str | None = Field(alias='Track Inbound')
+    # track_out: str | None = Field(alias='Track Outbound')
+    # track_in: str | None = Field(alias='Track Inbound')
     tracking_numbers: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Numbers')
     tracking_links_in: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links In')
     tracking_links_out: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links Out')
+    latest_tracking_in: str = Field('', alias='Latest Tracking In')
+    latest_tracking_out: str = Field('', alias='Latest Tracking Out')
 
     # mandatory fields
     customer_name: str
