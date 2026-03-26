@@ -2,11 +2,14 @@ import contextlib
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
+from loguru import logger
+from pawlogger import configure_loguru
 from shipaw.config import SHIPAW_SETTINGS, populate_providers
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
 from shipaw.fapi.routes_api import router as shipaw_json_router
 from shipaw.fapi.routes_html import router as shipaw_html_router
+from shipaw.fapi.log_stream import LogStream
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
@@ -23,11 +26,20 @@ async def lifespan(app_: FastAPI):
         # todo check socket in use, if so alert and exit
         app.amherst_settings = AMHERST_SETTINGS
         app.shipaw_settings = SHIPAW_SETTINGS
+        app_.state.log_stream = LogStream(max_history=400, queue_size=200)
+        configure_loguru(logger_=logger, log_file=AMHERST_SETTINGS.log_file, level=AMHERST_SETTINGS.log_level)
+
+        app_.state.shipaw_log_sink_id = logger.add(
+            app_.state.log_stream.sink,
+            level='DEBUG',
+            enqueue=False,
+        )
         populate_providers(SHIPAW_SETTINGS)
         yield
 
     finally:
-        pass
+        if hasattr(app_.state, 'shipaw_log_sink_id'):
+            logger.remove(app_.state.shipaw_log_sink_id)
 
 
 app = FastAPI(lifespan=lifespan)
@@ -58,14 +70,14 @@ async def favicon_ico():
 
 @app.get('/base', response_class=HTMLResponse)
 async def base(
-    request: Request,
+        request: Request,
 ):
     return AMHERST_SETTINGS.templates.TemplateResponse('base.html', {'request': request})
 
 
 @app.get('/', response_class=RedirectResponse)
 async def startup(
-    request: Request,
+        request: Request,
 ):
     url = request.app.starting_url if hasattr(request.app, 'starting_url') else '/base'
     return RedirectResponse(url)
