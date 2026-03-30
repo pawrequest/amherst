@@ -7,8 +7,7 @@ from starlette.responses import HTMLResponse
 
 from amherst.back.backend_pycommence import pycommence_get_one
 from amherst.back.backend_search_paginate import SearchRequest
-from amherst.back.callbacks import cmc_log_callback
-from amherst.back.callbacks2 import cmc_callback
+from amherst.back.callbacks import cmc_callback
 from amherst.models.amherst_models import AmherstHire, AmherstShipableBase
 
 router = APIRouter()
@@ -33,7 +32,6 @@ async def get_shipping_form(
 
     shipment = record.shipment()
     request.app.callback = cmc_callback
-    # request.app.callback = cmc_log_callback
 
     res = await shipping_form(request=request, shipment=shipment)
     return res

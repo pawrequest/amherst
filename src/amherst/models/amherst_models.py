@@ -36,6 +36,7 @@ class AmherstShipableBase(AmherstBase, ABC):
     tracking_links_out: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links Out')
     latest_tracking_in: str = Field('', alias='Latest Tracking In')
     latest_tracking_out: str = Field('', alias='Latest Tracking Out')
+    shipped_shipments: CommaSeparatedStrField = Field('', alias='Shipped Shipment')
 
     # mandatory fields
     customer_name: str
@@ -149,8 +150,8 @@ class AmherstCustomer(AmherstShipableBase):
     primary_email: str = Field('', alias='Primary Email')
     date_last_contacted: CommenceDate | None = Field(None, alias='Date Last Contact')
 
-    hires: str = Field('', alias='Has Hired Hires')
-    sales: str = Field('', alias='Involves Sale')
+    hires: CommaSeparatedStrField = Field('', alias='Has Hired Hires')
+    sales: CommaSeparatedStrField = Field('', alias='Involves Sale')
 
 
 @register_table

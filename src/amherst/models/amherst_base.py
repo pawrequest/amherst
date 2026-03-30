@@ -38,4 +38,5 @@ class AmherstBase(BaseModel, ABC):
     model_config = ConfigDict(
         populate_by_name=True,
         use_enum_values=True,
+        validate_assignment=True,
     )
