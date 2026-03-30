@@ -11,11 +11,14 @@ from amherst.models.amherst_models import (
     AmherstHire,
     AmherstShipableBase,
 )
+from .commence_shipment import CommenceShipment
 from amherst.models.shipment import AmherstShipment
 
-from .amherst_models import join_csv
+from .amherst_base import join_csv
 
 CmcUpdateFuncAgnost = Callable[[AmherstShipableBase, AmherstShipment, ShipmentResponse], Awaitable[dict[str, str]]]
+
+
 
 
 async def make_update_dict(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> dict[str, Any]:

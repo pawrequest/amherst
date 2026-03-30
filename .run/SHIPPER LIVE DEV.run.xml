@@ -16,8 +16,8 @@
     <option name="ADD_SOURCE_ROOTS" value="true" />
     <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
     <option name="RUN_TOOL" value="true" />
-    <option name="SCRIPT_NAME" value="C:\prdev\amdev\amherst\src\amherst\cli.py" />
-    <option name="PARAMETERS" value="Hire &quot;West Buckland School - 25/03/2026 ref 21516&quot;" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/src/amherst/cli.py" />
+    <option name="PARAMETERS" value="Hire &quot;TEST RECORD DO NOT EDIT&quot;" />
     <option name="SHOW_COMMAND_LINE" value="false" />
     <option name="EMULATE_TERMINAL" value="false" />
     <option name="MODULE_MODE" value="false" />

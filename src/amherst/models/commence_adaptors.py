@@ -27,6 +27,7 @@ class RadioType(StrEnum):
 
 
 class CategoryName(StrEnum):
+    Shipment = 'Shipment'
     Hire = 'Hire'
     Sale = 'Sale'
     Customer = 'Customer'

@@ -1,7 +1,34 @@
 from pycommence import pycommence_context
 from pycommence.pycmc_types import RowData
 
-from amherst.models.amherst_models import AmherstCustomer, CSV_SEPERATOR, AmherstHire
+from amherst.models.amherst_models import AmherstCustomer, AmherstHire
+from amherst.models.amherst_base import CSV_SEPERATOR
+from datetime import date, timedelta
+from pathlib import Path
+
+import dotenv
+import pytest
+from pycommence import pycommence_context
+from pycommence.pycmc_types import RowData
+
+from amherst.models.amherst_models import AmherstCustomer
+
+envs_index = Path(r'C:\prdev\envs\sandbox.env')
+dotenv.load_dotenv(envs_index)
+TEST_DATE = date.today() + timedelta(days=2)
+if TEST_DATE.weekday() in (5, 6):
+    TEST_DATE += timedelta(days=7 - TEST_DATE.weekday())
+
+
+@pytest.fixture(scope='session')
+def amherst_customer_data() -> RowData:
+    with pycommence_context(csrname='Customer') as cmc:
+        return cmc.read_row(pk='Test')
+
+
+@pytest.fixture(scope='session')
+def amherst_customer(amherst_customer_data) -> AmherstCustomer:
+    return AmherstCustomer(row_info=amherst_customer_data.row_info, **amherst_customer_data.data)
 
 
 def test_auto_csv(amherst_customer):

@@ -3,15 +3,16 @@ from __future__ import annotations
 from abc import ABC
 from datetime import date
 from os import PathLike
-from typing import Annotated, ClassVar
+from typing import ClassVar
 
 from loguru import logger
 from pycommence.pycmc_types import RowInfo
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, PlainSerializer, field_validator
+from pydantic import Field, field_validator
 from shipaw.models.address import Address as AddressAgnost
 from shipaw.models.address import Contact, FullContact
 from shipaw.models.ship_types import ShipDirection
 
+from amherst.models.amherst_base import AmherstBase, CommaSeparatedStrField
 from amherst.models.commence_adaptors import (
     CategoryName,
     CommenceDate,
@@ -23,35 +24,8 @@ from amherst.models.commence_adaptors import (
 from amherst.models.meta import register_table
 from amherst.models.shipment import AmherstShipment
 
-CSV_SEPERATOR = ',\r\n\r\n'
 
-
-def split_csv(v):
-    if isinstance(v, str):
-        return [item.strip() for item in v.split(',') if item.strip()]
-    raise ValueError(f'Expected a string, got {type(v)}')
-
-
-def join_csv(v):
-    if isinstance(v, list):
-        return CSV_SEPERATOR.join(v)
-    raise ValueError(f'Expected a list, got {type(v)}')
-
-
-CommaSeparatedStrField = Annotated[
-    list[str],
-    BeforeValidator(split_csv),
-    PlainSerializer(join_csv),
-]
-
-
-class AmherstShipableBase(BaseModel, ABC):
-    category: ClassVar[CategoryName]
-    model_config = ConfigDict(
-        populate_by_name=True,
-        use_enum_values=True,
-    )
-
+class AmherstShipableBase(AmherstBase, ABC):
     row_info: RowInfo  # commence row info
     # amherst common fieldnames fields
     name: str = Field(..., alias='Name')
@@ -223,15 +197,6 @@ class AmherstSale(AmherstOrderBase):
 @register_table
 class AmherstTrial(AmherstOrderBase):
     category: ClassVar[CategoryName] = CategoryName.Trial
-
-
-@register_table
-class Shipment(BaseModel):
-    name: str = Field(..., alias='Name')
-    direction: ShipDirection = Field(..., alias='Direction')
-    latest_tracking: str = Field('', alias='Latest Tracking')
-    tracking_links: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links')
-    notes: str = Field('', alias='Notes')
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale
