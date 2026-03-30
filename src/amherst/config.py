@@ -23,10 +23,6 @@ def load_env(env_key: str) -> Path:
     return amherst_env_file
 
 
-def afunc():
-    return
-
-
 class AmherstSettings(BaseSettings):
     log_level: str = 'DEBUG'
     data_dir: Path = DEFAULT_AMHERST_DATA_DIR
