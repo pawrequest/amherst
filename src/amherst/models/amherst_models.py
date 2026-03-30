@@ -225,6 +225,15 @@ class AmherstTrial(AmherstOrderBase):
     category: ClassVar[CategoryName] = CategoryName.Trial
 
 
+@register_table
+class Shipment(BaseModel):
+    name: str = Field(..., alias='Name')
+    direction: ShipDirection = Field(..., alias='Direction')
+    latest_tracking: str = Field('', alias='Latest Tracking')
+    tracking_links: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links')
+    notes: str = Field('', alias='Notes')
+
+
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale
 SALE_BOOKED_DATE_ALIAS = AmherstSale.alias_lookup_c('booking_date')
 HIRE_SEND_DATE_ALIAS = AmherstHire.alias_lookup_c('send_date')
