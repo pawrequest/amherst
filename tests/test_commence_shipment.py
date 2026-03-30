@@ -9,10 +9,7 @@ from amherst.models.shipment import AmherstShipment
 
 
 def test_create():
-    ship = CommenceShipment(
-        direction=ShipDirection.OUTBOUND,
-        customer=['Test']
-    )
+    ship = CommenceShipment(direction=ShipDirection.OUTBOUND, customer=['Test'])
     shpdict = ship.model_dump(by_alias=True)
     with pycommence_context(csrname='Shipment') as cmc:
         res = cmc.create_row(shpdict, csrname='Shipment')

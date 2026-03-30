@@ -70,14 +70,14 @@ async def favicon_ico():
 
 @app.get('/base', response_class=HTMLResponse)
 async def base(
-        request: Request,
+    request: Request,
 ):
     return AMHERST_SETTINGS.templates.TemplateResponse('base.html', {'request': request})
 
 
 @app.get('/', response_class=RedirectResponse)
 async def startup(
-        request: Request,
+    request: Request,
 ):
     url = request.app.starting_url if hasattr(request.app, 'starting_url') else '/base'
     return RedirectResponse(url)

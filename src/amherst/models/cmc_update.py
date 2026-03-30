@@ -19,8 +19,6 @@ from .amherst_base import join_csv
 CmcUpdateFuncAgnost = Callable[[AmherstShipableBase, AmherstShipment, ShipmentResponse], Awaitable[dict[str, str]]]
 
 
-
-
 async def make_update_dict(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> dict[str, Any]:
     """Adds tracking numbers and link."""
     record = shipment.record

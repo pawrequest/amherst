@@ -35,11 +35,7 @@ async def cmc_callback(request: AmherstShipmentRequest, response: ShipmentRespon
     shipment = request.shipment
     await safe_call(update_cmc, shipment, response=response, error_msg='Error updating Commence')
     await safe_call(
-        create_shipment_in_cmc,
-        shipment,
-        response,
-        response=response,
-        error_msg='Error creating Commence Shipment'
+        create_shipment_in_cmc, shipment, response, response=response, error_msg='Error creating Commence Shipment'
     )
     logger.info(
         f'Updated Commence row id {shipment.row_info.id} in {shipment.row_info.category} Table\n'
@@ -65,8 +61,10 @@ async def make_update_dict(shipment: AmherstShipment) -> dict[str, Any]:
 async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, shipping_date: date) -> dict:
     match direction:
         case ShipDirection.INBOUND | ShipDirection.DROPOFF:
-            ret_notes = (f'{date.today().strftime("%d/%m")}: pickup arranged for'
-                         f' {shipping_date.strftime("%d/%m")}\r\n{record.return_notes}')
+            ret_notes = (
+                f'{date.today().strftime("%d/%m")}: pickup arranged for'
+                f' {shipping_date.strftime("%d/%m")}\r\n{record.return_notes}'
+            )
             return {
                 record.alias_lookup('arranged_in'): 'True',
                 record.alias_lookup('pickup_date'): f'{shipping_date:%Y-%m-%d}',
