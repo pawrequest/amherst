@@ -8,7 +8,7 @@ from loguru import logger
 from pycommence import pycommence_context
 from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.responses import ShipmentResponse
-from shipaw.models.ship_types import ShipDirection
+from shipaw.models.consts_enums import ShipDirection
 
 from amherst.models.amherst_models import (
     AmherstHire,

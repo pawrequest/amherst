@@ -4,7 +4,7 @@ from datetime import datetime, date
 from typing import ClassVar
 
 from pydantic import Field
-from shipaw.models.ship_types import ShipDirection
+from shipaw.models.consts_enums import ShipDirection
 
 from amherst.models.amherst_base import AmherstBase, CommaSeparatedStrField
 from amherst.models.commence_adaptors import CategoryName
