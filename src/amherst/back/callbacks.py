@@ -1,6 +1,5 @@
-from __future__ import annotations, annotations
+from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
 from datetime import date
 from typing import Any, cast
 
@@ -10,10 +9,7 @@ from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.responses import ShipmentResponse
 from shipaw.utils.consts_enums import ShipDirection
 
-from amherst.models.amherst_models import (
-    AmherstHire,
-    AmherstShipableBase,
-)
+from amherst.models.amherst_models import AmherstHire
 from amherst.models.commence_adaptors import CategoryName
 from amherst.models.commence_shipment import CommenceShipment
 from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
