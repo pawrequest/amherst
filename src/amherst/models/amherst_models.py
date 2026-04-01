@@ -10,7 +10,7 @@ from pycommence.pycmc_types import RowInfo
 from pydantic import Field, field_validator
 from shipaw.models.address import Address as AddressAgnost
 from shipaw.models.address import Contact, FullContact
-from shipaw.models.consts_enums import ShipDirection
+from shipaw.utils.consts_enums import ShipDirection
 
 from amherst.models.amherst_base import AmherstBase, CommaSeparatedStrField
 from amherst.models.commence_adaptors import (

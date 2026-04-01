@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, date
+from datetime import date, datetime
 from typing import ClassVar
 
 from pydantic import Field
-from shipaw.models.consts_enums import ShipDirection
+from shipaw.utils.consts_enums import ShipDirection
 
 from amherst.models.amherst_base import AmherstBase, CommaSeparatedStrField
 from amherst.models.commence_adaptors import CategoryName
@@ -33,6 +33,7 @@ def now_iso_seconds2() -> str:
 class CommenceShipment(AmherstBase):
     category: ClassVar[CategoryName] = CategoryName.Shipment
     direction: ShipDirection = Field(..., alias='Direction')
+    label: str | None = Field(None, alias='Label')
 
     creation_datetime: str = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
     name: str = Field(default_factory=now_iso_seconds2, alias='Name')

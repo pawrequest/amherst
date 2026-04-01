@@ -8,7 +8,7 @@ from loguru import logger
 from pycommence import pycommence_context
 from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.responses import ShipmentResponse
-from shipaw.models.consts_enums import ShipDirection
+from shipaw.utils.consts_enums import ShipDirection
 
 from amherst.models.amherst_models import (
     AmherstHire,
@@ -77,6 +77,7 @@ async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, s
 async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> CommenceShipment:
     record = shipment.record
     res = CommenceShipment(
+        label=str(shipment_response.label_path),
         direction=shipment.direction,
         customer=[record.customer_name],
         tracking_links=shipment_response.tracking_links,
