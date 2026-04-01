@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
-from enum import StrEnum
 from typing import NamedTuple
 
 from fastapi import Query
@@ -11,7 +10,7 @@ from shipaw.fapi.responses import ShipmentResponse
 from shipaw.models.shipment import Shipment
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstShipableBase, AmherstTrial
-from amherst.models.commence_adaptors import CategoryName, CustomerAliases, HireAliases, SaleAliases, TrialAliases
+from amherst.models.commence_adaptors import CategoryName
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
     CUSTOMER_ARRAY_LOOSE,
@@ -48,13 +47,10 @@ class TemplateMap(NamedTuple):
     detail: str
 
 
-CmcUpdateFunc = Callable[[AmherstShipableBase, Shipment, ShipmentResponse], Awaitable[dict[str, str]]]
-
-
 class AmherstMap(NamedTuple):
     category: CategoryName
     record_model: type[AmherstShipableBase]
-    aliases: type[StrEnum]
+    # aliases: type[StrEnum]
     templates: TemplateMap
     # cmc_update_fn: CmcUpdateFuncAgnost | None = make_update_dict_agnost
     connections: ConnectionMap | None = None
@@ -66,7 +62,7 @@ class AmherstMaps:
     hire: AmherstMap = AmherstMap(
         category=CategoryName.Hire,
         record_model=AmherstHire,
-        aliases=HireAliases,
+        # aliases=HireAliases,
         templates=TemplateMap(
             listing='order_list.html',
             detail='order_detail.html',
@@ -86,7 +82,7 @@ class AmherstMaps:
     sale: AmherstMap = AmherstMap(
         category=CategoryName.Sale,
         record_model=AmherstSale,
-        aliases=SaleAliases,
+        # aliases=SaleAliases,
         templates=TemplateMap(
             listing='order_list.html',
             detail='order_detail.html',
@@ -106,7 +102,7 @@ class AmherstMaps:
     customer: AmherstMap = AmherstMap(
         category=CategoryName.Customer,
         record_model=AmherstCustomer,
-        aliases=CustomerAliases,
+        # aliases=CustomerAliases,
         templates=TemplateMap(
             listing='customer_list.html',
             detail='customer_detail.html',
@@ -127,7 +123,7 @@ class AmherstMaps:
     trial: AmherstMap = AmherstMap(
         category=CategoryName.Trial,
         record_model=AmherstTrial,
-        aliases=TrialAliases,
+        # aliases=TrialAliases,
         templates=TemplateMap(
             listing='customer_list.html',
             detail='customer_detail.html',

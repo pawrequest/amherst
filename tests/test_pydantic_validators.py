@@ -2,7 +2,7 @@ from pycommence import pycommence_context
 from pycommence.pycmc_types import RowData
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire
-from amherst.models.amherst_base import CSV_SEPERATOR
+from amherst.models.commence_adaptors import COMMA_LINE_SPACED
 from datetime import date, timedelta
 from pathlib import Path
 

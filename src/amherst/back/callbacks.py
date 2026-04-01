@@ -11,7 +11,8 @@ from shipaw.utils.consts_enums import ShipDirection
 
 from amherst.models.amherst_models import AmherstHire
 from amherst.models.commence_adaptors import CategoryName
-from amherst.models.commence_shipment import CommenceShipment
+from amherst.models.amherst_base import alias_lookup
+from amherst.models.commence_shipment import CommenceShipment, ordinal_date_name
 from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
 
 
@@ -55,16 +56,16 @@ async def make_update_dict(shipment: AmherstShipment) -> dict[str, Any]:
 async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, shipping_date: date) -> dict:
     match direction:
         case ShipDirection.OUTBOUND:
-            return {AmherstHire.alias_lookup('arranged_out'): 'True'}
+            return {alias_lookup(AmherstHire, 'arranged_out'): 'True'}
         case ShipDirection.INBOUND | ShipDirection.DROPOFF:
             ret_notes = (
                 f'{date.today().strftime("%d/%m")}: pickup arranged for'
                 f' {shipping_date.strftime("%d/%m")}\r\n{record.return_notes}'
             )
             return {
-                AmherstHire.alias_lookup('arranged_in'): 'True',
-                AmherstHire.alias_lookup('pickup_date'): f'{shipping_date:%Y-%m-%d}',
-                AmherstHire.alias_lookup('return_notes'): ret_notes,
+                alias_lookup(AmherstHire, 'arranged_in'): 'True',
+                alias_lookup(AmherstHire, 'pickup_date'): f'{shipping_date:%Y-%m-%d}',
+                alias_lookup(AmherstHire, 'return_notes'): ret_notes,
             }
         case _:
             raise ValueError(f'Invalid shipment direction: {direction}')
@@ -72,16 +73,19 @@ async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, s
 
 async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> CommenceShipment:
     record = shipment.record
-    res = CommenceShipment(
-        label=str(shipment_response.label_path),
+    cmc_shipment = CommenceShipment(
+        name=f'{ordinal_date_name()}',
+        send_date=shipment.shipping_date,
+        boxes=shipment.boxes,
+        label=shipment_response.label_path,
         direction=shipment.direction,
-        customer=[record.customer_name],
+        customers=[record.customer_name],
         tracking_links=shipment_response.tracking_links,
         latest_tracking=shipment_response.tracking_links[0] if shipment_response.tracking_links else None,
     )
     if record.category.lower() in ['hire', 'sale']:
-        setattr(res, record.category.lower(), [record.name])
-    return res
+        setattr(cmc_shipment, record.category.lower(), [record.name])
+    return cmc_shipment
 
 
 async def create_shipment_in_cmc(shipment: AmherstShipment, shipment_response: ShipmentResponse):

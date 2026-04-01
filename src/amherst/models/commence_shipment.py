@@ -1,45 +1,52 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import datetime
 from typing import ClassVar
 
 from pydantic import Field
 from shipaw.utils.consts_enums import ShipDirection
 
-from amherst.models.amherst_base import AmherstBase, CommaSeparatedStrField
-from amherst.models.commence_adaptors import CategoryName
+from amherst.models.amherst_base import AmherstBase
+from amherst.models.commence_adaptors import (
+    CategoryName,
+    CommenceDate,
+    CSV2Lines,
+    CommencePath,
+    CommenceString,
+    CSVSpaces,
+)
 from amherst.models.meta import register_table
 
 
-def date_int_w_ordinal(n: int):
+def ordinal_day(n: int):
     """Convert an integer to its ordinal as a string, e.g. 1 -> 1st, 2 -> 2nd, etc."""
     return str(n) + ('th' if 4 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th'))
-
-
-def ordinal_dt(dt: datetime | date) -> str:
-    """Convert a datetime or date to a string with an ordinal day, e.g. 'Mon 1st Jan 2020'."""
-    return dt.strftime(f'%Y-%B-{date_int_w_ordinal(dt.day)} (%A @ %H:%M:%S)')
 
 
 def now_iso_seconds() -> str:
     return datetime.now().isoformat(timespec='seconds')
 
 
-def now_iso_seconds2() -> str:
-    return ordinal_dt(datetime.now())
+def ordinal_date_name() -> str:
+    """sortable and human readable dt eg '2024-June-1st (Saturday @ 14:30:00)'"""
+    dt = datetime.now()
+    return dt.strftime(f'%Y-%B-{ordinal_day(dt.day)} (%A @ %H:%M:%S)')
 
 
 @register_table
 class CommenceShipment(AmherstBase):
     category: ClassVar[CategoryName] = CategoryName.Shipment
     direction: ShipDirection = Field(..., alias='Direction')
-    label: str | None = Field(None, alias='Label')
+    label: CommencePath | None = Field(None, alias='Label')
+    boxes: int = Field(0, alias='Boxes')
+    send_date: CommenceDate = Field(..., alias='Send Date')
 
-    creation_datetime: str = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
-    name: str = Field(default_factory=now_iso_seconds2, alias='Name')
-    latest_tracking: str = Field('', alias='Latest Tracking')
-    tracking_links: CommaSeparatedStrField = Field(default_factory=list, alias='Tracking Links')
-    notes: str = Field('', alias='Notes')
-    hire: CommaSeparatedStrField = Field('', alias='For Hire')
-    sale: CommaSeparatedStrField = Field('', alias='For Sale')
-    customer: CommaSeparatedStrField = Field('', alias='For Customer')
+    creation_datetime: CommenceString = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
+    name: CommenceString = Field(default_factory=ordinal_date_name, alias='Name')
+    latest_tracking: CommenceString = Field('', alias='Latest Tracking')
+    tracking_links: CSV2Lines = Field(default_factory=list, alias='Tracking Links')
+    notes: CommenceString = Field('', alias='Notes')
+
+    hires: CSVSpaces = Field(default_factory=list, alias='For Hire')
+    sales: CSVSpaces = Field(default_factory=list, alias='For Sale')
+    customers: CSVSpaces = Field(default_factory=list, alias='For Customer')

@@ -8,7 +8,7 @@ resolution-markers = [
 
 [[package]]
 name = "amherst"
-version = "0.4.21"
+version = "0.4.22"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
@@ -38,7 +38,7 @@ requires-dist = [
     { name = "pycommence", specifier = ">=0.2.2" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", specifier = ">=0.3.48" },
+    { name = "shipaw", specifier = ">=0.3.49" },
 ]
 
 [package.metadata.requires-dev]
@@ -1006,7 +1006,7 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.48"
+version = "0.3.49"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apc-hypaship" },
@@ -1028,9 +1028,9 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/66/96/a6b4511071889fb07e9ebd133958105b8edf7a687178bf717e71e1c1ea3a/shipaw-0.3.48.tar.gz", hash = "sha256:2cd2ad1d8fe4321f34cc6d623271ee10e5f170b1c10480d59a64513222075a8d", size = 37910, upload-time = "2026-04-01T16:32:33.076Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/e3/beff19ec9a09a4aa187ad43b13c8e85dcf969aa2fc95ce4bb2ebc8eb222f/shipaw-0.3.49.tar.gz", hash = "sha256:e5d0ead390bc62ca923e9a22ceb5796c9e359b707717ad1be8516c8ce920a543", size = 38052, upload-time = "2026-04-01T20:30:41.987Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/2b/8551767a4dc883711698e5b54b05229896c73aa95af655029ac6d6fa262b/shipaw-0.3.48-py3-none-any.whl", hash = "sha256:c99b1a1c0b4b9c1570c91a2e34f84cd3ac7eb9678ce07d4f56b671502d342245", size = 55896, upload-time = "2026-04-01T16:32:31.831Z" },
+    { url = "https://files.pythonhosted.org/packages/0d/35/aa7e2e7be942b3563cea187959436ac82e6a16b42e0ae7bfa92e61d80450/shipaw-0.3.49-py3-none-any.whl", hash = "sha256:6a528b2379c666bea14515752dd474b1f546321d1497d6cd8563f0fc842c236b", size = 56003, upload-time = "2026-04-01T20:30:40.66Z" },
 ]
 
 [[package]]
