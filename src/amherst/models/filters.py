@@ -36,14 +36,14 @@ def generator_passthru(rowgen: Generator[dict[str, str]]) -> Generator[dict[str,
 
 HIRE_ARRAY_TIGHT = FilterArray(
     filters={
-        1: FieldFilter(column=AmherstHire.alias_lookup_c('status'), condition=ConditionType.CONTAIN, value='Booked'),
+        1: FieldFilter(column=AmherstHire.alias_lookup('status'), condition=ConditionType.CONTAIN, value='Booked'),
         2: FieldFilter(column=HIRE_SEND_DATE_ALIAS, condition=ConditionType.AFTER, value='one week ago'),
         3: FieldFilter(
             column=HIRE_SEND_DATE_ALIAS,
             condition=ConditionType.BEFORE,
             value='one week from today',
         ),
-        4: FieldFilter(column=AmherstHire.alias_lookup_c('arranged_out'), condition=ConditionType.NOT),
+        4: FieldFilter(column=AmherstHire.alias_lookup('arranged_out'), condition=ConditionType.NOT),
     },
     sorts=[Sort(column=HIRE_SEND_DATE_ALIAS, order=SortOrder.ASC)],
     # sorts=[

@@ -54,18 +54,18 @@ async def make_update_dict(shipment: AmherstShipment) -> dict[str, Any]:
 
 async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, shipping_date: date) -> dict:
     match direction:
+        case ShipDirection.OUTBOUND:
+            return {AmherstHire.alias_lookup('arranged_out'): 'True'}
         case ShipDirection.INBOUND | ShipDirection.DROPOFF:
             ret_notes = (
                 f'{date.today().strftime("%d/%m")}: pickup arranged for'
                 f' {shipping_date.strftime("%d/%m")}\r\n{record.return_notes}'
             )
             return {
-                record.alias_lookup('arranged_in'): 'True',
-                record.alias_lookup('pickup_date'): f'{shipping_date:%Y-%m-%d}',
-                record.alias_lookup('return_notes'): ret_notes,
+                AmherstHire.alias_lookup('arranged_in'): 'True',
+                AmherstHire.alias_lookup('pickup_date'): f'{shipping_date:%Y-%m-%d}',
+                AmherstHire.alias_lookup('return_notes'): ret_notes,
             }
-        case ShipDirection.OUTBOUND:
-            return {record.alias_lookup('arranged_out'): 'True'}
         case _:
             raise ValueError(f'Invalid shipment direction: {direction}')
 

@@ -48,17 +48,8 @@ class AmherstShipableBase(AmherstBase, ABC):
 
     delivery_method: str | None = None
 
-    def alias_lookup(self, field_name: str) -> str:
-        try:
-            return self.model_fields[field_name].alias
-        except KeyError:
-            logger.warning(
-                f'Alias for {field_name} not found in model {self.__class__.__name__}. Returning field name.'
-            )
-            return field_name
-
     @classmethod
-    def alias_lookup_c(cls, field_name: str) -> str:
+    def alias_lookup(cls, field_name: str) -> str:
         try:
             return cls.model_fields[field_name].alias
         except KeyError:
@@ -194,10 +185,10 @@ class AmherstTrial(AmherstOrderBase):
 
 
 AMHERST_ORDER_MODELS = AmherstHire | AmherstSale
-SALE_BOOKED_DATE_ALIAS = AmherstSale.alias_lookup_c('booking_date')
-HIRE_SEND_DATE_ALIAS = AmherstHire.alias_lookup_c('send_date')
-HIRE_STATUS_ALIAS = AmherstHire.alias_lookup_c('status')
-HIRE_ALIAS_UHF = AmherstHire.alias_lookup_c('number_uhf')
-HIRE_ALIAS_DUE_BACK = AmherstHire.alias_lookup_c('due_back_date')
-HIRE_ALIAS_RADIO_TYPE = AmherstHire.alias_lookup_c('radio_type')
-HIRE_ALIAS_PARROT = AmherstHire.alias_lookup_c('number_parrot')
+SALE_BOOKED_DATE_ALIAS = AmherstSale.alias_lookup('booking_date')
+HIRE_SEND_DATE_ALIAS = AmherstHire.alias_lookup('send_date')
+HIRE_STATUS_ALIAS = AmherstHire.alias_lookup('status')
+HIRE_ALIAS_UHF = AmherstHire.alias_lookup('number_uhf')
+HIRE_ALIAS_DUE_BACK = AmherstHire.alias_lookup('due_back_date')
+HIRE_ALIAS_RADIO_TYPE = AmherstHire.alias_lookup('radio_type')
+HIRE_ALIAS_PARROT = AmherstHire.alias_lookup('number_parrot')
