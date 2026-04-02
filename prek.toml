@@ -2,5 +2,6 @@
 repo = "https://github.com/astral-sh/ruff-pre-commit"
 rev = "v0.15.5"
 
-[[repos.hooks]]
-id = "ruff-format"
+hooks = [
+  { id = "ruff-format", types_or = ["python", "pyi"] },
+]
