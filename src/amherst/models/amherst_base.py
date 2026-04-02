@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import ABC
 from typing import ClassVar
+
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
 

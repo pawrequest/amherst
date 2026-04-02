@@ -9,8 +9,8 @@ from loguru import logger
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, Sort, SortOrder
 from pycommence.pycmc_types import Connection, get_cmc_date
 
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire, SALE_BOOKED_DATE_ALIAS, HIRE_SEND_DATE_ALIAS
 from amherst.models.amherst_base import alias_lookup
+from amherst.models.amherst_models import HIRE_SEND_DATE_ALIAS, SALE_BOOKED_DATE_ALIAS, AmherstCustomer, AmherstHire
 
 FilterVariant = Literal['loose', 'tight']
 CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()

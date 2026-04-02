@@ -1,10 +1,10 @@
 import pytest
 from pawdantic.paw_types import pydantic_export
+from shipaw.models.provider import PROVIDER_REGISTER
 
 from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CategoryName
 from amherst.ui_runner import CONFIRM_URL, REVIEW_URL, get_pycommence_shipper_url
-from shipaw.models.provider import PROVIDER_REGISTER
 
 PK_SEARCH = 'amps'
 CSRNAME = 'Hire'

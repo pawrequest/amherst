@@ -9,9 +9,9 @@ from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.responses import ShipmentResponse
 from shipaw.utils.consts_enums import ShipDirection
 
+from amherst.models.amherst_base import alias_lookup
 from amherst.models.amherst_models import AmherstHire
 from amherst.models.commence_adaptors import CategoryName
-from amherst.models.amherst_base import alias_lookup
 from amherst.models.commence_shipment import CommenceShipment, ordinal_date_name
 from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
 

@@ -1,12 +1,7 @@
-import os
-
 from pycommence import pycommence_context
-from shipaw.fapi.responses import ShipmentResponse
 from shipaw.utils.consts_enums import ShipDirection
 
-from amherst.models.amherst_models import AmherstCustomer
 from amherst.models.commence_shipment import CommenceShipment
-from amherst.models.shipment import AmherstShipment
 
 
 def test_create():

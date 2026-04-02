@@ -8,10 +8,11 @@ from typing import Self
 
 from fastapi import Depends, Query
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray
-from pycommence.pycmc_types import MoreAvailable, Pagination as _Pagination
+from pycommence.pycmc_types import MoreAvailable
+from pycommence.pycmc_types import Pagination as _Pagination
 from pydantic import BaseModel, Field, model_validator
 
-from amherst.models.amherst_models import AmherstShipableBase, AmherstCustomer
+from amherst.models.amherst_models import AmherstCustomer, AmherstShipableBase
 from amherst.models.commence_adaptors import CursorName
 from amherst.models.maps import AmherstMap, CategoryName, mapper_from_query_csrname
 from amherst.models.meta import get_table_model

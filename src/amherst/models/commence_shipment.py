@@ -10,9 +10,9 @@ from amherst.models.amherst_base import AmherstBase
 from amherst.models.commence_adaptors import (
     CategoryName,
     CommenceDate,
-    CSVLines,
     CommencePath,
     CommenceString,
+    CSVLines,
     CSVSpaces,
 )
 from amherst.models.meta import register_table

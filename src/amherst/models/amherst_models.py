@@ -6,7 +6,8 @@ from typing import ClassVar
 
 from pycommence.pycmc_types import RowInfo
 from pydantic import Field, field_validator
-from shipaw.models.address import Address as AddressAgnost, Contact, FullContact
+from shipaw.models.address import Address as AddressAgnost
+from shipaw.models.address import Contact, FullContact
 from shipaw.utils.consts_enums import ShipDirection
 
 from amherst.models.amherst_base import AmherstBase, alias_lookup
@@ -15,9 +16,9 @@ from amherst.models.commence_adaptors import (
     CommenceDate,
     CommencePath,
     CommenceString,
+    CSVSpaces,
     HireStatus,
     SaleStatus,
-    CSVSpaces,
     split_addr_str2,
 )
 from amherst.models.meta import register_table

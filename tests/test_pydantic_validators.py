@@ -1,8 +1,3 @@
-from pycommence import pycommence_context
-from pycommence.pycmc_types import RowData
-
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire
-from amherst.models.commence_adaptors import COMMA_LINE_SPACED
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -11,7 +6,7 @@ import pytest
 from pycommence import pycommence_context
 from pycommence.pycmc_types import RowData
 
-from amherst.models.amherst_models import AmherstCustomer
+from amherst.models.amherst_models import AmherstCustomer, AmherstHire
 
 envs_index = Path(r'C:\prdev\envs\sandbox.env')
 dotenv.load_dotenv(envs_index)

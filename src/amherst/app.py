@@ -7,9 +7,9 @@ from pawlogger import configure_loguru
 from shipaw.config import SHIPAW_SETTINGS, populate_providers
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
+from shipaw.fapi.log_stream import LogStream
 from shipaw.fapi.routes_api import router as shipaw_json_router
 from shipaw.fapi.routes_html import router as shipaw_html_router
-from shipaw.fapi.log_stream import LogStream
 from starlette.requests import Request
 from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles

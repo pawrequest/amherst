@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
 from typing import NamedTuple
 
 from fastapi import Query
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
-from shipaw.fapi.responses import ShipmentResponse
-from shipaw.models.shipment import Shipment
 
 from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstShipableBase, AmherstTrial
 from amherst.models.commence_adaptors import CategoryName
