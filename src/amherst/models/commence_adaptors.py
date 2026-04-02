@@ -104,7 +104,7 @@ def join_csv(v, separator=', '):
     raise ValueError(f'Expected a list, got {type(v)}')
 
 
-join_2lines = partial(join_csv, separator=',\r\n\r\n')
+join_2lines = partial(join_csv, separator=',\r\n')
 join_spaces = partial(join_csv, separator=', ')
 
 
@@ -116,7 +116,7 @@ class AmherstRowInfo(RowInfo):
 CursorName = CategoryName | ViewCursorName
 
 CommenceString = Annotated[str, BeforeValidator(replace_noncompliant_apostrophes)]
-CSV2Lines = Annotated[
+CSVLines = Annotated[
     list[str],
     BeforeValidator(split_csv),
     PlainSerializer(join_2lines),

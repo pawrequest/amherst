@@ -74,17 +74,19 @@ async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, s
 async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> CommenceShipment:
     record = shipment.record
     cmc_shipment = CommenceShipment(
+        boxes=shipment.boxes,
+        collection_id=shipment_response.collection_id or '',
+        direction=shipment.direction,
+        label=shipment_response.label_path,
+        latest_tracking=shipment_response.tracking_links[0] if shipment_response.tracking_links else None,
         name=f'{ordinal_date_name()}',
         send_date=shipment.shipping_date,
-        boxes=shipment.boxes,
-        label=shipment_response.label_path,
-        direction=shipment.direction,
-        customers=[record.customer_name],
+        shipment_numbers=shipment_response.shipment_numbers,
         tracking_links=shipment_response.tracking_links,
-        latest_tracking=shipment_response.tracking_links[0] if shipment_response.tracking_links else None,
+        customers=[record.customer_name],
     )
     if record.category.lower() in ['hire', 'sale']:
-        setattr(cmc_shipment, record.category.lower(), [record.name])
+        setattr(cmc_shipment, record.category.lower() + 's', [record.name])
     return cmc_shipment
 
 

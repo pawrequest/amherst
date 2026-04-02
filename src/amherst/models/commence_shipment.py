@@ -10,7 +10,7 @@ from amherst.models.amherst_base import AmherstBase
 from amherst.models.commence_adaptors import (
     CategoryName,
     CommenceDate,
-    CSV2Lines,
+    CSVLines,
     CommencePath,
     CommenceString,
     CSVSpaces,
@@ -40,11 +40,13 @@ class CommenceShipment(AmherstBase):
     label: CommencePath | None = Field(None, alias='Label')
     boxes: int = Field(0, alias='Boxes')
     send_date: CommenceDate = Field(..., alias='Send Date')
+    collection_id: CommenceString = Field('', alias='Collection ID')
 
     creation_datetime: CommenceString = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
     name: CommenceString = Field(default_factory=ordinal_date_name, alias='Name')
     latest_tracking: CommenceString = Field('', alias='Latest Tracking')
-    tracking_links: CSV2Lines = Field(default_factory=list, alias='Tracking Links')
+    tracking_links: CSVLines = Field(default_factory=list, alias='Tracking Links')
+    shipment_numbers: CSVSpaces = Field(default_factory=list, alias='Shipment Numbers')
     notes: CommenceString = Field('', alias='Notes')
 
     hires: CSVSpaces = Field(default_factory=list, alias='For Hire')
