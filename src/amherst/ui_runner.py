@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from amherst_core.consts_enums import CategoryName
 from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote
 from loguru import logger
 
 from amherst import app
-from amherst.models.commence_adaptors import CategoryName
+# from amherst.models.commence_adaptors import CategoryName
 
 
 async def run_desktop_ui(url_suffix='', port=8000):
@@ -31,9 +32,7 @@ async def pycommence_shipper(category: CategoryName, record_name: str):
 
 
 async def get_pycommence_shipper_url(category: CategoryName, record_name: str) -> str:
-    return (
-        f'shipaw/ship_form_am?csrname={url_quote(category)}&pk_value={url_quote(record_name)}&condition=equal&max_rtn=1'
-    )
+    return f'shipaw/ship_form_am2?csrname={url_quote(category)}&pk_value={url_quote(record_name)}&condition=equal&max_rtn=1'
 
 
 REVIEW_URL = r'/shipaw/order_review_am'

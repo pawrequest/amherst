@@ -1,4 +1,5 @@
 import flaskwebgui
+from amherst_core.models import AmherstShipableBase
 from fastapi import APIRouter, Depends, Query
 from loguru import logger
 from pycommence import PyCommence
@@ -7,7 +8,6 @@ from starlette.requests import Request
 from amherst.back.backend_pycommence import pycmc_f_query, pycommence_search
 from amherst.back.backend_search_paginate import SearchResponse
 from amherst.config import AMHERST_SETTINGS
-from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CursorName
 from amherst.models.meta import get_table_model
 

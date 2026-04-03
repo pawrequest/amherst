@@ -11,6 +11,7 @@ name = "amherst"
 version = "0.4.24"
 source = { editable = "." }
 dependencies = [
+    { name = "amherst-core" },
     { name = "fastapi" },
     { name = "flaskwebgui" },
     { name = "jinja2" },
@@ -30,12 +31,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "amherst-core", editable = "../amherst-core" },
     { name = "fastapi", specifier = ">=0.117.1" },
     { name = "flaskwebgui", specifier = ">=1.1.6" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pawlogger", specifier = ">=0.1.3" },
-    { name = "pycommence", specifier = ">=0.2.2" },
+    { name = "pycommence", editable = "../pycommence" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "shipaw", specifier = ">=0.3.55" },
@@ -46,6 +48,17 @@ dev = [
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-asyncio", specifier = ">=1.2.0" },
 ]
+
+[[package]]
+name = "amherst-core"
+version = "0.1.0"
+source = { editable = "../amherst-core" }
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+commence = [{ name = "pycommence", specifier = ">=0.2.4" }]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "annotated-doc"
@@ -121,15 +134,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
-]
-
-[[package]]
-name = "comtypes"
-version = "1.4.12"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b6/b8/3af03195b9de515448292169c6d6d7a630de02bedf891a47b809638c186f/comtypes-1.4.12.zip", hash = "sha256:3ff06c442c2de8a2b25785407f244eb5b6f809d21cf068a855071ba80a76876f", size = 280541, upload-time = "2025-08-27T23:47:33.155Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2d/01/89285549c5138009db68f26c80f2174d0ec82a858547df0cc40a8b0a47d6/comtypes-1.4.12-py3-none-any.whl", hash = "sha256:e0fa9cc19c489fa7feea4c1710f4575c717e2673edef5b99bf99efd507908e44", size = 253704, upload-time = "2025-08-27T23:47:31.58Z" },
 ]
 
 [[package]]
@@ -570,17 +574,36 @@ wheels = [
 
 [[package]]
 name = "pycommence"
-version = "0.2.2"
-source = { registry = "https://pypi.org/simple" }
+version = "0.2.666"
+source = { editable = "../pycommence" }
 dependencies = [
-    { name = "comtypes" },
     { name = "loguru" },
     { name = "pydantic" },
     { name = "pywin32" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/ef/f9435f10a806eda35ad2f32cb66292f3155da94edc28f0b4b0ffd627a8cd/pycommence-0.2.2.tar.gz", hash = "sha256:81128da0b374e3459bbd6fc87b48528276feb54fddfc77ab1b2183d9385f718b", size = 24593, upload-time = "2025-10-02T19:13:17.184Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/31/73a07f3f8542165e435607b0956bc25eee42ad2db6aaaeb3554ddd422527/pycommence-0.2.2-py3-none-any.whl", hash = "sha256:efddc67ddc420bc1d76fdf666a54f6f928e5207e267ca12aafb3ec5bc776a352", size = 29566, upload-time = "2025-10-02T19:13:15.758Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.128.0" },
+    { name = "httpx", marker = "extra == 'fastapi'", specifier = ">=0.28.1" },
+    { name = "loguru" },
+    { name = "pydantic" },
+    { name = "pywin32" },
+    { name = "uvicorn", marker = "extra == 'fastapi'", specifier = ">=0.40.0" },
+]
+provides-extras = ["fastapi"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "autodoc-pydantic" },
+    { name = "myst-parser" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-asyncio", specifier = ">=1.1.0" },
+    { name = "sphinx" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-readme" },
+    { name = "sphinx-rtd-dark-mode" },
+    { name = "sphinx-rtd-theme" },
 ]
 
 [[package]]

@@ -5,12 +5,12 @@ from collections.abc import Generator
 from datetime import datetime, timedelta
 from typing import Literal
 
+from amherst_core.models import AmherstCustomer, AmherstHire, AmherstSale
 from loguru import logger
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, Sort, SortOrder
 from pycommence.pycmc_types import Connection, get_cmc_date
 
 from amherst.models.amherst_base import alias_lookup
-from amherst.models.amherst_models import HIRE_SEND_DATE_ALIAS, SALE_BOOKED_DATE_ALIAS, AmherstCustomer, AmherstHire
 
 FilterVariant = Literal['loose', 'tight']
 CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
@@ -34,6 +34,8 @@ def customer_row_filter_loose(rowgen: Generator[dict[str, str]]) -> Generator[di
 def generator_passthru(rowgen: Generator[dict[str, str]]) -> Generator[dict[str, str]]:
     yield from rowgen
 
+
+HIRE_SEND_DATE_ALIAS = alias_lookup(AmherstHire, 'send_date')
 
 HIRE_ARRAY_TIGHT = FilterArray(
     filters={
@@ -79,6 +81,7 @@ HIRE_ARRAY_LOOSE = FilterArray(
     logics=['And'],
 )
 
+SALE_BOOKED_DATE_ALIAS = alias_lookup(AmherstSale, 'booking_date')
 
 SALE_ARRAY_TIGHT = FilterArray(
     filters={

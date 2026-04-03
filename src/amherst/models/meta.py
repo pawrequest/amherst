@@ -5,7 +5,7 @@ from loguru import logger
 from amherst.models.commence_adaptors import CategoryName
 
 if TYPE_CHECKING:
-    from amherst.models.amherst_models import AmherstShipableBase
+    from amherst_core.models import AmherstShipableBase
 
 TABLE_REGISTER: dict[str, type['AmherstShipableBase']] = {}
 

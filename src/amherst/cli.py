@@ -1,9 +1,10 @@
 import argparse
 import asyncio
 
+from amherst_core.consts_enums import CategoryName
 from loguru import logger
 
-from amherst.models.commence_adaptors import CategoryName
+# from amherst.models.commence_adaptors import CategoryName
 
 
 def parse_ship_args():

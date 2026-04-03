@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+from amherst_core.models import AmherstCustomer, AmherstHire, AmherstSale, AmherstShipableBase
 from fastapi import Query
 from pycommence.filters import FilterArray
 from pycommence.pycmc_types import Connection, RowFilter
 
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire, AmherstSale, AmherstShipableBase, AmherstTrial
 from amherst.models.commence_adaptors import CategoryName
 from amherst.models.filters import (
     CUSOMER_CONNECTION,
@@ -117,15 +117,15 @@ class AmherstMaps:
             tight=CUSTOMER_ARRAY_TIGHT,
         ),
     )
-    trial: AmherstMap = AmherstMap(
-        category=CategoryName.Trial,
-        record_model=AmherstTrial,
-        # aliases=TrialAliases,
-        templates=TemplateMap(
-            listing='customer_list.html',
-            detail='customer_detail.html',
-        ),
-    )
+    # trial: AmherstMap = AmherstMap(
+    #     category=CategoryName.Trial,
+    #     record_model=AmherstTrial,
+    #     # aliases=TrialAliases,
+    #     templates=TemplateMap(
+    #         listing='customer_list.html',
+    #         detail='customer_detail.html',
+    #     ),
+    # )
     #
     # repairs: AmherstMap = AmherstMap(
     #     category=CategoryName.Repairs,

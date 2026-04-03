@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from pydantic import Field, field_validator
 
 if TYPE_CHECKING:
-    from amherst.models.amherst_models import AmherstShipableBase
+    from amherst_core.models import AmherstShipableBase
 from shipaw.fapi.requests import ShipmentRequest
 from shipaw.models.shipment import Shipment
 

@@ -2,8 +2,9 @@ import datetime
 from dataclasses import dataclass, field
 from decimal import Decimal
 
+from amherst_core.models import AmherstHire
+
 from amherst.actions.invoice_number import next_inv_num
-from amherst.models.amherst_models import AmherstHire
 
 
 @dataclass
