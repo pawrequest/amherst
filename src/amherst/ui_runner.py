@@ -36,6 +36,7 @@ async def run_shipper(category: CategoryName, record_name: str):
     config = FapiConfig(
         post_body=shipment_dict,
         url_for_='shipping_form',
+        context={'category': category, 'record_name': record_name},
     )
     await run_desktop_ui(config)
 
@@ -43,7 +44,7 @@ async def run_shipper(category: CategoryName, record_name: str):
 async def get_shipment_from_pycommence(category: CategoryName, record_name: str) -> Any:
     row_data = await row_from_pycommence(category, record_name)
     mdl = row_data.construct_model()
-    shipment = mdl.shipment
+    shipment = mdl.shipment()  # noqa:
     return shipment
 
 

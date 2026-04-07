@@ -7,6 +7,7 @@ from amherst_core.models import AmherstCustomer, AmherstHire, AmherstOrderBase
 from loguru import logger
 from pycommence import PyCommence
 from shipaw.fapi.alerts import Alert, AlertType
+from shipaw.fapi.requests import ShipmentRequest
 from shipaw.fapi.responses import ShipmentResponse
 from shipaw.utils.consts_enums import ShipDirection
 
@@ -25,7 +26,7 @@ async def safe_call(func, *args, response, error_msg):
         response.alerts += Alert(message=msg, type=AlertType.ERROR)
 
 
-async def cmc_callback(request: AmherstShipmentRequest, response: ShipmentResponse):
+async def cmc_callback(request: ShipmentRequest, response: ShipmentResponse):
     request = AmherstShipmentRequest.model_validate(request, from_attributes=True)
     shipment = request.shipment
     await safe_call(update_cmc, shipment, response=response, error_msg='Error updating Commence')
@@ -43,6 +44,13 @@ async def update_cmc(shipment: AmherstShipment):
         logger.info(f'Updating CMC: {update_dict}')
         with PyCommence(shipment.row_info.category) as pycmc1:
             pycmc1.cursor().update_row(update_dict, id=shipment.row_info.id)
+
+
+async def create_shipment_in_cmc(shipment: AmherstShipment, shipment_response: ShipmentResponse):
+    shipment_obj = await cmc_shipment_obj(shipment, shipment_response)
+    ship_dict = shipment_obj.model_dump(by_alias=True)
+    with PyCommence(CategoryName.Shipment) as pycmc:
+        pycmc.cursor().create_row(ship_dict)
 
 
 async def make_update_dict(shipment: AmherstShipment) -> dict[str, Any]:
@@ -100,10 +108,3 @@ async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: Shipmen
     )
 
     return cmc_shipment
-
-
-async def create_shipment_in_cmc(shipment: AmherstShipment, shipment_response: ShipmentResponse):
-    shipment_obj = await cmc_shipment_obj(shipment, shipment_response)
-    ship_dict = shipment_obj.model_dump(by_alias=True)
-    with PyCommence(CategoryName.Shipment) as pycmc:
-        pycmc.cursor().create_row(ship_dict)

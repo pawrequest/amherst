@@ -4,10 +4,10 @@ from datetime import date
 from enum import StrEnum
 from functools import partial
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, NamedTuple
 
 import pydantic as _p
-from pydantic import BeforeValidator, PlainSerializer
+from pydantic import BaseModel, BeforeValidator, PlainSerializer
 
 # CONSTS
 
@@ -104,22 +104,23 @@ join_spaces = partial(join_csv, separator=', ')
 
 
 # TYPES
-class AmherstRowInfo(RowInfo):
+class AmherstRowInfo(NamedTuple):
+    id: str
     category: CategoryName
 
 
 CursorName = CategoryName | ViewCursorName
-
-CommenceString = Annotated[str, BeforeValidator(replace_noncompliant_apostrophes)]
-CSVLines = Annotated[
-    list[str],
-    BeforeValidator(split_csv),
-    PlainSerializer(join_2lines),
-]
-CSVSpaces = Annotated[
-    list[str],
-    BeforeValidator(split_csv),
-    PlainSerializer(join_spaces),
-]
-CommenceDate = Annotated[date | None, _p.BeforeValidator(get_cmc_date), PlainSerializer(to_cmc_date)]
-CommencePath = Annotated[Path, BeforeValidator(lambda x: Path(x)), PlainSerializer(str)]
+#
+# CommenceString = Annotated[str, BeforeValidator(replace_noncompliant_apostrophes)]
+# CSVLines = Annotated[
+#     list[str],
+#     BeforeValidator(split_csv),
+#     PlainSerializer(join_2lines),
+# ]
+# CSVSpaces = Annotated[
+#     list[str],
+#     BeforeValidator(split_csv),
+#     PlainSerializer(join_spaces),
+# ]
+# CommenceDate = Annotated[date | None, _p.BeforeValidator(get_cmc_date), PlainSerializer(to_cmc_date)]
+# CommencePath = Annotated[Path, BeforeValidator(lambda x: Path(x)), PlainSerializer(str)]

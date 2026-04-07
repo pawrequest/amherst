@@ -2,7 +2,7 @@ from fastapi import responses
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
 from pawlogger import configure_loguru
-from shipaw.config import ShipawSettings, populate_providers
+from shipaw.config import FapiConfig, ShipawSettings, populate_providers
 from shipaw.fapi.app import request_validation_exception_handler
 from shipaw.fapi.routes_api import router as shipaw_json_router
 from shipaw.fapi.routes_html import router as shipaw_html_router
@@ -13,9 +13,8 @@ from starlette.responses import HTMLResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
 
 from amherst.app_custom import AmherstApp, AmherstRequest, AppState
+from amherst.callbacks import cmc_callback
 from amherst.config import AMHERST_SETTINGS, AmherstSettings
-
-# from amherst.ui_runner import FapiState
 
 
 def create_app(amherst_settings: AmherstSettings, shipaw_settings: ShipawSettings):
@@ -23,6 +22,7 @@ def create_app(amherst_settings: AmherstSettings, shipaw_settings: ShipawSetting
 
     # state
     app_.state = AppState.create()
+    app_.state.callback = cmc_callback
 
     # routing
     app_.mount('/static', StaticFiles(directory=str(shipaw_settings.static_dir)), name='static')
@@ -69,5 +69,6 @@ async def startup(
 ):
     fapi_config: FapiConfig = request.app.state.config
     shipment = Shipment(**fapi_config.post_body)
+    shipment.context = request.app.state.config.context
     res = await shipping_form(request, shipment=shipment)
     return res
