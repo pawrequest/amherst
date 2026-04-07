@@ -1,20 +1,11 @@
 import pytest
-from pawdantic.paw_types import pydantic_export
-from shipaw.models.provider import PROVIDER_REGISTER
+from amherst_core.models import AmherstShipableBase
 
-from amherst.models.amherst_models import AmherstShipableBase
 from amherst.models.commence_adaptors import CategoryName
 from amherst.ui_runner import CONFIRM_URL, REVIEW_URL, get_pycommence_shipper_url
 
 PK_SEARCH = 'amps'
 CSRNAME = 'Hire'
-
-
-@pytest.fixture(
-    scope='session', params=[_() for _ in PROVIDER_REGISTER.values()], ids=[_ for _ in PROVIDER_REGISTER.keys()]
-)
-def provider(request):
-    yield request.param
 
 
 @pytest.mark.asyncio
@@ -32,7 +23,7 @@ async def test_ship_form(test_client):
 def order_review_sample(provider, amherst_customer, test_client, request):
     record_str = amherst_customer.model_dump_json()
     ship = amherst_customer.shipment()
-    ship = pydantic_export(ship, mode='pydantic')
+    ship = ship.model_dump()
 
     form_data = {
         **ship.recipient.address.model_dump(),

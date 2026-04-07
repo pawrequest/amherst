@@ -29,6 +29,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "asgi-lifespan>=2.1.0",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
 ]
@@ -45,6 +46,6 @@ format.quote-style = "single"
 
 
 [tool.uv.sources]
-#shipaw = { path = '../shipaw', editable = true }
+shipaw = { path = '../shipaw', editable = true }
 amherst-core = { path = '../amherst-core', editable = true }
-pycommence = { path = '../pycommence', editable = true }
+#pycommence = { path = '../pycommence', editable = true }

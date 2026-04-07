@@ -25,6 +25,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "asgi-lifespan" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
 ]
@@ -37,14 +38,15 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pawlogger", specifier = ">=0.1.3" },
-    { name = "pycommence", editable = "../pycommence" },
+    { name = "pycommence", specifier = ">=0.2.2" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", specifier = ">=0.3.55" },
+    { name = "shipaw", editable = "../shipaw" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "asgi-lifespan", specifier = ">=2.1.0" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-asyncio", specifier = ">=1.2.0" },
 ]
@@ -53,11 +55,19 @@ dev = [
 name = "amherst-core"
 version = "0.1.0"
 source = { editable = "../amherst-core" }
+dependencies = [
+    { name = "pycommence" },
+    { name = "pydantic" },
+]
 
 [package.metadata]
+requires-dist = [
+    { name = "pycommence", editable = "../pycommence" },
+    { name = "pydantic", specifier = ">=2.12.5" },
+]
 
 [package.metadata.requires-dev]
-commence = [{ name = "pycommence", specifier = ">=0.2.4" }]
+commence = [{ name = "pycommence", editable = "../pycommence" }]
 dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
@@ -104,6 +114,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/56/2c/ef65cf88992996bf66fdd272179f72ed054ac0225e7faaafe5bb0b3e585a/apc_hypaship-0.1.10.tar.gz", hash = "sha256:0bd6f4a519687cbb5d8803d080954ce786416bdb444ad383a16041a434430b6c", size = 6554, upload-time = "2025-10-27T15:33:38.425Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/18/16/82725f064719f02d912aa8e45de34a81761e2dca7bfe2f67ad2835204651/apc_hypaship-0.1.10-py3-none-any.whl", hash = "sha256:6421500f9cd5cc8eb4ffa0501f5400a0f3d72c8309bcd69b4aa91eef1dbb0926", size = 11891, upload-time = "2025-10-27T15:33:37.431Z" },
+]
+
+[[package]]
+name = "asgi-lifespan"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sniffio" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/6a/da/e7908b54e0f8043725a990bf625f2041ecf6bfe8eb7b19407f1c00b630f7/asgi-lifespan-2.1.0.tar.gz", hash = "sha256:5e2effaf0bfe39829cf2d64e7ecc47c7d86d676a6599f7afba378c31f5e3a308", size = 15627, upload-time = "2023-03-28T17:35:49.126Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2f/f5/c36551e93acba41a59939ae6a0fb77ddb3f2e8e8caa716410c65f7341f72/asgi_lifespan-2.1.0-py3-none-any.whl", hash = "sha256:ed840706680e28428c01e14afb3875d7d76d3206f3d5b2f2294e059b5c23804f", size = 10895, upload-time = "2023-03-28T17:35:47.772Z" },
 ]
 
 [[package]]
@@ -961,7 +983,7 @@ wheels = [
 
 [[package]]
 name = "royal-mail-combined"
-version = "0.0.16"
+version = "0.0.17"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -975,9 +997,9 @@ dependencies = [
     { name = "ruff" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2c/41/9117b09497cb5532e8d14fd3931eb0398c414aeed8240315e599ffa3f13e/royal_mail_combined-0.0.16.tar.gz", hash = "sha256:b29b68928297642cf68fe68576a945b9a521e84b007f8e108a086123226b54a4", size = 63518, upload-time = "2026-04-02T18:09:45.672Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/8c/0e37f5559a92b892d15b1701f21b0ce2db452f39ec4b9961a5389612d836/royal_mail_combined-0.0.17.tar.gz", hash = "sha256:0d5226d59e4c797d1b6b0dfaa5ed45b74ae3f192a5a315bb61c1eb9251a911f0", size = 63588, upload-time = "2026-04-07T12:12:56.673Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/27/90184fdfccb7ae5c17cebfd7b3bb39175b88568e8d5cfcf19dc5d216f2db/royal_mail_combined-0.0.16-py3-none-any.whl", hash = "sha256:5188ae373bd023a2c5789d9fba3ad44dcf00455f0815ebaade01291695bb58a2", size = 147294, upload-time = "2026-04-02T18:09:44.637Z" },
+    { url = "https://files.pythonhosted.org/packages/a5/22/704e7201fdc5545be5f5b3ad7db72f88b4512824204cb7547f9e98179596/royal_mail_combined-0.0.17-py3-none-any.whl", hash = "sha256:f8860775047c69e9de840fd480c098bcae36b30cfdcc1384b3ad469f9ca79e04", size = 147335, upload-time = "2026-04-07T12:12:55.085Z" },
 ]
 
 [[package]]
@@ -1029,8 +1051,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.55"
-source = { registry = "https://pypi.org/simple" }
+version = "0.3.57"
+source = { editable = "../shipaw" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
@@ -1051,10 +1073,31 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a2/3e/173871791fc3f496a39a9c63104b542db4e621dab1b91cad8eb59f47b11f/shipaw-0.3.55.tar.gz", hash = "sha256:3869984eb63f55546f22c1de7621423507e018ec47f278540198953686555ac6", size = 38663, upload-time = "2026-04-02T18:10:11.05Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/52/84a5fa8676df7c9228b5ead22c7b6793f43642d94e1a0e035b1ea3d4a6b1/shipaw-0.3.55-py3-none-any.whl", hash = "sha256:236491071648584bf85f1db60e03169b2a55f157e5f6fc45cbb2968faafc7b46", size = 56640, upload-time = "2026-04-02T18:10:09.818Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "apc-hypaship", specifier = ">=0.1.10" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pawdf", specifier = ">=0.1.0" },
+    { name = "pawlogger", specifier = ">=0.1.4" },
+    { name = "phonenumbers", specifier = ">=9.0.15" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
+    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pygments", specifier = ">=2.19.2" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pywin32", specifier = ">=311" },
+    { name = "royal-mail-combined", specifier = ">=0.0.17" },
+    { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "uvicorn", specifier = ">=0.37.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "six"
