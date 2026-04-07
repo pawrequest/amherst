@@ -2,7 +2,7 @@ import pytest
 from amherst_core.models import AmherstShipableBase
 
 from amherst.models.commence_adaptors import CategoryName
-from amherst.ui_runner import CONFIRM_URL, REVIEW_URL, get_pycommence_shipper_url
+from amherst.ui_runner import CONFIRM_URL, REVIEW_URL
 
 PK_SEARCH = 'amps'
 CSRNAME = 'Hire'
@@ -12,8 +12,7 @@ CSRNAME = 'Hire'
 async def test_ship_form(test_client):
     category = CategoryName.Customer
     record = 'Test'
-    shipper_url = await get_pycommence_shipper_url(category, record)
-    response = test_client.get(shipper_url)
+    response = test_client.get('/')
     assert response.status_code == 200, f'Expected status code 200, but got {response.status_code}'
     assert response.template.name == r'ship/form_shape.html'
     assert response.context['record'].name == record

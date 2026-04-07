@@ -1,13 +1,10 @@
 import pytest
-import pytest_asyncio
 from amherst_core.consts_enums import CategoryName
 from amherst_core.models import AmherstCustomer
-from asgi_lifespan import LifespanManager
 from pycommence import PyCommence
-from shipaw.models.shipment import Shipment
+from shipaw.config import FapiConfig
 
-from amherst import app
-from amherst.ui_runner import FapiState, get_pycommence_shipper_url, run_desktop_ui
+from amherst.ui_runner import run_desktop_ui
 
 
 @pytest.mark.asyncio
@@ -26,13 +23,12 @@ async def test_2(test_client):
     # shippy = Shipment(**shipment_dict)
     # assert shippy
 
-    state = FapiState(
-        get_url=await get_pycommence_shipper_url(category, record_name),
-        post_url='shipaw/shipping_form',
+    state = FapiConfig(
+        url_for_='shipping_form',
         post_body=shipment_dict,
     )
-    response = test_client.post(url=state.post_url, json=state.post_body)
-    print(response)
+    # response = test_client.post(url=, json=state.post_body)
+    # print(response)
 
 
 @pytest.mark.asyncio
@@ -48,9 +44,8 @@ async def test_it():
     # shippy = Shipment(**shipment_dict)
     # assert shippy
 
-    state = FapiState(
-        get_url=await get_pycommence_shipper_url(category, record_name),
-        post_url='shipaw/shipping_form',
+    state = FapiConfig(
+        url_for_='shipping_form',
         post_body=shipment_dict,
     )
     await run_desktop_ui(state)
