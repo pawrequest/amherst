@@ -8,7 +8,7 @@ resolution-markers = [
 
 [[package]]
 name = "amherst"
-version = "0.4.24"
+version = "0.4.3"
 source = { editable = "." }
 dependencies = [
     { name = "amherst-core" },
@@ -32,7 +32,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "amherst-core", editable = "../amherst-core" },
+    { name = "amherst-core", git = "https://github.com/pawrequest/amherst-core" },
     { name = "fastapi", specifier = ">=0.117.1" },
     { name = "flaskwebgui", specifier = ">=1.1.6" },
     { name = "jinja2", specifier = ">=3.1.6" },
@@ -41,7 +41,7 @@ requires-dist = [
     { name = "pycommence", specifier = ">=0.2.2" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", editable = "../shipaw" },
+    { name = "shipaw", specifier = ">=0.4.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -53,22 +53,12 @@ dev = [
 
 [[package]]
 name = "amherst-core"
-version = "0.1.0"
-source = { editable = "../amherst-core" }
+version = "0.0.1"
+source = { git = "https://github.com/pawrequest/amherst-core#772051f3c47ce8b96ecb2f6bc8d273258bb02e64" }
 dependencies = [
     { name = "pycommence" },
     { name = "pydantic" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "pycommence", editable = "../pycommence" },
-    { name = "pydantic", specifier = ">=2.12.5" },
-]
-
-[package.metadata.requires-dev]
-commence = [{ name = "pycommence", editable = "../pycommence" }]
-dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "annotated-doc"
@@ -596,36 +586,16 @@ wheels = [
 
 [[package]]
 name = "pycommence"
-version = "0.2.666"
-source = { editable = "../pycommence" }
+version = "0.3.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
     { name = "pydantic" },
     { name = "pywin32" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.128.0" },
-    { name = "httpx", marker = "extra == 'fastapi'", specifier = ">=0.28.1" },
-    { name = "loguru" },
-    { name = "pydantic" },
-    { name = "pywin32" },
-    { name = "uvicorn", marker = "extra == 'fastapi'", specifier = ">=0.40.0" },
-]
-provides-extras = ["fastapi"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "autodoc-pydantic" },
-    { name = "myst-parser" },
-    { name = "pytest", specifier = ">=8.3.5" },
-    { name = "pytest-asyncio", specifier = ">=1.1.0" },
-    { name = "sphinx" },
-    { name = "sphinx-autodoc-typehints" },
-    { name = "sphinx-readme" },
-    { name = "sphinx-rtd-dark-mode" },
-    { name = "sphinx-rtd-theme" },
+sdist = { url = "https://files.pythonhosted.org/packages/9d/25/a5ff1f2654393090554a39b092add9a36e6edac934720d1384cabf9606b6/pycommence-0.3.1.tar.gz", hash = "sha256:bb51feac4267fb712b6090493b4304cf79cd38b3806aa577e1fa7aaa8beebbe6", size = 37299, upload-time = "2026-04-08T13:34:34.438Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fe/4c/87a0da9d7d316ee4bdc2a03dbeeb62f91377729e6f04e6720b6cab70707d/pycommence-0.3.1-py3-none-any.whl", hash = "sha256:6e7c0938959534cd5d472794b8ad9fc38d6b67c1c12b4a3a98c0e3a9e0b5d7e6", size = 52688, upload-time = "2026-04-08T13:34:33.374Z" },
 ]
 
 [[package]]
@@ -1051,8 +1021,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.57"
-source = { editable = "../shipaw" }
+version = "0.4.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
@@ -1073,31 +1043,10 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "apc-hypaship", specifier = ">=0.1.10" },
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
-    { name = "hatchling", specifier = ">=1.27.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawdf", specifier = ">=0.1.0" },
-    { name = "pawlogger", specifier = ">=0.1.4" },
-    { name = "phonenumbers", specifier = ">=9.0.15" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
-    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
-    { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "pygments", specifier = ">=2.19.2" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pywin32", specifier = ">=311" },
-    { name = "royal-mail-combined", specifier = ">=0.0.17" },
-    { name = "thefuzz", specifier = ">=0.22.1" },
-    { name = "uvicorn", specifier = ">=0.37.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/88/32/4e45f831d1a9ad49b46369aaef4a0cc48a66a69ea7d7ea809e2901bd8ad5/shipaw-0.4.1.tar.gz", hash = "sha256:0cd6fbb1335407e6ab9d408bff7d4d225ddb69425c891c9b73588c18eda318d6", size = 39131, upload-time = "2026-04-08T13:51:08.568Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/60/3e/7b8032c8aed3e9f409dcc5073aee1971c4e45763e2319cf51400fe39b3c3/shipaw-0.4.1-py3-none-any.whl", hash = "sha256:d6821b02b5625d4be40dc31fde44658b818a93a8aa649c69f123fd579414bd2e", size = 57960, upload-time = "2026-04-08T13:51:07.511Z" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "six"
