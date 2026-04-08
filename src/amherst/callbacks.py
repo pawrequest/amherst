@@ -43,7 +43,7 @@ async def cmc_callback(request: AmherstRequest, shipment_request: ShipmentReques
     shipment = shipment_request.shipment
 
     with PyCommence(category, 'Shipment') as pycmc:
-        row_data = pycmc.cursor(category).read_row(row_id=row_id)
+        row_data = pycmc.item_read_csr(csrname=category, row_id=row_id)
         record = row_data.construct_model()
         update_dict = await make_update_dict(record, shipment)
         shipment_obj = new_cmc_shipment(record, shipment, response)

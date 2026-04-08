@@ -15,10 +15,10 @@ async def test_2(test_client):
     category = CategoryName.Customer
     record_name = 'Test'
     with PyCommence(category) as pycmc:
-        row_data = pycmc.read_row(pk=record_name)
+        row_data = pycmc.item_read_csr(pk=record_name)
     customer = AmherstCustomer(row_id=row_data.row_id, **row_data.data)
     # customer_dict = customer.model_dump(mode='json')
-    shipment = customer.shipment
+    shipment = customer.shipment()
     shipment_dict = shipment.model_dump(mode='json')
     # shippy = Shipment(**shipment_dict)
     # assert shippy
@@ -36,10 +36,10 @@ async def test_it():
     category = CategoryName.Customer
     record_name = 'Test'
     with PyCommence(category) as pycmc:
-        row_data = pycmc.read_row(pk=record_name)
+        row_data = pycmc.item_read_csr(pk=record_name)
     customer = AmherstCustomer(row_id=row_data.row_id, **row_data.data)
     # customer_dict = customer.model_dump(mode='json')
-    shipment = customer.shipment
+    shipment = customer.shipment()
     shipment_dict = shipment.model_dump(mode='json')
     # shippy = Shipment(**shipment_dict)
     # assert shippy

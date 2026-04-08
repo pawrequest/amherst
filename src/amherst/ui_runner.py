@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 from amherst_core.consts_enums import CategoryName
+from amherst_core.models import AmherstShipableBase
 from flaskwebgui import FlaskUI, close_application
 from pycommence import PyCommence
 from pycommence.core.row_data import RowData
@@ -49,7 +52,8 @@ async def run_desktop_add_state(category: str, row_id: str, config: FapiConfig):
 async def run_shipper(category: CategoryName, record_name: str):
     row_data = await row_from_pycommence(category, record_name)
     mdl = row_data.construct_model()
-    # mdl = cast(AmherstShipableBase, mdl)
+    mdl = cast(object, mdl)
+    mdl = cast(AmherstShipableBase, mdl)
     shipment = mdl.shipment()
     # shipment.context = {mdl.model_dump(mode='json')}
 
@@ -73,7 +77,7 @@ async def run_shipper(category: CategoryName, record_name: str):
 
 async def row_from_pycommence(category: CategoryName, record_name: str) -> RowData:
     with PyCommence(category) as pycmc:
-        return pycmc.read_row(pk=record_name)
+        return pycmc.item_read_csr(pk=record_name)
 
 
 REVIEW_URL = r'/shipaw/order_review_am'
