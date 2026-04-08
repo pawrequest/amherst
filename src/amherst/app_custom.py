@@ -15,8 +15,8 @@ class AppSettings(AppSettings_):
 
 class AppState(AppState_):
     settings: AppSettings
-    category: str = ''
-    row_id: str = ''
+    category: str
+    row_id: str
 
     @classmethod
     def create(cls) -> 'AppState':

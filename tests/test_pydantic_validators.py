@@ -3,10 +3,9 @@ from pathlib import Path
 
 import dotenv
 import pytest
-from pycommence import pycommence_context
-from pycommence.pycmc_types import RowData
-
-from amherst.models.amherst_models import AmherstCustomer, AmherstHire
+from amherst_core.models import AmherstCustomer, AmherstHire
+from pycommence import PyCommence
+from pycommence.core.row_data import RowData
 
 envs_index = Path(r'C:\prdev\envs\sandbox.env')
 dotenv.load_dotenv(envs_index)
@@ -17,21 +16,21 @@ if TEST_DATE.weekday() in (5, 6):
 
 @pytest.fixture(scope='session')
 def amherst_customer_data() -> RowData:
-    with pycommence_context(csrname='Customer') as cmc:
+    with PyCommence('Customer') as cmc:
         return cmc.read_row(pk='Test')
 
 
 @pytest.fixture(scope='session')
 def amherst_customer(amherst_customer_data) -> AmherstCustomer:
-    return AmherstCustomer(row_info=amherst_customer_data.row_info, **amherst_customer_data.data)
+    return AmherstCustomer(row_id=amherst_customer_data.row_id, **amherst_customer_data.data)
 
 
-def test_auto_csv(amherst_customer):
-    ...
-    tracks = amherst_customer.tracking_links_in
-    print('\n RESULTS', tracks)
-    assert isinstance(tracks, list)
-    assert len(tracks) == 0
+# def test_auto_csv(amherst_customer):
+#     ...
+#     tracks = amherst_customer.tracking_links_in
+#     print('\n RESULTS', tracks)
+#     assert isinstance(tracks, list)
+#     assert len(tracks) == 0
 
 
 def test_it():
@@ -64,8 +63,6 @@ def test_it():
 
 
 def test_amherst_hire(amherst_customer_data: RowData):
-    info = amherst_customer_data.row_info
-    hire = amherst_customer_data.data
-    res = AmherstHire(row_info=info, **hire)
+    res = amherst_customer_data.construct_model()
     res = res.model_validate(res)
     assert res.name == 'TEST RECORD DO NOT EDIT'

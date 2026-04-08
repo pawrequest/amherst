@@ -1,64 +1,85 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Any, cast
+from typing import Any
 
 from amherst_core.models import AmherstCustomer, AmherstHire, AmherstOrderBase
+from amherst_core.models.shipment import CommenceShipmentAdd
+from amherst_core.utils.get_set_convert import alias_lookup
+from amherst_core.utils.text_and_date import dated_name
 from loguru import logger
 from pycommence import PyCommence
+from pycommence.core.meta import CommenceTable
 from shipaw.fapi.alerts import Alert, AlertType
 from shipaw.fapi.requests import ShipmentRequest
 from shipaw.fapi.responses import ShipmentResponse
+from shipaw.models.shipment import Shipment
 from shipaw.utils.consts_enums import ShipDirection
 
-from amherst.models.amherst_base import alias_lookup
-from amherst.models.commence_adaptors import CategoryName
-from amherst.models.commence_shipment import CommenceShipment, ordinal_date_name
-from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
+from amherst.app_custom import AmherstRequest
+
+# from amherst.models.amherst_base import alias_lookup
 
 
-async def safe_call(func, *args, response, error_msg):
+def safe_call(func, *args, response, error_msg, **kwargs):
     try:
-        await func(*args)
+        return func(*args, **kwargs)
     except Exception as e:
         msg = f'{error_msg}: {e}'
-        logger.exception(e)
+        logger.opt(depth=1).log(
+            'ERROR',
+            msg,
+        )
         response.alerts += Alert(message=msg, type=AlertType.ERROR)
 
 
-async def cmc_callback(request: ShipmentRequest, response: ShipmentResponse):
-    request = AmherstShipmentRequest.model_validate(request, from_attributes=True)
-    shipment = request.shipment
-    await safe_call(update_cmc, shipment, response=response, error_msg='Error updating Commence')
-    await safe_call(
-        create_shipment_in_cmc, shipment, response, response=response, error_msg='Error creating Commence Shipment'
-    )
-    logger.info(
-        f'Updated Commence row id {shipment.row_info.id} in {shipment.row_info.category} Table\n'
-        f'Added Shipment and connected to {request.shipment.record.category} record in Commence'
-    )
+async def safe_call_async(func, *args, response, error_msg, **kwargs):
+    return safe_call(func, *args, response=response, error_msg=error_msg, **kwargs)
 
 
-async def update_cmc(shipment: AmherstShipment):
-    if update_dict := await make_update_dict(shipment):
-        logger.info(f'Updating CMC: {update_dict}')
-        with PyCommence(shipment.row_info.category) as pycmc1:
-            pycmc1.cursor().update_row(update_dict, id=shipment.row_info.id)
+async def cmc_callback(request: AmherstRequest, shipment_request: ShipmentRequest, response: ShipmentResponse):
+    category = request.app.state.category
+    row_id = request.app.state.row_id
+    shipment = shipment_request.shipment
+
+    with PyCommence(category, 'Shipment') as pycmc:
+        row_data = pycmc.cursor(category).read_row(row_id=row_id)
+        record = row_data.construct_model()
+        update_dict = await make_update_dict(record, shipment)
+        shipment_obj = new_cmc_shipment(record, shipment, response)
+        ship_dict = shipment_obj.model_dump(by_alias=True)
+
+        # update existing record
+        record_updated = safe_call(
+            pycmc.cursor(category).update_row,
+            update_dict,
+            row_id=row_id,
+            response=response,
+            error_msg='Error updating Commence',
+        )
+        # create and connect shipment record
+
+        shipment_created = await safe_call_async(
+            pycmc.cursor('Shipment').create_row,
+            ship_dict,
+            response=response,
+            error_msg='Error creating Commence Shipment',
+        )
+
+    if shipment_created:
+        logger.info(f'Created new Commence Shipment record and connected to {category} record')
+    else:
+        logger.error('Failed to create Commence Shipment record')
+    if record_updated:
+        logger.info(f'Updated Commence row id {record.name} in {category} Table')
+    else:
+        logger.error(f'Failed to update existing Commence record {record.name}')
 
 
-async def create_shipment_in_cmc(shipment: AmherstShipment, shipment_response: ShipmentResponse):
-    shipment_obj = await cmc_shipment_obj(shipment, shipment_response)
-    ship_dict = shipment_obj.model_dump(by_alias=True)
-    with PyCommence(CategoryName.Shipment) as pycmc:
-        pycmc.cursor().create_row(ship_dict)
-
-
-async def make_update_dict(shipment: AmherstShipment) -> dict[str, Any]:
-    record = shipment.record
+async def make_update_dict(record: CommenceTable, shipment: Shipment) -> dict[str, Any]:
     if isinstance(record, AmherstHire):
-        record = cast(AmherstHire, record)
         return await _cmc_update_dict_hire(record, shipment.direction, shipment.shipping_date)
-    return {}
+    return {}  # create shipment so not many updates in sale etc
 
 
 async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, shipping_date: date) -> dict:
@@ -79,8 +100,10 @@ async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, s
             raise ValueError(f'Invalid shipment direction: {direction}')
 
 
-async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> CommenceShipment:
-    record = shipment.record
+def new_cmc_shipment(
+    record: CommenceTable, shipment: Shipment, shipment_response: ShipmentResponse
+) -> CommenceShipmentAdd:
+    record = record
     update = {
         'customers': [],
         'hires': [],
@@ -94,13 +117,15 @@ async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: Shipmen
         update['customers'] = [record.name]
     else:
         raise ValueError(f'Unsupported record type for shipment: {type(record)}')
-    cmc_shipment = CommenceShipment(
+    cmc_shipment = CommenceShipmentAdd(
         boxes=shipment.boxes,
         collection_id=shipment_response.collection_id or '',
         direction=shipment.direction,
         label=shipment_response.label_path,
         latest_tracking=shipment_response.tracking_links[0] if shipment_response.tracking_links else None,
-        name=f'{ordinal_date_name()}',
+        name=dated_name(
+            record.customers[0] if isinstance(record, AmherstOrderBase) else record.name, shipment.shipping_date
+        ),
         send_date=shipment.shipping_date,
         shipment_numbers=shipment_response.shipment_numbers,
         tracking_links=shipment_response.tracking_links,
@@ -108,3 +133,9 @@ async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: Shipmen
     )
 
     return cmc_shipment
+
+
+async def new_cmc_shipment_async(
+    record: CommenceTable, shipment: Shipment, shipment_response: ShipmentResponse
+) -> CommenceShipmentAdd:
+    return new_cmc_shipment(record, shipment, shipment_response)

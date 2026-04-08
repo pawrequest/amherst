@@ -1,7 +1,7 @@
 import pytest
+from amherst_core.consts_enums import CategoryName
 from amherst_core.models import AmherstShipableBase
 
-from amherst.models.commence_adaptors import CategoryName
 from amherst.ui_runner import CONFIRM_URL, REVIEW_URL
 
 PK_SEARCH = 'amps'
