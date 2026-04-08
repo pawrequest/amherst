@@ -32,7 +32,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "amherst-core", git = "https://github.com/pawrequest/amherst-core" },
+    { name = "amherst-core", editable = "../amherst-core" },
     { name = "fastapi", specifier = ">=0.117.1" },
     { name = "flaskwebgui", specifier = ">=1.1.6" },
     { name = "jinja2", specifier = ">=3.1.6" },
@@ -54,11 +54,20 @@ dev = [
 [[package]]
 name = "amherst-core"
 version = "0.0.1"
-source = { git = "https://github.com/pawrequest/amherst-core#772051f3c47ce8b96ecb2f6bc8d273258bb02e64" }
+source = { editable = "../amherst-core" }
 dependencies = [
     { name = "pycommence" },
     { name = "pydantic" },
 ]
+
+[package.metadata]
+requires-dist = [
+    { name = "pycommence", specifier = ">=0.3.1" },
+    { name = "pydantic", specifier = ">=2.12.5" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "annotated-doc"

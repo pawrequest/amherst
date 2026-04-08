@@ -6,7 +6,7 @@ from typing import Any
 from amherst_core.models import AmherstCustomer, AmherstHire, AmherstOrderBase
 from amherst_core.models.shipment import CommenceShipmentAdd
 from amherst_core.utils.get_set_convert import alias_lookup
-from amherst_core.utils.text_and_date import dated_name
+from amherst_core.utils.text_and_date import dated_name, ordinal_date_name_now
 from loguru import logger
 from pycommence import PyCommence
 from pycommence.core.meta import CommenceTable
@@ -43,10 +43,11 @@ async def cmc_callback(request: AmherstRequest, shipment_request: ShipmentReques
     shipment = shipment_request.shipment
 
     with PyCommence(category, 'Shipment') as pycmc:
+        # prepare data
         row_data = pycmc.item_read_csr(csrname=category, row_id=row_id)
         record = row_data.construct_model()
         update_dict = await make_update_dict(record, shipment)
-        shipment_obj = new_cmc_shipment(record, shipment, response)
+        shipment_obj = new_cmc_shipment(record, shipment_request, response)
         ship_dict = shipment_obj.model_dump(by_alias=True)
 
         # update existing record
@@ -57,8 +58,8 @@ async def cmc_callback(request: AmherstRequest, shipment_request: ShipmentReques
             response=response,
             error_msg='Error updating Commence',
         )
-        # create and connect shipment record
 
+        # create and connect shipment record
         shipment_created = await safe_call_async(
             pycmc.cursor('Shipment').create_row,
             ship_dict,
@@ -101,14 +102,18 @@ async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, s
 
 
 def new_cmc_shipment(
-    record: CommenceTable, shipment: Shipment, shipment_response: ShipmentResponse
+    record: CommenceTable, shipment_request: ShipmentRequest, shipment_response: ShipmentResponse
 ) -> CommenceShipmentAdd:
+    shipment = shipment_request.shipment
     record = record
     update = {
         'customers': [],
         'hires': [],
         'sales': [],
     }
+    provider = shipment_request.provider
+    service = provider.service_codes_type(shipment_request.service_code).name  # todo must be less expensive lookup here
+
     if isinstance(record, AmherstOrderBase):
         update['customers'] = record.customers
         order_type = record.category.lower() + 's'
@@ -123,19 +128,23 @@ def new_cmc_shipment(
         direction=shipment.direction,
         label=shipment_response.label_path,
         latest_tracking=shipment_response.tracking_links[0] if shipment_response.tracking_links else None,
-        name=dated_name(
-            record.customers[0] if isinstance(record, AmherstOrderBase) else record.name, shipment.shipping_date
-        ),
+        name=ordinal_date_name_now(record.customer1 if isinstance(record, AmherstOrderBase) else record.name),
+        # name=dated_name(
+        #     record.customers[0] if isinstance(record, AmherstOrderBase) else record.name, shipment.shipping_date
+        # ),
         send_date=shipment.shipping_date,
         shipment_numbers=shipment_response.shipment_numbers,
         tracking_links=shipment_response.tracking_links,
+        provider=shipment_request.provider_name,
+        service=service,
         **update,
     )
 
     return cmc_shipment
 
 
-async def new_cmc_shipment_async(
-    record: CommenceTable, shipment: Shipment, shipment_response: ShipmentResponse
-) -> CommenceShipmentAdd:
-    return new_cmc_shipment(record, shipment, shipment_response)
+#
+# async def new_cmc_shipment_async(
+#     record: CommenceTable, shipment: Shipment, shipment_response: ShipmentResponse
+# ) -> CommenceShipmentAdd:
+#     return new_cmc_shipment(record, shipment, shipment_response)
