@@ -33,14 +33,39 @@ def ordinal_date_name() -> str:
     return dt.strftime(f'%Y-%B-{ordinal_day(dt.day)} (%A @ %H:%M:%S)')
 
 
-@register_table
-class CommenceShipment(AmherstBase):
+#
+# @register_table
+# class CommenceShipment(AmherstBase):
+#     category: ClassVar[CategoryName] = CategoryName.Shipment
+#     direction: ShipDirection = Field(..., alias='Direction')
+#     label: CommencePath | None = Field(None, alias='Label')
+#     boxes: int = Field(0, alias='Boxes')
+#     send_date: CommenceDate = Field(..., alias='Send Date')
+#     collection_id: CommenceString = Field('', alias='Collection ID')
+#
+#     creation_datetime: CommenceString = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
+#     name: CommenceString = Field(default_factory=ordinal_date_name, alias='Name')
+#     latest_tracking: CommenceString = Field('', alias='Latest Tracking')
+#     tracking_links: CSVLines = Field(default_factory=list, alias='Tracking Links')
+#     shipment_numbers: CSVSpaces = Field(default_factory=list, alias='Shipment Numbers')
+#     notes: CommenceString = Field('', alias='Notes')
+#
+#     hires: CSVSpaces = Field(default_factory=list, alias='For Hire')
+#     sales: CSVSpaces = Field(default_factory=list, alias='For Sale')
+#     customers: CSVSpaces = Field(default_factory=list, alias='For Customer')
+
+
+class CommenceShipmentAdd(AmherstBase):
     category: ClassVar[CategoryName] = CategoryName.Shipment
     direction: ShipDirection = Field(..., alias='Direction')
     label: CommencePath | None = Field(None, alias='Label')
     boxes: int = Field(0, alias='Boxes')
     send_date: CommenceDate = Field(..., alias='Send Date')
     collection_id: CommenceString = Field('', alias='Collection ID')
+    provider: CommenceString = Field('', alias='Provider')
+    service: CommenceString = Field('', alias='Service')
+    contact_name: CommenceString = Field('', alias='Contact Name')
+    contact_email: CommenceString = Field('', alias='Contact Email')
 
     creation_datetime: CommenceString = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
     name: CommenceString = Field(default_factory=ordinal_date_name, alias='Name')
@@ -52,3 +77,7 @@ class CommenceShipment(AmherstBase):
     hires: CSVSpaces = Field(default_factory=list, alias='For Hire')
     sales: CSVSpaces = Field(default_factory=list, alias='For Sale')
     customers: CSVSpaces = Field(default_factory=list, alias='For Customer')
+
+
+@register_table
+class CommenceShipment(CommenceShipmentAdd): ...

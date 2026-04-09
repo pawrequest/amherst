@@ -84,6 +84,8 @@ async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: Shipmen
         shipment_numbers=shipment_response.shipment_numbers,
         tracking_links=shipment_response.tracking_links,
         customers=[record.customer_name],
+        contact_name=shipment.remote_full_contact.contact.contact_name,
+        contact_email=shipment.remote_full_contact.contact.email_address,
     )
     if record.category.lower() in ['hire', 'sale']:
         setattr(cmc_shipment, record.category.lower() + 's', [record.name])
