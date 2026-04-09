@@ -34,7 +34,8 @@ call uv pip install %NO_CACHE% %FORCE_REINSTALL% "git+https://github.com/pawrequ
 call deactivate
 popd
 
-if %errorlevel% neq 0 if %errorlevel% neq 15 (
-    echo Error: shipper exited with code %errorlevel%
-    pause
-)
+pause
+REM if %errorlevel% neq 0 if %errorlevel% neq 15 (
+REM     echo Error: shipper exited with code %errorlevel%
+REM     pause
+REM )
