@@ -13,7 +13,8 @@ for %%A in (%*) do (
 
 echo Installing / Updating Amherst App in %AMHERSTSHIPPER% with arguments: %NO_CACHE% %FORCE_REINSTALL%
 set REPO_URL=https://github.com/pawrequest/amherst/
-set BRANCH_NAME=v3
+set BRANCH_NAME=v3-latest
+REM set BRANCH_NAME=v3
 
 REM Make / enter the shipper directory
 if not exist "%AMHERSTSHIPPER%" (
