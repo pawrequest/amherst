@@ -8,7 +8,7 @@ resolution-markers = [
 
 [[package]]
 name = "amherst"
-version = "0.4.24"
+version = "0.4.25"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
@@ -34,11 +34,11 @@ requires-dist = [
     { name = "flaskwebgui", specifier = ">=1.1.6" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawlogger", specifier = ">=0.1.3" },
-    { name = "pycommence", specifier = ">=0.2.2" },
+    { name = "pawlogger", specifier = "==0.1.4" },
+    { name = "pycommence", specifier = "==0.2.4" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", specifier = ">=0.3.57" },
+    { name = "shipaw", specifier = "==0.3.57" },
 ]
 
 [package.metadata.requires-dev]
@@ -570,7 +570,7 @@ wheels = [
 
 [[package]]
 name = "pycommence"
-version = "0.2.2"
+version = "0.2.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "comtypes" },
@@ -578,9 +578,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pywin32" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/ef/f9435f10a806eda35ad2f32cb66292f3155da94edc28f0b4b0ffd627a8cd/pycommence-0.2.2.tar.gz", hash = "sha256:81128da0b374e3459bbd6fc87b48528276feb54fddfc77ab1b2183d9385f718b", size = 24593, upload-time = "2025-10-02T19:13:17.184Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/8e/e63411232e33b091ade51c3a7989baaaa2c0ca11ef7d8df8e1c09b2be68f/pycommence-0.2.4.tar.gz", hash = "sha256:7df5413e9ceea96c0a52dca090e2eb535061b6936f687024c04dd43856afc144", size = 24621, upload-time = "2025-10-02T19:29:59.489Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/31/73a07f3f8542165e435607b0956bc25eee42ad2db6aaaeb3554ddd422527/pycommence-0.2.2-py3-none-any.whl", hash = "sha256:efddc67ddc420bc1d76fdf666a54f6f928e5207e267ca12aafb3ec5bc776a352", size = 29566, upload-time = "2025-10-02T19:13:15.758Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/2c/9d78ea767338cb9d070b0186bb5adef44b3d69f3003b85ece6ad0c73dcca/pycommence-0.2.4-py3-none-any.whl", hash = "sha256:286a13eb6650951e08bb7e610eb44505071c8fc2fb5d6a8f8b888b3caeb0ad35", size = 29591, upload-time = "2025-10-02T19:29:58.443Z" },
 ]
 
 [[package]]
