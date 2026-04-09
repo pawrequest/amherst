@@ -129,14 +129,13 @@ def new_cmc_shipment(
         label=shipment_response.label_path,
         latest_tracking=shipment_response.tracking_links[0] if shipment_response.tracking_links else None,
         name=ordinal_date_name_now(record.customer1 if isinstance(record, AmherstOrderBase) else record.name),
-        # name=dated_name(
-        #     record.customers[0] if isinstance(record, AmherstOrderBase) else record.name, shipment.shipping_date
-        # ),
         send_date=shipment.shipping_date,
         shipment_numbers=shipment_response.shipment_numbers,
         tracking_links=shipment_response.tracking_links,
         provider=shipment_request.provider_name,
         service=service,
+        contact_name=shipment.remote_full_contact.contact.contact_name,
+        contact_email=shipment.remote_full_contact.contact.email_address,
         **update,
     )
 
