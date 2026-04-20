@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import ClassVar
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from shipaw.utils.consts_enums import ShipDirection
 
 from amherst.models.amherst_base import AmherstBase
@@ -33,26 +33,8 @@ def ordinal_date_name() -> str:
     return dt.strftime(f'%Y-%B-{ordinal_day(dt.day)} (%A @ %H:%M:%S)')
 
 
-#
-# @register_table
-# class CommenceShipment(AmherstBase):
-#     category: ClassVar[CategoryName] = CategoryName.Shipment
-#     direction: ShipDirection = Field(..., alias='Direction')
-#     label: CommencePath | None = Field(None, alias='Label')
-#     boxes: int = Field(0, alias='Boxes')
-#     send_date: CommenceDate = Field(..., alias='Send Date')
-#     collection_id: CommenceString = Field('', alias='Collection ID')
-#
-#     creation_datetime: CommenceString = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
-#     name: CommenceString = Field(default_factory=ordinal_date_name, alias='Name')
-#     latest_tracking: CommenceString = Field('', alias='Latest Tracking')
-#     tracking_links: CSVLines = Field(default_factory=list, alias='Tracking Links')
-#     shipment_numbers: CSVSpaces = Field(default_factory=list, alias='Shipment Numbers')
-#     notes: CommenceString = Field('', alias='Notes')
-#
-#     hires: CSVSpaces = Field(default_factory=list, alias='For Hire')
-#     sales: CSVSpaces = Field(default_factory=list, alias='For Sale')
-#     customers: CSVSpaces = Field(default_factory=list, alias='For Customer')
+def shipment_name(dt: date):
+    return dt.strftime(f'%Y-%B-{ordinal_day(dt.day)} booked@{now_iso_seconds()}')
 
 
 class CommenceShipmentAdd(AmherstBase):
@@ -68,7 +50,7 @@ class CommenceShipmentAdd(AmherstBase):
     contact_email: CommenceString = Field('', alias='Contact Email')
 
     creation_datetime: CommenceString = Field(default_factory=now_iso_seconds, alias='Creation Datetime')
-    name: CommenceString = Field(default_factory=ordinal_date_name, alias='Name')
+    name: CommenceString = Field('', alias='Name')
     latest_tracking: CommenceString = Field('', alias='Latest Tracking')
     tracking_links: CSVLines = Field(default_factory=list, alias='Tracking Links')
     shipment_numbers: CSVSpaces = Field(default_factory=list, alias='Shipment Numbers')
@@ -77,6 +59,12 @@ class CommenceShipmentAdd(AmherstBase):
     hires: CSVSpaces = Field(default_factory=list, alias='For Hire')
     sales: CSVSpaces = Field(default_factory=list, alias='For Sale')
     customers: CSVSpaces = Field(default_factory=list, alias='For Customer')
+
+    @model_validator(mode='after')
+    def get_name(self):
+        if self.name == '':
+            self.name = shipment_name(self.send_date)
+        return self
 
 
 @register_table

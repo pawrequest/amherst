@@ -12,7 +12,7 @@ from shipaw.utils.consts_enums import ShipDirection
 from amherst.models.amherst_base import alias_lookup
 from amherst.models.amherst_models import AmherstHire
 from amherst.models.commence_adaptors import CategoryName
-from amherst.models.commence_shipment import CommenceShipment, ordinal_date_name
+from amherst.models.commence_shipment import CommenceShipment
 from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
 
 
@@ -79,7 +79,7 @@ async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: Shipmen
         direction=shipment.direction,
         label=shipment_response.label_path,
         latest_tracking=shipment_response.tracking_links[0] if shipment_response.tracking_links else None,
-        name=f'{ordinal_date_name()}',
+        # name=shipment_name(shipment.shipping_date), # pydantic validator automates
         send_date=shipment.shipping_date,
         shipment_numbers=shipment_response.shipment_numbers,
         tracking_links=shipment_response.tracking_links,
