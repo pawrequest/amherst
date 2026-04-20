@@ -14,7 +14,7 @@ authors = [
 requires-python = ">= 3.13"
 
 dependencies = [
-    "shipaw==0.3.61",
+    "shipaw==0.3.62",
     "pawlogger==0.1.4",
     "pycommence==0.2.4",
     #
@@ -43,5 +43,5 @@ format.quote-style = "single"
 
 
 
-#[tool.uv.sources]
-#shipaw = { path = '../shipaw', editable = true }
+[tool.uv.sources]
+shipaw = { path = '../shipaw', editable = true }
