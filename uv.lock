@@ -38,7 +38,7 @@ requires-dist = [
     { name = "pycommence", specifier = "==0.2.4" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", editable = "../shipaw" },
+    { name = "shipaw", specifier = "==0.3.63" },
 ]
 
 [package.metadata.requires-dev]
@@ -1006,8 +1006,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.62"
-source = { editable = "../shipaw" }
+version = "0.3.63"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
@@ -1028,31 +1028,10 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "apc-hypaship", specifier = ">=0.1.10" },
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
-    { name = "hatchling", specifier = ">=1.27.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawdf", specifier = ">=0.1.0" },
-    { name = "pawlogger", specifier = ">=0.1.4" },
-    { name = "phonenumbers", specifier = ">=9.0.15" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
-    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
-    { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "pygments", specifier = ">=2.19.2" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pywin32", specifier = ">=311" },
-    { name = "royal-mail-combined", specifier = ">=0.0.22" },
-    { name = "thefuzz", specifier = ">=0.22.1" },
-    { name = "uvicorn", specifier = ">=0.37.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/bf/ff/59792300aaabde1ecf2c54556f1fe996614a5c0b81cfdcb219b24209b9eb/shipaw-0.3.63.tar.gz", hash = "sha256:f97437f2ee8665ea7975a3eb4319439b786bc17f016fa5a1f3e2a854c21d230c", size = 39213, upload-time = "2026-04-20T21:12:34.466Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cd/25/f630dae75080c6c07b9651e1ca55f3d45f781108fb9db5f8027a8a554a8d/shipaw-0.3.63-py3-none-any.whl", hash = "sha256:7bdde6ee84f69b0471b2c021a508ff0a08fd4ac20440e081239a055d4c149c54", size = 57570, upload-time = "2026-04-20T21:12:33.423Z" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "six"
