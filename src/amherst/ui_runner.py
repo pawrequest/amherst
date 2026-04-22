@@ -55,10 +55,9 @@ async def run_shipper(category: CategoryName, record_name: str):
     mdl = cast(object, mdl)
     mdl = cast(AmherstShipableBase, mdl)
     shipment = mdl.shipment()
-    # shipment.context = {mdl.model_dump(mode='json')}
+    log_obj_text(shipment, 'Initial Shipment', level='INFO')
 
     shipment_dict = shipment.model_dump(mode='json')
-    log_obj_text(shipment, 'Initial Shipment', level='INFO')
     config = FapiConfig(
         post_body=shipment_dict,
         url_for_='shipping_form',
