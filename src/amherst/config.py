@@ -1,70 +1,80 @@
 from __future__ import annotations
 
-import re
-from datetime import date, datetime
+import os
+from functools import cache
+from importlib.resources import files
 from pathlib import Path
-from urllib.parse import quote
 
 import pydantic as _p
-from fastapi.encoders import jsonable_encoder
-from pawlogger import get_loguru
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
 
-from amherst.set_env import get_envs_dir
+DEFAULT_UI_DIR: Path = Path(str(files('amherst').joinpath('ui')))
+DEFAULT_AMHERST_DATA_DIR = Path.home() / 'amherst_shipper'
+AMHERST_ENV_KEY = 'AMHERST_ENV'
 
 
-class Settings(BaseSettings):
-    log_file: Path
-    src_dir: Path = Path(__file__).resolve().parent
-    templates: Path | None = None
+def load_env(env_key: str) -> Path:
+    amherst_env_file = Path(os.environ.get(env_key, ''))
+    if not amherst_env_file or not amherst_env_file.exists():
+        raise ValueError('AMHERST_ENV not set or does not exist')
+    return amherst_env_file
+
+
+class AmherstSettings(BaseSettings):
     log_level: str = 'DEBUG'
-    sandbox: bool = False
+    data_dir: Path = DEFAULT_AMHERST_DATA_DIR
+    ui_dir: Path = DEFAULT_UI_DIR
 
-    @_p.field_validator('templates', mode='after')
-    def set_templates(cls, v, values):
-        if not v:
-            return Jinja2Templates(directory=str(values.data['src_dir'] / 'front' / 'templates'))
-        return v
+    model_config = SettingsConfigDict(frozen=True)
 
-    @_p.field_validator('log_file', mode='after')
-    def path_exists(cls, v, values):
-        if not v.parent.exists():
-            v.parent.mkdir(parents=True, exist_ok=True)
-        if not v.exists():
-            v.touch(exist_ok=True)
-        return v
+    @property
+    def template_dir(self) -> Path:
+        return self.ui_dir / 'templates'
 
-    model_config = SettingsConfigDict(env_ignore_empty=True, env_file=get_envs_dir() / 'am.env', extra='ignore')
+    @computed_field
+    @property
+    def log_file(self) -> Path:
+        return self.data_dir / 'logs' / 'amherst.log'
+
+    @computed_field
+    @property
+    def ndjson_file(self) -> Path:
+        return self.data_dir / 'logs' / 'amherst.ndjson'
+
+    @property
+    @cache
+    def templates(self):
+        return Jinja2Templates(directory=str(self.template_dir))
+
+    @_p.model_validator(mode='after')
+    def create_log_files(self):
+        (self.data_dir / 'logs/').mkdir(parents=True, exist_ok=True)
+        for v in (self.log_file, self.ndjson_file):
+            if not v.exists():
+                v.touch()
+        return self
+
+    @classmethod
+    @cache
+    def from_env(cls) -> AmherstSettings:
+        env_path = load_env(AMHERST_ENV_KEY)
+        if env_path.exists():
+            setts = cls(_env_file=env_path)  # pycharm_pydantic false positive
+            print(f'Loaded Amherst AmherstSettings from {env_path}')
+        else:
+            setts = cls()
+            print(f'No env file found for AmherstSettings at {env_path}, using defaults')
+        return setts
 
 
-AM_SETTINGS = Settings()
-
-logger = get_loguru(log_file=AM_SETTINGS.log_file, profile='local', level=AM_SETTINGS.log_level)
-
-
-def sanitise_id(value):
-    return re.sub(r'\W|^(?=\d)', '_', value).lower()
-
-
-def make_jsonable(thing) -> dict:
-    # todo remove this function and use jsonable_encoder directly in templates?!
-    res = jsonable_encoder(thing)
-    return res
+# @cache
+# def amherst_settings() -> AmherstSettings:
+#     am_env_file = load_env()
+#     am_sets = AmherstSettings(_env_file=am_env_file)
+#     configure_loguru(log_file=am_sets.log_file, level=am_sets.log_level)
+#     return am_sets
 
 
-def date_int_w_ordinal(n: int):
-    """Convert an integer to its ordinal as a string, e.g. 1 -> 1st, 2 -> 2nd, etc."""
-    return str(n) + ('th' if 4 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th'))
-
-
-def ordinal_dt(dt: datetime | date) -> str:
-    """Convert a datetime or date to a string with an ordinal day, e.g. 'Mon 1st Jan 2020'."""
-    return dt.strftime(f'%a {date_int_w_ordinal(dt.day)} %b %Y')
-
-
-TEMPLATES = Jinja2Templates(directory=str(AM_SETTINGS.src_dir / 'front' / 'templates'))
-TEMPLATES.env.filters['jsonable'] = make_jsonable
-TEMPLATES.env.filters['urlencode'] = lambda value: quote(str(value))
-TEMPLATES.env.filters['sanitise_id'] = sanitise_id
-TEMPLATES.env.filters['ordinal_dt'] = ordinal_dt
+AMHERST_SETTINGS = AmherstSettings.from_env()

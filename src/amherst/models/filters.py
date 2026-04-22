@@ -1,82 +1,91 @@
 from __future__ import annotations
 
 import functools
-from datetime import datetime, timedelta
-from enum import StrEnum
-from typing import Literal
 from collections.abc import Generator
+from datetime import datetime, timedelta
+from typing import Literal
 
+from loguru import logger
 from pycommence.filters import ConditionType, ConnectedFieldFilter, FieldFilter, FilterArray, Sort, SortOrder
 from pycommence.pycmc_types import Connection, get_cmc_date
 
-from amherst.config import logger
-from amherst.models.commence_adaptors import CustomerAliases, HireAliases, SaleAliases
+from amherst.models.amherst_base import alias_lookup
+from amherst.models.amherst_models import HIRE_SEND_DATE_ALIAS, SALE_BOOKED_DATE_ALIAS, AmherstCustomer, AmherstHire
 
-CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
 FilterVariant = Literal['loose', 'tight']
+CUTOFF_DATE = (datetime.now() - timedelta(days=300)).date()
 
 
-def customer_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
+def customer_row_filter_loose(rowgen: Generator[dict[str, str]]) -> Generator[dict[str, str]]:
     for row in rowgen:
-        if contacted := row.get(CustomerAliases.DATE_LAST_CONTACTED):
+        if contacted := row.get(AmherstCustomer.model_fields['date_last_contacted'].alias):
+            # if contacted := row.get(CustomerAliases.DATE_LAST_CONTACTED):
             datey = get_cmc_date(contacted)
             if not datey:
-                logger.warning(f'Invalid date for {CustomerAliases.DATE_LAST_CONTACTED}: {contacted}')
+                logger.warning(
+                    f'Invalid date for {AmherstCustomer.model_fields["date_last_contacted"].alias}: {contacted}'
+                )
+                # logger.warning(f'Invalid date for {CustomerAliases.DATE_LAST_CONTACTED}: {contacted}')
             if datey < CUTOFF_DATE:
                 continue
             yield row
 
 
-def order_row_filter_loose(
-    aliases: type[StrEnum], rowgen: Generator[dict[str, str], None, None]
-) -> Generator[dict[str, str], None, None]:
-    for row in rowgen:
-        # if hasattr(aliases, 'SEND_DATE'):
-        #     if datey := row.get(aliases.SEND_DATE):
-        #         send_date = get_cmc_date(datey)
-        #         if send_date < CUTOFF_DATE:
-        #             continue
-        yield row
-
-
-def hire_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
-    yield from order_row_filter_loose(HireAliases, rowgen)
-
-
-def sale_row_filter_loose(rowgen: Generator[dict[str, str], None, None]) -> Generator[dict[str, str], None, None]:
-    yield from order_row_filter_loose(SaleAliases, rowgen)
+def generator_passthru(rowgen: Generator[dict[str, str]]) -> Generator[dict[str, str]]:
+    yield from rowgen
 
 
 HIRE_ARRAY_TIGHT = FilterArray(
     filters={
-        1: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.CONTAIN, value='Booked'),
-        2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one week ago'),
-        3: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one week from today'),
-        4: FieldFilter(column=HireAliases.ARRANGED_OUT, condition=ConditionType.NOT),
+        1: FieldFilter(column=alias_lookup(AmherstHire, 'status'), condition=ConditionType.CONTAIN, value='Booked'),
+        2: FieldFilter(column=HIRE_SEND_DATE_ALIAS, condition=ConditionType.AFTER, value='one week ago'),
+        3: FieldFilter(
+            column=HIRE_SEND_DATE_ALIAS,
+            condition=ConditionType.BEFORE,
+            value='one week from today',
+        ),
+        4: FieldFilter(column=alias_lookup(AmherstHire, 'arranged_out'), condition=ConditionType.NOT),
     },
-    sorts=[Sort(column=HireAliases.SEND_DATE, order=SortOrder.ASC)],
+    sorts=[Sort(column=HIRE_SEND_DATE_ALIAS, order=SortOrder.ASC)],
     # sorts=[
     #     (HireAliases.SEND_DATE, SortOrder.ASC),
     # ],
     logics=['And', 'And', 'And'],
 )
+#
+#
+# HIRE_ARRAY_TIGHT = FilterArray(
+#     filters={
+#         1: FieldFilter(column=HireAliases.STATUS, condition=ConditionType.CONTAIN, value='Booked'),
+#         2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='one week ago'),
+#         3: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='one week from today'),
+#         4: FieldFilter(column=HireAliases.ARRANGED_OUT, condition=ConditionType.NOT),
+#     },
+#     sorts=[Sort(column=HireAliases.SEND_DATE, order=SortOrder.ASC)],
+#     # sorts=[
+#     #     (HireAliases.SEND_DATE, SortOrder.ASC),
+#     # ],
+#     logics=['And', 'And', 'And'],
+# )
+
 
 HIRE_ARRAY_LOOSE = FilterArray(
     filters={
-        1: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.AFTER, value='six month ago'),
-        2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BEFORE, value='three month from today'),
+        1: FieldFilter(column=HIRE_SEND_DATE_ALIAS, condition=ConditionType.AFTER, value='six month ago'),
+        2: FieldFilter(column=HIRE_SEND_DATE_ALIAS, condition=ConditionType.BEFORE, value='three month from today'),
         # 2: FieldFilter(column=HireAliases.SEND_DATE, condition=ConditionType.BETWEEN, value='six months ago, three months from today'),
     },
-    sorts=[Sort(column=HireAliases.SEND_DATE, order=SortOrder.ASC)],
+    sorts=[Sort(column=HIRE_SEND_DATE_ALIAS, order=SortOrder.ASC)],
     logics=['And'],
 )
 
 
 SALE_ARRAY_TIGHT = FilterArray(
     filters={
-        1: FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='one month ago'),
+        1: FieldFilter(column=SALE_BOOKED_DATE_ALIAS, condition=ConditionType.AFTER, value='one month ago'),
+        # 1: FieldFilter(column=SaleAliases.DATE_ORDERED, condition=ConditionType.AFTER, value='one month ago'),
     },
-    sorts=[Sort(column=SaleAliases.DATE_ORDERED, order=SortOrder.DESC)],
+    sorts=[Sort(column=SALE_BOOKED_DATE_ALIAS, order=SortOrder.DESC)],
     # sorts=[(SaleAliases.DATE_ORDERED, SortOrder.DESC)],
 )
 
@@ -111,7 +120,11 @@ CUSTOMER_ARRAY_TIGHT = customer_array_tight()
 
 CUSTOMER_ARRAY_LOOSE = FilterArray(
     filters={
-        1: FieldFilter(column=CustomerAliases.DATE_LAST_CONTACTED, condition=ConditionType.AFTER, value='one year ago'),
+        1: FieldFilter(
+            column=AmherstCustomer.model_fields['date_last_contacted'].alias,
+            condition=ConditionType.AFTER,
+            value='one year ago',
+        ),
     },
     logics=['And'],
 )
