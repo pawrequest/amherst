@@ -64,7 +64,7 @@ async def run_shipper(category: CategoryName, record_name: str):
         url_for_='shipping_form',
         context={'category': category, 'record_name': record_name},
     )
-    await run_desktop_add_state(category, mdl.row_id, config)
+    await run_desktop_add_state(row_data.category, row_data.row_id, config)
 
 
 # async def get_shipment_from_pycommence(category: CategoryName, record_name: str) -> Any:
