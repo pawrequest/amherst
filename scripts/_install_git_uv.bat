@@ -1,6 +1,4 @@
 @echo off
-echo Installing Git and UV
-
 set UV_DIR=%USERPROFILE%\.local\bin
 
 REM maybe install uv
@@ -9,7 +7,7 @@ if exist "%UV_DIR%\uv.exe" (
 ) else (
     echo Installing UV...
     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-    echo UV installed, adding to path...
+    echo UV installed
 )
 
 REM maybe install git

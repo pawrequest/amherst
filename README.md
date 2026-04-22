@@ -5,6 +5,12 @@ This project pulls together a number of different tools to assist with our day-t
 It is ludicrously over-engineered. Previous iterations used PySimpleGui, but that is no longer FOSS - instead we produce
 a full FastAPI based web-application wrapped in FlaskWebGui to render as a desktop app.
 
+wut?
+
+config:
+must set AMHERST_ENV and SHIPAW_ENV environment variables as paths to .env files
+
+
 ## Major Dependencies
 
 - ### Commence RM Designer Edition
