@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "amherst"
-version = "0.4.28"
+version = "0.4.29"
 description = "Add your description here"
 readme = "README.md"
 authors = [
