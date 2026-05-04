@@ -4,6 +4,7 @@ import asyncio
 from amherst_core.consts_enums import CategoryName
 from loguru import logger
 
+from amherst.run_ng import nice_shipper
 from amherst.ui_runner import run_shipper
 
 
@@ -21,6 +22,13 @@ def shipper_cli():
 
     # asyncio.run(pycommence_shipper(args.category, args.record_name))
     asyncio.run(run_shipper(args.category, args.record_name))
+
+
+def nice_cli():
+    args = parse_ship_args()
+    logger.info(f'starting shipper for {args.category} {args.record_name}')
+
+    nice_shipper(args.category, args.record_name)
 
 
 if __name__ == '__main__':

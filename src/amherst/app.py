@@ -2,7 +2,7 @@ from fastapi import responses
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
 from pawlogger import configure_loguru
-from shipaw.config import FapiConfig, ShipawSettings, populate_providers
+from shipaw.config import ShipawSettings, populate_providers, FapiConfig
 from shipaw.fapi.app import request_validation_exception_handler
 from shipaw.fapi.routes_api import router as shipaw_json_router
 from shipaw.fapi.routes_html import router as shipaw_html_router

@@ -37,14 +37,16 @@ dev = [
 
 [project.scripts]
 shipper = "amherst.cli:shipper_cli"
+nice = "amherst.cli:nice_cli"
 
 [tool.ruff]
 line-length = 120
-lint.extend-select = ["RUF100", "UP","I"]
+lint.extend-select = ["RUF100", "UP", "I"]
 format.quote-style = "single"
 
 
 [tool.uv.sources]
+shipaw = { path = '../shipaw', editable = true }
 #amherst-core = { path = '../amherst-core', editable = true }
-amherst-core = { git = 'https://github.com/pawrequest/amherst-core'}
+amherst-core = { git = 'https://github.com/pawrequest/amherst-core' }
 #amherst-core = { git = 'https://github.com/pawrequest/amherst-core', tag = 'latest' }

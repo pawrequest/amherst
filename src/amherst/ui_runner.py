@@ -7,11 +7,10 @@ from typing import cast
 from amherst_core.consts_enums import CategoryName
 from amherst_core.models import AmherstShipableBase
 from flaskwebgui import FlaskUI, close_application
-from pycommence import PyCommence
-from pycommence.core.row_data import RowData
 from shipaw.config import FapiConfig
 from shipaw.logging import log_obj_text
 
+from amherst.amherst_pycmc import row_from_pycommence
 from amherst.app import app
 
 
@@ -72,11 +71,6 @@ async def run_shipper(category: CategoryName, record_name: str):
 #     shipment = mdl.shipment()  # noqa:
 #     shipment.context = {mdl.model_dump(mode='json')}
 #     return shipment
-
-
-async def row_from_pycommence(category: CategoryName, record_name: str) -> RowData:
-    with PyCommence(category) as pycmc:
-        return pycmc.item_read_csr(pk=record_name)
 
 
 REVIEW_URL = r'/shipaw/order_review_am'
