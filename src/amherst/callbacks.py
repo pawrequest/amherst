@@ -6,7 +6,7 @@ from typing import Any
 from amherst_core.models import AmherstCustomer, AmherstHire, AmherstOrderBase
 from amherst_core.models.shipment import CommenceShipmentAdd
 from amherst_core.utils.get_set_convert import alias_lookup
-from amherst_core.utils.text_and_date import dated_name, ordinal_date_name_now
+from amherst_core.utils.text_and_date import ordinal_date_name_now
 from loguru import logger
 from pycommence import PyCommence
 from pycommence.core.meta import CommenceTable

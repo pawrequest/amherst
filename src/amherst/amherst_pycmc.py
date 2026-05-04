@@ -9,6 +9,7 @@ async def row_from_pycommence(category: CategoryName, record_name: str) -> RowDa
     with PyCommence(category) as pycmc:
         return pycmc.item_read_csr(pk=record_name)
 
+
 def row_from_pycommence_sync(category: CategoryName, record_name: str) -> RowData:
     with PyCommence(category) as pycmc:
         return pycmc.item_read_csr(pk=record_name)

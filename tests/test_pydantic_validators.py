@@ -3,7 +3,7 @@ from pathlib import Path
 
 import dotenv
 import pytest
-from amherst_core.models import AmherstCustomer, AmherstHire
+from amherst_core.models import AmherstCustomer
 from pycommence import PyCommence
 from pycommence.core.row_data import RowData
 

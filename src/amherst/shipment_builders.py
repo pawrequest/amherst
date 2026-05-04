@@ -27,7 +27,6 @@ def build_full_contact(record: AmherstShipableBase) -> FullContact:
     )
 
 
-
 class PycommenceShipment[T: CommenceTable](Shipment):
     context: T
 
