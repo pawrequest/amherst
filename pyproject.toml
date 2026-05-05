@@ -47,7 +47,7 @@ format.quote-style = "single"
 
 [tool.uv.sources]
 #shipaw = { path = '../shipaw', editable = true }
-shipaw = { git = 'https://github.com/pawrequest/shipaw', tag = 'v3-nicegui' }
+shipaw = { git = 'https://github.com/pawrequest/shipaw', tag = 'v4' }
 #amherst-core = { path = '../amherst-core', editable = true }
 amherst-core = { git = 'https://github.com/pawrequest/amherst-core' }
 #amherst-core = { git = 'https://github.com/pawrequest/amherst-core', tag = 'latest' }

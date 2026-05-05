@@ -139,7 +139,7 @@ requires-dist = [
     { name = "pycommence", specifier = ">=0.2.2" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", git = "https://github.com/pawrequest/shipaw?tag=v3-nicegui" },
+    { name = "shipaw", git = "https://github.com/pawrequest/shipaw?tag=v4" },
 ]
 
 [package.metadata.requires-dev]
@@ -1773,7 +1773,7 @@ wheels = [
 [[package]]
 name = "shipaw"
 version = "0.4.0"
-source = { git = "https://github.com/pawrequest/shipaw?tag=v3-nicegui#dd04b098dd9bd057995f36835539c1cc3e9a47eb" }
+source = { git = "https://github.com/pawrequest/shipaw?tag=v4#dd04b098dd9bd057995f36835539c1cc3e9a47eb" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
