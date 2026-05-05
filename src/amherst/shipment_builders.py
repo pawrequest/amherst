@@ -2,6 +2,7 @@ from datetime import date
 
 from amherst_core.models import AmherstCustomer, AmherstShipableBase
 from pycommence.core.meta import CommenceTable
+from shipaw.config import SHIPAW_SETTINGS
 from shipaw.models.address_contact import Address, Contact, FullContact
 from shipaw.models.shipment import Shipment
 from shipaw.utils.consts_enums import ShipDirection
@@ -10,8 +11,11 @@ from shipaw.utils.consts_enums import ShipDirection
 def address_from_str_and_pc(address_str, postcode, business_name) -> Address:
     addr_lines = address_str.strip().splitlines()
     town = addr_lines.pop() if len(addr_lines) > 1 else ''
-    used_lines = [_ for _ in addr_lines if _]
-    return Address(address_lines=used_lines, postcode=postcode, town=town, business_name=business_name)
+    lines = [_ for _ in addr_lines if _]
+    if len(lines) > 2:
+        lines = lines[:1] + [', '.join(lines[1:])]
+    lines_dict = {f'address_line{i}': line for i, line in enumerate(lines, start=1)}
+    return Address(**lines_dict, postcode=postcode, town=town, business_name=business_name)
 
 
 def build_full_contact(record: AmherstShipableBase) -> FullContact:
@@ -39,6 +43,7 @@ def build_shipment[T: CommenceTable](record: T) -> PycommenceShipment[T]:
             reference=record.name,
             context=record,
             direction=ShipDirection.OUTBOUND,
+            sender=SHIPAW_SETTINGS.full_contact,
         )
     else:
         raise ValueError('Unsupported record type for shipment building')

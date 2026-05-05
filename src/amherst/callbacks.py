@@ -16,10 +16,6 @@ from shipaw.models.responses import ShipmentResponse
 from shipaw.models.shipment import Shipment
 from shipaw.utils.consts_enums import ShipDirection
 
-from amherst.app_custom import AmherstRequest
-
-# from amherst.models.amherst_base import alias_lookup
-
 
 def safe_call(func, *args, response, error_msg, **kwargs):
     try:
@@ -37,16 +33,16 @@ async def safe_call_async(func, *args, response, error_msg, **kwargs):
     return safe_call(func, *args, response=response, error_msg=error_msg, **kwargs)
 
 
-async def cmc_callback(request: AmherstRequest, shipment_request: ShipmentRequest, response: ShipmentResponse):
-    category = request.app.state.category
-    row_id = request.app.state.row_id
+def cmc_callback_nice(shipment_request: ShipmentRequest, response: ShipmentResponse):
+    category = shipment_request.shipment.context.get('category')
+    row_id = shipment_request.shipment.context.get('row_id')
     shipment = shipment_request.shipment
 
     with PyCommence(category, 'Shipment') as pycmc:
         # prepare data
         row_data = pycmc.item_read_csr(csrname=category, row_id=row_id)
         record = row_data.construct_model()
-        update_dict = await make_update_dict(record, shipment)
+        update_dict = make_update_dict(record, shipment)
         shipment_obj = new_cmc_shipment(record, shipment_request, response)
         ship_dict = shipment_obj.model_dump(by_alias=True)
 
@@ -60,7 +56,7 @@ async def cmc_callback(request: AmherstRequest, shipment_request: ShipmentReques
         )
 
         # create and connect shipment record
-        shipment_created = await safe_call_async(
+        shipment_created = safe_call(
             pycmc.cursor('Shipment').create_row,
             ship_dict,
             response=response,
@@ -77,13 +73,13 @@ async def cmc_callback(request: AmherstRequest, shipment_request: ShipmentReques
         logger.error(f'Failed to update existing Commence record {record.name}')
 
 
-async def make_update_dict(record: CommenceTable, shipment: Shipment) -> dict[str, Any]:
+def make_update_dict(record: CommenceTable, shipment: Shipment) -> dict[str, Any]:
     if isinstance(record, AmherstHire):
-        return await _cmc_update_dict_hire(record, shipment.direction, shipment.shipping_date)
+        return _cmc_update_dict_hire(record, shipment.direction, shipment.shipping_date)
     return {}  # create shipment so not many updates in sale etc
 
 
-async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, shipping_date: date) -> dict:
+def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, shipping_date: date) -> dict:
     match direction:
         case ShipDirection.OUTBOUND:
             return {alias_lookup(AmherstHire, 'arranged_out'): 'True'}

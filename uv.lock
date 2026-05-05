@@ -1704,8 +1704,8 @@ wheels = [
 
 [[package]]
 name = "royal-mail-combined"
-version = "0.0.22"
-source = { editable = "../royal-mail-combined" }
+version = "0.0.24"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "loguru" },
@@ -1718,23 +1718,10 @@ dependencies = [
     { name = "ruff" },
     { name = "urllib3" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawdf", specifier = ">=0.1.2" },
-    { name = "prek", specifier = ">=0.3.6" },
-    { name = "pydantic", specifier = ">=2.12.5" },
-    { name = "pydantic-settings", specifier = ">=2.13.1" },
-    { name = "python-dateutil", specifier = ">=2.9.0.post0" },
-    { name = "python-dotenv", specifier = ">=1.2.1" },
-    { name = "ruff", specifier = ">=0.15.6" },
-    { name = "urllib3", specifier = ">=2.6.3" },
+sdist = { url = "https://files.pythonhosted.org/packages/30/0f/bc284043202ca8a5969467752a4fbd25aec226ecf358ae46923fe24b6a90/royal_mail_combined-0.0.24.tar.gz", hash = "sha256:343e21aca68412e900883faba972a259c881137bcd2a8dcca912faaabaf16f6e", size = 63649, upload-time = "2026-05-05T01:00:42.843Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/04/98/a045ed3db33c6c51295183f4ce7a15a67de65d99fe4c1c9872db87b79c9e/royal_mail_combined-0.0.24-py3-none-any.whl", hash = "sha256:52c8d318449c4349a169f15cb002fb653361debb6cc1c1d4b3976385b25b68c9", size = 147341, upload-time = "2026-05-05T01:00:41.525Z" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.1" }]
 
 [[package]]
 name = "ruff"
@@ -1829,7 +1816,7 @@ requires-dist = [
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pywebview", specifier = ">=6.2.1" },
     { name = "pywin32", specifier = ">=311" },
-    { name = "royal-mail-combined", editable = "../royal-mail-combined" },
+    { name = "royal-mail-combined", specifier = ">=0.0.24" },
     { name = "thefuzz", specifier = ">=0.22.1" },
     { name = "uvicorn", specifier = ">=0.37.0" },
 ]
