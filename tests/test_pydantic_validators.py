@@ -33,10 +33,10 @@ def amherst_customer(amherst_customer_data) -> AmherstCustomer:
 #     assert len(tracks) == 0
 
 
-def test_it():
-    cust = AmherstCustomer
-    afield = cust.model_fields['name'].alias
-    ...
+# def test_it():
+#     cust = AmherstCustomer
+#     afield = cust.model_fields['name'].alias
+#     ...
 
 
 # def test_sep():

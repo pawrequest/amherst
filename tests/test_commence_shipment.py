@@ -12,6 +12,7 @@ def test_create():
     shpdict = ship.model_dump(by_alias=True)
     with PyCommence('Shipment') as cmc:
         res = cmc.cursor().create_row(shpdict)
+        assert res
 
     ...
 
@@ -20,4 +21,5 @@ def test_1():
     with PyCommence('Shipment') as cmc:
         res = cmc.read_row(pk='2026-April-1st (Wednesday @ 20:42:02)')
         obj = CommenceShipment(**res.data)
+        assert obj
     ...
