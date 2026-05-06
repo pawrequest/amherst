@@ -35,7 +35,7 @@ def nice_shipper(category, pk, host='127.0.0.1', port=9080):
         title='Shipaw Shipper',
         reload=False,
         window_size=(1200, 1000),  # implies native=True
-        favicon=Path(r'C:\prdev\amdev\shipaw\src\shipaw\nicegui_ui\favicon.ico'),
+        # favicon=Path(r'C:\prdev\amdev\shipaw\src\shipaw\nicegui_ui\favicon.ico'),
         # frameless=True  # todo: close button
         # storage_secret='shipaw-secret',  # if needed
     )
