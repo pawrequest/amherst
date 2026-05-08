@@ -158,6 +158,8 @@ class AmherstSale(AmherstOrderBase):
     # optional overrides order
     status: SaleStatus = Field(None, alias='Status')
     booking_date: CommenceDate | None = Field(None, alias='Date Ordered')
+    arranged_out: bool = Field(False, alias='DB label printed')
+
 
     # sale fields
     lost_equipment: CommenceString | None = Field(None, alias='Lost Equipment')

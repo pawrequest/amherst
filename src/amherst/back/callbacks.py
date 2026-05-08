@@ -10,7 +10,7 @@ from shipaw.fapi.responses import ShipmentResponse
 from shipaw.utils.consts_enums import ShipDirection
 
 from amherst.models.amherst_base import alias_lookup
-from amherst.models.amherst_models import AmherstHire
+from amherst.models.amherst_models import AmherstHire, AmherstSale
 from amherst.models.commence_adaptors import CategoryName
 from amherst.models.commence_shipment import CommenceShipment
 from amherst.models.shipment import AmherstShipment, AmherstShipmentRequest
@@ -50,6 +50,9 @@ async def make_update_dict(shipment: AmherstShipment) -> dict[str, Any]:
     if isinstance(record, AmherstHire):
         record = cast(AmherstHire, record)
         return await _cmc_update_dict_hire(record, shipment.direction, shipment.shipping_date)
+    if isinstance(record, AmherstSale):
+        record = cast(AmherstSale, record)
+        return await _cmc_update_dict_sale(record, shipment.direction, shipment.shipping_date)
     return {}
 
 
@@ -67,6 +70,18 @@ async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, s
                 alias_lookup(AmherstHire, 'pickup_date'): f'{shipping_date:%Y-%m-%d}',
                 alias_lookup(AmherstHire, 'return_notes'): ret_notes,
             }
+        case _:
+            raise ValueError(f'Invalid shipment direction: {direction}')
+
+
+async def _cmc_update_dict_sale(record: AmherstSale, direction: ShipDirection, shipping_date: date) -> dict:
+    match direction:
+        case ShipDirection.OUTBOUND:
+            return {alias_lookup(AmherstSale, 'arranged_out'): 'True'}
+        case ShipDirection.INBOUND | ShipDirection.DROPOFF:
+            return {}
+        case ShipDirection.THIRD_PARTY:
+            return {}
         case _:
             raise ValueError(f'Invalid shipment direction: {direction}')
 
