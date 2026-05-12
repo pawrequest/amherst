@@ -160,7 +160,6 @@ class AmherstSale(AmherstOrderBase):
     booking_date: CommenceDate | None = Field(None, alias='Date Ordered')
     arranged_out: bool = Field(False, alias='DB label printed')
 
-
     # sale fields
     lost_equipment: CommenceString | None = Field(None, alias='Lost Equipment')
     purchase_order: CommenceString | None = Field(None, alias='Purchase Order')
