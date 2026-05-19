@@ -8,7 +8,7 @@ resolution-markers = [
 
 [[package]]
 name = "amherst"
-version = "0.4.36"
+version = "0.4.37"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
@@ -38,7 +38,7 @@ requires-dist = [
     { name = "pycommence", specifier = "==0.2.4" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", specifier = "==0.3.73" },
+    { name = "shipaw", editable = "../shipaw" },
 ]
 
 [package.metadata.requires-dev]
@@ -938,7 +938,7 @@ wheels = [
 
 [[package]]
 name = "royal-mail-combined"
-version = "0.0.25"
+version = "0.0.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -952,9 +952,9 @@ dependencies = [
     { name = "ruff" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/52/46/a7e36d7a6b892caab01a2a38d5b085812a93757a9ea4eaba2e7d9d21ec2d/royal_mail_combined-0.0.25.tar.gz", hash = "sha256:c88665c8313ae978c33bb91f113e07237732d160dc15f92f5c2bcf93f86f246b", size = 66530, upload-time = "2026-05-12T10:27:31.607Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/6f/5e738fa1a9cdf593aace29cc0ce927497619553d2c7e92b42d30e03ae74e/royal_mail_combined-0.0.27.tar.gz", hash = "sha256:b4150aa3d6afe2ea16a457f9fb8038e5ecef8226581d40dd045cc9b9120e3b9a", size = 66395, upload-time = "2026-05-19T12:57:54.474Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1d/70/c76a63a4b6e060cc5321d523ed9efde2d8d430834b3d440fbcf4e92b16ec/royal_mail_combined-0.0.25-py3-none-any.whl", hash = "sha256:bcbd0907eec45d2409c1184500b7ec3894cd008b821e7a93dc202164afcc1d9f", size = 148811, upload-time = "2026-05-12T10:27:36.524Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/17/069d5644602b6c511b8b7886041174195151853e9bcbc5e27f3c3f1e755b/royal_mail_combined-0.0.27-py3-none-any.whl", hash = "sha256:10abd8b30d2bc2696fad08c6cc717e97c1024fbb941e46c4ba452fab61e7a58a", size = 148828, upload-time = "2026-05-19T12:57:50.978Z" },
 ]
 
 [[package]]
@@ -1006,8 +1006,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.73"
-source = { registry = "https://pypi.org/simple" }
+version = "0.3.75"
+source = { editable = "../shipaw" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
@@ -1028,10 +1028,31 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/36/0ae6fc535bd5c49a8595bf54729e8d800aab43590e80dad6b8b34041eb3e/shipaw-0.3.73.tar.gz", hash = "sha256:e343adf2c5c6db3f932d3e70c6f399e46954c5ad5723b0377404e8a433e34b7f", size = 39459, upload-time = "2026-05-19T12:26:54.838Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/54/603e2f80db16fbb6d2215061b97aa49072649a05da1f30fee47391646cba/shipaw-0.3.73-py3-none-any.whl", hash = "sha256:5bbb39e2e35054ab9167050a4bb88547b75b12693d603f7e6c4d171acdb72e3f", size = 58280, upload-time = "2026-05-19T12:26:57.426Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "apc-hypaship", specifier = ">=0.1.10" },
+    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
+    { name = "hatchling", specifier = ">=1.27.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "jinja2", specifier = ">=3.1.6" },
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pawdf", specifier = ">=0.1.0" },
+    { name = "pawlogger", specifier = ">=0.1.4" },
+    { name = "phonenumbers", specifier = ">=9.0.15" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
+    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "pygments", specifier = ">=2.19.2" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pywin32", specifier = ">=311" },
+    { name = "royal-mail-combined", specifier = "==0.0.27" },
+    { name = "thefuzz", specifier = ">=0.22.1" },
+    { name = "uvicorn", specifier = ">=0.37.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "six"
