@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "amherst"
-version = "0.4.35"
+version = "0.4.36"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -14,7 +14,7 @@ authors = [
 requires-python = ">= 3.13"
 
 dependencies = [
-    "shipaw==0.3.72",
+    "shipaw==0.3.73",
     "pawlogger==0.1.4",
     "pycommence==0.2.4",
     #
