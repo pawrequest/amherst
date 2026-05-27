@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import socket
+
 from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote
 from loguru import logger
@@ -10,7 +12,13 @@ from amherst import app
 from amherst.models.commence_adaptors import CategoryName
 
 
+async def check_port(port=8000) -> None:
+    if socket.socket().connect_ex(('127.0.0.1', port)) == 0:
+        raise OSError(f'Port {port} is already in use — is another instance running?')
+
+
 async def run_desktop_ui(url_suffix='', port=8000):
+    await check_port(port)
     app.app.starting_url = url_suffix
     try:
         logger.info(f'Running WebFlaskUI @url={url_suffix}')
