@@ -33,6 +33,10 @@ dev = [
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
 ]
+graph = [
+    "matplotlib>=3.10.9",
+    "pandas>=3.0.3",
+]
 
 
 [project.scripts]
