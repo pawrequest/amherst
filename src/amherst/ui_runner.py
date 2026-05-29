@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import socket
+import sys
 
 from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote
@@ -18,9 +19,9 @@ async def check_port(port=8000) -> None:
 
 
 async def run_desktop_ui(url_suffix='', port=8000):
-    await check_port(port)
     app.app.starting_url = url_suffix
     try:
+        await check_port(port)
         logger.info(f'Running WebFlaskUI @url={url_suffix}')
         FlaskUI(
             fullscreen=True,
@@ -29,6 +30,9 @@ async def run_desktop_ui(url_suffix='', port=8000):
             port=port,
             app_mode=False,
         ).run()
+    except OSError as e:
+        logger.error(str(e))
+        sys.exit(1)
     finally:
         close_application()
 
