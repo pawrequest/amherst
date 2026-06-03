@@ -3,6 +3,7 @@ import asyncio
 
 from loguru import logger
 
+from amherst.config import set_deps_log_level
 from amherst.models.commence_adaptors import CategoryName
 
 
@@ -17,7 +18,10 @@ def parse_ship_args():
 def shipper_cli():
     args = parse_ship_args()
     logger.info(f'starting shipper for {args.category} {args.record_name}')
+
     from amherst.ui_runner import pycommence_shipper
+
+    set_deps_log_level()
 
     asyncio.run(pycommence_shipper(args.category, args.record_name))
 
