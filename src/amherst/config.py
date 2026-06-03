@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from functools import cache
 from importlib.resources import files
@@ -13,6 +14,13 @@ from starlette.templating import Jinja2Templates
 DEFAULT_UI_DIR: Path = Path(str(files('amherst').joinpath('ui')))
 DEFAULT_AMHERST_DATA_DIR = Path.home() / 'amherst_shipper'
 AMHERST_ENV_KEY = 'AMHERST_ENV'
+
+
+def set_deps_log_level():
+    for name in ('flaskwebgui',):
+        lg = logging.getLogger(name)
+        lg.setLevel(logging.WARNING)
+        lg.propagate = False
 
 
 def load_env(env_key: str) -> Path:
