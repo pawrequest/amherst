@@ -16,13 +16,6 @@ DEFAULT_AMHERST_DATA_DIR = Path.home() / 'amherst_shipper'
 AMHERST_ENV_KEY = 'AMHERST_ENV'
 
 
-def set_deps_log_level():
-    for name in ('flaskwebgui',):
-        lg = logging.getLogger(name)
-        lg.setLevel(logging.WARNING)
-        lg.propagate = False
-
-
 def load_env(env_key: str) -> Path:
     amherst_env_file = Path(os.environ.get(env_key, ''))
     if not amherst_env_file or not amherst_env_file.exists():
