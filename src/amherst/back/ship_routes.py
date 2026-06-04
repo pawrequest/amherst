@@ -8,7 +8,7 @@ from starlette.responses import HTMLResponse
 from amherst.back.backend_pycommence import pycommence_get_one
 from amherst.back.backend_search_paginate import SearchRequest
 from amherst.back.callbacks import cmc_callback
-from amherst.models.amherst_models import AmherstHire, AmherstShipableBase
+from amherst.models.amherst_models import AmherstHire, AmherstSale, AmherstShipableBase
 
 router = APIRouter()
 
@@ -48,7 +48,7 @@ async def get_shipping_form(
         alert = Alert(message=msg, type=AlertType.ERROR)
         return HTMLResponse(content=f'<html><body><h1>Error</h1><p>{alert.message}</p></body></html>', status_code=404)
     alerts: Alerts = request.app.alerts
-    if isinstance(record, AmherstHire) and 'parcelforce' not in record.delivery_method.lower():
+    if isinstance(record, AmherstHire | AmherstSale) and 'parcelforce' not in record.delivery_method.lower():
         msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
         logger.warning(msg)
         alerts += Alert(message=msg, type=AlertType.WARNING)
