@@ -153,7 +153,7 @@ class AmherstHire(AmherstOrderBase):
 class AmherstSale(AmherstOrderBase):
     category: ClassVar[CategoryName] = CategoryName.Sale
 
-    delivery_method: CommenceString | None = None
+    delivery_method: CommenceString = Field('', alias='Delivery Method')
 
     # optional overrides order
     status: SaleStatus = Field(None, alias='Status')
