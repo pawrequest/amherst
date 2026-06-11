@@ -144,7 +144,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pawlogger", specifier = ">=0.1.3" },
-    { name = "pycommence", specifier = ">=0.2.2" },
+    { name = "pycommence", git = "https://github.com/pawrequest/pycommence?tag=v3" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "shipaw", git = "https://github.com/pawrequest/shipaw?tag=v4" },
@@ -1540,15 +1540,11 @@ wheels = [
 [[package]]
 name = "pycommence"
 version = "0.3.1"
-source = { registry = "https://pypi.org/simple" }
+source = { git = "https://github.com/pawrequest/pycommence?tag=v3#ce19e0da6bd43e54f2d5bc76eabd10d30fd0a769" }
 dependencies = [
     { name = "loguru" },
     { name = "pydantic" },
     { name = "pywin32" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/9d/25/a5ff1f2654393090554a39b092add9a36e6edac934720d1384cabf9606b6/pycommence-0.3.1.tar.gz", hash = "sha256:bb51feac4267fb712b6090493b4304cf79cd38b3806aa577e1fa7aaa8beebbe6", size = 37299, upload-time = "2026-04-08T13:34:34.438Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fe/4c/87a0da9d7d316ee4bdc2a03dbeeb62f91377729e6f04e6720b6cab70707d/pycommence-0.3.1-py3-none-any.whl", hash = "sha256:6e7c0938959534cd5d472794b8ad9fc38d6b67c1c12b4a3a98c0e3a9e0b5d7e6", size = 52688, upload-time = "2026-04-08T13:34:33.374Z" },
 ]
 
 [[package]]
