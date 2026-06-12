@@ -4,8 +4,8 @@ from amherst_core.consts_enums import CategoryName
 from shipaw.config import SHIPAW_SETTINGS, populate_providers
 from shipaw.nicegui_ui.app import build_shipper, ui
 
-from amherst.amherst_pycmc import row_from_pycommence_sync
 from amherst.callbacks import cmc_callback_nice
+from amherst.pycmc_routines import row_from_pycommence_sync
 from amherst.shipment_builders import PycommenceShipment, build_shipment
 
 

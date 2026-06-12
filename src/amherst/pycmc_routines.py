@@ -1,9 +1,22 @@
+from __future__ import annotations
+
 from datetime import date
 
+from amherst_core.consts_enums import CategoryName
 from pycommence import PyCommence
 from pycommence.core.filters import ConditionType, FieldFilter, FieldFilterRange, FilterArray
 from pycommence.core.row_data import RowData
 from pycommence.core.types import CmcDateFormat
+
+
+async def row_from_pycommence(category: CategoryName, record_name: str) -> RowData:
+    with PyCommence(category) as pycmc:
+        return pycmc.item_read_csr(pk=record_name)
+
+
+def row_from_pycommence_sync(category: CategoryName, record_name: str) -> RowData:
+    with PyCommence(category) as pycmc:
+        return pycmc.item_read_csr(pk=record_name)
 
 
 def manual_filter():
