@@ -30,7 +30,7 @@ async def cmc_callback(request: AmherstShipmentRequest, response: ShipmentRespon
     shipment = request.shipment
     await safe_call(update_cmc, shipment, response=response, error_msg='Error updating Commence')
     await safe_call(
-        create_shipment_in_cmc, shipment, response, response=response, error_msg='Error creating Commence Shipment'
+        create_shipment_in_cmc, request, response, response=response, error_msg='Error creating Commence Shipment'
     )
     logger.info(
         f'Updated Commence row id {shipment.row_info.id} in {shipment.row_info.category} Table\n'
@@ -52,7 +52,7 @@ async def make_update_dict(shipment: AmherstShipment) -> dict[str, Any]:
         return await _cmc_update_dict_hire(record, shipment.direction, shipment.shipping_date)
     if isinstance(record, AmherstSale):
         record = cast(AmherstSale, record)
-        return await _cmc_update_dict_sale(record, shipment.direction, shipment.shipping_date)
+        return await _cmc_update_dict_sale(shipment.direction, shipment.shipping_date)
     return {}
 
 
@@ -74,19 +74,22 @@ async def _cmc_update_dict_hire(record: AmherstHire, direction: ShipDirection, s
             raise ValueError(f'Invalid shipment direction: {direction}')
 
 
-async def _cmc_update_dict_sale(record: AmherstSale, direction: ShipDirection, shipping_date: date) -> dict:
+async def _cmc_update_dict_sale(direction: ShipDirection, shipping_date: date) -> dict:
     match direction:
         case ShipDirection.OUTBOUND:
             return {alias_lookup(AmherstSale, 'arranged_out'): 'True'}
         case ShipDirection.INBOUND | ShipDirection.DROPOFF:
             return {}
-        case ShipDirection.THIRD_PARTY:
+        case ShipDirection.THIRD_PARTY:  # prep for future v
             return {}
         case _:
             raise ValueError(f'Invalid shipment direction: {direction}')
 
 
-async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: ShipmentResponse) -> CommenceShipment:
+async def cmc_shipment_obj(
+    shipment_request: AmherstShipmentRequest, shipment_response: ShipmentResponse
+) -> CommenceShipment:
+    shipment = shipment_request.shipment
     record = shipment.record
     cmc_shipment = CommenceShipment(
         boxes=shipment.boxes,
@@ -101,14 +104,16 @@ async def cmc_shipment_obj(shipment: AmherstShipment, shipment_response: Shipmen
         customers=[record.customer_name],
         contact_name=shipment.remote_full_contact.contact.contact_name,
         contact_email=shipment.remote_full_contact.contact.email_address,
+        provider=shipment_request.provider_name,
+        service=shipment_request.provider.reverse_lookup_service(shipment_request.service_code),
     )
     if record.category.lower() in ['hire', 'sale']:
         setattr(cmc_shipment, record.category.lower() + 's', [record.name])
     return cmc_shipment
 
 
-async def create_shipment_in_cmc(shipment: AmherstShipment, shipment_response: ShipmentResponse):
-    shipment_obj = await cmc_shipment_obj(shipment, shipment_response)
+async def create_shipment_in_cmc(shipment_request: AmherstShipmentRequest, shipment_response: ShipmentResponse):
+    shipment_obj = await cmc_shipment_obj(shipment_request, shipment_response)
     ship_dict = shipment_obj.model_dump(by_alias=True)
     with pycommence_context(csrname=CategoryName.Shipment) as pycmc:
         pycmc.create_row(ship_dict, csrname=CategoryName.Shipment)
