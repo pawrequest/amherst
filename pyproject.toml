@@ -15,7 +15,7 @@ requires-python = ">= 3.13"
 
 dependencies = [
     "shipaw==0.3.89",
-    "pawlogger==0.1.5",
+    "pawlogger==0.1.7",
     "pycommence==0.2.4",
     #
     "pydantic-settings>=2.11.0",
@@ -43,5 +43,5 @@ format.quote-style = "single"
 
 
 
-#[tool.uv.sources]
-#shipaw = { path = '../shipaw', editable = true }
+[tool.uv.sources]
+shipaw = { path = '../shipaw', editable = true }
