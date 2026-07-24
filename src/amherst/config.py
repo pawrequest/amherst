@@ -6,7 +6,7 @@ from importlib.resources import files
 from pathlib import Path
 
 import pydantic as _p
-from pawlogger import configure_loguru
+from pawlogger.config_loguru3 import loguru_ndjson_and_terminal
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
@@ -36,11 +36,6 @@ class AmherstSettings(BaseSettings):
 
     @computed_field
     @property
-    def log_file(self) -> Path:
-        return self.data_dir / 'logs' / 'amherst.log'
-
-    @computed_field
-    @property
     def ndjson_file(self) -> Path:
         return self.data_dir / 'logs' / 'amherst.ndjson'
 
@@ -52,7 +47,7 @@ class AmherstSettings(BaseSettings):
     @_p.model_validator(mode='after')
     def create_log_files(self):
         (self.data_dir / 'logs/').mkdir(parents=True, exist_ok=True)
-        for v in (self.log_file, self.ndjson_file):
+        for v in (self.ndjson_file,):
             if not v.exists():
                 v.touch()
         return self
@@ -79,3 +74,4 @@ class AmherstSettings(BaseSettings):
 
 
 AMHERST_SETTINGS = AmherstSettings.from_env()
+loguru_ndjson_and_terminal(level=AMHERST_SETTINGS.log_level, log_file=AMHERST_SETTINGS.ndjson_file)
