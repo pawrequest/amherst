@@ -25,10 +25,16 @@ async def run_desktop_ui(url_suffix='', port=8000):
         logger.info(f'Running WebFlaskUI @url={url_suffix}')
         FlaskUI(
             fullscreen=True,
-            app=app.app,
+            # app=app.app,
             server='fastapi',
-            port=port,
+            # port=port,
             app_mode=False,
+            server_kwargs={
+                'app': app.app,
+                'port': port,
+                'access_log': False,  # disables uvicorn access logging
+                # 'log_level': 'warning',  # suppresses uvicorn's own info messages too
+            },
         ).run()
     except OSError as e:
         logger.error(str(e))
