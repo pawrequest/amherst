@@ -1,9 +1,9 @@
-from amherst.config import AMHERST_SETTINGS  # noqa: I001
+from amherst.config import AMHERST_SETTINGS  # noqa: I001we configure logging
+from amherst.configure_logging import logger
 import contextlib
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
-from loguru import logger
 from shipaw.config import SHIPAW_SETTINGS, populate_providers
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
