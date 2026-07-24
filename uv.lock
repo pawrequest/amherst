@@ -34,7 +34,7 @@ requires-dist = [
     { name = "flaskwebgui", specifier = ">=1.1.6" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawlogger", specifier = "==0.1.4" },
+    { name = "pawlogger", specifier = "==0.1.5" },
     { name = "pycommence", specifier = "==0.2.4" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
@@ -501,14 +501,14 @@ wheels = [
 
 [[package]]
 name = "pawlogger"
-version = "0.1.4"
+version = "0.1.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/30/70/eacd887f131d672d00fe55246927a86ed97461e93184ddc5f77d2ed998cc/pawlogger-0.1.4.tar.gz", hash = "sha256:2ec27bb508fbb3e19eef1bc2e1632044f1f32de332816aa6d004883e0a33c8eb", size = 10456, upload-time = "2026-03-23T18:14:47.441Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d1/87/7a62531b351e4aeee2792462f49d8242773ac7ef0a81ef44f6841fa387b9/pawlogger-0.1.5.tar.gz", hash = "sha256:5445475e1ebf615d4dae760de4eebb3bbb16903b017daf2cc561e72e119b499c", size = 10405, upload-time = "2026-07-24T15:06:51.578Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/1d/5533df705247b1318e0cff92e297d2d2c6a1e7e9a51a970c5b10f7dcebbd/pawlogger-0.1.4-py3-none-any.whl", hash = "sha256:e4ff35a1a3c69d66e119ce47e9b5878b0d3c6829082347f6efb492ddef936015", size = 17513, upload-time = "2026-03-23T18:14:46.294Z" },
+    { url = "https://files.pythonhosted.org/packages/12/45/8876faf90f9ecead0314d9bc042d9ef8e86ff13d6a1dd008c7ae1f339176/pawlogger-0.1.5-py3-none-any.whl", hash = "sha256:8d02308337c9612dcea9253f03ccd32ffe90b4ea0421aeec9fef6d2c9c36e79f", size = 17433, upload-time = "2026-07-24T15:06:50.722Z" },
 ]
 
 [[package]]
