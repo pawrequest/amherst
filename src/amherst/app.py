@@ -1,9 +1,9 @@
+from amherst.config import AMHERST_SETTINGS  # noqa: I001
 import contextlib
 
 from fastapi import FastAPI, responses
 from fastapi.exceptions import RequestValidationError
 from loguru import logger
-from pawlogger import configure_loguru
 from shipaw.config import SHIPAW_SETTINGS, populate_providers
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
@@ -17,7 +17,6 @@ from starlette.staticfiles import StaticFiles
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
 from amherst.back.ship_routes import router as ship_router
-from amherst.config import AMHERST_SETTINGS
 
 
 @contextlib.asynccontextmanager
@@ -27,7 +26,6 @@ async def lifespan(app_: FastAPI):
         app.amherst_settings = AMHERST_SETTINGS
         app.shipaw_settings = SHIPAW_SETTINGS
         app_.state.log_stream = LogStream(max_history=400, queue_size=200)
-        configure_loguru(logger_=logger, log_file=AMHERST_SETTINGS.log_file, level=AMHERST_SETTINGS.log_level)
 
         app_.state.shipaw_log_sink_id = logger.add(
             app_.state.log_stream.sink,

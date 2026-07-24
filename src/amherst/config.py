@@ -6,6 +6,7 @@ from importlib.resources import files
 from pathlib import Path
 
 import pydantic as _p
+from pawlogger import configure_loguru
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
@@ -78,3 +79,4 @@ class AmherstSettings(BaseSettings):
 
 
 AMHERST_SETTINGS = AmherstSettings.from_env()
+logger = configure_loguru(log_file=AMHERST_SETTINGS.log_file, level=AMHERST_SETTINGS.log_level)
