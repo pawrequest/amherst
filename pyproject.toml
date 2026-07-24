@@ -15,7 +15,7 @@ requires-python = ">= 3.13"
 
 dependencies = [
     "shipaw==0.3.89",
-    "pawlogger==0.1.4",
+    "pawlogger==0.1.5",
     "pycommence==0.2.4",
     #
     "pydantic-settings>=2.11.0",
@@ -38,7 +38,7 @@ shipper = "amherst.cli:shipper_cli"
 
 [tool.ruff]
 line-length = 120
-lint.extend-select = ["RUF100", "UP","I"]
+lint.extend-select = ["RUF100", "UP", "I"]
 format.quote-style = "single"
 
 
