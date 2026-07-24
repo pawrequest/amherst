@@ -1,5 +1,4 @@
 from amherst.config import AMHERST_SETTINGS  # noqa: I001we configure logging
-from amherst.configure_logging import logger
 import contextlib
 
 from fastapi import FastAPI, responses
@@ -7,7 +6,6 @@ from fastapi.exceptions import RequestValidationError
 from shipaw.config import SHIPAW_SETTINGS, populate_providers
 from shipaw.fapi.alerts import Alerts
 from shipaw.fapi.app import request_validation_exception_handler
-from shipaw.fapi.log_stream import LogStream
 from shipaw.fapi.routes_api import router as shipaw_json_router
 from shipaw.fapi.routes_html import router as shipaw_html_router
 from starlette.requests import Request
@@ -22,22 +20,15 @@ from amherst.back.ship_routes import router as ship_router
 @contextlib.asynccontextmanager
 async def lifespan(app_: FastAPI):
     try:
-        # todo check socket in use, if so alert and exit
         app.amherst_settings = AMHERST_SETTINGS
         app.shipaw_settings = SHIPAW_SETTINGS
-        app_.state.log_stream = LogStream(max_history=400, queue_size=200)
-
-        app_.state.shipaw_log_sink_id = logger.add(
-            app_.state.log_stream.sink,
-            level='DEBUG',
-            enqueue=False,
-        )
         populate_providers(SHIPAW_SETTINGS)
         yield
 
     finally:
-        if hasattr(app_.state, 'shipaw_log_sink_id'):
-            logger.remove(app_.state.shipaw_log_sink_id)
+        ...
+        # if hasattr(app_.state, 'shipaw_log_sink_id'):
+        #     logger.remove(app_.state.shipaw_log_sink_id)
 
 
 app = FastAPI(lifespan=lifespan)
