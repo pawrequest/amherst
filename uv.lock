@@ -38,7 +38,7 @@ requires-dist = [
     { name = "pycommence", specifier = "==0.2.4" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "shipaw", editable = "../shipaw" },
+    { name = "shipaw", specifier = "==0.3.90" },
 ]
 
 [package.metadata.requires-dev]
@@ -502,13 +502,14 @@ wheels = [
 [[package]]
 name = "pawlogger"
 version = "0.1.7"
-source = { editable = "../../pawlogger" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
 ]
-
-[package.metadata]
-requires-dist = [{ name = "loguru" }]
+sdist = { url = "https://files.pythonhosted.org/packages/de/94/4769c20b4ff6d23693fd2faded12dd109a32b2fa679c0595d0bad31ef2fa/pawlogger-0.1.7.tar.gz", hash = "sha256:5f363a3da0140c492013c9a1405ee64b42a98fed2d4ee32751f9dd2414d8e2f7", size = 11669, upload-time = "2026-07-24T18:40:15.596Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4f/5d/e86c3ea63d9ee48170e9326c52f3c854a0c55d4694bc93aa24f912a6d40c/pawlogger-0.1.7-py3-none-any.whl", hash = "sha256:6aa9f87776b09fb862521509e3c8c244814edf68d84f31e993162c74326bd60f", size = 20317, upload-time = "2026-07-24T18:40:14.687Z" },
+]
 
 [[package]]
 name = "phonenumbers"
@@ -1005,8 +1006,8 @@ wheels = [
 
 [[package]]
 name = "shipaw"
-version = "0.3.89"
-source = { editable = "../shipaw" }
+version = "0.3.90"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "apc-hypaship" },
     { name = "fastapi", extra = ["standard"] },
@@ -1027,31 +1028,10 @@ dependencies = [
     { name = "thefuzz" },
     { name = "uvicorn" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "apc-hypaship", specifier = ">=0.1.10" },
-    { name = "fastapi", extras = ["standard"], specifier = ">=0.117.1" },
-    { name = "hatchling", specifier = ">=1.27.0" },
-    { name = "httpx", specifier = ">=0.28.1" },
-    { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pawdf", specifier = ">=0.1.0" },
-    { name = "pawlogger", editable = "../../pawlogger" },
-    { name = "phonenumbers", specifier = ">=9.0.15" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.11.9" },
-    { name = "pydantic-extra-types", specifier = ">=2.10.5" },
-    { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "pygments", specifier = ">=2.19.2" },
-    { name = "pytest", specifier = ">=8.4.2" },
-    { name = "pywin32", specifier = ">=311" },
-    { name = "royal-mail-combined", specifier = "==0.0.32" },
-    { name = "thefuzz", specifier = ">=0.22.1" },
-    { name = "uvicorn", specifier = ">=0.37.0" },
+sdist = { url = "https://files.pythonhosted.org/packages/03/77/a956ccd208426c61b15ac120f8e30d2a90af0dc258d42c81d02d022b9beb/shipaw-0.3.90.tar.gz", hash = "sha256:63519f4d352fa379a3131e7d72a5f7d51627474e003d7c57de2528a7ef0ab8b6", size = 39133, upload-time = "2026-07-27T12:59:42.142Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b3/e6/b9e8bb23864d266b30b52d3032690cc90f84dcd80a0236d60764f9e9f271/shipaw-0.3.90-py3-none-any.whl", hash = "sha256:afd442c88ccc9d0b2773641d31f2fabf59ab3ecffd1fc19bbb3dcaa5237a5fe1", size = 57975, upload-time = "2026-07-27T12:59:40.472Z" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=9.0.2" }]
 
 [[package]]
 name = "six"

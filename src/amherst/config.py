@@ -24,7 +24,7 @@ def load_env(env_key: str) -> Path:
 
 
 class AmherstSettings(BaseSettings):
-    log_level: str = 'DEBUG'
+    log_level: str = 'INFO'
     data_dir: Path = DEFAULT_AMHERST_DATA_DIR
     ui_dir: Path = DEFAULT_UI_DIR
 
