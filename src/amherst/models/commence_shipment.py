@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from enum import StrEnum
 from typing import ClassVar
 
 from pydantic import Field, model_validator
@@ -37,9 +38,18 @@ def shipment_name(dt: date):
     return dt.strftime(f'%Y-%B-{ordinal_day(dt.day)} booked@{now_iso_seconds()}')
 
 
+class ShipmentStatus(StrEnum):
+    CREATED = 'Created'
+    SENT = 'Sent'
+    RECEIVED = 'Received'
+    CANCELLED = 'Cancelled'
+    FAILED = 'Failed'
+
+
 class CommenceShipmentAdd(AmherstBase):
     category: ClassVar[CategoryName] = CategoryName.Shipment
     direction: ShipDirection = Field(..., alias='Direction')
+    status: ShipmentStatus = Field(default=ShipmentStatus.CREATED, alias='Status')
     label: CommencePath | None = Field(None, alias='Label')
     boxes: int = Field(0, alias='Boxes')
     send_date: CommenceDate = Field(..., alias='Send Date')
