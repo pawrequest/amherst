@@ -30,8 +30,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastapi", specifier = ">=0.117.1" },
-    { name = "flaskwebgui", specifier = ">=1.1.6" },
+    { name = "fastapi", specifier = ">=0.141.1" },
+    { name = "flaskwebgui", specifier = ">=1.1.9" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pawlogger", specifier = "==0.1.7" },

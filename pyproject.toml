@@ -20,10 +20,10 @@ dependencies = [
     #
     "pydantic-settings>=2.11.0",
     "pydantic[email]>=2.11.9",
-    "fastapi>=0.117.1",
+    "fastapi>=0.141.1",
     "jinja2>=3.1.6",
     "loguru>=0.7.3",
-    "flaskwebgui>=1.1.6",
+    "flaskwebgui>=1.1.9",
 ]
 
 [dependency-groups]
