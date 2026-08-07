@@ -19,10 +19,14 @@ def link_cmc_invoice(category, record_name, invoice_path, invoice_field: str = '
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Link an invoice file to a Commence record.')
-    parser.add_argument('category', help='Commence category name (e.g. Hire)')
+    parser.add_argument('category', help='Commence category name')
     parser.add_argument('record_name', help='Name of the record to update')
     parser.add_argument('invoice_path', help='Path to the invoice file')
     parser.add_argument('--field', default='Invoice', help='Field name to update (default: Invoice)')
     args = parser.parse_args()
-    link_cmc_invoice(args.category, args.record_name, args.invoice_path, args.field)
-    sys.exit(0)
+    try:
+        link_cmc_invoice(args.category, args.record_name, args.invoice_path, args.field)
+        sys.exit(0)
+    except Exception as e:
+        print(f'Error: {e}')
+        sys.exit(1)

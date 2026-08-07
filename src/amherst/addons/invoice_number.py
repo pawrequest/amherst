@@ -1,3 +1,9 @@
+# /// script
+# requires-python = ">=3.13"
+# dependencies = [
+#   "pyperclip",
+# ]
+# ///
 import os
 import re
 
@@ -27,7 +33,8 @@ def get_inv_nums(inv_dir) -> set[int]:
     return inv_numbers
 
 
-def has_20_after(index: int, nums: {int}):
+def has_20_after(index: int, nums: list[int]) -> bool:
+    """ True if """
     if len(nums) < 20:
         return False
     tally = 0
@@ -46,13 +53,21 @@ def has_20_after(index: int, nums: {int}):
 
 
 if __name__ == '__main__':
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pause', type=bool, nargs='?', const=True, default=False)
+
+    parser.add_argument('--clip', type=bool, nargs='?', const=True, default=True)
+    args = parser.parse_args()
+
     num = next_inv_num()
-    # copy to clipboard
-    try:
+    if args.clip:
         import pyperclip
 
         pyperclip.copy(num)
-    except ImportError:
-        print('pyperclip not installed, cannot copy to clipboard')
-
     print(num)
+    if args.pause:
+        input('(Copied to clipboard) Press Enter to continue...')
+    sys.exit(0)
