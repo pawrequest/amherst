@@ -71,3 +71,5 @@ if __name__ == '__main__':
     if args.pause:
         input('(Copied to clipboard) Press Enter to continue...')
     sys.exit(0)
+
+
