@@ -16,7 +16,6 @@ wheels/
 
 /deploy/build/redist/
 /rsrc/
-uv.lock
 .idea/**
 .idea/ruff.xml
 /data
