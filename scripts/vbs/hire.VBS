@@ -2,6 +2,7 @@ Option Explicit
 ' define variables length and atpos for use in calculations
 DIM length, atpos
 
+
 Sub Form_OnEnterTab(TabName)
     if TabName = "main" Then
         if Form.Field("Reprogrammed").Value = 1 Then
@@ -673,7 +674,7 @@ Sub Form_OnSave
 
     End If
 
-    ' deal with hire of megaphones (taken off the multi-megaphone price discount, but left code in place for the future - May 2014)
+    ' deal with hire of megaphones
     If Cint(Form.Field("Number Megaphone").Value) = 1 Then
         hstring = hstring + vbCrLf + vbCrLf + "* " + Form.Field("Number Megaphone").Value + " Megaphone"
 
@@ -681,10 +682,9 @@ Sub Form_OnSave
         Form.Field("Inv Mega Price").Value = "16.00"
         Form.Field("Inv Mega Qty").Value = Form.Field("Number Megaphone").Value
 
-        ' if no value already inserted into the "number of sets of batteries" field, insert 2 per megaphone by default
-        If Cint(Form.Field("Number Megaphone Bat").Value) = 0 Then
-            Form.Field("Number Megaphone Bat").Value = 2
-        End If
+		' GT 11th Aug 2026 - added logic to add up C and D cell battery total
+		Form.Field("Number Megaphone Bat").Value = CLng(Form.Field("Number C Batteries").Value) + CLng(Form.Field("Number D Batteries").Value)
+
 
     End If
 
@@ -694,22 +694,21 @@ Sub Form_OnSave
         Form.Field("Inv Mega Price").Value = "16.00"
         Form.Field("Inv Mega Qty").Value = Form.Field("Number Megaphone").Value
 
-        ' if no value already inserted into the "number of sets of batteries" field, insert 2 per megaphone by default
-        If Cint(Form.Field("Number Megaphone Bat").Value) = 0 Then
-            Form.Field("Number Megaphone Bat").Value = (Form.Field("Number Megaphone").Value * 2)
-        End If
+		' GT 11th Aug 2026 - added logic to add up C and D cell battery total
+		Form.Field("Number Megaphone Bat").Value = CLng(Form.Field("Number C Batteries").Value) + CLng(Form.Field("Number D Batteries").Value)
+
 
     End If
 
     ' insert the text description for megaphone batteries if any are present
     If Cint(Form.Field("Number Megaphone Bat").Value) > 0 Then
-        Form.Field("Inv Meg Batt Desc").Value = (Form.Field("Number Megaphone Bat").Value + " sets of 8 rechargeable batts included")
-        hstring = hstring + vbCrLf + vbCrLf + "* " + Form.Field("Number Megaphone Bat").Value + " sets of 8 rechargeable batteries"
+        Form.Field("Inv Meg Batt Desc").Value = (Form.Field("Number Megaphone Bat").Value + " megaphone batts-8/10 per megaphone")
+        hstring = hstring + vbCrLf + vbCrLf + "* " + Form.Field("Number Megaphone Bat").Value + " rechargeable megaphone batteries"
     End If
 
-    ' added April 2012 - megaphone battery charger tick box checked
-    If Form.Field("Megaphone Charger").Value Then
-        hstring = hstring + vbCrLf + vbCrLf + "* 1 x megaphone battery charger unit"
+    ' added 11th Aug 26 - megaphone battery charger number
+    If Form.Field("Number Mega Charger").Value > 0 Then
+        hstring = hstring + vbCrLf + vbCrLf + "* " + Form.Field("Number Mega Charger").Value + " x megaphone battery charger(s)"
     End If
 
 
