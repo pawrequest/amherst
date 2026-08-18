@@ -1,7 +1,7 @@
 @echo off
 set thisDir=%~dp0
 set LOCAL_DIR=C:\ProgramData\AmherstShipper
-set REMOTE_DIR=R:\paul_r\v3\
+set REMOTE_DIR=R:\paul_r\current\
 
 echo Installing Amherst Shipper Configuration to %LOCAL_DIR%...
 
