@@ -8,7 +8,7 @@ import os
 import re
 
 REAL_INV_FOLDER = r'R:\ACCOUNTS\invoices'
-INV_NAME_RE = re.compile(r'^A(\d{5})\.(?:doc|pdf)$', re.IGNORECASE)
+INV_NAME_RE = re.compile(r'^A(\d{5})\.(?:doc|docx|pdf)$', re.IGNORECASE)
 
 
 def next_inv_num(inv_dir=REAL_INV_FOLDER):
