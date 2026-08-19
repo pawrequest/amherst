@@ -1254,19 +1254,31 @@ Sub EmailMissingKit()
     Dim cCust : Set cCust = Form.Connection("To", "Customer")
     Dim olApp : Set olApp = CreateObject("Outlook.Application")
     Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
-    Dim del_email, invoice_email
+    Dim del_email, invoice_email, accounts_email
 
-    ' make email address string if delivery and invoice emails are different send to both
     invoice_email = cCust.FieldValue("Email")
+    accounts_email = cCust.FieldValue("Accounts Email")
     del_email = Form.Field("Delivery Email").Value
-    if invoice_email <> del_email Then
+
+    If del_email = "" And invoice_email = "" And accounts_email = "" Then
+        MsgBox "No delivery,invoice, or accounts email address found - aborting email.", vbExclamation
+        Exit Sub
+    ElseIf del_email = "" Then
+        del_email = invoice_email
+    ElseIf invoice_email <> "" And LCase(del_email) <> LCase(invoice_email) Then
         del_email = del_email & ";" & invoice_email
-    End if
+    End If
 
 
     'compose email'
     objMailItem.Subject = "Radio Hire - Missing Kit"
     objMailItem.To = del_email
+    If Not objMailItem.Recipients.ResolveAll Then
+        MsgBox "Invalid recipient(s): " & objMailItem.To, vbCritical
+        Exit Sub
+    End If
+
+
     objMailItem.Body = "Hi," & vbNewLine & _
                            vbNewLine & "Thanks for returning the hired equipment - I hope it worked well for your event." & vbNewLine & _
                            vbNewLine & "Unfortunately the return was missing the following items - can you please look/check with colleagues to see if they can be recovered - otherwise i'll draw up an invoice for replacement." & vbNewLine & _
