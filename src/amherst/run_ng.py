@@ -2,6 +2,7 @@ from pathlib import Path
 
 from amherst_core.consts_enums import CategoryName
 from shipaw.config import SHIPAW_SETTINGS, populate_providers
+from shipaw.models.shipment import Shipment
 from shipaw.nicegui_ui.app import build_shipper, ui
 
 from amherst.callbacks import cmc_callback_nice
@@ -16,9 +17,8 @@ def get_shipment(category, pk) -> PycommenceShipment:
     return shipment
 
 
-def nice_shipper(category, pk, host='127.0.0.1', port=9080):
+def nice_shipper(shipment: Shipment, host='127.0.0.1', port=9080):
     populate_providers(SHIPAW_SETTINGS)
-    shipment = get_shipment(category, pk)
 
     @ui.page('/')
     def index():
@@ -41,17 +41,8 @@ def nice_shipper(category, pk, host='127.0.0.1', port=9080):
     )
 
 
-# if __name__ == '__mp_main__':
-# if __name__ == '__main__':
-#     cat = CategoryName.Customer
-#     pkay = 'Test'
-#     nice_shipper(cat, pkay)
-# main2()
-#
-#
 if __name__ in {'__main__', '__mp_main__'}:
     cat = CategoryName.Customer
     pkay = 'Test'
-    if __name__ == '__main__':
-        nice_shipper(cat, pkay)
-    # main2()
+    shipment = get_shipment(cat, pkay)
+    nice_shipper(shipment)

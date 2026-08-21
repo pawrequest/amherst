@@ -8,7 +8,7 @@ from shipaw.models.shipment import Shipment
 from shipaw.utils.consts_enums import ShipDirection
 
 
-def address_from_str_and_pc(address_str, postcode, business_name) -> Address:
+def build_address(address_str, postcode, business_name) -> Address:
     addr_lines = address_str.strip().splitlines()
     town = addr_lines.pop() if len(addr_lines) > 1 else ''
     lines = [_ for _ in addr_lines if _]
@@ -25,7 +25,7 @@ def build_full_contact(record: AmherstShipableBase) -> FullContact:
             mobile_phone=record.delivery_contact_phone,
             email=record.delivery_contact_email,
         ),
-        address=address_from_str_and_pc(
+        address=build_address(
             record.delivery_address_str, record.delivery_address_pc, record.delivery_contact_business
         ),
     )
