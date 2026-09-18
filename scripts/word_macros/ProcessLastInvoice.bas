@@ -1,4 +1,3 @@
-Attribute VB_Name = "ProcessLastInvoice"
 Option Explicit
 
 Sub ProcessLatestInvoice()
@@ -88,9 +87,11 @@ Sub ProcessLatestInvoice()
 
     ' Link invoice.doc to commence
     Dim recordName As String
-    recordName = ReadHiddenDataRow("CMCNAME")
-        
-    Call LinkCommenceInvoice("Hire", recordName, newDocPath)
+    Dim category As String
+    recordName = ReadHiddenDataRow("CMCNAME99999")
+    category = ReadHiddenDataRow("CMCCATEGORY99999")
+
+    Call LinkCommenceInvoice(category, recordName, newDocPath)
 
     ' Close document
     ActiveDocument.Close SaveChanges:=False

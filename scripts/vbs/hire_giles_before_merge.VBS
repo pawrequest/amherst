@@ -668,9 +668,9 @@ Sub Form_OnSave
         Form.Field("Inv Mega Price").Value = "16.00"
         Form.Field("Inv Mega Qty").Value = Form.Field("Number Megaphone").Value
 
-		' GT 11th Aug 2026 - added logic to add up C and D cell battery total	
-		Form.Field("Number Megaphone Bat").Value = CLng(Form.Field("Number C Batteries").Value) + CLng(Form.Field("Number D Batteries").Value)
-		
+        ' GT 11th Aug 2026 - added logic to add up C and D cell battery total
+        Form.Field("Number Megaphone Bat").Value = CLng(Form.Field("Number C Batteries").Value) + CLng(Form.Field("Number D Batteries").Value)
+
 
     End If
 
@@ -679,10 +679,10 @@ Sub Form_OnSave
         Form.Field("Inv Mega Desc").Value = "Hire of megaphones"
         Form.Field("Inv Mega Price").Value = "16.00"
         Form.Field("Inv Mega Qty").Value = Form.Field("Number Megaphone").Value
-		
-		' GT 11th Aug 2026 - added logic to add up C and D cell battery total
-		Form.Field("Number Megaphone Bat").Value = CLng(Form.Field("Number C Batteries").Value) + CLng(Form.Field("Number D Batteries").Value)
-		
+
+        ' GT 11th Aug 2026 - added logic to add up C and D cell battery total
+        Form.Field("Number Megaphone Bat").Value = CLng(Form.Field("Number C Batteries").Value) + CLng(Form.Field("Number D Batteries").Value)
+
 
     End If
 
@@ -1009,9 +1009,9 @@ Sub PackHire()
         Exit Sub
     End if
     ' offer to email client about upcoming shipment'
-'    if MsgBox("Send pre-shipping email?", 4) = 6 Then
-'        EmailSendOut()
-'    End if
+    '    if MsgBox("Send pre-shipping email?", 4) = 6 Then
+    '        EmailSendOut()
+    '    End if
 
     ' offer to save and close'
     if MsgBox("Set Hire packed now by " & packedBy & "?", 4) = 6 Then

@@ -1,4 +1,7 @@
-Attribute VB_Name = "LinkInvoice"
+Const DEBUG_MODE As Boolean = False
+
+
+
 Function ReadHiddenDataRow(labelText As String) As String
     ' Reads from the cell next to that with labelText in it
     Dim tbl As Table
@@ -24,16 +27,23 @@ End Function
 Function LinkCommenceInvoice(category As String, recordName As String, invoicePath As String)
     Dim sh As Object
     Dim cmd As String
-    cmd = "cmd /c uv run C:\prdev\amdev\amherst\src\amherst\addons\link_invoice.py " & _
-      """" & category & """ " & _
-      """" & recordName & """ " & _
-      """" & invoicePath & """"
-      
-    
-    Set sh = CreateObject("WScript.Shell")
-
+    Dim cmdExt As String
     Dim exitCode As Long
-    exitCode = sh.Run(cmd, 0, True)  ' 0 = hidden window, True = wait/block
+
+    cmdExt = "R:\paul_r\link_invoice.py " & _
+        """" & category & """ " & _
+        """" & recordName & """ " & _
+        """" & invoicePath & """"
+
+    Set sh = CreateObject("WScript.Shell")
+    If DEBUG_MODE Then
+        cmd = "cmd /k uv run " & cmdExt
+        MsgBox cmd
+        exitCode = sh.Run(cmd, 1, True)
+    Else
+        cmd = "cmd /c uv run " & cmdExt
+        exitCode = sh.Run(cmd, 0, True)
+    End If
 
     If exitCode <> 0 Then
         MsgBox "link_invoice.py failed with exit code " & exitCode, vbExclamation
