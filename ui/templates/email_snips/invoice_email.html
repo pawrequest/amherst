@@ -1,0 +1,15 @@
+{% extends "email_snips/email_base.html" %}
+
+{% block content %}
+    {% if invoice %}
+        <p>Please find invoice number {{ invoice.stem }} attached - check it over making sure that equipment and
+            delivery details are correct, and make payment before the hire date.</p>
+        <p>Payment can be made by: <br>
+            - Phone: <a href="tel:02073289792">0207-328-9792</a> <br>
+            - Online: www.amherst.co.uk/cardpay <br>
+            - Paypal: (paypal@amherst.co.uk)<br>
+            - Cheque: 70 Kingsgate Road, Kilburn, NW6 4TE<br>
+            - BACS: (details at bottom of invoice) <br></p>
+        <p>If paying by BACS or Paypal please use invoice number as reference, and let us know when it is done.</p>
+    {% endif %}
+{% endblock %}

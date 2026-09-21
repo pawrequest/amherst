@@ -28,7 +28,7 @@ class AmherstSettings(BaseSettings):
     data_dir: Path = DEFAULT_AMHERST_DATA_DIR
     ui_dir: Path = DEFAULT_UI_DIR
 
-    model_config = SettingsConfigDict(frozen=True)
+    model_config = SettingsConfigDict(frozen=True, extra='ignore')
 
     @property
     def template_dir(self) -> Path:

@@ -4,15 +4,19 @@
 # "pywin32>=306"
 # ]
 # ///
+import asyncio
 import os
 import smtplib
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from email.message import EmailMessage
 from pathlib import Path
+from typing import Any
 
 import pythoncom
 import win32com.client
+
+from amherst.config import AMHERST_SETTINGS
 
 
 def print_file(filepath: str):
@@ -121,10 +125,11 @@ def get_last_email_from_sender(from_address: str):
     return filtered_items.GetFirst()
 
 
-async def send_invoice_email(invoice: Path, addresses: Sequence[str]):
+async def create_open_invoice_email(invoice: Path, addresses: Sequence[str]):
     addrs = set(a.strip() for a in addresses if a.strip())
     addr_str = ', '.join(addrs)
-    body = 'invoice email body'
+    body = await _render_invoice_email(invoice)
+
     email = Email(
         to_address=addr_str,
         subject='Amherst Radios Invoice Attached',
@@ -134,13 +139,16 @@ async def send_invoice_email(invoice: Path, addresses: Sequence[str]):
     create_open_email_outlook(email, html=True)
 
 
-if __name__ == '__main__':
-    if res := get_last_email_from_sender('giles@amherst.co.uk'):
-        print(res.Subject, res.ReceivedTime, res.SenderEmailAddress)
+async def _render_invoice_email(invoice: Path) -> Any:
+    body = AMHERST_SETTINGS.templates.get_template('email_snips/invoice_email.html').render(invoice=invoice)
+    return body
 
-# messages = inbox.Items
-# message = messages.GetLast()  # or filter for the specific message
-#
+
+if __name__ == '__main__':
+    # if res := get_last_email_from_sender('giles@amherst.co.uk'):
+    #     print(res.Subject, res.ReceivedTime, res.SenderEmailAddress)
+    asyncio.run(create_open_invoice_email(Path(r'R:\ACCOUNTS\INVOICES\A26399.DOCX'), ['admin@amherst.co.uk']))
+
 # reply = message.Reply()
 # reply.Body = 'Your reply text here\n' + reply.Body
 # reply.Display()

@@ -1,0 +1,18 @@
+{% extends "email_snips/email_base.html" %}
+{# context = missing:list  #}
+{% block content %}
+    <div>
+        <p>Thanks for returning the hired equipment - I hope it worked well for your event.</p>
+
+        <p>Unfortunately, the return was missing the following items - can you please look/check with colleagues to see
+            if they can be recovered - otherwise we will draw up an invoice for replacement costs.</p>
+        <p>MISSING KIT:</p>
+        <ul>
+            {% for item in missing %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+
+        <p>(If you have already discussed missing items with us please disregard this automatically generated email)</p>
+    </div>
+{% endblock content %}
