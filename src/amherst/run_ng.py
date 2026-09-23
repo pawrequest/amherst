@@ -41,7 +41,8 @@ def nice_shipper(shipment: Shipment, host='127.0.0.1', port=9080):
     )
 
 
-if __name__ in {'__main__', '__mp_main__'}:
+# if __name__ in {'__main__', '__mp_main__'}:
+if __name__ in {'__main__'}:
     cat = CategoryName.Customer
     pkay = 'Test'
     shipment = get_shipment(cat, pkay)

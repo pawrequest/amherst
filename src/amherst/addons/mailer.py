@@ -67,7 +67,7 @@ import win32com.client
 #             pythoncom.CoUninitialize()
 #
 #
-# async def subject(*, invoice_num: str | None = None, missing: bool = False, label: bool = False):
+# async def subject(*, `invoice_num: str | None = None, missing: bool = False, label: bool = False):
 #     return (
 #         f'Amherst Radios'
 #         f'{f"- Invoice {invoice_num} Attached" if invoice_num else ""} '
