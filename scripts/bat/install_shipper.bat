@@ -8,6 +8,9 @@ echo Installing Amherst Shipper Configuration to %LOCAL_DIR%...
 rem install git and uv
 call %thisDir%\_install_git_uv.bat
 
+rem install shipper
+uv tool install git+https://github.com/pawrequest/amherst
+
 rem copy envs and scripts from network location to local directory
 echo Copying envs and scripts from %REMOTE_DIR%
 xcopy /Y /E %REMOTE_DIR%\* %LOCAL_DIR%\
