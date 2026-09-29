@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from loguru import logger
 from shipaw.fapi.alerts import Alert, Alerts, AlertType
@@ -48,12 +50,7 @@ async def get_shipping_form(
         alert = Alert(message=msg, type=AlertType.ERROR)
         return HTMLResponse(content=f'<html><body><h1>Error</h1><p>{alert.message}</p></body></html>', status_code=404)
     alerts: Alerts = request.app.alerts
-    if isinstance(record, AmherstHire | AmherstSale) and 'parcelforce' not in record.delivery_method.lower():
-        msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
-        logger.warning(msg)
-        alerts += Alert(message=msg, type=AlertType.WARNING)
-
-    # alerts += Alert(message='AAAAAAAAAAAAAAAAAAAAAAAAAAAAA', type=AlertType.NOTIFICATION)
+    alerts += await notify_send_method(alerts, record)
     alerts += await notify_version(request)
 
     shipment = record.shipment()
@@ -61,3 +58,11 @@ async def get_shipping_form(
 
     res = await shipping_form(request=request, shipment=shipment)
     return res
+
+
+async def notify_send_method(alerts, record: AmherstShipableBase) -> Any:
+    if isinstance(record, AmherstHire | AmherstSale) and 'parcelforce' not in record.delivery_method.lower():
+        msg = f'"Parcelforce" not in delivery_method: {record.delivery_method}'
+        logger.warning(msg)
+        alerts += Alert(message=msg, type=AlertType.WARNING)
+    return alerts
