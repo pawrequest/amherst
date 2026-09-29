@@ -42,7 +42,7 @@ graph = [
 
 [project.scripts]
 shipper = "amherst.cli:shipper_cli"
-nice = "amherst.cli:nice_cli"
+shipper_v4 = "amherst.cli:nice_cli"
 
 [tool.ruff]
 line-length = 120
