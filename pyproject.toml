@@ -50,10 +50,7 @@ format.quote-style = "single"
 
 
 [tool.uv.sources]
-#shipaw = { path = '../shipaw', editable = true }
-#shipaw = { git = 'https://github.com/pawrequest/shipaw', tag = 'v4' }
 pycommence = { git = 'https://github.com/pawrequest/pycommence', tag = 'v3' }
 pycommence2 = { git = 'https://github.com/pawrequest/pycommence2', branch = 'dev'}
-#amherst-core = { path = '../amherst-core', editable = true }
 amherst-core = { git = 'https://github.com/pawrequest/amherst-core' }
-#amherst-core = { git = 'https://github.com/pawrequest/amherst-core', tag = 'latest' }
+#amherst-core = { path = '../amherst-core', editable = true }
