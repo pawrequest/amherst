@@ -15,6 +15,9 @@ def parse_ship_args():
 
 
 def shipper_cli():
+    import os
+
+    os.environ.setdefault('FLASKWEBGUI_LOG_LEVEL', 'ERROR')
     args = parse_ship_args()
     logger.info(f'starting shipper for {args.category} {args.record_name}')
 
