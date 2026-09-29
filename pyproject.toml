@@ -34,7 +34,7 @@ dev = [
 
 
 [project.scripts]
-shipper = "amherst.cli:shipper_cli"
+shipper = "amherst.cli2:shipper_cli"
 
 [tool.ruff]
 line-length = 120
