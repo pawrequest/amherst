@@ -3,7 +3,7 @@ import argparse
 from amherst_core.consts_enums import CategoryName
 from loguru import logger
 
-from amherst_v4.run_ng import get_shipment, nice_shipper
+from amherst.run_ng import get_shipment, nice_shipper
 
 
 def parse_ship_args():
