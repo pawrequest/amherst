@@ -41,7 +41,6 @@ graph = [
 
 
 [project.scripts]
-shipper = "amherst.cli:shipper_cli"
 shipper_v4 = "amherst.cli:nice_cli"
 
 [tool.ruff]
