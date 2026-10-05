@@ -19,3 +19,4 @@ wheels/
 .idea/**
 .idea/ruff.xml
 /data
+/temp/
