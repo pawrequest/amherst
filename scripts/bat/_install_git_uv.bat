@@ -14,3 +14,5 @@ if %errorlevel% neq 0 (
     echo git is not installed - installing from R:\paul_r\dist\Git-2.49.0-64-bit.exe
     call "R:\paul_r\dist\Git-2.49.0-64-bit.exe"
 )
+
+uv self update
