@@ -959,13 +959,12 @@ Sub Form_OnClick(ControlId)
 
 
         Case "CommandButton21"
-            Form.Field("Actual Send Date").Value = "today"
-            Form.Field("Status").Value = "Out"
-            Form.Field("DB label printed").Value = "True"
+        'Paul's button to pack a hire on second tab"
+            PackHire()
 
         Case "CommandButton22"
-            Form.Field("Pickup Date").Value = "tomorrow"
-            Form.Field("Pickup Arranged").Value = "True"
+        'Paul's button to unpack a hire on second tab"
+            UnpackHire()
 
 
     End Select
@@ -1316,8 +1315,10 @@ Sub UnpackHire()
     End if
 
     if MsgBox("Use missing kit field?" & vbNewLine & missing, 4) <> 6 Then
-        missing = InputBox("What was missing? (replace form 'Missing Kit' Field)", "What's Missing?")
-        Form.Field("Missing Kit").Value = missing
+        missing = InputBox("What was missing? (will add to 'Missing Kit' Field)", "What's Missing?")
+        dim ogMissing
+        ogMissing = Form.Field("Missing Kit").Value
+        Form.Field("Missing Kit").Value = ogMissing & vbNewLine & vbNewLine & missing
     End if
 
     if missing <> "" Then
@@ -1487,57 +1488,83 @@ End Sub
 Sub EmailMissingKit()
 ' emails 'Missing Kit' field to invoice and delivery email addresse
     Dim cCust : Set cCust = Form.Connection("To", "Customer")
-    Dim olApp : Set olApp = CreateObject("Outlook.Application")
-    Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
     Dim del_email, invoice_email, accounts_email
+    dim address, subject, body
+    dim addresses
+    Set addresses = CreateObject("Scripting.Dictionary")
+    addresses.CompareMode = vbTextCompare ' case-insensitive uniqueness
 
-    invoice_email = cCust.FieldValue("Email")
-    accounts_email = cCust.FieldValue("Accounts Email")
-    del_email = Form.Field("Delivery Email").Value
+    invoice_email = Trim(cCust.FieldValue("Email"))
+    accounts_email = Trim(cCust.FieldValue("Accounts Email"))
+    del_email = Trim(Form.Field("Delivery Email").Value)
 
-    If del_email = "" And invoice_email = "" And accounts_email = "" Then
-        MsgBox "No delivery,invoice, or accounts email address found - aborting email.", vbExclamation
-        Exit Sub
-    ElseIf del_email = "" Then
-        del_email = invoice_email
-    ElseIf invoice_email <> "" And LCase(del_email) <> LCase(invoice_email) Then
-        del_email = del_email & ";" & invoice_email
+    If del_email <> "" and Not addresses.Exists(del_email) Then
+        addresses.Add del_email, True
     End If
 
+    If accounts_email <> "" and Not addresses.Exists(accounts_email) Then
+        addresses.Add accounts_email, True
+    End If
 
-    'compose email'
-    objMailItem.Subject = "Radio Hire - Missing Kit"
-    objMailItem.To = del_email
-    If Not objMailItem.Recipients.ResolveAll Then
-        MsgBox "Invalid recipient(s): " & objMailItem.To, vbCritical
+    If invoice_email <> "" And Not addresses.Exists(invoice_email) Then
+        addresses.Add invoice_email, True
+    End If
+
+    address = Join(addresses.Keys, "; ")
+
+    If address = "" Then
+        MsgBox "No email address found - aborting email.", vbExclamation
         Exit Sub
     End If
 
-
-    objMailItem.Body = "Hi," & vbNewLine & _
+    subject = "Radio Hire - Missing Kit"
+    body = "Hi," & vbNewLine & _
                            vbNewLine & "Thanks for returning the hired equipment - I hope it worked well for your event." & vbNewLine & _
                            vbNewLine & "Unfortunately the return was missing the following items - can you please look/check with colleagues to see if they can be recovered - otherwise i'll draw up an invoice for replacement." & vbNewLine & _
                            "Kind regards," & vbNewLine & "the Amherst team" & vbNewLine & _
                            vbNewLine & "MISSING KIT:" & vbNewLine & _
                            Form.Field("Missing Kit").value & vbNewLine & vbNewLine & "(If you have already discussed missing items with us please disregard this automatically generated email)"
 
-    ' show user the email and if confirmed send email'
-    if MsgBox ("Confirm Email:" & vbNewLine & vbNewLine & objMailItem & vbNewLine & objMailItem.Body, 4) = 6 Then
-        objMailItem.Send
-        AddMissingKitEmailContact()
-        MsgBox("EMAILED and added contact log")
-    End if
+    SendEmailOutlook address, subject, body
+    AddMissingKitEmailContact()
+    MsgBox("EMAILED and added contact log")
+
     Dim today
     today = Right("0" & Day(Now), 2) & "/" & Right("0" & Month(Now), 2)
     Form.Field("Return Notes").Value = today & ": Missing Kit Email Sent" & vbNewLine & _
         Form.Field("Return Notes").Value
 
     ' close objects'
+    Set cCust = Nothing
+    Set addresses = Nothing
+End Sub
+
+Sub SendEmailOutlook(address, subject, body)
+    Dim olApp : Set olApp = CreateObject("Outlook.Application")
+    Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
+    If address = "" Then
+        MsgBox "No email address found - aborting email.", vbExclamation
+        Exit Sub
+    End If
+    'compose email'
+    objMailItem.Subject = subject
+    objMailItem.To = address
+    If Not objMailItem.Recipients.ResolveAll Then
+        MsgBox "Invalid recipient(s): " & objMailItem.To, vbCritical
+        Exit Sub
+    End If
+
+    objMailItem.Body = body
+    ' show user the email and if confirmed send email'
+    if MsgBox ("Confirm Email:" & vbNewLine & vbNewLine & objMailItem & vbNewLine & objMailItem.Body, 4) = 6 Then
+        objMailItem.Send
+    End if
+
+    ' close objects'
     Set olApp = Nothing
     Set objMailItem = Nothing
-    Set cCust = Nothing
-
 End Sub
+
 
 Sub AddMissingKitEmailContact()
     dim logName, hireName, missing
