@@ -856,6 +856,8 @@ Sub Form_OnClick(ControlId)
         Case "CommandButton7"
         ' this button "pulls" the equipment quantity fields from the corresponding fields in the
         ' customer record, that have been put there by being read in from "AutoQuote"
+            dim cCust : Set cCust = Form.Connection("To", "Customer")
+
             Form.Field("Number UHF").Value = cCust.FieldValue("Number UHF")
             Form.Field("Number Batteries").Value = cCust.FieldValue("Number Batteries")
             Form.Field("Number Cases").Value = cCust.FieldValue("Number Cases")
@@ -1307,55 +1309,62 @@ Sub UnpackHire()
 
     missing = Form.Field("Missing Kit").value
     if missing = "" Then
-        if MsgBox("all ok? - Close Hire, save, and exit form?", 4) = 6 Then
+        if MsgBox("all ok? - save and exit?", 4) = 6 Then
             ReturnedOkNow(unpackedBy)
             Form.Save
+            Exit Sub
+        Else
+            MsgBox "Please fill in Missing Kit Field and rerun this subroutine", vbExclamation
             Exit Sub
         End if
     End if
 
-    if MsgBox("Use missing kit field?" & vbNewLine & missing, 4) <> 6 Then
-        missing = InputBox("What was missing? (will add to 'Missing Kit' Field)", "What's Missing?")
-        dim ogMissing
-        ogMissing = Form.Field("Missing Kit").Value
-        Form.Field("Missing Kit").Value = ogMissing & vbNewLine & vbNewLine & missing
-    End if
+    dim res
+    res = EmailMissingKit()
+    LogMissingKitContact()
 
-    if missing <> "" Then
-        EmailMissingKit()
-        if MsgBox("Set status to returned with problems, save, and exit?", 4) = 6 Then
-            RetunedWithProblemsNow(unpackedBy)
-            Form.Save
-        End if
+    dim qStr : qStr = ""
+    if res = True Then
+        Dim today
+        today = Right("0" & Day(Now), 2) & "/" & Right("0" & Month(Now), 2)
+        Form.Field("Return Notes").Value = today & ": Missing Kit Email Sent" & vbNewLine & _
+                Form.Field("Return Notes").Value
+        qStr = qStr & "Emailed client, "
+    End If
+    qstr = qStr & "Added contact log and note in Return Notes Field."
+
+    if MsgBox(qStr & vbNewLine & "Set status to returned with problems, save, and exit?", 4) = 6 Then
+        RetunedWithProblemsNow(unpackedBy)
+        Form.Save
     End if
 End Sub
 
 Sub EmailSendOut()
 'emails customer conforming address and schedule and gear'
-    msgbox("Emailing customer about upcoming shipment")
-    Dim olApp : Set olApp = CreateObject("Outlook.Application")
-    Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
     Dim cCust : Set cCust = Form.Connection("To", "Customer")
     Dim returnStr, del_email, sendMeth, invoice_email
+    dim subject, body
 
-    'tbc include parcelforce tracking numbers in email'
-    '         MsgBox Form.Field("Tracking Numbers").value
+    del_email = Trim(Form.Field("Delivery Email").Value)
+    invoice_email = Trim(cCust.FieldValue("Email"))
 
-    '*** create email ***'
-    '* if invoice and delivery emails are differnt then combine into a string
-    invoice_email = cCust.FieldValue("Email")
-    del_email = Form.Field("Delivery Email").Value
-    if invoice_email <> del_email Then
-        del_email = del_email & ";" & invoice_email
-    End if
-
-    ' get send method from horrible strings
-    If InStr(Form.Field("Send Or Collect").Value, "Cust. collect") > 0 OR InStr(Form.Field("Send Or Collect").Value, "We pick up only") > 0 Then
-        sendMeth = "collected by yourself or at your expense "
-    Else sendMeth = "sent out "
+    if del_email = "" Then
+        MsgBox "No delivery email!", vbExclamation
+        Exit Sub
     End If
 
-    ' get return method from horrible strings'
+    if invoice_email <> del_email Then
+        del_email = del_email & "; " & invoice_email
+    End if
+
+    ' get send method from strings
+    If InStr(Form.Field("Send Or Collect").Value, "Cust. collect") > 0 OR InStr(Form.Field("Send Or Collect").Value, "We pick up only") > 0 Then
+        sendMeth = "collected by yourself or at your expense "
+    Else
+        sendMeth = "sent out "
+    End If
+
+    ' get return method from strings'
     if Form.Field("Send Or Collect").Value = "We send only" Or Form.Field("Send Or Collect").Value = "Cust. collect/return" Then
         returnStr = "Our records indicate you have not pre-paid for return shipping and are required to send the gear back at your expense." & vbNewLine & _
             vbNewLine & "Please use a trackable service and send us the tracking details when you have dispatched the shipment."
@@ -1365,9 +1374,8 @@ Sub EmailSendOut()
     End if
 
     ' compose email'
-    objMailItem.Subject = "Radio Hire - upcoming shipment details"
-    objMailItem.To = del_email
-    objMailItem.Body = "Hi," & vbNewLine & _
+    subject = "Radio Hire - upcoming shipment details"
+    body = "Hi," & vbNewLine & _
                            vbNewLine & "Thanks for choosing to hire from Amherst." & vbNewLine & vbNewLine & "Your upcoming hire is due to be " & sendMeth & "on " & Form.Field("Send Out Date").Value & vbNewLine & vbNewLine & _
                            "Please check the following details and contact us urgently if there are any discrepancies." & vbNewLine & _
                            vbNewLine & "Delivery To:" & vbNewLine & vbNewLine & _
@@ -1380,117 +1388,27 @@ Sub EmailSendOut()
                            vbNewLine & returnStr & vbNewLine & _
                            vbNewLine & "Kind regards" & vbNewLine & "The Amherst team" & vbNewLine & vbNewLine & "(this email generated automatically)"
 
-    '* Get user inputs*'
     'confirm/amend email address or cancel'
     Dim email_or_change
     email_or_change = MsgBox("Send email to: " & del_email & "?" & vbNewLine & _
     "'No' to enter an alternative, 'Cancel' to abort emailing", 3)
+
     if email_or_change = 7 Then
         del_email = InputBox("Enter new email address")
     Elseif email_or_change = 2 Then
         Exit Sub
     End if
+    if SendEmailOutlook(del_email, subject, body) = True then
+        Form.Field("PreShip Emailed").Value = True
+    End If
 
-    ' show user the email and get confirmation to send email'
-    objMailItem.Send
-    Form.Field("PreShip Emailed").Value = True
-
-    ' close objects'
-    Set olApp = Nothing
-    Set objMailItem = Nothing
 
 End Sub
 
-Sub EmailMissingKitSMTP()
-' THIS WAS WRITTEN BY CHATGPT AND IS NOT CERIFIED OR TESTED + IT HAS PLACEHOLDER CREDENTIALS
+Function GetRelatedEmailAddresses()
     Dim cCust : Set cCust = Form.Connection("To", "Customer")
+    Dim del_email, invoice_email, accounts_email, addresses
 
-    Dim msg
-    Set msg = CreateObject("CDO.Message")
-
-    Dim cfg
-    Set cfg = CreateObject("CDO.Configuration")
-
-    Dim invoice_email, del_email
-
-    ' make email address string if delivery and invoice emails are different send to both
-    invoice_email = cCust.FieldValue("Email")
-    del_email = Form.Field("Delivery Email").Value
-
-    If invoice_email <> del_email Then
-        del_email = del_email & ";" & invoice_email
-    End If
-
-    '==========================
-    ' SMTP CONFIGURATION
-    '==========================
-    With cfg.Fields
-        .Item("http://schemas.microsoft.com/cdo/configuration/sendusing") = 2
-        .Item("http://schemas.microsoft.com/cdo/configuration/smtpserver") = "smtp.yourserver.com"
-        .Item("http://schemas.microsoft.com/cdo/configuration/smtpserverport") = 587
-        .Item("http://schemas.microsoft.com/cdo/configuration/smtpauthenticate") = 1
-        .Item("http://schemas.microsoft.com/cdo/configuration/sendusername") = "username"
-        .Item("http://schemas.microsoft.com/cdo/configuration/sendpassword") = "password"
-        .Item("http://schemas.microsoft.com/cdo/configuration/smtpusessl") = True
-        .Update
-    End With
-
-    Set msg.Configuration = cfg
-
-    '==========================
-    ' COMPOSE EMAIL
-    '==========================
-    msg.From = "hire@yourcompany.com"
-    msg.To = del_email
-    msg.Subject = "Radio Hire - Missing Kit"
-
-    msg.TextBody = _
-        "Hi," & vbCrLf & vbCrLf & _
-        "Thanks for returning the hired equipment - I hope it worked well for your event." & vbCrLf & vbCrLf & _
-        "Unfortunately the return was missing the following items - can you please look/check with colleagues to see if they can be recovered - otherwise I'll draw up an invoice for replacement." & vbCrLf & vbCrLf & _
-        "Kind regards," & vbCrLf & _
-        "The Amherst team" & vbCrLf & vbCrLf & _
-        "MISSING KIT:" & vbCrLf & _
-        Form.Field("Missing Kit").Value & vbCrLf & vbCrLf & _
-        "(If you have already discussed missing items with us please disregard this automatically generated email)"
-
-    '==========================
-    ' CONFIRM BEFORE SENDING
-    '==========================
-    If MsgBox(_
-        "Confirm Email:" & vbCrLf & vbCrLf & _
-        "To: " & msg.To & vbCrLf & _
-        "Subject: " & msg.Subject & vbCrLf & vbCrLf & _
-        msg.TextBody, _
-        vbYesNo + vbQuestion) = vbYes Then
-
-        msg.Send
-        AddMissingKitEmailContact()
-        MsgBox "EMAILED and added contact log"
-    End If
-
-    Dim today
-    today = Right("0" & Day(Now), 2) & "/" & Right("0" & Month(Now), 2)
-
-    Form.Field("Return Notes").Value = _
-        today & ": Missing Kit Email Sent" & vbCrLf & _
-        Form.Field("Return Notes").Value
-
-    '==========================
-    ' CLEAN UP
-    '==========================
-    Set cfg = Nothing
-    Set msg = Nothing
-    Set cCust = Nothing
-
-End Sub
-
-Sub EmailMissingKit()
-' emails 'Missing Kit' field to invoice and delivery email addresse
-    Dim cCust : Set cCust = Form.Connection("To", "Customer")
-    Dim del_email, invoice_email, accounts_email
-    dim address, subject, body
-    dim addresses
     Set addresses = CreateObject("Scripting.Dictionary")
     addresses.CompareMode = vbTextCompare ' case-insensitive uniqueness
 
@@ -1510,11 +1428,19 @@ Sub EmailMissingKit()
         addresses.Add invoice_email, True
     End If
 
-    address = Join(addresses.Keys, "; ")
+    GetRelatedEmailAddresses = Join(addresses.Keys, "; ")
+
+End Function
+
+
+Function EmailMissingKit()
+' emails 'Missing Kit' field to invoice accounts and delivery email addresses
+    dim address, subject, body
+    address = GetRelatedEmailAddresses()
 
     If address = "" Then
         MsgBox "No email address found - aborting email.", vbExclamation
-        Exit Sub
+        Exit Function
     End If
 
     subject = "Radio Hire - Missing Kit"
@@ -1525,56 +1451,48 @@ Sub EmailMissingKit()
                            vbNewLine & "MISSING KIT:" & vbNewLine & _
                            Form.Field("Missing Kit").value & vbNewLine & vbNewLine & "(If you have already discussed missing items with us please disregard this automatically generated email)"
 
-    SendEmailOutlook address, subject, body
-    AddMissingKitEmailContact()
-    MsgBox("EMAILED and added contact log")
+    EmailMissingKit = SendEmailOutlook(address, subject, body)
+End Function
 
-    Dim today
-    today = Right("0" & Day(Now), 2) & "/" & Right("0" & Month(Now), 2)
-    Form.Field("Return Notes").Value = today & ": Missing Kit Email Sent" & vbNewLine & _
-        Form.Field("Return Notes").Value
-
-    ' close objects'
-    Set cCust = Nothing
-    Set addresses = Nothing
-End Sub
-
-Sub SendEmailOutlook(address, subject, body)
+Function SendEmailOutlook(address, subject, body)
     Dim olApp : Set olApp = CreateObject("Outlook.Application")
     Dim objMailItem : Set objMailItem = olApp.CreateItem(0)
     If address = "" Then
         MsgBox "No email address found - aborting email.", vbExclamation
-        Exit Sub
+        Exit Function
     End If
     'compose email'
     objMailItem.Subject = subject
     objMailItem.To = address
     If Not objMailItem.Recipients.ResolveAll Then
         MsgBox "Invalid recipient(s): " & objMailItem.To, vbCritical
-        Exit Sub
+        Exit Function
     End If
 
     objMailItem.Body = body
     ' show user the email and if confirmed send email'
-    if MsgBox ("Confirm Email:" & vbNewLine & vbNewLine & objMailItem & vbNewLine & objMailItem.Body, 4) = 6 Then
+    dim result : result = False
+    if MsgBox("Confirm Email:" & vbNewLine & vbNewLine & subject & vbNewLine & body, 4) = 6 Then
         objMailItem.Send
+        result = True
     End if
 
     ' close objects'
     Set olApp = Nothing
     Set objMailItem = Nothing
-End Sub
+    SendEmailOutlook = result
+End Function
 
 
-Sub AddMissingKitEmailContact()
+Sub LogMissingKitContact()
     dim logName, hireName, missing
     missing = Form.Field("Missing Kit").Value
     hireName = Form.Field("Name").Value
     logName = "Missing Kit Email Sent Re: " & hireName
-    Call AddContactLog(logName, missing)
+    Call LogContact(logName, missing)
 End Sub
 
-Sub AddContactLog(title, notes)
+Sub LogContact(title, notes)
     dim cursor, cCustomer, custName, addSet, result
     dim nameColIndex, dateColIndex, timeColIndex, notesColIndex, custColIndex
     Set cCustomer = Form.Connection("To", "Customer")
