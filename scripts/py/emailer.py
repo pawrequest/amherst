@@ -4,7 +4,8 @@
 # "pywin32>=306"
 # ]
 # ///
-import asyncio
+# import asyncio
+import argparse
 import os
 import smtplib
 from collections.abc import Sequence
@@ -144,10 +145,35 @@ async def _render_invoice_email(invoice: Path) -> Any:
     return body
 
 
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Create and open an email in Outlook.')
+    parser.add_argument('--address', required=True, help='Recipient address (comma/semicolon separated for multiple)')
+    parser.add_argument('--subject', required=True, help='Email subject')
+    parser.add_argument('--body', required=True, help='Email body')
+    parser.add_argument('--html', action='store_true', help='Treat body as HTML')
+    parser.add_argument(
+        '--attachment',
+        action='append',
+        default=[],
+        dest='attachments',
+        help='Path to an attachment (repeatable, e.g. --attachment a.pdf --attachment b.pdf)',
+    )
+    args = parser.parse_args()
+
+    email = Email(
+        to_address=args.address,
+        subject=args.subject,
+        body=args.body,
+        attachment_paths=[Path(p) for p in args.attachments],
+    )
+    create_open_email_outlook(email, html=args.html)
+
+
 if __name__ == '__main__':
-    # if res := get_last_email_from_sender('giles@amherst.co.uk'):
-    #     print(res.Subject, res.ReceivedTime, res.SenderEmailAddress)
-    asyncio.run(create_open_invoice_email(Path(r'R:\ACCOUNTS\INVOICES\A26399.DOCX'), ['admin@amherst.co.uk']))
+    main()
+
 
 # reply = message.Reply()
 # reply.Body = 'Your reply text here\n' + reply.Body
