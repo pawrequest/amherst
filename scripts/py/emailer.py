@@ -1,23 +1,27 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-# "pywin32>=306"
+#     "jinja2>=3.1.6",
+#     "pywin32>=306",
+#     "starlette>=1.9.0",
 # ]
 # ///
 # import asyncio
 import argparse
 import os
 import smtplib
-from collections.abc import Sequence
+import sys
+from argparse import Namespace
 from dataclasses import dataclass, field
 from email.message import EmailMessage
 from pathlib import Path
-from typing import Any
 
 import pythoncom
 import win32com.client
+from starlette.templating import Jinja2Templates
 
-from amherst.config import AMHERST_SETTINGS
+THIS_PATH = Path(__file__)
+TEMPLATE_DIR = THIS_PATH.parent.parent / 'templates'
 
 
 def print_file(filepath: str):
@@ -126,33 +130,34 @@ def get_last_email_from_sender(from_address: str):
     return filtered_items.GetFirst()
 
 
-async def create_open_invoice_email(invoice: Path, addresses: Sequence[str]):
-    addrs = set(a.strip() for a in addresses if a.strip())
-    addr_str = ', '.join(addrs)
-    body = await _render_invoice_email(invoice)
-
-    email = Email(
-        to_address=addr_str,
-        subject='Amherst Radios Invoice Attached',
-        body=body,
-        attachment_paths=[invoice.with_suffix('.pdf')],
-    )
-    create_open_email_outlook(email, html=True)
-
-
-async def _render_invoice_email(invoice: Path) -> Any:
-    body = AMHERST_SETTINGS.templates.get_template('email_snips/invoice_email.html').render(invoice=invoice)
-    return body
+# async def create_open_invoice_email(invoice: Path, addresses: Sequence[str]):
+#     addrs = {a.strip() for a in addresses if a.strip()}
+#     addr_str = '; '.join(addrs)
+#     body = await _render_invoice_email(invoice)
+#
+#     email = Email(
+#         to_address=addr_str,
+#         subject='Amherst Radios Invoice Attached',
+#         body=body,
+#         attachment_paths=[invoice.with_suffix('.pdf')],
+#     )
+#     create_open_email_outlook(email, html=True)
 
 
+# async def _render_invoice_email(invoice: Path) -> Any:
+#     templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+#     body = templates.get_template('email_snips/invoice_email.html').render(invoice=invoice)
+#     return body
 
 
 def main():
     parser = argparse.ArgumentParser(description='Create and open an email in Outlook.')
     parser.add_argument('--address', required=True, help='Recipient address (comma/semicolon separated for multiple)')
-    parser.add_argument('--subject', required=True, help='Email subject')
-    parser.add_argument('--body', required=True, help='Email body')
+    parser.add_argument('--subject', default='', help='Email subject')
+    parser.add_argument('--body', default='', help='Email body')
+    parser.add_argument('--template', help='Jinja Template')
     parser.add_argument('--html', action='store_true', help='Treat body as HTML')
+    parser.add_argument('--debug', action='store_true', help='pause to read prints')
     parser.add_argument(
         '--attachment',
         action='append',
@@ -162,19 +167,48 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.template and args.template == 'invoice_email.html':
+        apply_invoice_template(args)
+
     email = Email(
         to_address=args.address,
         subject=args.subject,
         body=args.body,
-        attachment_paths=[Path(p) for p in args.attachments],
+        attachment_paths=args.attachments,
     )
     create_open_email_outlook(email, html=args.html)
+    if args.debug:
+        res = input('paused')
+    return 0
+
+
+def apply_invoice_template(args: Namespace):
+    print('invoice template')
+    try:
+        args.attachments = convert_word_attachment_args(args.attachments)
+        args.subject = f'Amherst Radio Hire: Invoice {args.attachments[0].stem}'
+        templates = Jinja2Templates(directory=str(TEMPLATE_DIR))
+        invoice_template = templates.get_template(args.template)
+        args.body = invoice_template.render(invoice=args.attachments[0])
+        args.html = True
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+
+
+def convert_word_attachment_args(attachments: list[Path]) -> list[Path]:
+    print('convert atatchments')
+    attached = []
+    for a in attachments:
+        a = Path(a)
+        print('try convert :', a)
+        if a.suffix.lower() in ['.doc', '.docx']:
+            print('Converting attachment suffix from MSWord to PDF')
+            a = a.with_suffix('.pdf')
+        attached.append(a)
+    print(attached)
+    return attached
 
 
 if __name__ == '__main__':
-    main()
-
-
-# reply = message.Reply()
-# reply.Body = 'Your reply text here\n' + reply.Body
-# reply.Display()
+    sys.exit(main())
