@@ -2,12 +2,12 @@
 set UV_DIR=%USERPROFILE%\.local\bin
 
 REM maybe install uv
-if not exist "%UV_DIR%\uv.exe" (
+uv --version >nul 2>&1
+if %errorlevel% neq 0 (
     echo Astral uv not installed - fetching from https://astral.sh/uv/install.ps1
     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
     echo UV installed
 )
-
 REM maybe install git
 git --version >nul 2>&1
 if %errorlevel% neq 0 (
