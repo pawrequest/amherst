@@ -948,8 +948,7 @@ Sub Form_OnClick(ControlId)
             End If
 
         Case "CommandButton18"
-        ' this button inserts the current date into the "Actual Return Date"
-            Form.Field("Actual Return Date").Value = "today"
+            Form.Field("Status").Value = "Out"
 
         Case "CommandButton19"
         'Paul's button to pack a hire"
