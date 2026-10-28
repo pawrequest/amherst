@@ -6,7 +6,7 @@ from importlib.resources import files
 from pathlib import Path
 
 import pydantic as _p
-from pawlogger.config_loguru3 import loguru_ndjson_and_terminal
+from configure_logging import loguru_ndjson_and_terminal
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
