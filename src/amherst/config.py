@@ -6,10 +6,11 @@ from importlib.resources import files
 from pathlib import Path
 
 import pydantic as _p
-from configure_logging import loguru_ndjson_and_terminal
 from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from starlette.templating import Jinja2Templates
+
+from amherst.configure_logging import loguru_ndjson_and_terminal
 
 DEFAULT_UI_DIR: Path = Path(str(files('amherst').joinpath('ui')))
 DEFAULT_AMHERST_DATA_DIR = Path.home() / 'amherst_shipper'
@@ -62,6 +63,9 @@ class AmherstSettings(BaseSettings):
         else:
             setts = cls()
             print(f'No env file found for AmherstSettings at {env_path}, using defaults')
+
+        loguru_ndjson_and_terminal(level=setts.log_level, log_file=setts.ndjson_file)
+
         return setts
 
 
@@ -74,4 +78,4 @@ class AmherstSettings(BaseSettings):
 
 
 AMHERST_SETTINGS = AmherstSettings.from_env()
-loguru_ndjson_and_terminal(level=AMHERST_SETTINGS.log_level, log_file=AMHERST_SETTINGS.ndjson_file)
+# loguru_ndjson_and_terminal(level=AMHERST_SETTINGS.log_level, log_file=AMHERST_SETTINGS.ndjson_file)

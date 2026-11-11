@@ -1,34 +1,41 @@
 import functools
-import os
 import sys
 from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
-from pprint import pprint
 
 from loguru import logger
 from pawlogger.funcs import serializing_formatter
 
 
-def is_uv():
-    is_uv_ = '.uv' in sys.prefix or 'uv' in os.environ.get('VIRTUAL_ENV', '')
-    return is_uv_
+_SITE_PACKAGES = 'site-packages'
 
 
-def running_as_uv_tool() -> bool:
-    exe = Path(sys.executable).as_posix().lower()
-    prefixes = [Path(p).as_posix().lower() for p in sys.path]
-    print(f'{exe=}')
-    print(f'{prefixes=}')
+def ran_as_uv_tool() -> bool:
+    here = __file__.lower().replace('/', '\\')
+    return r'\uv\tools\amherst\lib\site-packages\amherst' in here
 
-    return '/uv/tools/' in exe or any('/uv/tools/' in p for p in prefixes)
+
+_RAN_AS_UV = ran_as_uv_tool()
+
+
+def _display_path(path: str) -> str:
+    """Relative to site-packages when running as a uv tool, else the full path."""
+    if not _RAN_AS_UV:
+        return path
+    parts = Path(path).parts
+    lowered = [p.lower() for p in parts]
+    if _SITE_PACKAGES in lowered:
+        idx = len(lowered) - 1 - lowered[::-1].index(_SITE_PACKAGES)
+        return str(Path(*parts[idx + 1:]))
+    return path
 
 
 def loguru_ndjson_and_terminal(
-    level: str = 'INFO',
-    log_file: Path | None = None,
-    rotation: timedelta = timedelta(weeks=1),
-    retention: timedelta = timedelta(weeks=8),
+        level: str = 'INFO',
+        log_file: Path | None = None,
+        rotation: timedelta = timedelta(weeks=1),
+        retention: timedelta = timedelta(weeks=8),
 ):
     logger.remove()
     lvl = level.upper()
@@ -43,14 +50,14 @@ def loguru_ndjson_and_terminal(
         logger.add(log_file.with_suffix('.ndjson'), format=serializing_formatter, **config)
     logger.add(sys.stdout, level=lvl, format=log_fmt_local_terminal)
     # logger.add(sys.stderr, level=lvl, format=log_fmt_local_terminal)
-    logger.info(f'Configured loguru with level {lvl} and log_file {log_file}')
+    # logger.info(f'Configured loguru with level {lvl} and log_file {log_file}')
 
 
 def log_fmt_local_terminal(record) -> str:
     name_txt = f'<lvl>{record["name"].split(".")[0]}</lvl>'
     lvltext = f'<lvl>{record["level"]}</lvl>'
     msg_txt = f'<lvl>{record["message"]}</lvl>'
-    file_txt = f'"{record["file"].path}:{record["line"]}"'
+    file_txt = f'"{_display_path(record["file"].path)}:{record["line"]}"'
     msg_txt = msg_txt.replace('{', '{{').replace('}', '}}')
     return f'{name_txt}({lvltext}) | {msg_txt} | {file_txt}\n'
 
@@ -75,13 +82,11 @@ def logger_wraps(*, entries=True, exits=True, level='DEBUG') -> Callable:
 
 
 if __name__ == '__main__':
-    # print(f'{is_uv()=}')
-    # print('RUNNING AS UV = ', running_as_uv_tool())
+    print(f'{ran_as_uv_tool()=}')
     loguru_ndjson_and_terminal(level='DEBUG', log_file=Path('test_logger.log'))
     logger.info('Test loguru configuration')
     logger.warning('This is a warning message', extra={'a': 'b'})
     # pprint(f'{dir()=}')
-
 
 # from functools import partial
 #
