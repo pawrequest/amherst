@@ -19,12 +19,12 @@ async def pycommence_shipper(category: CategoryName, record_name: str):
     await run_desktop_ui(url_suffix)
 
 
-async def port_in_use(host, port=8000) -> bool:
+async def port_in_use(host='127.0.0.1', port=8000) -> bool:
     return socket.socket().connect_ex((host, port)) == 0
 
 
 async def check_port(port=8000) -> None:
-    if await port_in_use(port):
+    if await port_in_use(port=port):
         raise OSError(f'Port {port} is already in use — is another instance running?')
 
 
