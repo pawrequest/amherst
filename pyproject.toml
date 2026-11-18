@@ -5,7 +5,7 @@ build-backend = "uv_build"
 
 [project]
 name = "amherst"
-version = "0.3.101"
+version = "0.3.102"
 description = "Add your description here"
 readme = "README.md"
 authors = [
@@ -14,13 +14,13 @@ authors = [
 requires-python = ">= 3.13"
 
 dependencies = [
-    "shipaw>=0.3.95",
-    "pawlogger==0.1.7",
-    "pycommence==0.2.4",
+    "shipaw<0.4.0",
+    "pawlogger==0.1.11",
+    "pycommence<0.3.0",
     #
-    "pydantic-settings>=2.11.0",
-    "pydantic[email]>=2.11.9",
-    "fastapi>=0.141.1",
+    "pydantic-settings>=2.16.2",
+    "pydantic[email]>=2.14.3",
+    "fastapi>=0.162.4",
     "jinja2>=3.1.6",
     "loguru>=0.7.3",
     "flaskwebgui>=1.1.9",
@@ -28,8 +28,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.2",
-    "pytest-asyncio>=1.2.0",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
 ]
 
 
