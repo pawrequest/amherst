@@ -3,6 +3,7 @@
 # dependencies = [
 #   "pandas",
 #   "xlrd",
+#   "python-calamine",
 # ]
 # ///
 from pathlib import Path
@@ -11,8 +12,8 @@ import pandas as pd
 
 
 def load_accounts_df(accounts_file: Path) -> pd.DataFrame:
-    with open(accounts_file, 'rb') as accounts_file:
-        df = pd.read_excel(accounts_file, header=2)
+    with open(accounts_file, 'rb') as f:
+        df = pd.read_excel(f, header=2, engine='calamine')
     return df
 
 
@@ -35,5 +36,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     invoice_num = invoice_num_from_path(args.invoice_path)
     status = get_payment_status(invoice_num, args.accounts_file)
-    print(f'Payment status for invoice {invoice_num}: {status}')
+    print(f'\nPayment status for invoice {invoice_num}: {status}\n')
     inp = input('Enter to close')
