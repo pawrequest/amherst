@@ -7,7 +7,6 @@ from pathlib import Path
 from loguru import logger
 from pawlogger.funcs import serializing_formatter
 
-
 _SITE_PACKAGES = 'site-packages'
 
 
@@ -27,15 +26,15 @@ def _display_path(path: str) -> str:
     lowered = [p.lower() for p in parts]
     if _SITE_PACKAGES in lowered:
         idx = len(lowered) - 1 - lowered[::-1].index(_SITE_PACKAGES)
-        return str(Path(*parts[idx + 1:]))
+        return str(Path(*parts[idx + 1 :]))
     return path
 
 
 def loguru_ndjson_and_terminal(
-        level: str = 'INFO',
-        log_file: Path | None = None,
-        rotation: timedelta = timedelta(weeks=1),
-        retention: timedelta = timedelta(weeks=8),
+    level: str = 'INFO',
+    log_file: Path | None = None,
+    rotation: timedelta = timedelta(weeks=1),
+    retention: timedelta = timedelta(weeks=8),
 ):
     logger.remove()
     lvl = level.upper()

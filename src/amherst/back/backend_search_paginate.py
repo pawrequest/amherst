@@ -186,7 +186,7 @@ class SearchResponse[T: AmherstShipableBase](BaseModel):
         return (
             f'Search Response: {self.length}x {self.search_request.csrname if self.search_request.csrname else ", ".join(self.search_request.csrnames)} records'
             f'{" (" + str(self.more.n_more) + " more available)," if self.more else ". "} '
-            f'SearchRequest[{str(self.search_request)}]'
+            f'SearchRequest[{self.search_request!s}]'
         )
 
     @model_validator(mode='after')

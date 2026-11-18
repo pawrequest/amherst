@@ -10,7 +10,6 @@ import sys
 from argparse import Namespace
 from pathlib import Path
 
-from amherst_core.models import AmherstHire
 from pycommence import PyCommence
 
 

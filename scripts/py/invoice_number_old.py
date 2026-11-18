@@ -20,9 +20,8 @@ def next_inv_num(inv_dir=REAL_INV_FOLDER):
             new_num = f'{num + 1}'.zfill(5)
             new_filename = f'A{new_num}'
             return new_filename
-    else:
-        new_num = f'{max(inv_numbers) + 1}'.zfill(5)
-        return f'A{new_num}'
+    new_num = f'{max(inv_numbers) + 1}'.zfill(5)
+    return f'A{new_num}'
 
 
 def get_inv_nums(inv_dir) -> set[int]:
@@ -34,7 +33,7 @@ def get_inv_nums(inv_dir) -> set[int]:
 
 
 def has_20_after(index: int, nums: list[int]) -> bool:
-    """ True if """
+    """True if"""
     if len(nums) < 20:
         return False
     tally = 0
@@ -71,5 +70,3 @@ if __name__ == '__main__':
     if args.pause:
         input('(Copied to clipboard) Press Enter to continue...')
     sys.exit(0)
-
-

@@ -14,11 +14,8 @@ def test_create():
     with pycommence_context(csrname='Shipment') as cmc:
         res = cmc.create_row(shpdict, csrname='Shipment')
 
-    ...
-
 
 def test_1():
     with pycommence_context(csrname='Shipment') as cmc:
         res = cmc.read_row(pk='2026-April-1st (Wednesday @ 20:42:02)')
         obj = CommenceShipment(**res.data)
-    ...

@@ -46,10 +46,7 @@ def has_20_before(candidate_num: int, nums: set[int], count: int = 20) -> bool:
 
 def invoice_name_exists(inv_dir: str, inv_num: int) -> bool:
     base_name = f'A{inv_num:05d}'
-    return any(
-        os.path.exists(os.path.join(inv_dir, f'{base_name}{ext}'))
-        for ext in ('.doc', '.pdf')
-    )
+    return any(os.path.exists(os.path.join(inv_dir, f'{base_name}{ext}')) for ext in ('.doc', '.pdf'))
 
 
 if __name__ == '__main__':

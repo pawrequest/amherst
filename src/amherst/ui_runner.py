@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import socket
 import sys
-import webbrowser
 
 from flaskwebgui import FlaskUI, close_application
 from jinja2.utils import url_quote

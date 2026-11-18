@@ -3,7 +3,6 @@ import argparse
 # from loguru import logger
 
 
-
 def parse_ship_args():
     from amherst.models.commence_adaptors import CategoryName
 

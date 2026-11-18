@@ -1,4 +1,3 @@
-from amherst.config import AMHERST_SETTINGS  # noqa: I001we configure logging
 import contextlib
 
 from fastapi import FastAPI, responses
@@ -15,6 +14,7 @@ from starlette.staticfiles import StaticFiles
 from amherst.back.routes_html import router as html_router
 from amherst.back.routes_json import router as json_router
 from amherst.back.ship_routes import router as ship_router
+from amherst.config import AMHERST_SETTINGS  # noqa: I001we configure logging
 
 
 @contextlib.asynccontextmanager

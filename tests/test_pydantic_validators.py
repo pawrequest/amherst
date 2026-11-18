@@ -27,7 +27,6 @@ def amherst_customer(amherst_customer_data) -> AmherstCustomer:
 
 
 def test_auto_csv(amherst_customer):
-    ...
     tracks = amherst_customer.tracking_links_in
     print('\n RESULTS', tracks)
     assert isinstance(tracks, list)
@@ -37,7 +36,6 @@ def test_auto_csv(amherst_customer):
 def test_it():
     cust = AmherstCustomer
     afield = cust.model_fields['name'].alias
-    ...
 
 
 # def test_sep():
