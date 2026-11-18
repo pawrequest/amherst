@@ -38,10 +38,14 @@ def get_related(barcode: str):
     fil = FieldFilter(column='Latest Tracking', value=barcode, condition=ConditionType.CONTAIN)
     fa = FilterArray.from_filters(fil)
     with pycommence_context('Shipment') as p:
-        res = p.read_rows(filter_array=fa)
+        res = list(p.read_rows(filter_array=fa))
     # return list(res)
     results = []
-    for info, data in res:
+    for r in res:
+        if isinstance(r, MoreAvailable):
+            raise TypeError('More?')
+        # info = r.row_info
+        data = r.data
         customer = data.get('For Customer')
         hire = data.get('For Hire')
         sale = data.get('For Sale')
